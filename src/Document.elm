@@ -1,6 +1,7 @@
 module Document exposing
     ( Access(..)
     , Document
+    , Language(..)
     , defaultSettings
     , empty
     , wordCount
@@ -20,7 +21,14 @@ type alias Document =
     , title : String
     , public : Bool
     , author : Maybe String
+    , language : Language
+    , readOnly : Bool
     }
+
+
+type Language
+    = L0Lang
+    | MicroLaTeXLang
 
 
 type alias Username =
@@ -53,6 +61,8 @@ empty =
     , title = "(Untitled)"
     , public = False
     , author = Nothing
+    , language = MicroLaTeXLang
+    , readOnly = False
     }
 
 

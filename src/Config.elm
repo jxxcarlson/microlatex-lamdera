@@ -20,7 +20,7 @@ documentDeletedNotice =
 
 
 appName =
-    "L0 Lab"
+    "TechDocs"
 
 
 appUrl =

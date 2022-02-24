@@ -1,20 +1,53 @@
 module Parser.Expression exposing
     ( State
+    , eval
+    , isReducible
     , parse
     , parseToState
-    , parseTokenList
+    , prepare
     )
 
 import Either exposing (Either(..))
 import List.Extra
-import Parser.Expr exposing (Expr(..))
+import Parser.Expr exposing (Expr(..), ExprT(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
-import Parser.Match as M
-import Parser.Symbol as Symbol exposing (Symbol(..))
+import Parser.Match as M exposing (match, reducible)
+import Parser.Symbol as Symbol exposing (Symbol(..), convertTokens2)
 import Parser.Token as Token exposing (Meta, Token(..), TokenType(..))
 
 
+prepare : List Token -> List ExprT
+prepare exprs =
+    let
+        f expr =
+            case expr of
+                T (S t m) ->
+                    E (Text t m)
 
+                _ ->
+                    expr
+    in
+    exprs
+        |> List.map T
+        |> List.map f
+
+
+
+--getMeta : Expr -> Meta
+--getMeta expr =
+--    case expr of
+--        Expr _ _ m ->
+--            m
+--
+--        Text _ m ->
+--            m
+--
+--        Verbatim _ _ m ->
+--            m
+--
+--        Error _ ->
+--            { begin = 0, end = 0, index = -1 }
+--
 -- TYPES
 
 
@@ -72,28 +105,22 @@ parse : Int -> String -> List Expr
 parse lineNumber str =
     str
         |> Token.run
-        |> parseTokenList lineNumber
+        |> initWithTokens lineNumber
+        |> run
+        |> .committed
 
 
 parseToState : Int -> String -> State
 parseToState lineNumber str =
     str
         |> Token.run
-        |> parseTokenListToState lineNumber
+        |> initWithTokens lineNumber
+        |> run
 
 
 
 -- PARSER
-
-
-parseTokenListToState : Int -> List Token -> State
-parseTokenListToState lineNumber tokens =
-    tokens |> initWithTokens lineNumber |> run
-
-
-parseTokenList : Int -> List Token -> List Expr
-parseTokenList lineNumber tokens =
-    parseTokenListToState lineNumber tokens |> .committed
+-- PARSER
 
 
 run : State -> State
@@ -137,6 +164,9 @@ pushToken token state =
             pushOnStack token state
 
         CodeToken _ ->
+            pushOnStack token state
+
+        BS _ ->
             pushOnStack token state
 
         LB _ ->
@@ -198,25 +228,66 @@ push token state =
 reduceState : State -> State
 reduceState state =
     let
-        symbols =
-            state.stack |> Symbol.convertTokens |> List.reverse
+        peek =
+            List.Extra.getAt state.tokenIndex state.tokens
+
+        isStringToken maybeTok =
+            case maybeTok of
+                Just (S _ _) ->
+                    True
+
+                _ ->
+                    False
+
+        reducible_ =
+            isReducible state.stack
+                && isStringToken peek
     in
-    if M.reducible symbols then
+    if state.tokenIndex >= state.numberOfTokens || reducible_ then
+        let
+            symbols =
+                state.stack |> Symbol.convertTokens |> List.reverse
+        in
         case List.head symbols of
-            Just L ->
+            Just B ->
                 case eval state.lineNumber (state.stack |> List.reverse) of
-                    (Expr "invisible" [ Text message _ ] _) :: rest ->
+                    (Expr "??" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
 
                     whatever ->
                         { state | stack = [], committed = whatever ++ state.committed }
 
-            -- { state | stack = [], committed = eval (state.stack |> List.reverse) ++ state.committed }
             Just M ->
-                { state | stack = [], committed = Verbatim "math" (Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
+                let
+                    content =
+                        state.stack |> List.reverse |> Token.toString
+
+                    trailing =
+                        String.right 1 content
+
+                    committed =
+                        if trailing == "$" && content == "$" then
+                            let
+                                ( first_, rest_ ) =
+                                    case state.committed of
+                                        first :: rest ->
+                                            ( first, rest )
+
+                                        _ ->
+                                            ( Expr "red" [ Text "????" dummyLoc ] dummyLoc, [] )
+                            in
+                            first_ :: Expr "red" [ Text "$" dummyLoc ] dummyLoc :: rest_
+
+                        else if trailing == "$" then
+                            Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+
+                        else
+                            Expr "red" [ Text "$" dummyLoc ] dummyLoc :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+                in
+                { state | stack = [], committed = committed }
 
             Just C ->
-                { state | stack = [], committed = Verbatim "code" (Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
+                { state | stack = [], committed = Verbatim "code" (String.replace "`" "" <| Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
 
             _ ->
                 state
@@ -244,48 +315,43 @@ areBracketed tokens =
 
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
-    if areBracketed tokens then
-        let
-            args =
-                unbracket tokens
-        in
-        case List.head args of
-            -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
-            Just (S name meta) ->
-                [ Expr name (evalList lineNumber (List.drop 1 args)) meta ]
+    case tokens of
+        -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
+        (S t m2) :: rest ->
+            Text t m2 :: evalList Nothing lineNumber rest
 
-            Nothing ->
-                -- this happens with input of "[]"
-                [ errorMessageInvisible lineNumber "[ ] not legal - you need something between the brackets", errorMessage "[??]" ]
+        (BS m1) :: (S name m2) :: rest ->
+            [ Expr name (evalList (Just name) lineNumber rest) m1 ]
 
-            _ ->
-                [ errorMessageInvisible lineNumber "[  or [   ] not legal, try [something ...]", errorMessage <| "[" ++ Token.toString args ++ "?? ]" ]
-
-    else
-        []
+        _ ->
+            -- [ errorMessageInvisible lineNumber "missing macro name", errorMessage <| "??" ]
+            errorMessage2Part lineNumber "\\" "??{??}"
 
 
-evalList : Int -> List Token -> List Expr
-evalList lineNumber tokens =
+evalList : Maybe String -> Int -> List Token -> List Expr
+evalList macroName lineNumber tokens =
     case List.head tokens of
         Just token ->
             case Token.type_ token of
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
                         Nothing ->
-                            [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLoc ]
+                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) "??}"
 
                         Just k ->
                             let
                                 ( a, b ) =
                                     M.splitAt (k + 1) tokens
+
+                                aa =
+                                    a |> List.take (List.length a - 1) |> List.drop 1
                             in
-                            eval lineNumber a ++ evalList lineNumber b
+                            eval lineNumber aa ++ evalList Nothing lineNumber b
 
                 _ ->
                     case exprOfToken token of
                         Just expr ->
-                            expr :: evalList lineNumber (List.drop 1 tokens)
+                            expr :: evalList Nothing lineNumber (List.drop 1 tokens)
 
                         Nothing ->
                             [ errorMessageInvisible lineNumber "Error converting token", Text "error converting Token" dummyLoc ]
@@ -294,16 +360,23 @@ evalList lineNumber tokens =
             []
 
 
+errorMessage2Part : Int -> String -> String -> List Expr
+errorMessage2Part lineNumber a b =
+    [ Expr "red" [ Text b dummyLoc ] dummyLoc, Expr "blue" [ Text a dummyLoc ] dummyLoc ]
+
+
+errorMessage3Part : Int -> String -> String -> String -> List Expr
+errorMessage3Part lineNumber a b c =
+    [ Expr "blue" [ Text a dummyLoc ] dummyLoc, Expr "blue" [ Text b dummyLoc ] dummyLoc, Expr "red" [ Text c dummyLoc ] dummyLoc ]
+
+
 errorMessageInvisible : Int -> String -> Expr
 errorMessageInvisible lineNumber message =
     let
         m =
-            -- message ++ " (line " ++ String.fromInt lineNumber ++ ")"
             message
-
-        --  ++ " (line " ++ String.fromInt lineNumber ++ ")"
     in
-    Expr "invisible" [ Text m dummyLoc ] dummyLoc
+    Expr "red" [ Text message dummyLoc ] dummyLoc
 
 
 errorMessage : String -> Expr
@@ -349,7 +422,15 @@ addErrorMessage message state =
 
 isReducible : List Token -> Bool
 isReducible tokens =
-    tokens |> List.reverse |> Symbol.convertTokens |> M.reducible
+    let
+        preliminary =
+            tokens |> List.reverse |> Symbol.convertTokens2 |> List.filter (\sym -> sym /= O)
+    in
+    if preliminary == [] then
+        False
+
+    else
+        preliminary |> M.reducible
 
 
 recoverFromError : State -> Step State State

@@ -8,7 +8,7 @@ import Browser.Navigation exposing (Key)
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
-import Document exposing (Document)
+import Document exposing (Document, Language(..))
 import Element
 import File exposing (File)
 import Http
@@ -76,6 +76,7 @@ type alias FrontendModel =
     , publicDocuments : List Document
     , deleteDocumentState : DocumentDeleteState
     , sortMode : SortMode
+    , language : Language
     }
 
 

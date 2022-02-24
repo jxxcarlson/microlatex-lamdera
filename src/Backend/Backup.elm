@@ -5,7 +5,7 @@ import Authentication
 import Codec exposing (Codec)
 import Credentials
 import Dict exposing (Dict)
-import Document exposing (Document)
+import Document exposing (Document, Language(..))
 import Random
 import Time
 import Types
@@ -261,7 +261,25 @@ documentCodec =
         |> Codec.field "title" .title Codec.string
         |> Codec.field "public" .public Codec.bool
         |> Codec.field "author" .author (Codec.maybe Codec.string)
+        |> Codec.field "language" .language languageCodec
+        |> Codec.field "readOnly" .readOnly Codec.bool
         |> Codec.buildObject
+
+
+languageCodec : Codec Language
+languageCodec =
+    Codec.custom
+        (\l0lang microlatexlang value ->
+            case value of
+                L0Lang ->
+                    l0lang
+
+                MicroLaTeXLang ->
+                    microlatexlang
+        )
+        |> Codec.variant0 "L0Language" L0Lang
+        |> Codec.variant0 "MicroLaTeXLang" MicroLaTeXLang
+        |> Codec.buildCustom
 
 
 posixCodec : Codec Time.Posix

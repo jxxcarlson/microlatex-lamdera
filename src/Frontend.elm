@@ -13,7 +13,7 @@ import Compiler.DifferentialParser
 import Config
 import Debounce exposing (Debounce)
 import Docs
-import Document exposing (Access(..))
+import Document exposing (Access(..), Language(..))
 import Element
 import File
 import File.Download as Download
@@ -123,6 +123,7 @@ init url key =
       , publicDocuments = []
       , deleteDocumentState = WaitingForDeleteAction
       , sortMode = SortByMostRecent
+      , language = MicroLaTeXLang
       }
     , Cmd.batch
         [ Frontend.Cmd.setupWindow

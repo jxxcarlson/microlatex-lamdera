@@ -116,6 +116,8 @@ markupDict =
 
         --
         , ( "dollarSign", \_ _ _ -> Element.el [] (Element.text "$") )
+        , ( "bs", \g s exprList -> Element.paragraph [] (Element.text "\\" :: List.map (render g s) exprList) )
+        , ( "texarg", \g s exprList -> Element.paragraph [] ((Element.text "{" :: List.map (render g s) exprList) ++ [ Element.text " }" ]) )
         , ( "backTick", \_ _ _ -> Element.el [] (Element.text "`") )
         ]
 
