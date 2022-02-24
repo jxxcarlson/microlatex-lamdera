@@ -15,6 +15,7 @@ import Document exposing (Access(..))
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
 import List.Extra
 import Maybe.Extra
+import Parser.Language exposing (Language(..))
 import Random
 import Time
 import Token
@@ -201,8 +202,11 @@ updateFromFrontend sessionId clientId msg model =
         SaveDocument currentUser document ->
             let
                 title =
-                    Abstract.getBlockContents "title" document.content
+                    -- Abstract.getBlockContents "title" document.content |> Debug.log "SAVEDOC, Abstr, Title"
+                    Abstract.getItem document.language "title" document.content |> Debug.log "SAVEDOC, Abstr, Title"
 
+                --  "XTITLE"
+                -- |> Debug.log "SAVEDOC, Abstr, Title"
                 documentDict =
                     Dict.insert document.id { document | title = title, modified = model.currentTime } model.documentDict
             in
@@ -293,7 +297,7 @@ updateFromFrontend sessionId clientId msg model =
         GetPublicDocuments ->
             ( model, sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments "" model)) )
 
-        StealDocument user id ->
+        ApplySpecial user id ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
             let
                 badDocs =
@@ -301,8 +305,16 @@ updateFromFrontend sessionId clientId msg model =
 
                 updateDoc doc mod =
                     let
+                        content =
+                            case doc.language of
+                                L0Lang ->
+                                    "| title\n<<untitled>>\n\n"
+
+                                MicroLaTeXLang ->
+                                    "\\title{<<untitled>>}\n\n"
+
                         documentDict =
-                            Dict.insert doc.id { doc | title = "<<untitled>>", modified = model.currentTime } mod.documentDict
+                            Dict.insert doc.id { doc | title = "<<untitled>>", content = content, modified = model.currentTime } mod.documentDict
                     in
                     { mod | documentDict = documentDict }
 

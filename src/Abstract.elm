@@ -5,6 +5,7 @@ module Abstract exposing
     , get
     , getBlockContents
     , getElement
+    , getItem
     , str1
     , str2
     , str3
@@ -12,6 +13,7 @@ module Abstract exposing
     )
 
 import Parser exposing ((|.), (|=), Parser)
+import Parser.Language exposing (Language(..))
 
 
 type alias Abstract =
@@ -36,20 +38,43 @@ empty =
     }
 
 
+runParser stringParser str default =
+    case Parser.run stringParser str of
+        Ok s ->
+            s
+
+        Err _ ->
+            default
+
+
+getItem : Language -> String -> String -> String
+getItem language key str =
+    case language of
+        L0Lang ->
+            "XX:" ++ key
+
+        MicroLaTeXLang ->
+            runParser (macroValParser key) str ("XX:" ++ key)
+
+
 get : String -> Abstract
 get source =
     let
         title =
-            getBlockContents "title" source
+            --getBlockContents "title" source
+            runParser (macroValParser "title") source "title"
 
         subtitle =
-            getBlockContents "subtitle" source
+            --getBlockContents "subtitle" source
+            runParser (macroValParser "subtitle") source "subtitle"
 
         author =
-            getBlockContents "author" source
+            --getBlockContents "author" source
+            runParser (macroValParser "author") source "author"
 
         abstract =
-            getBlockContents "abstract" source
+            --getBlockContents "abstract" source
+            runParser (macroValParser "abstract") source "abstract"
 
         tags =
             getElement "tags" source
@@ -120,6 +145,22 @@ blockParser name =
         |. Parser.spaces
         |= Parser.getOffset
         |. Parser.chompUntil "\n"
+        |= Parser.getOffset
+        |= Parser.getSource
+    )
+        |> Parser.map String.trim
+
+
+{-| If the string is "\\foo{bar}", return "bar"
+-}
+macroValParser : String -> Parser String
+macroValParser macroName =
+    (Parser.succeed String.slice
+        |. Parser.chompUntil ("\\" ++ macroName ++ "{")
+        |. Parser.symbol ("\\" ++ macroName ++ "{")
+        |. Parser.spaces
+        |= Parser.getOffset
+        |. Parser.chompUntil "}"
         |= Parser.getOffset
         |= Parser.getSource
     )

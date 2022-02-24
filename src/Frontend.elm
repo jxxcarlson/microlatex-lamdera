@@ -13,7 +13,7 @@ import Compiler.DifferentialParser
 import Config
 import Debounce exposing (Debounce)
 import Docs
-import Document exposing (Access(..), Language(..))
+import Document exposing (Access(..))
 import Element
 import File
 import File.Download as Download
@@ -27,6 +27,8 @@ import Lamdera exposing (sendToBackend)
 import List.Extra
 import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil as BlockUtil
+import Parser.Expr exposing (Expr(..))
+import Parser.Language exposing (Language(..))
 import Process
 import Render.Block
 import Render.L0 as L0
@@ -106,11 +108,11 @@ init url key =
       , lineNumber = 0
       , permissions = ReadOnly
       , initialText = ""
-      , documentsCreatedCounter = 1
+      , documentsCreatedCounter = 0
       , sourceText = View.Data.welcome
       , ast = L0.parse View.Data.welcome |> Compiler.Acc.transformST
       , editRecord = Compiler.DifferentialParser.init chunker parser ""
-      , title = Compiler.ASTTools.title (L0.parse View.Data.welcome)
+      , title = "(title not yet defined)"
       , tableOfContents = Compiler.ASTTools.tableOfContents (L0.parse View.Data.welcome)
       , debounce = Debounce.init
       , counter = 0
@@ -278,7 +280,7 @@ update msg model =
 
                 Just user ->
                     if user.username == "jxxcarlson" then
-                        model |> withCmd (sendToBackend (StealDocument user model.inputSpecial))
+                        model |> withCmd (sendToBackend (ApplySpecial user model.inputSpecial))
 
                     else
                         model |> withNoCmd
@@ -306,7 +308,7 @@ update msg model =
                 , sourceText = doc.content
                 , initialText = doc.content
                 , ast = ast
-                , title = Compiler.ASTTools.title ast
+                , title = Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
                 , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
                 , permissions = setPermissions model.currentUser permissions doc
@@ -472,7 +474,7 @@ update msg model =
 
                 syntaxTree : List (Tree ExpressionBlock)
                 syntaxTree =
-                    editRecord.parsed |> Compiler.Acc.transformST
+                    editRecord.parsed |> Compiler.Acc.transformST |> Debug.log "SYNTAX TREE"
 
                 messages : List String
                 messages =
@@ -482,7 +484,7 @@ update msg model =
             ( { model
                 | sourceText = str
                 , ast = syntaxTree
-                , title = Compiler.ASTTools.title syntaxTree
+                , title = Compiler.ASTTools.title model.language syntaxTree
                 , tableOfContents = Compiler.ASTTools.tableOfContents syntaxTree
                 , message = String.join ", " messages
                 , debounce = debounce
@@ -546,7 +548,7 @@ update msg model =
                         , sourceText = doc.content
                         , initialText = doc.content
                         , ast = ast
-                        , title = Compiler.ASTTools.title ast
+                        , title = Compiler.ASTTools.title model.language ast
                         , tableOfContents = Compiler.ASTTools.tableOfContents ast
                         , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
                         , counter = model.counter + 1
@@ -558,13 +560,17 @@ update msg model =
             let
                 ast =
                     L0.parse doc.content |> Compiler.Acc.transformST
+
+                _ =
+                    doc.content |> Debug.log "CONTENT"
             in
             ( { model
                 | currentDocument = Just doc
                 , sourceText = doc.content
                 , initialText = doc.content
-                , ast = ast
-                , title = Compiler.ASTTools.title ast
+                , ast = ast |> Debug.log "AST"
+                , title =
+                    Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
                 , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
                 , permissions = setPermissions model.currentUser permissions doc
@@ -787,8 +793,9 @@ updateDoc model str =
 
             else
                 let
+                    provisionalTitle : String
                     provisionalTitle =
-                        Compiler.ASTTools.extractTextFromSyntaxTreeByKey "title" model.ast
+                        Compiler.ASTTools.title model.language model.ast
 
                     ( safeContent, safeTitle ) =
                         if String.left 1 provisionalTitle == "|" then
@@ -798,7 +805,7 @@ updateDoc model str =
                             ( str, provisionalTitle )
 
                     newDocument =
-                        { doc | content = safeContent, title = safeTitle }
+                        { doc | content = safeContent, title = safeTitle } |> Debug.log "UPDATE DOC"
 
                     documents =
                         List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
@@ -877,7 +884,7 @@ updateFromBackend msg model =
             in
             ( { model
                 | ast = ast |> Compiler.Acc.transformST
-                , title = Compiler.ASTTools.title ast
+                , title = Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
                 , showEditor = showEditor
                 , currentDocument = Just doc

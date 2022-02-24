@@ -5,8 +5,8 @@ module Frontend.Update exposing
     )
 
 import Document exposing (Document)
-import Frontend.Cmd
 import Lamdera exposing (sendToBackend)
+import Parser.Language exposing (Language(..))
 import Types exposing (..)
 
 
@@ -34,13 +34,23 @@ newDocument model =
         documentsCreatedCounter =
             model.documentsCreatedCounter + 1
 
+        title =
+            "New Document (" ++ String.fromInt documentsCreatedCounter ++ ")"
+
         titleString =
-            "| title\nNew Document (" ++ String.fromInt documentsCreatedCounter ++ ")\n\n"
+            case model.language of
+                L0Lang ->
+                    "| title\n" ++ title ++ "\n\n"
+
+                MicroLaTeXLang ->
+                    "\\title{" ++ title ++ "}\n\n"
 
         doc =
             { emptyDoc
-                | content = titleString
+                | title = title
+                , content = titleString
                 , author = Maybe.map .username model.currentUser
+                , language = model.language
             }
     in
     ( { model | showEditor = True, documentsCreatedCounter = documentsCreatedCounter }

@@ -8,12 +8,13 @@ import Browser.Navigation exposing (Key)
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
-import Document exposing (Document, Language(..))
+import Document exposing (Document)
 import Element
 import File exposing (File)
 import Http
 import L0
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
+import Parser.Language exposing (Language(..))
 import Random
 import Render.Msg exposing (L0Msg)
 import Time
@@ -61,7 +62,7 @@ type alias FrontendModel =
     , ast : L0.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord (Tree.Tree IntermediateBlock) (Tree.Tree ExpressionBlock)
     , tableOfContents : List ExpressionBlock
-    , title : List ExpressionBlock
+    , title : String
     , searchCount : Int
     , searchSourceText : String
     , lineNumber : Int
@@ -289,7 +290,7 @@ type ToBackend
     | GetDocumentByPublicId String
     | GetDocumentById String
     | CreateDocument (Maybe User) Document
-    | StealDocument User String
+    | ApplySpecial User String
     | SearchForDocuments (Maybe String) String
     | DeleteDocumentBE Document
 

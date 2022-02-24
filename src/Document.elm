@@ -1,12 +1,12 @@
 module Document exposing
     ( Access(..)
     , Document
-    , Language(..)
     , defaultSettings
     , empty
     , wordCount
     )
 
+import Parser.Language exposing (Language(..))
 import Render.Settings
 import Time
 import User exposing (User)
@@ -24,11 +24,6 @@ type alias Document =
     , language : Language
     , readOnly : Bool
     }
-
-
-type Language
-    = L0Lang
-    | MicroLaTeXLang
 
 
 type alias Username =

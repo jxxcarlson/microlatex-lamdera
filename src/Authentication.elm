@@ -12,7 +12,6 @@ import Config
 import Credentials exposing (Credentials)
 import Crypto.HMAC exposing (sha256)
 import Dict exposing (Dict)
-import Config
 import User exposing (User)
 
 

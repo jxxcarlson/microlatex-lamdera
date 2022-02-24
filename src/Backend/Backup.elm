@@ -5,7 +5,8 @@ import Authentication
 import Codec exposing (Codec)
 import Credentials
 import Dict exposing (Dict)
-import Document exposing (Document, Language(..))
+import Document exposing (Document)
+import Parser.Language exposing (Language(..))
 import Random
 import Time
 import Types
