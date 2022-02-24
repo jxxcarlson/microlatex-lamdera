@@ -202,11 +202,8 @@ updateFromFrontend sessionId clientId msg model =
         SaveDocument currentUser document ->
             let
                 title =
-                    -- Abstract.getBlockContents "title" document.content |> Debug.log "SAVEDOC, Abstr, Title"
-                    Abstract.getItem document.language "title" document.content |> Debug.log "SAVEDOC, Abstr, Title"
+                    Abstract.getItem document.language "title" document.content
 
-                --  "XTITLE"
-                -- |> Debug.log "SAVEDOC, Abstr, Title"
                 documentDict =
                     Dict.insert document.id { document | title = title, modified = model.currentTime } model.documentDict
             in

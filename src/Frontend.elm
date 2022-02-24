@@ -1,6 +1,5 @@
 module Frontend exposing (..)
 
-import Abstract
 import Authentication
 import Backend.Backup
 import Browser exposing (UrlRequest(..))
@@ -474,7 +473,7 @@ update msg model =
 
                 syntaxTree : List (Tree ExpressionBlock)
                 syntaxTree =
-                    editRecord.parsed |> Compiler.Acc.transformST |> Debug.log "SYNTAX TREE"
+                    editRecord.parsed |> Compiler.Acc.transformST
 
                 messages : List String
                 messages =
@@ -560,15 +559,12 @@ update msg model =
             let
                 ast =
                     L0.parse doc.content |> Compiler.Acc.transformST
-
-                _ =
-                    doc.content |> Debug.log "CONTENT"
             in
             ( { model
                 | currentDocument = Just doc
                 , sourceText = doc.content
                 , initialText = doc.content
-                , ast = ast |> Debug.log "AST"
+                , ast = ast
                 , title =
                     Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
@@ -805,7 +801,7 @@ updateDoc model str =
                             ( str, provisionalTitle )
 
                     newDocument =
-                        { doc | content = safeContent, title = safeTitle } |> Debug.log "UPDATE DOC"
+                        { doc | content = safeContent, title = safeTitle }
 
                     documents =
                         List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
