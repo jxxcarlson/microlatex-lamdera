@@ -10,6 +10,7 @@ import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
+import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
 
 
@@ -32,14 +33,14 @@ getLambda name environment =
     Dict.get name environment |> Maybe.map (\( args, expr ) -> { name = name, args = args, expr = expr })
 
 
-transformST : List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
-transformST ast =
-    ast |> make |> Tuple.second
+transformST : Language -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
+transformST lang ast =
+    ast |> make lang |> Tuple.second
 
 
-make : List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
-make ast =
-    List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree tree acc_ |> mapper ast_) ( init 4, [] ) ast
+make : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
+make lang ast =
+    List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
 
 
@@ -62,8 +63,8 @@ mapper ast_ ( acc_, tree_ ) =
     ( acc_, tree_ :: ast_ )
 
 
-transformAccumulateTree : Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
-transformAccumulateTree tree acc =
+transformAccumulateTree : Language -> Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
+transformAccumulateTree lang tree acc =
     let
         transformer : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
         transformer =
@@ -72,7 +73,7 @@ transformAccumulateTree tree acc =
                     newAcc =
                         updateAccumulator block_ acc_
                 in
-                ( newAcc, transformBlock newAcc block_ )
+                ( newAcc, transformBlock lang newAcc block_ )
     in
     Tree.mapAccumulate transformer acc tree
 
@@ -82,8 +83,8 @@ namedIndex name k =
     name ++ "::" ++ String.fromInt k
 
 
-transformBlock : Accumulator -> ExpressionBlock -> ExpressionBlock
-transformBlock acc (ExpressionBlock block) =
+transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
+transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "heading", level ] ->
             ExpressionBlock

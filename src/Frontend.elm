@@ -108,7 +108,7 @@ init url key =
       , initialText = ""
       , documentsCreatedCounter = 0
       , sourceText = View.Data.welcome
-      , ast = L0.parse View.Data.welcome |> Compiler.Acc.transformST
+      , ast = L0.parse View.Data.welcome |> Compiler.Acc.transformST MicroLaTeXLang
       , editRecord = Compiler.DifferentialParser.init chunker parser ""
       , title = "(title not yet defined)"
       , tableOfContents = Compiler.ASTTools.tableOfContents (L0.parse View.Data.welcome)
@@ -299,7 +299,7 @@ update msg model =
         SetDocumentInPhoneAsCurrent permissions doc ->
             let
                 ast =
-                    L0.parse doc.content |> Compiler.Acc.transformST
+                    L0.parse doc.content |> Compiler.Acc.transformST doc.language
             in
             ( { model
                 | currentDocument = Just doc
@@ -472,7 +472,7 @@ update msg model =
 
                 syntaxTree : List (Tree ExpressionBlock)
                 syntaxTree =
-                    editRecord.parsed |> Compiler.Acc.transformST
+                    editRecord.parsed |> Compiler.Acc.transformST model.language
 
                 messages : List String
                 messages =
@@ -539,7 +539,7 @@ update msg model =
                 Just doc ->
                     let
                         ast =
-                            L0.parse doc.content |> Compiler.Acc.transformST
+                            L0.parse doc.content |> Compiler.Acc.transformST doc.language
                     in
                     ( { model
                         | currentDocument = Just doc
@@ -557,7 +557,7 @@ update msg model =
         SetDocumentAsCurrent permissions doc ->
             let
                 ast =
-                    L0.parse doc.content |> Compiler.Acc.transformST
+                    L0.parse doc.content |> Compiler.Acc.transformST doc.language
             in
             ( { model
                 | currentDocument = Just doc
@@ -878,7 +878,7 @@ updateFromBackend msg model =
                     L0.parse doc.content
             in
             ( { model
-                | ast = ast |> Compiler.Acc.transformST
+                | ast = ast |> Compiler.Acc.transformST doc.language
                 , title = Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
                 , showEditor = showEditor
