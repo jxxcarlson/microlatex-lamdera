@@ -72,7 +72,12 @@ transformAccumulateTree lang tree acc =
             \acc_ block__ ->
                 let
                     block_ =
-                        Compiler.LaTeX.transform block__
+                        case lang of
+                            MicroLaTeXLang ->
+                                Compiler.LaTeX.transform block__
+
+                            L0Lang ->
+                                block__
 
                     newAcc =
                         updateAccumulator block_ acc_
