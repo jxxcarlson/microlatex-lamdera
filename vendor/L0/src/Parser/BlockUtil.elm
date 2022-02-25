@@ -288,7 +288,7 @@ toIntermediateBlock block =
             classify block
 
         tag =
-            Compiler.Util.getItem MicroLaTeXLang "label" block.content |> Debug.log "REF TAG"
+            Compiler.Util.getItem MicroLaTeXLang "label" block.content
 
         revisedContent =
             Compiler.Util.eraseItem MicroLaTeXLang "label" tag block.content

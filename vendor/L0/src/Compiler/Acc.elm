@@ -156,7 +156,7 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
     let
         accumulator =
             if tag /= "" then
-                { accumulator_ | reference = Dict.insert tag id accumulator_.reference |> Debug.log "REFDICT" }
+                { accumulator_ | reference = Dict.insert tag id accumulator_.reference }
 
             else
                 accumulator_
