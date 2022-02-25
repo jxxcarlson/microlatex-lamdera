@@ -26,7 +26,7 @@ type alias Accumulator =
     , problemIndex : Int
     , theoremIndex : Int
     , environment : Dict String Lambda
-    , reference : Dict String String
+    , reference : Dict String { id : String, numRef : String }
     }
 
 
@@ -152,14 +152,11 @@ expand dict (ExpressionBlock block) =
 
 
 updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) accumulator_ =
+updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) accumulator =
     let
-        accumulator =
-            if tag /= "" then
-                { accumulator_ | reference = Dict.insert tag id accumulator_.reference }
-
-            else
-                accumulator_
+        updateReference : String -> String -> String -> Accumulator -> Accumulator
+        updateReference tag_ id_ numRef_ acc =
+            { acc | reference = Dict.insert tag_ { id = id_, numRef = numRef_ } acc.reference }
     in
     case blockType of
         -- provide numbering for sections
@@ -168,7 +165,7 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
                 headingIndex =
                     Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
             in
-            { accumulator | headingIndex = headingIndex, numberedItemIndex = 0 }
+            { accumulator | headingIndex = headingIndex, numberedItemIndex = 0 } |> updateReference tag id (Vector.toString headingIndex)
 
         -- provide numbering for lists
         OrdinaryBlock [ "numbered" ] ->
@@ -176,27 +173,27 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
                 numberedItemIndex =
                     accumulator.numberedItemIndex + 1
             in
-            { accumulator | numberedItemIndex = numberedItemIndex }
+            { accumulator | numberedItemIndex = numberedItemIndex } |> updateReference tag id (String.fromInt numberedItemIndex)
 
         OrdinaryBlock args ->
             case List.head args of
                 Just "theorem" ->
-                    { accumulator | theoremIndex = accumulator.theoremIndex + 1 }
+                    { accumulator | theoremIndex = accumulator.theoremIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.theoremIndex + 1))
 
                 Just "lemma" ->
-                    { accumulator | lemmaIndex = accumulator.lemmaIndex + 1 }
+                    { accumulator | lemmaIndex = accumulator.lemmaIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.lemmaIndex + 1))
 
                 Just "definition" ->
-                    { accumulator | definitionIndex = accumulator.definitionIndex + 1 }
+                    { accumulator | definitionIndex = accumulator.definitionIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.definitionIndex + 1))
 
                 Just "problem" ->
-                    { accumulator | problemIndex = accumulator.problemIndex + 1 }
+                    { accumulator | problemIndex = accumulator.problemIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.problemIndex + 1))
 
                 Just "remark" ->
-                    { accumulator | remarkIndex = accumulator.remarkIndex + 1 }
+                    { accumulator | remarkIndex = accumulator.remarkIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.remarkIndex + 1))
 
                 Just "example" ->
-                    { accumulator | exampleIndex = accumulator.exampleIndex + 1 }
+                    { accumulator | exampleIndex = accumulator.exampleIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.exampleIndex + 1))
 
                 Just "defs" ->
                     case content of
@@ -215,14 +212,14 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
                 equationIndex =
                     accumulator.equationIndex + 1
             in
-            { accumulator | equationIndex = equationIndex }
+            { accumulator | equationIndex = equationIndex } |> updateReference tag id (String.fromInt equationIndex)
 
         VerbatimBlock [ "aligned" ] ->
             let
                 equationIndex =
                     accumulator.equationIndex + 1
             in
-            { accumulator | equationIndex = equationIndex }
+            { accumulator | equationIndex = equationIndex } |> updateReference tag id (String.fromInt equationIndex)
 
         -- insert definitions of lambdas
         --OrdinaryBlock [ "defs" ] ->
