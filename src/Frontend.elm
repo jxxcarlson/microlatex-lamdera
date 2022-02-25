@@ -26,7 +26,6 @@ import Lamdera exposing (sendToBackend)
 import List.Extra
 import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil as BlockUtil
-import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
 import Process
 import Render.Block

@@ -20,12 +20,12 @@ documentDeletedNotice =
 
 
 appName =
-    "TechDocs"
+    "MicroLaTeX"
 
 
 appUrl =
     -- "localhost/8000"
-    "https://l0-lab-demo.lamdera.app"
+    "https://microlatex.lamdera.app"
 
 
 pdfServer =
