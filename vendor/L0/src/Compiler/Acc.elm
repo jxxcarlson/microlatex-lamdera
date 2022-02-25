@@ -4,6 +4,7 @@ module Compiler.Acc exposing
     , transformST
     )
 
+import Compiler.LaTeX
 import Compiler.Lambda as Lambda exposing (Lambda)
 import Compiler.Vector as Vector exposing (Vector)
 import Dict exposing (Dict)
@@ -68,8 +69,11 @@ transformAccumulateTree lang tree acc =
     let
         transformer : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
         transformer =
-            \acc_ block_ ->
+            \acc_ block__ ->
                 let
+                    block_ =
+                        Compiler.LaTeX.transform block__
+
                     newAcc =
                         updateAccumulator block_ acc_
                 in
@@ -133,6 +137,11 @@ transformBlock lang acc (ExpressionBlock block) =
 
         _ ->
             expand acc.environment (ExpressionBlock block)
+
+
+
+--|> Compiler.LaTeX.transform
+--|> Debug.log "TRANSF"
 
 
 expand : Dict String Lambda -> ExpressionBlock -> ExpressionBlock
