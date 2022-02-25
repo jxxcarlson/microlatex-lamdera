@@ -68,6 +68,7 @@ beginItemizedBlock =
         , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
+        , tag = ""
         , indent = 1
         , lineNumber = 0
         , name = Just "beginBlock"
@@ -85,6 +86,7 @@ endItemizedBlock =
         , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
+        , tag = ""
         , indent = 1
         , lineNumber = 0
         , name = Just "endBlock"
@@ -102,6 +104,7 @@ beginNumberedBlock =
         , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
+        , tag = ""
         , indent = 1
         , lineNumber = 0
         , name = Just "beginNumberedBlock"
@@ -119,6 +122,7 @@ endNumberedBlock =
         , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
+        , tag = ""
         , indent = 1
         , lineNumber = 0
         , name = Just "endNumberedBlock"

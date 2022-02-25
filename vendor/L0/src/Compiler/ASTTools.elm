@@ -16,7 +16,6 @@ module Compiler.ASTTools exposing
 import Either exposing (Either(..))
 import L0 exposing (SyntaxTree)
 import Maybe.Extra
-import Parser exposing ((|.), (|=), Parser)
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))

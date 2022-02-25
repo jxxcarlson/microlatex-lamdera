@@ -26,6 +26,7 @@ type alias Accumulator =
     , problemIndex : Int
     , theoremIndex : Int
     , environment : Dict String Lambda
+    , reference : Dict String String
     }
 
 
@@ -57,6 +58,7 @@ init k =
     , problemIndex = 0
     , theoremIndex = 0
     , environment = Dict.empty
+    , reference = Dict.empty
     }
 
 
@@ -150,7 +152,15 @@ expand dict (ExpressionBlock block) =
 
 
 updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator ((ExpressionBlock { blockType, content }) as block) accumulator =
+updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) accumulator_ =
+    let
+        accumulator =
+            if tag /= "" then
+                { accumulator_ | reference = Dict.insert tag id accumulator_.reference |> Debug.log "REFDICT" }
+
+            else
+                accumulator_
+    in
     case blockType of
         -- provide numbering for sections
         OrdinaryBlock [ "heading", level ] ->

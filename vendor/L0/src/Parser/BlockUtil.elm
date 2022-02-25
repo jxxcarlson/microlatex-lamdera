@@ -3,18 +3,21 @@ module Parser.BlockUtil exposing
     , getMessages
     , l0Empty
     , toBlock
-    , toBlockFromIntermediateBlock
-    , toExpressionBlock
+    ,  toBlockFromIntermediateBlock
+       --, toExpressionBlock
+
     , toExpressionBlockFromIntermediateBlock
     , toIntermediateBlock
     , toL0Block
     )
 
+import Compiler.Util
 import Either exposing (Either(..))
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Expr exposing (Expr)
 import Parser.Expression
 import Parser.Helpers as Helpers
+import Parser.Language exposing (Language(..))
 import Tree.BlocksV
 
 
@@ -38,6 +41,7 @@ empty =
         , indent = 0
         , lineNumber = 0
         , id = "0"
+        , tag = ""
         , numberOfLines = 0
         , blockType = Paragraph
         , content = ""
@@ -54,6 +58,7 @@ l0Empty =
         , indent = 0
         , lineNumber = 0
         , id = "0"
+        , tag = ""
         , numberOfLines = 0
         , blockType = Paragraph
         , content = Left "YYY"
@@ -79,7 +84,7 @@ toBlockFromIntermediateBlock (IntermediateBlock { indent, lineNumber, numberOfLi
 
 
 toExpressionBlockFromIntermediateBlock : IntermediateBlock -> ExpressionBlock
-toExpressionBlockFromIntermediateBlock (IntermediateBlock { name, args, indent, lineNumber, id, blockType, content, messages, children, sourceText }) =
+toExpressionBlockFromIntermediateBlock (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, children, sourceText }) =
     ExpressionBlock
         { name = name
         , args = args
@@ -87,6 +92,7 @@ toExpressionBlockFromIntermediateBlock (IntermediateBlock { name, args, indent, 
         , lineNumber = lineNumber
         , numberOfLines = List.length (String.lines content)
         , id = id
+        , tag = tag
         , blockType = blockType
         , content = mapContent lineNumber blockType content
         , messages = messages
@@ -95,119 +101,121 @@ toExpressionBlockFromIntermediateBlock (IntermediateBlock { name, args, indent, 
         }
 
 
-toExpressionBlock : Int -> Tree.BlocksV.Block -> ExpressionBlock
-toExpressionBlock lineNumber block =
-    let
-        blockType =
-            classify block
 
-        state =
-            Parser.Expression.parseToState lineNumber block.content
-    in
-    case blockType of
-        Paragraph ->
-            ExpressionBlock
-                { name = Nothing
-                , args = []
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , id = String.fromInt block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = Right (Parser.Expression.parse block.lineNumber block.content)
-                , messages = state.messages
-                , blockType = blockType
-                , children = []
-                , sourceText = block.content
-                }
-
-        OrdinaryBlock args ->
-            let
-                name =
-                    List.head args |> Maybe.withDefault "anon"
-
-                ( firstLine, rawContent_ ) =
-                    if List.member name [ "item", "numbered" ] then
-                        split_ block.content
-
-                    else
-                        split block.content
-
-                messages =
-                    if rawContent_ == "" then
-                        ("Write something below the block header (" ++ String.replace "| " "" firstLine ++ ")") :: state.messages
-
-                    else
-                        state.messages
-
-                rawContent =
-                    if rawContent_ == "" then
-                        firstLine ++ "\n[red Write something below this block header (" ++ String.replace "| " "" firstLine ++ ")]"
-
-                    else
-                        rawContent_
-            in
-            ExpressionBlock
-                { name = List.head args
-                , args = List.drop 1 args
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , id = String.fromInt block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = Right (Parser.Expression.parse lineNumber rawContent)
-
-                --, content = Right state.committed
-                , messages = messages
-                , blockType = blockType
-                , children = []
-                , sourceText = block.content
-                }
-
-        VerbatimBlock args ->
-            let
-                ( firstLine, rawContent ) =
-                    split block.content
-
-                messages =
-                    case blockType of
-                        VerbatimBlock [ "math" ] ->
-                            if String.endsWith "$$" rawContent then
-                                state.messages
-
-                            else
-                                Helpers.prependMessage lineNumber "You need to close this math expression with '$$'" state.messages
-
-                        VerbatimBlock [ "code" ] ->
-                            if String.startsWith "```" firstLine && not (String.endsWith "```" rawContent) then
-                                Helpers.prependMessage lineNumber "You need to close this code block with triple backticks" state.messages
-
-                            else
-                                state.messages
-
-                        _ ->
-                            state.messages
-
-                content =
-                    if blockType == VerbatimBlock [ "code" ] then
-                        Left (String.replace "```" "" rawContent)
-
-                    else
-                        Left rawContent
-            in
-            ExpressionBlock
-                { name = List.head args
-                , args = List.drop 1 args
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , id = String.fromInt block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = content
-
-                --, content = Right state.committed
-                , messages = messages
-                , blockType = blockType
-                , children = []
-                , sourceText = block.content
-                }
+--
+--toExpressionBlock : Int -> Tree.BlocksV.Block -> ExpressionBlock
+--toExpressionBlock lineNumber block =
+--    let
+--        blockType =
+--            classify block
+--
+--        state =
+--            Parser.Expression.parseToState lineNumber block.content
+--    in
+--    case blockType of
+--        Paragraph ->
+--            ExpressionBlock
+--                { name = Nothing
+--                , args = []
+--                , indent = block.indent
+--                , lineNumber = block.lineNumber
+--                , id = String.fromInt block.lineNumber
+--                , numberOfLines = block.numberOfLines
+--                , content = Right (Parser.Expression.parse block.lineNumber block.content)
+--                , messages = state.messages
+--                , blockType = blockType
+--                , children = []
+--                , sourceText = block.content
+--                }
+--
+--        OrdinaryBlock args ->
+--            let
+--                name =
+--                    List.head args |> Maybe.withDefault "anon"
+--
+--                ( firstLine, rawContent_ ) =
+--                    if List.member name [ "item", "numbered" ] then
+--                        split_ block.content
+--
+--                    else
+--                        split block.content
+--
+--                messages =
+--                    if rawContent_ == "" then
+--                        ("Write something below the block header (" ++ String.replace "| " "" firstLine ++ ")") :: state.messages
+--
+--                    else
+--                        state.messages
+--
+--                rawContent =
+--                    if rawContent_ == "" then
+--                        firstLine ++ "\n[red Write something below this block header (" ++ String.replace "| " "" firstLine ++ ")]"
+--
+--                    else
+--                        rawContent_
+--            in
+--            ExpressionBlock
+--                { name = List.head args
+--                , args = List.drop 1 args
+--                , indent = block.indent
+--                , lineNumber = block.lineNumber
+--                , id = String.fromInt block.lineNumber
+--                , numberOfLines = block.numberOfLines
+--                , content = Right (Parser.Expression.parse lineNumber rawContent)
+--
+--                --, content = Right state.committed
+--                , messages = messages
+--                , blockType = blockType
+--                , children = []
+--                , sourceText = block.content
+--                }
+--
+--        VerbatimBlock args ->
+--            let
+--                ( firstLine, rawContent ) =
+--                    split block.content
+--
+--                messages =
+--                    case blockType of
+--                        VerbatimBlock [ "math" ] ->
+--                            if String.endsWith "$$" rawContent then
+--                                state.messages
+--
+--                            else
+--                                Helpers.prependMessage lineNumber "You need to close this math expression with '$$'" state.messages
+--
+--                        VerbatimBlock [ "code" ] ->
+--                            if String.startsWith "```" firstLine && not (String.endsWith "```" rawContent) then
+--                                Helpers.prependMessage lineNumber "You need to close this code block with triple backticks" state.messages
+--
+--                            else
+--                                state.messages
+--
+--                        _ ->
+--                            state.messages
+--
+--                content =
+--                    if blockType == VerbatimBlock [ "code" ] then
+--                        Left (String.replace "```" "" rawContent)
+--
+--                    else
+--                        Left rawContent
+--            in
+--            ExpressionBlock
+--                { name = List.head args
+--                , args = List.drop 1 args
+--                , indent = block.indent
+--                , lineNumber = block.lineNumber
+--                , id = String.fromInt block.lineNumber
+--                , numberOfLines = block.numberOfLines
+--                , content = content
+--
+--                --, content = Right state.committed
+--                , messages = messages
+--                , blockType = blockType
+--                , children = []
+--                , sourceText = block.content
+--                }
 
 
 mapContent : Int -> BlockType -> String -> Either String (List Expr)
@@ -279,6 +287,12 @@ toIntermediateBlock block =
         blockType =
             classify block
 
+        tag =
+            Compiler.Util.getItem MicroLaTeXLang "label" block.content |> Debug.log "REF TAG"
+
+        revisedContent =
+            Compiler.Util.eraseItem MicroLaTeXLang "label" tag block.content
+
         state =
             Parser.Expression.parseToState block.lineNumber block.content
     in
@@ -291,9 +305,8 @@ toIntermediateBlock block =
                 , lineNumber = block.lineNumber
                 , id = String.fromInt block.lineNumber
                 , numberOfLines = block.numberOfLines
-                , content = block.content
-
-                --, content = Right state.committed
+                , content = revisedContent
+                , tag = tag
                 , messages = state.messages
                 , blockType = blockType
                 , children = []
@@ -307,10 +320,10 @@ toIntermediateBlock block =
 
                 ( firstLine, rawContent_ ) =
                     if List.member name [ "item", "numbered" ] then
-                        split_ block.content
+                        split_ revisedContent
 
                     else
-                        split_ block.content
+                        split_ revisedContent
 
                 messages =
                     if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
@@ -352,6 +365,7 @@ toIntermediateBlock block =
                 , indent = block.indent
                 , lineNumber = block.lineNumber
                 , id = String.fromInt block.lineNumber
+                , tag = tag
                 , numberOfLines = block.numberOfLines
                 , content = content
                 , messages = messages
@@ -363,7 +377,7 @@ toIntermediateBlock block =
         VerbatimBlock args ->
             let
                 ( firstLine, rawContent ) =
-                    split_ block.content
+                    split_ revisedContent
 
                 messages =
                     case blockType of
@@ -415,6 +429,7 @@ toIntermediateBlock block =
                 , indent = block.indent
                 , lineNumber = block.lineNumber
                 , id = String.fromInt block.lineNumber
+                , tag = tag
                 , numberOfLines = block.numberOfLines
                 , content = content_
 
