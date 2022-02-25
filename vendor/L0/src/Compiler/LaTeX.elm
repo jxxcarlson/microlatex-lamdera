@@ -17,7 +17,6 @@ ordinaryBlock args str data m1 =
             , args = List.drop 1 args
             , name = List.head args
         }
-        |> Debug.log "XXX"
 
 
 transform : ExpressionBlock -> ExpressionBlock

@@ -139,11 +139,6 @@ transformBlock lang acc (ExpressionBlock block) =
             expand acc.environment (ExpressionBlock block)
 
 
-
---|> Compiler.LaTeX.transform
---|> Debug.log "TRANSF"
-
-
 expand : Dict String Lambda -> ExpressionBlock -> ExpressionBlock
 expand dict (ExpressionBlock block) =
     ExpressionBlock { block | content = Either.map (List.map (Lambda.expand dict)) block.content }
