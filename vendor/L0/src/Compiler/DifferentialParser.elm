@@ -29,12 +29,7 @@ init lang str =
 
 update : EditRecord -> String -> EditRecord
 update editRecord text =
-    let
-        f : Language -> List (Tree IntermediateBlock) -> ( Compiler.Acc.Accumulator, List (Tree ExpressionBlock) )
-        f =
-            \lang -> List.map parser >> Compiler.Acc.make lang
-    in
-    Abstract.update chunker parser f editRecord text
+    Abstract.update chunker parser Compiler.Acc.make editRecord text
 
 
 differentialParser diffRecord editRecord =

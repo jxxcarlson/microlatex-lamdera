@@ -454,10 +454,7 @@ update msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.update model.editRecord (str |> Debug.log "STR")
-
-                _ =
-                    Debug.log "PARSED" editRecord.parsed
+                    Compiler.DifferentialParser.update model.editRecord str
 
                 messages : List String
                 messages =

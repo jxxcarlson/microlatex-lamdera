@@ -44,7 +44,7 @@ a differential idList. This last step is perhaps unnecessary. To investigate.
 update :
     (String -> List chunk)
     -> (chunk -> parsedChunk)
-    -> (Language -> List chunk -> ( acc, List parsedChunk ))
+    -> (Language -> List parsedChunk -> ( acc, List parsedChunk ))
     -> EditRecord chunk parsedChunk acc
     -> String
     -> EditRecord chunk parsedChunk acc
@@ -60,7 +60,7 @@ update chunker parser accMaker editRecord text =
             differentialParser parser diffRecord editRecord
 
         ( newAccumulator, parsed ) =
-            accMaker editRecord.lang newChunks
+            accMaker editRecord.lang parsed_
     in
     -- TODO: real update of accumulator
     { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator }
