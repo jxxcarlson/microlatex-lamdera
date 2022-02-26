@@ -86,6 +86,7 @@ markupDict =
         , ( "boldItalic", \g acc s exprList -> boldItalic g acc s exprList )
         , ( "strike", \g acc s exprList -> strike g acc s exprList )
         , ( "ref", \g acc s exprList -> ref g acc s exprList )
+        , ( "eqref", \g acc s exprList -> eqref g acc s exprList )
         , ( "underline", \g acc s exprList -> underline g acc s exprList )
         , ( "comment", \g acc s exprList -> Element.none )
 
@@ -392,12 +393,24 @@ ref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
 ref g acc s exprList =
     let
         key =
-            Debug.log "KEY" (List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "")
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join ""
 
         val =
-            Dict.get key acc.reference |> Maybe.map .numRef |> Maybe.withDefault "" |> Debug.log "VALUE"
+            Dict.get key acc.reference |> Maybe.map .numRef |> Maybe.withDefault ""
     in
     Element.el [] (Element.text val)
+
+
+eqref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+eqref g acc s exprList =
+    let
+        key =
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join ""
+
+        val =
+            Dict.get key acc.reference |> Maybe.map .numRef |> Maybe.withDefault ""
+    in
+    Element.el [] (Element.text ("(" ++ val ++ ")"))
 
 
 

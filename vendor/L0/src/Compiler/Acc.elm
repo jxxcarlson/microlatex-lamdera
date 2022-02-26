@@ -10,6 +10,7 @@ import Compiler.Lambda as Lambda exposing (Lambda)
 import Compiler.Vector as Vector exposing (Vector)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import List.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
@@ -108,29 +109,30 @@ transformBlock lang acc (ExpressionBlock block) =
 
         OrdinaryBlock args ->
             case List.head args of
+                -- TODO: review this code
                 Just "theorem" ->
                     ExpressionBlock
-                        { block | args = block.args ++ [ namedIndex "index" acc.theoremIndex ] }
+                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
 
                 Just "lemma" ->
                     ExpressionBlock
-                        { block | args = block.args ++ [ namedIndex "index" acc.lemmaIndex ] }
+                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
 
                 Just "definition" ->
                     ExpressionBlock
-                        { block | args = block.args ++ [ namedIndex "index" acc.definitionIndex ] }
+                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
 
                 Just "problem" ->
                     ExpressionBlock
-                        { block | args = block.args ++ [ namedIndex "index" acc.problemIndex ] }
+                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
 
                 Just "remark" ->
                     ExpressionBlock
-                        { block | args = block.args ++ [ namedIndex "index" acc.remarkIndex ] }
+                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
 
                 Just "example" ->
                     ExpressionBlock
-                        { block | args = block.args ++ [ namedIndex "index" acc.exampleIndex ] }
+                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
 
                 _ ->
                     ExpressionBlock block
@@ -145,6 +147,15 @@ transformBlock lang acc (ExpressionBlock block) =
 
         _ ->
             expand acc.environment (ExpressionBlock block)
+
+
+insertInList : a -> List a -> List a
+insertInList a list =
+    if List.Extra.notMember a list then
+        a :: list
+
+    else
+        list
 
 
 expand : Dict String Lambda -> ExpressionBlock -> ExpressionBlock
