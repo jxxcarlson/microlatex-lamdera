@@ -395,10 +395,22 @@ ref g acc s exprList =
         key =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join ""
 
+        ref_ =
+            Dict.get key acc.reference
+
         val =
-            Dict.get key acc.reference |> Maybe.map .numRef |> Maybe.withDefault ""
+            ref_ |> Maybe.map .numRef |> Maybe.withDefault ""
+
+        id =
+            ref_ |> Maybe.map .id |> Maybe.withDefault ""
     in
-    Element.el [] (Element.text val)
+    -- Element.el [ Font.color (Element.rgb 0 0 0.7) ] (Element.text val)
+    Element.link
+        [ Font.color (Element.rgb 0 0 0.7)
+        ]
+        { url = Utility.internalLink id
+        , label = Element.paragraph [] [ Element.text val ]
+        }
 
 
 eqref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
@@ -407,10 +419,21 @@ eqref g acc s exprList =
         key =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join ""
 
+        ref_ =
+            Dict.get key acc.reference
+
         val =
-            Dict.get key acc.reference |> Maybe.map .numRef |> Maybe.withDefault ""
+            ref_ |> Maybe.map .numRef |> Maybe.withDefault ""
+
+        id =
+            ref_ |> Maybe.map .id |> Maybe.withDefault ""
     in
-    Element.el [] (Element.text ("(" ++ val ++ ")"))
+    Element.link
+        [ Font.color (Element.rgb 0 0 0.7)
+        ]
+        { url = Utility.internalLink id
+        , label = Element.paragraph [] [ Element.text ("(" ++ val ++ ")") ]
+        }
 
 
 

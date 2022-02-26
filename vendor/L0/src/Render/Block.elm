@@ -145,7 +145,7 @@ renderComment _ _ _ _ _ _ =
 
 equation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
 equation count acc settings args id str =
-    Element.row [ Element.width (Element.px settings.width) ]
+    Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| equation" count acc settings args id str)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
         ]
@@ -157,7 +157,7 @@ aligned count acc settings args id str =
         content =
             "\\begin{aligned}\n" ++ str ++ "\n\\end{aligned}"
     in
-    Element.row [ Element.width (Element.px settings.width) ]
+    Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count acc settings args id str)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
         ]

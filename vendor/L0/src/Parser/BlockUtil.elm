@@ -298,21 +298,22 @@ toIntermediateBlock block =
     in
     case blockType of
         Paragraph ->
-            IntermediateBlock
-                { name = Nothing
-                , args = []
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , id = String.fromInt block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = revisedContent
-                , tag = tag
-                , messages = state.messages
-                , blockType = blockType
-                , children = []
-                , sourceText = block.content
-                }
+            makeIntermediateBlock block Nothing [] revisedContent state.messages blockType
 
+        --IntermediateBlock
+        --    { name = Nothing
+        --    , args = []
+        --    , indent = block.indent
+        --    , lineNumber = block.lineNumber
+        --    , id = String.fromInt block.lineNumber
+        --    , numberOfLines = block.numberOfLines
+        --    , content = revisedContent
+        --    , tag = tag
+        --    , messages = state.messages
+        --    , blockType = blockType
+        --    , children = []
+        --    , sourceText = block.content
+        --    }
         OrdinaryBlock args ->
             let
                 name =
@@ -359,21 +360,22 @@ toIntermediateBlock block =
                     else
                         content_
             in
-            IntermediateBlock
-                { name = List.head args
-                , args = List.drop 1 args
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , id = String.fromInt block.lineNumber
-                , tag = tag
-                , numberOfLines = block.numberOfLines
-                , content = content
-                , messages = messages
-                , blockType = blockType
-                , children = []
-                , sourceText = block.content
-                }
+            makeIntermediateBlock block (List.head args) (List.drop 1 args) content messages blockType
 
+        --IntermediateBlock
+        --    { name = List.head args
+        --    , args = List.drop 1 args
+        --    , indent = block.indent
+        --    , lineNumber = block.lineNumber
+        --    , id = String.fromInt block.lineNumber
+        --    , tag = tag
+        --    , numberOfLines = block.numberOfLines
+        --    , content = content
+        --    , messages = messages
+        --    , blockType = blockType
+        --    , children = []
+        --    , sourceText = block.content
+        --    }
         VerbatimBlock args ->
             let
                 ( firstLine, rawContent ) =
@@ -423,22 +425,43 @@ toIntermediateBlock block =
                     else
                         str
             in
-            IntermediateBlock
-                { name = Just revisedName
-                , args = List.drop 1 args
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , id = String.fromInt block.lineNumber
-                , tag = tag
-                , numberOfLines = block.numberOfLines
-                , content = content_
+            makeIntermediateBlock block (Just revisedName) (List.drop 1 args) content_ messages blockType
 
-                --, content = Right state.committed
-                , messages = messages
-                , blockType = revisedBlocktype
-                , children = []
-                , sourceText = block.content
-                }
+
+
+--IntermediateBlock
+--    { name = Just revisedName
+--    , args = List.drop 1 args
+--    , indent = block.indent
+--    , lineNumber = block.lineNumber
+--    , id = String.fromInt block.lineNumber
+--    , tag = tag
+--    , numberOfLines = block.numberOfLines
+--    , content = content_
+--
+--    --, content = Right state.committed
+--    , messages = messages
+--    , blockType = revisedBlocktype
+--    , children = []
+--    , sourceText = block.content
+--    }
+
+
+makeIntermediateBlock block name args content messages blockType_ =
+    IntermediateBlock
+        { name = name
+        , args = List.drop 1 args
+        , indent = block.indent
+        , lineNumber = block.lineNumber
+        , id = String.fromInt block.lineNumber
+        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.content
+        , numberOfLines = block.numberOfLines
+        , content = content
+        , messages = messages
+        , blockType = blockType_
+        , children = []
+        , sourceText = block.content
+        }
 
 
 {-| Split into first line and all the rest
