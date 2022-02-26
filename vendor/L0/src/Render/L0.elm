@@ -1,5 +1,6 @@
 module Render.L0 exposing (getMessages, renderFromAST, renderFromString, render_)
 
+import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
 import L0 exposing (SyntaxTree)
 import Parser.BlockUtil as BlockUtil
@@ -14,20 +15,20 @@ isVerbatimLine str =
     String.left 2 str == "||"
 
 
-renderFromString : Int -> Settings -> String -> List (Element L0Msg)
-renderFromString count settings str =
-    str |> L0.parse |> renderFromAST count settings
+renderFromString : Int -> Accumulator -> Settings -> String -> List (Element L0Msg)
+renderFromString count acc settings str =
+    str |> L0.parse |> renderFromAST count acc settings
 
 
-render_ : SyntaxTree -> List (Element L0Msg)
-render_ ast =
-    renderFromAST 0 Render.Settings.defaultSettings ast
+render_ : Accumulator -> SyntaxTree -> List (Element L0Msg)
+render_ acc ast =
+    renderFromAST 0 acc Render.Settings.defaultSettings ast
 
 
-renderFromAST : Int -> Settings -> SyntaxTree -> List (Element L0Msg)
-renderFromAST count settings ast =
+renderFromAST : Int -> Accumulator -> Settings -> SyntaxTree -> List (Element L0Msg)
+renderFromAST count accumulator settings ast =
     ast
-        |> List.map (Tree.map (Render.Block.render count settings))
+        |> List.map (Tree.map (Render.Block.render count accumulator settings))
         |> List.map unravel
 
 

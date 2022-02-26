@@ -1,6 +1,7 @@
 module Render.TOC exposing (view)
 
 import Compiler.ASTTools
+import Compiler.Acc exposing (Accumulator)
 import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Font as Font
@@ -15,20 +16,20 @@ import Render.Utility
 import Tree
 
 
-view : Int -> Render.Settings.Settings -> L0.SyntaxTree -> Element Render.Msg.L0Msg
-view counter settings ast =
+view : Int -> Accumulator -> Render.Settings.Settings -> L0.SyntaxTree -> Element Render.Msg.L0Msg
+view counter acc settings ast =
     case ast |> List.map Tree.flatten |> List.concat |> Compiler.ASTTools.filterBlocksOnName "makeTableOfContents" of
         [] ->
             Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 36 } ]
-                (prepareFrontMatter counter Render.Settings.defaultSettings ast)
+                (prepareFrontMatter counter acc Render.Settings.defaultSettings ast)
 
         _ ->
             Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 36 } ]
-                (prepareTOC counter Render.Settings.defaultSettings ast)
+                (prepareTOC counter acc Render.Settings.defaultSettings ast)
 
 
-viewTocItem : Int -> Render.Settings.Settings -> ExpressionBlock -> Element Render.Msg.L0Msg
-viewTocItem count settings (ExpressionBlock { args, content, lineNumber }) =
+viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock -> Element Render.Msg.L0Msg
+viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
     case content of
         Left _ ->
             Element.none
@@ -45,20 +46,20 @@ viewTocItem count settings (ExpressionBlock { args, content, lineNumber }) =
 
                 label : Element L0Msg
                 label =
-                    Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Elm.render count settings) exprs)
+                    Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Elm.render count acc settings) exprs)
             in
             Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink t, label = label }
 
 
-prepareTOC : Int -> Render.Settings.Settings -> L0.SyntaxTree -> List (Element L0Msg)
-prepareTOC count settings ast =
+prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> L0.SyntaxTree -> List (Element L0Msg)
+prepareTOC count acc settings ast =
     let
         rawToc =
             Compiler.ASTTools.tableOfContents ast
 
         toc =
             Element.el [ Font.bold, Font.size 18 ] (Element.text "Contents")
-                :: (rawToc |> List.map (viewTocItem count settings))
+                :: (rawToc |> List.map (viewTocItem count acc settings))
 
         headings =
             getHeadings ast
@@ -74,12 +75,12 @@ prepareTOC count settings ast =
 
         title =
             headings.title
-                |> Maybe.map (List.map (Render.Elm.render count settings) >> Element.paragraph [ titleSize, idAttr ])
+                |> Maybe.map (List.map (Render.Elm.render count acc settings) >> Element.paragraph [ titleSize, idAttr ])
                 |> Maybe.withDefault Element.none
 
         subtitle =
             headings.subtitle
-                |> Maybe.map (List.map (Render.Elm.render count settings) >> Element.paragraph [ subtitleSize, Font.color (Element.rgb 0.4 0.4 0.4) ])
+                |> Maybe.map (List.map (Render.Elm.render count acc settings) >> Element.paragraph [ subtitleSize, Font.color (Element.rgb 0.4 0.4 0.4) ])
                 |> Maybe.withDefault Element.none
 
         spaceBelow k =
@@ -92,8 +93,8 @@ prepareTOC count settings ast =
         title :: subtitle :: spaceBelow 8 :: toc
 
 
-prepareFrontMatter : Int -> Render.Settings.Settings -> L0.SyntaxTree -> List (Element L0Msg)
-prepareFrontMatter count settings ast =
+prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> L0.SyntaxTree -> List (Element L0Msg)
+prepareFrontMatter count acc settings ast =
     let
         headings =
             getHeadings ast
@@ -109,12 +110,12 @@ prepareFrontMatter count settings ast =
 
         title =
             headings.title
-                |> Maybe.map (List.map (Render.Elm.render count settings) >> Element.paragraph [ titleSize, idAttr ])
+                |> Maybe.map (List.map (Render.Elm.render count acc settings) >> Element.paragraph [ titleSize, idAttr ])
                 |> Maybe.withDefault Element.none
 
         subtitle =
             headings.subtitle
-                |> Maybe.map (List.map (Render.Elm.render count settings) >> Element.paragraph [ subtitleSize, Font.color (Element.rgb 0.4 0.4 0.4) ])
+                |> Maybe.map (List.map (Render.Elm.render count acc settings) >> Element.paragraph [ subtitleSize, Font.color (Element.rgb 0.4 0.4 0.4) ])
                 |> Maybe.withDefault Element.none
 
         spaceBelow k =

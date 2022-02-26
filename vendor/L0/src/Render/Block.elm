@@ -1,6 +1,7 @@
 module Render.Block exposing (render)
 
 import Compiler.ASTTools as ASTTools
+import Compiler.Acc exposing (Accumulator)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
@@ -22,8 +23,8 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
-render : Int -> Settings -> ExpressionBlock -> Element L0Msg
-render count settings (ExpressionBlock { name, args, indent, blockType, content, lineNumber, id, children }) =
+render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element L0Msg
+render count acc settings (ExpressionBlock { name, args, indent, blockType, content, lineNumber, id, children }) =
     case blockType of
         Paragraph ->
             case content of
@@ -36,7 +37,7 @@ render count settings (ExpressionBlock { name, args, indent, blockType, content,
                             else
                                 Background.color (Element.rgb 1 1 1)
                     in
-                    List.map (Render.Elm.render count settings) exprs
+                    List.map (Render.Elm.render count acc settings) exprs
                         |> (\x -> Element.paragraph [ color, Events.onClick (SendId id), htmlId id ] x)
 
                 Left _ ->
@@ -58,7 +59,7 @@ render count settings (ExpressionBlock { name, args, indent, blockType, content,
                                     noSuchVerbatimBlock functionName str
 
                                 Just f ->
-                                    f count settings args id str
+                                    f count acc settings args id str
 
         OrdinaryBlock _ ->
             case content of
@@ -68,15 +69,15 @@ render count settings (ExpressionBlock { name, args, indent, blockType, content,
                 Right exprs ->
                     case name of
                         Nothing ->
-                            noSuchOrdinaryBlock count settings "name" exprs
+                            noSuchOrdinaryBlock count acc settings "name" exprs
 
                         Just functionName ->
                             case Dict.get functionName blockDict of
                                 Nothing ->
-                                    noSuchOrdinaryBlock count settings functionName exprs
+                                    noSuchOrdinaryBlock count acc settings functionName exprs
 
                                 Just f ->
-                                    f count settings args id exprs
+                                    f count acc settings args id exprs
 
 
 noSuchVerbatimBlock : String -> String -> Element L0Msg
@@ -87,11 +88,11 @@ noSuchVerbatimBlock functionName content =
         ]
 
 
-noSuchOrdinaryBlock : Int -> Settings -> String -> List Expr -> Element L0Msg
-noSuchOrdinaryBlock count settings functionName exprs =
+noSuchOrdinaryBlock : Int -> Accumulator -> Settings -> String -> List Expr -> Element L0Msg
+noSuchOrdinaryBlock count acc settings functionName exprs =
     Element.column [ Element.spacing 4 ]
         [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "| " ++ functionName ++ " ?? " ]
-        , Element.paragraph [] (List.map (Render.Elm.render count settings) exprs)
+        , Element.paragraph [] (List.map (Render.Elm.render count acc settings) exprs)
         ]
 
 
@@ -99,18 +100,18 @@ noSuchOrdinaryBlock count settings functionName exprs =
 -- DICT
 
 
-blockDict : Dict String (Int -> Settings -> List String -> String -> List Expr -> Element L0Msg)
+blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg)
 blockDict =
     Dict.fromList
         [ ( "indent", indented )
         , ( "heading", heading )
         , ( "section", heading )
-        , ( "title", \_ _ _ _ _ -> Element.none )
-        , ( "subtitle", \_ _ _ _ _ -> Element.none )
-        , ( "author", \_ _ _ _ _ -> Element.none )
-        , ( "date", \_ _ _ _ _ -> Element.none )
-        , ( "defs", \_ _ _ _ _ -> Element.none )
-        , ( "makeTableOfContents", \_ _ _ _ _ -> Element.none )
+        , ( "title", \_ _ _ _ _ _ -> Element.none )
+        , ( "subtitle", \_ _ _ _ _ _ -> Element.none )
+        , ( "author", \_ _ _ _ _ _ -> Element.none )
+        , ( "date", \_ _ _ _ _ _ -> Element.none )
+        , ( "defs", \_ _ _ _ _ _ -> Element.none )
+        , ( "makeTableOfContents", \_ _ _ _ _ _ -> Element.none )
         , ( "abstract", env "Abstract" )
         , ( "theorem", env "Theorem" )
         , ( "proposition", env "Proposition" )
@@ -126,7 +127,7 @@ blockDict =
         ]
 
 
-verbatimDict : Dict String (Int -> Settings -> List String -> String -> String -> Element L0Msg)
+verbatimDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg)
 verbatimDict =
     Dict.fromList
         [ ( "math", renderDisplayMath "$$" )
@@ -137,27 +138,27 @@ verbatimDict =
         ]
 
 
-renderComment : Int -> Settings -> List String -> String -> String -> Element L0Msg
-renderComment _ _ _ _ _ =
+renderComment : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+renderComment _ _ _ _ _ _ =
     Element.none
 
 
-equation : Int -> Settings -> List String -> String -> String -> Element L0Msg
-equation count settings args id str =
+equation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+equation count acc settings args id str =
     Element.row [ Element.width (Element.px settings.width) ]
-        [ Element.el [ Element.centerX ] (renderDisplayMath "|| equation" count settings args id str)
+        [ Element.el [ Element.centerX ] (renderDisplayMath "|| equation" count acc settings args id str)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
         ]
 
 
-aligned : Int -> Settings -> List String -> String -> String -> Element L0Msg
-aligned count settings args id str =
+aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+aligned count acc settings args id str =
     let
         content =
             "\\begin{aligned}\n" ++ str ++ "\n\\end{aligned}"
     in
     Element.row [ Element.width (Element.px settings.width) ]
-        [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count settings args id str)
+        [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count acc settings args id str)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
         ]
 
@@ -166,7 +167,7 @@ equationLabelPadding =
     Element.paddingEach { left = 0, right = 18, top = 0, bottom = 0 }
 
 
-heading count settings args id exprs =
+heading count acc settings args id exprs =
     -- level 1 is reserved for titles
     let
         headingLevel =
@@ -197,39 +198,39 @@ heading count settings args id exprs =
         , Render.Utility.elementAttribute "id" id
         , Events.onClick (SendId id)
         ]
-        { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| heading" count settings exprs) }
+        { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| heading" count acc settings exprs) }
 
 
 verticalPadding top bottom =
     Element.paddingEach { top = top, bottom = bottom, left = 0, right = 0 }
 
 
-renderWithDefault : String -> Int -> Settings -> List Expr -> List (Element L0Msg)
-renderWithDefault default count settings exprs =
+renderWithDefault : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element L0Msg)
+renderWithDefault default count acc settings exprs =
     if List.isEmpty exprs then
         [ Element.el [ Font.color Render.Settings.redColor, Font.size 14 ] (Element.text default) ]
 
     else
-        List.map (Render.Elm.render count settings) exprs
+        List.map (Render.Elm.render count acc settings) exprs
 
 
-indented count settings args id exprs =
+indented count acc settings args id exprs =
     Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ]
-        (renderWithDefault "| indent" count settings exprs)
+        (renderWithDefault "| indent" count acc settings exprs)
 
 
-env_ : Int -> Settings -> List String -> String -> List Expr -> Element L0Msg
-env_ count settings args id exprs =
+env_ : Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg
+env_ count acc settings args id exprs =
     case List.head args of
         Nothing ->
             Element.paragraph [ Render.Utility.elementAttribute "id" id, Font.color Render.Settings.redColor, Events.onClick (SendId id) ] [ Element.text "| env (missing name!)" ]
 
         Just name ->
-            env name count settings (List.drop 1 args) id exprs
+            env name count acc settings (List.drop 1 args) id exprs
 
 
-env : String -> Int -> Settings -> List String -> String -> List Expr -> Element L0Msg
-env name count settings args id exprs =
+env : String -> Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg
+env name count acc settings args id exprs =
     let
         label =
             args
@@ -253,12 +254,12 @@ env name count settings args id exprs =
     Element.column [ Element.spacing 8, Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Font.bold, Events.onClick (SendId id) ] (Element.text envHeading)
         , Element.paragraph [ Font.italic, Events.onClick (SendId id) ]
-            (renderWithDefault ("| " ++ name) count settings exprs)
+            (renderWithDefault ("| " ++ name) count acc settings exprs)
         ]
 
 
-renderDisplayMath : String -> Int -> Settings -> List String -> String -> String -> Element L0Msg
-renderDisplayMath prefix count settings args id str =
+renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+renderDisplayMath prefix count acc settings args id str =
     let
         w =
             String.fromInt settings.width ++ "px"
@@ -307,8 +308,8 @@ renderDisplayMath prefix count settings args id str =
             (List.map Element.text (prefix :: List.take n lines) ++ [ Element.paragraph [] [ Element.el [ Font.color Render.Settings.redColor ] (Element.text suffix) ] ])
 
 
-renderCode : Int -> Settings -> List String -> String -> String -> Element L0Msg
-renderCode count settings args id str =
+renderCode : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+renderCode count acc settings args id str =
     Element.column
         [ Font.color (Element.rgb255 170 0 250)
         , Font.family
@@ -328,11 +329,11 @@ removeFirstLine str =
     str |> String.trim |> String.lines |> List.drop 1 |> String.join "\n"
 
 
-item count settings args id exprs =
+item count acc settings args id exprs =
     Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 12 ]
         [ Element.el [ Font.size 18, Element.alignTop, Element.moveRight 6, Element.width (Element.px 24), Render.Settings.leftIndentation ] (Element.text "•")
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
-            (renderWithDefault "| item" count settings exprs)
+            (renderWithDefault "| item" count acc settings exprs)
         ]
 
 
@@ -340,7 +341,7 @@ vspace =
     Render.Utility.vspace
 
 
-numbered count settings args id exprs =
+numbered count acc settings args id exprs =
     let
         label =
             List.Extra.getAt 0 args |> Maybe.withDefault ""
@@ -355,5 +356,5 @@ numbered count settings args id exprs =
             ]
             (Element.text (label ++ ". "))
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
-            (renderWithDefault "| numbered" count settings exprs)
+            (renderWithDefault "| numbered" count acc settings exprs)
         ]
