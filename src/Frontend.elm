@@ -108,8 +108,7 @@ init url key =
       , initialText = ""
       , documentsCreatedCounter = 0
       , sourceText = View.Data.welcome
-      , ast = L0.parse View.Data.welcome |> Compiler.Acc.transformST MicroLaTeXLang
-      , editRecord = Compiler.DifferentialParser.init chunker parser ""
+      , editRecord = Compiler.DifferentialParser.init Config.initialLanguage ""
       , title = "(title not yet defined)"
       , tableOfContents = Compiler.ASTTools.tableOfContents (L0.parse View.Data.welcome)
       , debounce = Debounce.init
@@ -172,18 +171,6 @@ urlAction path =
 urlIsForGuest : Url -> Bool
 urlIsForGuest url =
     String.left 2 url.path == "/g"
-
-
-chunker =
-    L0.parseToIntermediateBlocks
-
-
-parser =
-    Tree.map BlockUtil.toExpressionBlockFromIntermediateBlock
-
-
-renderer =
-    Tree.map (Render.Block.render 0 Settings.defaultSettings)
 
 
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
@@ -305,7 +292,6 @@ update msg model =
                 | currentDocument = Just doc
                 , sourceText = doc.content
                 , initialText = doc.content
-                , ast = ast
                 , title = Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
                 , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
@@ -354,7 +340,7 @@ update msg model =
                     if model.foundIdIndex == 0 then
                         let
                             foundIds_ =
-                                Compiler.ASTTools.matchingIdsInAST model.searchSourceText model.ast
+                                Compiler.ASTTools.matchingIdsInAST model.searchSourceText model.editRecord.parsed
 
                             id_ =
                                 List.head foundIds_ |> Maybe.withDefault "(nothing)"
@@ -447,7 +433,7 @@ update msg model =
         SearchText ->
             let
                 ids =
-                    Compiler.ASTTools.matchingIdsInAST model.searchSourceText model.ast
+                    Compiler.ASTTools.matchingIdsInAST model.searchSourceText model.editRecord.parsed
 
                 ( cmd, id ) =
                     case List.head ids of
@@ -468,11 +454,10 @@ update msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.update chunker parser model.editRecord str
+                    Compiler.DifferentialParser.update model.editRecord str
 
-                syntaxTree : List (Tree ExpressionBlock)
-                syntaxTree =
-                    editRecord.parsed |> Compiler.Acc.transformST model.language
+                ( acc, syntaxTree ) =
+                    editRecord.parsed |> Compiler.Acc.make model.language
 
                 messages : List String
                 messages =
@@ -481,7 +466,7 @@ update msg model =
             in
             ( { model
                 | sourceText = str
-                , ast = syntaxTree
+                , editRecord = editRecord
                 , title = Compiler.ASTTools.title model.language syntaxTree
                 , tableOfContents = Compiler.ASTTools.tableOfContents syntaxTree
                 , message = String.join ", " messages
@@ -538,16 +523,16 @@ update msg model =
 
                 Just doc ->
                     let
-                        ast =
-                            L0.parse doc.content |> Compiler.Acc.transformST doc.language
+                        newEditRecord =
+                            Compiler.DifferentialParser.update model.editRecord doc.content
                     in
                     ( { model
                         | currentDocument = Just doc
                         , sourceText = doc.content
                         , initialText = doc.content
-                        , ast = ast
-                        , title = Compiler.ASTTools.title model.language ast
-                        , tableOfContents = Compiler.ASTTools.tableOfContents ast
+                        , editRecord = newEditRecord
+                        , title = Compiler.ASTTools.title model.language newEditRecord.parsed
+                        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
                         , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
                         , counter = model.counter + 1
                       }
@@ -556,17 +541,17 @@ update msg model =
 
         SetDocumentAsCurrent permissions doc ->
             let
-                ast =
-                    L0.parse doc.content |> Compiler.Acc.transformST doc.language
+                newEditRecord =
+                    Compiler.DifferentialParser.update model.editRecord doc.content
             in
             ( { model
                 | currentDocument = Just doc
                 , sourceText = doc.content
                 , initialText = doc.content
-                , ast = ast
+                , editRecord = newEditRecord
                 , title =
-                    Compiler.ASTTools.title model.language ast
-                , tableOfContents = Compiler.ASTTools.tableOfContents ast
+                    Compiler.ASTTools.title model.language newEditRecord.parsed
+                , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
                 , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
                 , permissions = setPermissions model.currentUser permissions doc
                 , counter = model.counter + 1
@@ -602,7 +587,7 @@ update msg model =
         ExportToLaTeX ->
             let
                 textToExport =
-                    LaTeX.export Settings.defaultSettings model.ast
+                    LaTeX.export Settings.defaultSettings model.editRecord.parsed
 
                 fileName =
                     (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
@@ -652,7 +637,7 @@ firstSyncLR model searchSourceText =
         data =
             let
                 foundIds_ =
-                    Compiler.ASTTools.matchingIdsInAST searchSourceText model.ast
+                    Compiler.ASTTools.matchingIdsInAST searchSourceText model.editRecord.parsed
 
                 id_ =
                     List.head foundIds_ |> Maybe.withDefault "(nothing)"
@@ -790,7 +775,7 @@ updateDoc model str =
                 let
                     provisionalTitle : String
                     provisionalTitle =
-                        Compiler.ASTTools.title model.language model.ast
+                        Compiler.ASTTools.title model.language model.editRecord.parsed
 
                     ( safeContent, safeTitle ) =
                         if String.left 1 provisionalTitle == "|" then
@@ -874,13 +859,13 @@ updateFromBackend msg model =
                             True
             in
             let
-                ast =
-                    L0.parse doc.content
+                editRecord =
+                    Compiler.DifferentialParser.init doc.language doc.content
             in
             ( { model
-                | ast = ast |> Compiler.Acc.transformST doc.language
-                , title = Compiler.ASTTools.title model.language ast
-                , tableOfContents = Compiler.ASTTools.tableOfContents ast
+                | editRecord = editRecord
+                , title = Compiler.ASTTools.title model.language editRecord.parsed
+                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
                 , showEditor = showEditor
                 , currentDocument = Just doc
                 , sourceText = doc.content

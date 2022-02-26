@@ -397,8 +397,8 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    ((Render.TOC.view model.counter (renderSettings model.windowWidth) model.ast |> E.map Render)
-                        :: (Render.L0.renderFromAST model.counter (renderSettings model.windowWidth) model.ast |> List.map (E.map Render))
+                    ((Render.TOC.view model.counter (renderSettings model.windowWidth) model.editRecord.parsed |> E.map Render)
+                        :: (Render.L0.renderFromAST model.counter (renderSettings model.windowWidth) model.editRecord.parsed |> List.map (E.map Render))
                     )
                 ]
 
@@ -422,8 +422,8 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    ((Render.TOC.view model.counter (renderSettings model.windowWidth |> setSelectedId model.selectedId) model.ast |> E.map Render)
-                        :: (Render.L0.renderFromAST model.counter (editorRenderSettings model.windowWidth |> setSelectedId model.selectedId) model.ast |> List.map (E.map Render))
+                    ((Render.TOC.view model.counter (renderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render)
+                        :: (Render.L0.renderFromAST model.counter (editorRenderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> List.map (E.map Render))
                     )
                 ]
 

@@ -1,5 +1,6 @@
 module Compiler.Acc exposing
     ( Accumulator
+    , init
     , make
     , transformST
     )

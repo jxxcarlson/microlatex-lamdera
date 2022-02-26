@@ -1,80 +1,57 @@
-module Compiler.DifferentialParser exposing (EditRecord, differentialParser, init, update)
+module Compiler.DifferentialParser exposing (EditRecord, init, update)
 
+import Compiler.AbstractDifferentialParser as Abstract
+import Compiler.Acc
 import Compiler.Differ as Differ
+import L0
+import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
+import Parser.BlockUtil
+import Parser.Language exposing (Language(..))
+import Tree exposing (Tree)
 
 
-type alias EditRecord chunk parsedChunk =
-    { chunks : List chunk
-    , parsed : List parsedChunk
-    }
+type alias EditRecord =
+    Abstract.EditRecord (Tree IntermediateBlock) (Tree ExpressionBlock) Compiler.Acc.Accumulator
 
 
-init : (String -> List chunk) -> (chunk -> parsedChunk) -> String -> EditRecord chunk parsedChunk
-init chunker parser text =
+init : Language -> String -> EditRecord
+init lang str =
     let
+        chunks : List (Tree IntermediateBlock)
         chunks =
-            chunker text
+            chunker str
 
-        parsed =
-            List.map parser chunks
+        ( newAccumulator, parsed ) =
+            (List.map parser >> Compiler.Acc.make lang) chunks
     in
-    { chunks = chunks, parsed = parsed }
+    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
 
 
-{-| The update function takes an EditRecord and a string, the "text",
-breaks the text into a list of logical paragraphs, diffs it with the list
-of paragraphs held by the EditRecord, uses `differentialRender` to
-render the changed paragraphs while copying the unchanged rendered paragraphsto
-prodduce an updated list of rendered paragraphs. The 'differentialRender'
-accomplishes this using the transformer. The seed is used to produces
-a differential idList. This last step is perhaps unnecessary. To investigate.
-(This was part of an optimization scheme.)
--}
-update :
-    (String -> List chunk)
-    -> (chunk -> parsedChunk)
-    -> EditRecord chunk parsedChunk
-    -> String
-    -> EditRecord chunk parsedChunk
-update chunker parser editRecord text =
+update : EditRecord -> String -> EditRecord
+update editRecord text =
     let
-        newChunks =
-            chunker text
-
-        diffRecord =
-            Differ.diff editRecord.chunks newChunks
-
-        parsed =
-            differentialParser parser diffRecord editRecord
+        f : Language -> List (Tree IntermediateBlock) -> ( Compiler.Acc.Accumulator, List (Tree ExpressionBlock) )
+        f =
+            \lang -> List.map parser >> Compiler.Acc.make lang
     in
-    { chunks = newChunks, parsed = parsed }
+    Abstract.update chunker parser f editRecord text
 
 
-differentialParser :
-    (chunk -> parsedChunk)
-    -> Differ.DiffRecord chunk
-    -> EditRecord chunk parsedChunk
-    -> List parsedChunk
-differentialParser parser diffRecord editRecord =
-    let
-        ii =
-            List.length diffRecord.commonInitialSegment
-
-        it =
-            List.length diffRecord.commonTerminalSegment
-
-        initialSegmentParsed =
-            List.take ii editRecord.parsed
-
-        terminalSegmentParsed =
-            takeLast it editRecord.parsed
-
-        middleSegmentParsed =
-            List.map parser diffRecord.middleSegmentInTarget
-    in
-    initialSegmentParsed ++ middleSegmentParsed ++ terminalSegmentParsed
+differentialParser diffRecord editRecord =
+    Abstract.differentialParser chunker diffRecord editRecord
 
 
-takeLast : Int -> List a -> List a
-takeLast k x =
-    x |> List.reverse |> List.take k |> List.reverse
+chunker : String -> List (Tree IntermediateBlock)
+chunker =
+    L0.parseToIntermediateBlocks
+
+
+parser : Tree IntermediateBlock -> Tree ExpressionBlock
+parser =
+    Tree.map Parser.BlockUtil.toExpressionBlockFromIntermediateBlock
+
+
+
+--renderer =
+--    Tree.map (Render.Block.render 0 Settings.defaultSettings)
+--differentialParser = differentialParser parser diffRecord editRecord

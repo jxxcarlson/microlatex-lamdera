@@ -59,8 +59,9 @@ type alias FrontendModel =
     , documentsCreatedCounter : Int
     , initialText : String
     , sourceText : String
-    , ast : L0.SyntaxTree
-    , editRecord : Compiler.DifferentialParser.EditRecord (Tree.Tree IntermediateBlock) (Tree.Tree ExpressionBlock)
+
+    --, ast : L0.SyntaxTree
+    , editRecord : Compiler.DifferentialParser.EditRecord
     , tableOfContents : List ExpressionBlock
     , title : String
     , searchCount : Int
