@@ -60,7 +60,7 @@ update chunker parser accMaker editRecord text =
             differentialParser parser diffRecord editRecord
 
         ( newAccumulator, parsed ) =
-            accMaker editRecord.lang editRecord.chunks
+            accMaker editRecord.lang newChunks
     in
     -- TODO: real update of accumulator
     { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator }

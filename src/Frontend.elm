@@ -454,21 +454,21 @@ update msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.update model.editRecord str
+                    Compiler.DifferentialParser.update model.editRecord (str |> Debug.log "STR")
 
-                ( acc, syntaxTree ) =
-                    editRecord.parsed |> Compiler.Acc.make model.language
+                _ =
+                    Debug.log "PARSED" editRecord.parsed
 
                 messages : List String
                 messages =
                     L0.getMessages
-                        syntaxTree
+                        editRecord.parsed
             in
             ( { model
                 | sourceText = str
                 , editRecord = editRecord
-                , title = Compiler.ASTTools.title model.language syntaxTree
-                , tableOfContents = Compiler.ASTTools.tableOfContents syntaxTree
+                , title = Compiler.ASTTools.title model.language editRecord.parsed
+                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
                 , message = String.join ", " messages
                 , debounce = debounce
                 , counter = model.counter + 1
