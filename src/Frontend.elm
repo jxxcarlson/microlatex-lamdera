@@ -403,7 +403,7 @@ update msg model =
 
                 Render.Msg.SendId line ->
                     -- TODO: the below (using id also for line number) is not a great idea.
-                    ( { model | message = "Line " ++ line, linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
+                    ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 2) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
                 GetPublicDocument id ->
                     ( model, sendToBackend (FetchDocumentById id) )

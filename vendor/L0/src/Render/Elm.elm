@@ -9,6 +9,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Html.Attributes
+import Maybe.Extra
 import Parser.Expr exposing (Expr(..))
 import Render.Math
 import Render.Msg exposing (L0Msg(..))
@@ -84,6 +85,7 @@ markupDict =
         , ( "i", \g acc s exprList -> italic g acc s exprList )
         , ( "boldItalic", \g acc s exprList -> boldItalic g acc s exprList )
         , ( "strike", \g acc s exprList -> strike g acc s exprList )
+        , ( "ref", \g acc s exprList -> ref g acc s exprList )
         , ( "underline", \g acc s exprList -> underline g acc s exprList )
         , ( "comment", \g acc s exprList -> Element.none )
 
@@ -384,6 +386,18 @@ violet g acc s exprList =
 
 highlight g acc s exprList =
     simpleElement [ Background.color (Element.rgb255 255 255 0) ] g acc s exprList
+
+
+ref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+ref g acc s exprList =
+    let
+        key =
+            Debug.log "KEY" (List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "")
+
+        val =
+            Dict.get key acc.reference |> Maybe.map .numRef |> Maybe.withDefault "" |> Debug.log "VALUE"
+    in
+    Element.el [] (Element.text val)
 
 
 
