@@ -276,14 +276,8 @@ nextStep state =
 
             ( tokens, tokenIndex, currentToken_ ) =
                 if isTextToken token then
-                    -- if head of the token list is a left bracket token, commit the text token immediately:
-                    -- it is the expected function name
-                    if Maybe.map type_ (List.head state.tokens) == Just TLB then
-                        ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
-
-                    else
-                        -- otherwise, update the current token so as to merge words into a single phrase
-                        ( state.tokens, state.tokenIndex, updateCurrentToken state.tokenIndex token state.currentToken )
+                    -- update the current token so as to merge words into a single phrase
+                    ( state.tokens, state.tokenIndex, updateCurrentToken state.tokenIndex token state.currentToken )
 
                 else if type_ token == TBS then
                     -- commit a left bracket token immediately, taking care to commit the currentToken if it contains text
@@ -304,7 +298,7 @@ nextStep state =
                             ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens, state.tokenIndex + 2, Nothing )
 
                 else
-                    -- the token is neither a left bracket token nore a text token.  Commit it immediatley, taking care
+                    -- the token is neither a left bracket token nore a text token.  Commit it immediately, taking care
                     -- to also commit the currentToken if it holds text.
                     case state.currentToken of
                         Nothing ->
