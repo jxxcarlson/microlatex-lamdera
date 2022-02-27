@@ -17,6 +17,7 @@ import Render.Math exposing (DisplayMode(..))
 import Render.Msg exposing (L0Msg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility
+import String.Extra
 
 
 htmlId str =
@@ -74,7 +75,7 @@ render count acc settings (ExpressionBlock { name, args, indent, blockType, cont
                         Just functionName ->
                             case Dict.get functionName blockDict of
                                 Nothing ->
-                                    noSuchOrdinaryBlock count acc settings functionName exprs
+                                    env (String.Extra.toTitleCase functionName) count acc settings args id exprs
 
                                 Just f ->
                                     f count acc settings args id exprs
@@ -112,15 +113,16 @@ blockDict =
         , ( "date", \_ _ _ _ _ _ -> Element.none )
         , ( "defs", \_ _ _ _ _ _ -> Element.none )
         , ( "makeTableOfContents", \_ _ _ _ _ _ -> Element.none )
-        , ( "abstract", env "Abstract" )
-        , ( "theorem", env "Theorem" )
-        , ( "proposition", env "Proposition" )
-        , ( "lemma", env "Lemma" )
-        , ( "corollary", env "Corollary" )
-        , ( "problem", env "Problem" )
-        , ( "remark", env "Remark" )
-        , ( "example", env "Example" )
-        , ( "note", env "Note" )
+
+        --, ( "abstract", env "Abstract" )
+        --, ( "theorem", env "Theorem" )
+        --, ( "proposition", env "Proposition" )
+        --, ( "lemma", env "Lemma" )
+        --, ( "corollary", env "Corollary" )
+        --, ( "problem", env "Problem" )
+        --, ( "remark", env "Remark" )
+        --, ( "example", env "Example" )
+        --, ( "note", env "Note" )
         , ( "env", env_ )
         , ( "item", item )
         , ( "numbered", numbered )
@@ -232,21 +234,18 @@ env_ count acc settings args id exprs =
 env : String -> Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg
 env name count acc settings args id exprs =
     let
+        _ =
+            Debug.log "ENV" name
+
         label =
             args
+                |> Debug.log "ARGS"
                 |> List.filter (\s -> String.contains "index::" s)
                 |> String.join ""
                 |> String.replace "index::" ""
 
-        headingString_ =
-            String.join " " (List.filter (\s -> not (String.contains "::" s)) args)
-
         headingString =
-            if headingString_ == "" then
-                ""
-
-            else
-                " (" ++ headingString_ ++ ")"
+            String.join " " (List.filter (\s -> not (String.contains "::" s)) args)
 
         envHeading =
             name ++ " " ++ label ++ headingString

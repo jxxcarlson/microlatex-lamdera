@@ -19,17 +19,25 @@ import Tree exposing (Tree)
 
 type alias Accumulator =
     { headingIndex : Vector
-    , numberedItemIndex : Int
-    , equationIndex : Int
-    , definitionIndex : Int
-    , remarkIndex : Int
-    , exampleIndex : Int
-    , lemmaIndex : Int
-    , problemIndex : Int
-    , theoremIndex : Int
+    , counter : Dict String Int
     , environment : Dict String Lambda
     , reference : Dict String { id : String, numRef : String }
     }
+
+
+getCounter : String -> Dict String Int -> Int
+getCounter name dict =
+    Dict.get name dict |> Maybe.withDefault 0
+
+
+getCounterAsString : String -> Dict String Int -> String
+getCounterAsString name dict =
+    Dict.get name dict |> Maybe.map String.fromInt |> Maybe.withDefault ""
+
+
+incrementCounter : String -> Dict String Int -> Dict String Int
+incrementCounter name dict =
+    Dict.insert name (getCounter name dict + 1) dict
 
 
 getLambda : String -> Dict String ( List String, Expr ) -> Maybe { name : String, args : List String, expr : Expr }
@@ -51,14 +59,7 @@ make lang ast =
 init : Int -> Accumulator
 init k =
     { headingIndex = Vector.init k
-    , numberedItemIndex = 0
-    , equationIndex = 0
-    , definitionIndex = 0
-    , remarkIndex = 0
-    , exampleIndex = 0
-    , lemmaIndex = 0
-    , problemIndex = 0
-    , theoremIndex = 0
+    , counter = Dict.empty
     , environment = Dict.empty
     , reference = Dict.empty
     }
@@ -103,47 +104,19 @@ transformBlock lang acc (ExpressionBlock block) =
             ExpressionBlock
                 { block | args = block.args ++ [ Vector.toString acc.headingIndex ] }
 
-        OrdinaryBlock [ "numbered" ] ->
-            ExpressionBlock
-                { block | args = block.args ++ [ String.fromInt acc.numberedItemIndex ] }
-
         OrdinaryBlock args ->
             case List.head args of
                 -- TODO: review this code
-                Just "theorem" ->
+                Just name ->
                     ExpressionBlock
-                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
-
-                Just "lemma" ->
-                    ExpressionBlock
-                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
-
-                Just "definition" ->
-                    ExpressionBlock
-                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
-
-                Just "problem" ->
-                    ExpressionBlock
-                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
-
-                Just "remark" ->
-                    ExpressionBlock
-                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
-
-                Just "example" ->
-                    ExpressionBlock
-                        { block | args = insertInList (namedIndex "index" acc.theoremIndex) block.args }
+                        { block | args = insertInList (getCounterAsString name acc.counter) block.args }
 
                 _ ->
                     ExpressionBlock block
 
-        VerbatimBlock [ "equation" ] ->
+        VerbatimBlock [ name ] ->
             ExpressionBlock
-                { block | args = block.args ++ [ String.fromInt acc.equationIndex ] }
-
-        VerbatimBlock [ "aligned" ] ->
-            ExpressionBlock
-                { block | args = block.args ++ [ String.fromInt acc.equationIndex ] }
+                { block | args = insertInList (getCounterAsString name acc.counter) block.args }
 
         _ ->
             expand acc.environment (ExpressionBlock block)
@@ -177,36 +150,11 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
                 headingIndex =
                     Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
             in
-            { accumulator | headingIndex = headingIndex, numberedItemIndex = 0 } |> updateReference tag id (Vector.toString headingIndex)
-
-        -- provide numbering for lists
-        OrdinaryBlock [ "numbered" ] ->
-            let
-                numberedItemIndex =
-                    accumulator.numberedItemIndex + 1
-            in
-            { accumulator | numberedItemIndex = numberedItemIndex } |> updateReference tag id (String.fromInt numberedItemIndex)
+            -- TODO: take care of numberedItemIndex = 0 here and elsewhere
+            { accumulator | headingIndex = headingIndex } |> updateReference tag id (Vector.toString headingIndex)
 
         OrdinaryBlock args ->
             case List.head args of
-                Just "theorem" ->
-                    { accumulator | theoremIndex = accumulator.theoremIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.theoremIndex + 1))
-
-                Just "lemma" ->
-                    { accumulator | lemmaIndex = accumulator.lemmaIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.lemmaIndex + 1))
-
-                Just "definition" ->
-                    { accumulator | definitionIndex = accumulator.definitionIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.definitionIndex + 1))
-
-                Just "problem" ->
-                    { accumulator | problemIndex = accumulator.problemIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.problemIndex + 1))
-
-                Just "remark" ->
-                    { accumulator | remarkIndex = accumulator.remarkIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.remarkIndex + 1))
-
-                Just "example" ->
-                    { accumulator | exampleIndex = accumulator.exampleIndex + 1 } |> updateReference tag id (String.fromInt (accumulator.exampleIndex + 1))
-
                 Just "defs" ->
                     case content of
                         Left _ ->
@@ -215,31 +163,25 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
                         Right exprs ->
                             { accumulator | environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
 
+                Just name ->
+                    let
+                        newCounter =
+                            incrementCounter name accumulator.counter
+                    in
+                    { accumulator | counter = newCounter }
+                        |> updateReference tag id (String.fromInt (getCounter name newCounter))
+
                 _ ->
                     accumulator
 
         -- provide for numbering of equations
-        VerbatimBlock [ "equation" ] ->
+        VerbatimBlock [ name ] ->
             let
-                equationIndex =
-                    accumulator.equationIndex + 1
+                newCounter =
+                    incrementCounter name accumulator.counter
             in
-            { accumulator | equationIndex = equationIndex } |> updateReference tag id (String.fromInt equationIndex)
+            { accumulator | counter = newCounter } |> updateReference tag id (getCounter name newCounter |> String.fromInt)
 
-        VerbatimBlock [ "aligned" ] ->
-            let
-                equationIndex =
-                    accumulator.equationIndex + 1
-            in
-            { accumulator | equationIndex = equationIndex } |> updateReference tag id (String.fromInt equationIndex)
-
-        -- insert definitions of lambdas
-        --OrdinaryBlock [ "defs" ] ->
-        --    case content of
-        --        Left _ ->
-        --            accumulator
-        --
-        --        Right exprs ->
-        --            { accumulator | environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
         _ ->
-            { accumulator | numberedItemIndex = 0 }
+            -- TODO: take care of numberedItemIndex
+            accumulator
