@@ -21,6 +21,7 @@ type alias Accumulator =
     { headingIndex : Vector
     , counter : Dict String Int
     , environment : Dict String Lambda
+    , inList : Bool
     , reference : Dict String { id : String, numRef : String }
     }
 
@@ -59,6 +60,7 @@ make lang ast =
 init : Int -> Accumulator
 init k =
     { headingIndex = Vector.init k
+    , inList = False
     , counter = Dict.empty
     , environment = Dict.empty
     , reference = Dict.empty
@@ -137,11 +139,25 @@ expand dict (ExpressionBlock block) =
 
 
 updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) accumulator =
+updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id }) as block) accumulator =
     let
         updateReference : String -> String -> String -> Accumulator -> Accumulator
         updateReference tag_ id_ numRef_ acc =
             { acc | reference = Dict.insert tag_ { id = id_, numRef = numRef_ } acc.reference }
+
+        ( inList, initialNumberedCounter ) =
+            case ( accumulator.inList, name ) of
+                ( False, Just "numbered" ) ->
+                    ( True, Just 1 )
+
+                ( False, _ ) ->
+                    ( False, Nothing )
+
+                ( True, Just "numbered" ) ->
+                    ( True, Nothing )
+
+                ( True, _ ) ->
+                    ( False, Nothing )
     in
     case blockType of
         -- provide numbering for sections
@@ -151,37 +167,50 @@ updateAccumulator ((ExpressionBlock { blockType, content, tag, id }) as block) a
                     Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
             in
             -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-            { accumulator | headingIndex = headingIndex } |> updateReference tag id (Vector.toString headingIndex)
+            { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference tag id (Vector.toString headingIndex)
 
-        OrdinaryBlock args ->
-            case List.head args of
+        OrdinaryBlock args_ ->
+            case List.head args_ of
                 Just "defs" ->
                     case content of
                         Left _ ->
                             accumulator
 
                         Right exprs ->
-                            { accumulator | environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
+                            { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
 
-                Just name ->
+                Just "numbered" ->
                     let
                         newCounter =
-                            incrementCounter name accumulator.counter
+                            case initialNumberedCounter of
+                                Nothing ->
+                                    incrementCounter "numbered" accumulator.counter
+
+                                Just _ ->
+                                    Dict.insert "numbered" 1 accumulator.counter
                     in
-                    { accumulator | counter = newCounter }
-                        |> updateReference tag id (String.fromInt (getCounter name newCounter))
+                    { accumulator | inList = inList, counter = newCounter }
+                        |> updateReference tag id (String.fromInt (getCounter "numbered" newCounter))
+
+                Just name_ ->
+                    let
+                        newCounter =
+                            incrementCounter name_ accumulator.counter
+                    in
+                    { accumulator | inList = inList, counter = newCounter }
+                        |> updateReference tag id (String.fromInt (getCounter name_ newCounter))
 
                 _ ->
-                    accumulator
+                    { accumulator | inList = inList }
 
         -- provide for numbering of equations
-        VerbatimBlock [ name ] ->
+        VerbatimBlock [ name_ ] ->
             let
                 newCounter =
-                    incrementCounter name accumulator.counter
+                    incrementCounter name_ accumulator.counter
             in
-            { accumulator | counter = newCounter } |> updateReference tag id (getCounter name newCounter |> String.fromInt)
+            { accumulator | inList = inList, counter = newCounter } |> updateReference tag id (getCounter name_ newCounter |> String.fromInt)
 
         _ ->
             -- TODO: take care of numberedItemIndex
-            accumulator
+            { accumulator | inList = inList }
