@@ -234,12 +234,8 @@ env_ count acc settings args id exprs =
 env : String -> Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg
 env name count acc settings args id exprs =
     let
-        _ =
-            Debug.log "ENV" name
-
         label =
             args
-                |> Debug.log "ARGS"
                 |> List.filter (\s -> String.contains "index::" s)
                 |> String.join ""
                 |> String.replace "index::" ""
