@@ -3,7 +3,7 @@ module Compiler.DifferentialParser exposing (EditRecord, init, update)
 import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
 import Compiler.Differ as Differ
-import L0
+import Markup
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
@@ -38,7 +38,7 @@ differentialParser diffRecord editRecord =
 
 chunker : String -> List (Tree IntermediateBlock)
 chunker =
-    L0.parseToIntermediateBlocks
+    Markup.parseToIntermediateBlocks
 
 
 parser : Tree IntermediateBlock -> Tree ExpressionBlock

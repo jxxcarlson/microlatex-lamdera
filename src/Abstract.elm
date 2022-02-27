@@ -196,7 +196,7 @@ aaa
 str3 =
     """
 | title
-L0 Description
+Markup Description
 
 
 | subtitle
@@ -208,9 +208,9 @@ James Carlson
 | abstract
 This is about cool stuff
 
-L0 is a simple markup language which we use  to illustrate an
+Markup is a simple markup language which we use  to illustrate an
 approach to fault-tolerant parsing. Here is a short paragraph
-in L0:
+in Markup:
 
 ```
 Pythagoras says that for a [i right] triangle,
@@ -224,7 +224,7 @@ italicize function and `right` serves as an argument to it.
 In the expression `[i [blue quite] the dude]`, "quite" is
 rendered in italicized blue text while "the dude" is simply
 italicized. Apart from special expressions like the ones used
-for mathematical text and code,  L0 consists of ordinary text
+for mathematical text and code,  Markup consists of ordinary text
 and the Lisp-like expressions bounded  by brackets.
 
 
@@ -468,7 +468,7 @@ eval : List Token -> List Expr
 
 The result of this function application is prepended to `state.committed` and the stack is cleared.  If the stack is not reducible, then the state is passed on unchanged, eventually to be dealt with by the error recovery mechanism.
 
-The `eval` function belies the affinity of L0 with Lisp, albeit at a
+The `eval` function belies the affinity of Markup with Lisp, albeit at a
 far lower level of sophistication.  It operates as follows.  First, the reversed
 stack is examined to see if it begins with `LB` token and ends with the `RB` token.
 In that case the reversed token list has the form

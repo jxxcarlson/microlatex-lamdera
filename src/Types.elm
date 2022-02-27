@@ -12,7 +12,7 @@ import Document exposing (Document)
 import Element
 import File exposing (File)
 import Http
-import L0
+import Markup
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
 import Parser.Language exposing (Language(..))
 import Random
@@ -60,7 +60,7 @@ type alias FrontendModel =
     , initialText : String
     , sourceText : String
 
-    --, ast : L0.SyntaxTree
+    --, ast : Markup.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord
     , tableOfContents : List ExpressionBlock
     , title : String

@@ -1,6 +1,6 @@
-module L0 exposing (SyntaxTree, parse, parseToIntermediateBlocks)
+module Markup exposing (SyntaxTree, parse, parseToIntermediateBlocks)
 
-{-| A Parser for the experimental L0 module. See the app folder to see how it is used.
+{-| A Parser for the experimental Markup module. See the app folder to see how it is used.
 The Render folder in app could have been included with the parser. However, this way
 users are free to design their own renderer.
 

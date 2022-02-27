@@ -14,7 +14,7 @@ module Compiler.ASTTools exposing
     )
 
 import Either exposing (Either(..))
-import L0 exposing (SyntaxTree)
+import Markup exposing (SyntaxTree)
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
@@ -69,12 +69,12 @@ titleOLD ast =
     filterBlocksByArgs "title" ast
 
 
-title : Language -> L0.SyntaxTree -> String
+title : Language -> Markup.SyntaxTree -> String
 title lang ast =
     case lang of
         -- filterBlocksByArgs "title" ast
         L0Lang ->
-            "((Title unknown (L0)))"
+            "((Title unknown (Markup)))"
 
         MicroLaTeXLang ->
             ast
@@ -85,7 +85,7 @@ title lang ast =
                 |> Maybe.withDefault "((untitled))"
 
 
-root : L0.SyntaxTree -> Maybe ExpressionBlock
+root : Markup.SyntaxTree -> Maybe ExpressionBlock
 root syntaxTree =
     Maybe.map Tree.label (List.head syntaxTree)
 
@@ -118,12 +118,12 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
 
-tableOfContents : L0.SyntaxTree -> List ExpressionBlock
+tableOfContents : Markup.SyntaxTree -> List ExpressionBlock
 tableOfContents ast =
     filterBlocksByArgs "heading" ast
 
 
-filterBlocksByArgs : String -> L0.SyntaxTree -> List ExpressionBlock
+filterBlocksByArgs : String -> Markup.SyntaxTree -> List ExpressionBlock
 filterBlocksByArgs key ast =
     ast
         |> List.map Tree.flatten

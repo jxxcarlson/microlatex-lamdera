@@ -11,11 +11,11 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr exposing (attribute)
 import Html.Events
 import Json.Decode
-import L0
+import Markup
 import Parser.Block exposing (ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Render.Elm
-import Render.L0
+import Render.Markup
 import Render.Msg
 import Render.Settings
 import Render.TOC
@@ -126,7 +126,7 @@ viewRendered model width_ =
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px width_), E.paddingXY 16 32 ]
                     ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> E.map Render)
-                        :: (Render.L0.renderFromAST model.counter model.editRecord.accumulator (renderSettings (round <| 2.5 * toFloat model.windowWidth)) model.editRecord.parsed |> List.map (E.map Render))
+                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings (round <| 2.5 * toFloat model.windowWidth)) model.editRecord.parsed |> List.map (E.map Render))
                     )
                 ]
 

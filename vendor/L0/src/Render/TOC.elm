@@ -5,8 +5,8 @@ import Compiler.Acc exposing (Accumulator)
 import Either exposing (Either(..))
 import Element exposing (Element)
 import Element.Font as Font
-import L0
 import List.Extra
+import Markup
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Render.Elm
@@ -16,7 +16,7 @@ import Render.Utility
 import Tree
 
 
-view : Int -> Accumulator -> Render.Settings.Settings -> L0.SyntaxTree -> Element Render.Msg.L0Msg
+view : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> Element Render.Msg.L0Msg
 view counter acc settings ast =
     case ast |> List.map Tree.flatten |> List.concat |> Compiler.ASTTools.filterBlocksOnName "makeTableOfContents" of
         [] ->
@@ -51,7 +51,7 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
             Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink t, label = label }
 
 
-prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> L0.SyntaxTree -> List (Element L0Msg)
+prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element L0Msg)
 prepareTOC count acc settings ast =
     let
         rawToc =
@@ -93,7 +93,7 @@ prepareTOC count acc settings ast =
         title :: subtitle :: spaceBelow 8 :: toc
 
 
-prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> L0.SyntaxTree -> List (Element L0Msg)
+prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element L0Msg)
 prepareFrontMatter count acc settings ast =
     let
         headings =
@@ -146,7 +146,7 @@ tocIndentAux args =
             String.toInt str |> Maybe.withDefault 0 |> (\x -> 12 * x)
 
 
-getHeadings : L0.SyntaxTree -> { title : Maybe (List Expr), subtitle : Maybe (List Expr) }
+getHeadings : Markup.SyntaxTree -> { title : Maybe (List Expr), subtitle : Maybe (List Expr) }
 getHeadings ast =
     let
         data =

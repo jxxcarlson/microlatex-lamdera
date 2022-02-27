@@ -5,7 +5,7 @@ import Document exposing (Document)
 import Either
 import Http
 import Json.Encode as E
-import L0 exposing (SyntaxTree)
+import Markup exposing (SyntaxTree)
 import Maybe.Extra
 import Parser.Block exposing (ExpressionBlock(..))
 import Process
@@ -34,7 +34,7 @@ generatePdf : Document -> Cmd FrontendMsg
 generatePdf document =
     let
         syntaxTree =
-            L0.parse document.content
+            Markup.parse document.content
 
         imageUrls : List String
         imageUrls =

@@ -20,7 +20,7 @@ Welcome!
 This is a demo app for the experimental markup language MicroLaTeX.
 
 \\italic{To see what
-you can do with L0, compare the left and right windows (source
+you can do with Markup, compare the left and right windows (source
 and rendered text)}.  Clicking on text on the right brings the
 corresponding text on the left into view.  For the reverse,
 highlight text on the left and click the \\bold{\\blue{Sync}} button,

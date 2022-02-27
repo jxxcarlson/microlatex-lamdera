@@ -12,7 +12,7 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr exposing (attribute)
 import Html.Events
 import Json.Decode
-import Render.L0
+import Render.Markup
 import Render.Settings
 import Render.TOC
 import String.Extra
@@ -398,7 +398,7 @@ viewRendered model width_ =
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
                     ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> E.map Render)
-                        :: (Render.L0.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> List.map (E.map Render))
+                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> List.map (E.map Render))
                     )
                 ]
 
@@ -423,7 +423,7 @@ viewRenderedForEditor model width_ =
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
                     ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render)
-                        :: (Render.L0.renderFromAST model.counter model.editRecord.accumulator (editorRenderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> List.map (E.map Render))
+                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (editorRenderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> List.map (E.map Render))
                     )
                 ]
 

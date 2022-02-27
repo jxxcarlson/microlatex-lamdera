@@ -4,8 +4,8 @@ import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import L0 exposing (SyntaxTree)
 import List.Extra
+import Markup exposing (SyntaxTree)
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers exposing (Step(..), loop)
@@ -215,7 +215,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, content, children }) a
 
 
 renderDefs settings exprs =
-    "%% Macro definitions from L0 text:\n"
+    "%% Macro definitions from Markup text:\n"
         ++ exportExprList settings exprs
 
 

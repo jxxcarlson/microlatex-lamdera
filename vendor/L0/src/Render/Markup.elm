@@ -1,8 +1,8 @@
-module Render.L0 exposing (getMessages, renderFromAST, renderFromString, render_)
+module Render.Markup exposing (getMessages, renderFromAST, renderFromString, render_)
 
 import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
-import L0 exposing (SyntaxTree)
+import Markup exposing (SyntaxTree)
 import Parser.BlockUtil as BlockUtil
 import Render.Block
 import Render.Msg exposing (L0Msg)
@@ -17,7 +17,7 @@ isVerbatimLine str =
 
 renderFromString : Int -> Accumulator -> Settings -> String -> List (Element L0Msg)
 renderFromString count acc settings str =
-    str |> L0.parse |> renderFromAST count acc settings
+    str |> Markup.parse |> renderFromAST count acc settings
 
 
 render_ : Accumulator -> SyntaxTree -> List (Element L0Msg)
