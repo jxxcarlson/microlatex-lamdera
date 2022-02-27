@@ -9,6 +9,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Html.Attributes
+import List.Extra
 import Maybe.Extra
 import Parser.Expr exposing (Expr(..))
 import Render.Math
@@ -104,6 +105,7 @@ markupDict =
         --
         , ( "skip", \g acc s exprList -> skip g acc s exprList )
         , ( "link", \g acc s exprList -> link g acc s exprList )
+        , ( "href", \g acc s exprList -> href g acc s exprList )
         , ( "ilink", \g acc s exprList -> ilink g acc s exprList )
         , ( "abstract", \g acc s exprList -> abstract g acc s exprList )
         , ( "large", \g acc s exprList -> large g acc s exprList )
@@ -179,6 +181,21 @@ link g acc s exprList =
                 { url = url
                 , label = el [ Font.color linkColor ] (Element.text label)
                 }
+
+
+href : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+href g acc s exprList =
+    let
+        url =
+            List.Extra.getAt 0 exprList |> Maybe.andThen ASTTools.getText |> Maybe.withDefault ""
+
+        label =
+            List.Extra.getAt 1 exprList |> Maybe.andThen ASTTools.getText |> Maybe.withDefault ""
+    in
+    newTabLink []
+        { url = url
+        , label = el [ Font.color linkColor ] (Element.text label)
+        }
 
 
 ilink g acc s exprList =
