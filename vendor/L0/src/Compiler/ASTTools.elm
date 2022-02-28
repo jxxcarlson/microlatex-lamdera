@@ -141,7 +141,7 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
 
 tableOfContents : Markup.SyntaxTree -> List (ExpressionBlock Expr)
 tableOfContents ast =
-    filterBlocksByArgs "heading" ast
+    filterBlocksByArgs "section" ast |> Debug.log "TOC"
 
 
 filterBlocksByArgs : String -> Markup.SyntaxTree -> List (ExpressionBlock Expr)

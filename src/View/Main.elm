@@ -480,22 +480,6 @@ softTruncate k str =
             str2 ++ " ..."
 
 
-viewStatusReport model =
-    E.column (mainColumnStyle model)
-        [ E.column [ E.centerX, E.spacing 12, E.width (E.px <| smallAppWidth model.windowWidth), E.height (E.px (appHeight_ model)) ]
-            [ header model (E.px <| smallAppWidth model.windowWidth)
-            , E.column [ E.spacing 8, E.paddingXY 12 12, Font.size 14, Background.color (E.rgb 1 1 1), E.width (E.px (smallAppWidth model.windowWidth)) ]
-                (List.map (\item -> E.el [] (E.text item)) model.statusReport)
-            , footer model (smallAppWidth model.windowWidth)
-            ]
-        ]
-
-
-
---compile : Language -> Int -> Settings -> List String -> List (Element msg)
---compile language generation settings lines
-
-
 renderArgs model =
     { width = panelWidth_ model - 140
     , selectedId = "foobar"

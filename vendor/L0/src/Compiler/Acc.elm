@@ -104,7 +104,7 @@ transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "section", level ] ->
             ExpressionBlock
-                { block | args = block.args ++ [ Vector.toString acc.headingIndex ] }
+                { block | args = [ level, Vector.toString acc.headingIndex ] |> Debug.log "ARGS (transf)" }
 
         OrdinaryBlock args ->
             case List.head args of

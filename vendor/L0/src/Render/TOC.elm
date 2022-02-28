@@ -134,7 +134,7 @@ tocLink label exprList =
 
 
 tocIndent args =
-    Element.paddingEach { left = tocIndentAux args, right = 0, top = 0, bottom = 0 }
+    Element.paddingEach { left = tocIndentAux (Debug.log "tocIndent, args" args), right = 0, top = 0, bottom = 0 }
 
 
 tocIndentAux args =
@@ -143,7 +143,7 @@ tocIndentAux args =
             0
 
         Just str ->
-            String.toInt str |> Maybe.withDefault 0 |> (\x -> 12 * x)
+            String.toInt str |> Debug.log "INDENT" |> Maybe.withDefault 0 |> (\x -> 12 * x)
 
 
 getHeadings : Markup.SyntaxTree -> { title : Maybe (List Expr), subtitle : Maybe (List Expr) }
