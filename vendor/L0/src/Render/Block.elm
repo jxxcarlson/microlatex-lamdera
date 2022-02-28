@@ -24,7 +24,7 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
-render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element L0Msg
+render : Int -> Accumulator -> Settings -> ExpressionBlock Expr -> Element L0Msg
 render count acc settings (ExpressionBlock { name, args, indent, blockType, content, lineNumber, id, children }) =
     case blockType of
         Paragraph ->

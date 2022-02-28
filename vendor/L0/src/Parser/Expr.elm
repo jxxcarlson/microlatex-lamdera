@@ -34,7 +34,7 @@ which it is derived.
 
 -}
 
-import Parser.Token exposing (Meta)
+import Parser.Meta exposing (Meta)
 
 
 {-| -}
@@ -45,8 +45,8 @@ type Expr
     | Error String
 
 
-type ExprT
-    = T Parser.Token.Token
+type ExprT token
+    = T token
     | E Expr
     | EL (List Expr)
 

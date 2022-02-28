@@ -14,6 +14,7 @@ import File exposing (File)
 import Http
 import Markup
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
+import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
 import Random
 import Render.Msg exposing (L0Msg)
@@ -62,7 +63,7 @@ type alias FrontendModel =
 
     --, ast : Markup.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord
-    , tableOfContents : List ExpressionBlock
+    , tableOfContents : List (ExpressionBlock Expr)
     , title : String
     , searchCount : Int
     , searchSourceText : String

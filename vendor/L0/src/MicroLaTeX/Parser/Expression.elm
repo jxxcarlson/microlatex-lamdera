@@ -1,6 +1,7 @@
-module Parser.Expression exposing
+module MicroLaTeX.Parser.Expression exposing
     ( State
     , eval
+    , extractMessages
     , isReducible
     , parse
     , parseToState
@@ -9,14 +10,15 @@ module Parser.Expression exposing
 
 import Either exposing (Either(..))
 import List.Extra
+import MicroLaTeX.Parser.Symbol as Symbol exposing (Symbol(..), convertTokens2)
+import MicroLaTeX.Parser.Token as Token exposing (Token(..), TokenType(..))
 import Parser.Expr exposing (Expr(..), ExprT(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
 import Parser.Match as M exposing (match, reducible)
-import Parser.Symbol as Symbol exposing (Symbol(..), convertTokens2)
-import Parser.Token as Token exposing (Meta, Token(..), TokenType(..))
+import Parser.Meta exposing (Meta)
 
 
-prepare : List Token -> List ExprT
+prepare : List Token -> List (ExprT Token)
 prepare exprs =
     let
         f expr =
@@ -61,6 +63,11 @@ type alias State =
     , messages : List String
     , lineNumber : Int
     }
+
+
+extractMessages : State -> List String
+extractMessages state =
+    state.messages
 
 
 

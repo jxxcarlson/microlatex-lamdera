@@ -1,9 +1,9 @@
 module Parser.Simple exposing (ExprS(..), parse, simplify, simplifyToken, tokenize)
 
 import Either exposing (Either)
+import MicroLaTeX.Parser.Expression as Expression exposing (State)
 import Parser.Advanced exposing (DeadEnd)
 import Parser.Expr exposing (Expr(..))
-import Parser.Expression as Expression exposing (State)
 import Parser.Token as Token exposing (Token(..))
 import Parser.Tools exposing (Context, Problem)
 

@@ -11,8 +11,11 @@ The documentation is skimpy.
 
 -}
 
+import MicroLaTeX.Parser.Classify
+import MicroLaTeX.Parser.Expression
 import Parser.Block
 import Parser.BlockUtil
+import Parser.Expr exposing (Expr)
 import Tree exposing (Tree)
 import Tree.BlocksV
 import Tree.Build exposing (Error)
@@ -20,7 +23,7 @@ import Tree.Build exposing (Error)
 
 {-| -}
 type alias SyntaxTree =
-    List (Tree Parser.Block.ExpressionBlock)
+    List (Tree (Parser.Block.ExpressionBlock Expr))
 
 
 isVerbatimLine : String -> Bool
@@ -36,11 +39,11 @@ isVerbatimLine str =
 -- parse : String -> List (Tree Parser.Block.IntermediateBlock)
 
 
-parse : String -> List (Tree Parser.Block.ExpressionBlock)
+parse : String -> List (Tree (Parser.Block.ExpressionBlock Expr))
 parse sourceText =
     sourceText
         |> parseToIntermediateBlocks
-        |> List.map (Tree.map Parser.BlockUtil.toExpressionBlockFromIntermediateBlock)
+        |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock MicroLaTeX.Parser.Expression.parse))
 
 
 {-| -}
@@ -48,7 +51,9 @@ parseToIntermediateBlocks : String -> List (Tree Parser.Block.IntermediateBlock)
 parseToIntermediateBlocks sourceText =
     sourceText
         |> Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
-        |> Tree.Build.forestFromBlocks Parser.BlockUtil.empty Parser.BlockUtil.toIntermediateBlock Parser.BlockUtil.toBlockFromIntermediateBlock
+        |> Tree.Build.forestFromBlocks Parser.BlockUtil.empty
+            (Parser.BlockUtil.toIntermediateBlock MicroLaTeX.Parser.Classify.classify MicroLaTeX.Parser.Expression.parseToState MicroLaTeX.Parser.Expression.extractMessages)
+            Parser.BlockUtil.toBlockFromIntermediateBlock
         |> Result.withDefault []
 
 

@@ -1,14 +1,10 @@
-module Compiler.LaTeX exposing (..)
+module MicroLaTeX.Compiler.LaTeX exposing (..)
 
 import Compiler.Util
 import Either exposing (Either(..))
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
-
-
-b =
-    ExpressionBlock { args = [], blockType = Paragraph, children = [], content = Right [ Expr "title" [ Text "foo" { begin = 7, end = 9, index = 3 } ] { begin = 0, end = 0, index = 0 } ], id = "0", tag = "", indent = 1, lineNumber = 0, messages = [], name = Nothing, numberOfLines = 1, sourceText = "\\title{foo}" }
 
 
 ordinaryBlock args exprs data m1 =
@@ -21,7 +17,7 @@ ordinaryBlock args exprs data m1 =
         }
 
 
-transform : ExpressionBlock -> ExpressionBlock
+transform : ExpressionBlock Expr -> ExpressionBlock Expr
 transform ((ExpressionBlock data) as block) =
     case data.content of
         --Right [ Expr "title" [ Text str m1 ] m2 ] ->

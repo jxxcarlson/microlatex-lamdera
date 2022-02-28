@@ -1,7 +1,7 @@
 module Parser.Match exposing (deleteAt, match, reducible, splitAt)
 
+import MicroLaTeX.Parser.Symbol as Symbol exposing (Symbol(..))
 import Parser.Helpers exposing (Step(..), loop)
-import Parser.Symbol as Symbol exposing (Symbol(..))
 
 
 reducible : List Symbol -> Bool

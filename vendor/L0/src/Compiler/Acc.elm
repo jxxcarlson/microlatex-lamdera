@@ -5,12 +5,12 @@ module Compiler.Acc exposing
     , transformST
     )
 
-import Compiler.LaTeX
 import Compiler.Lambda as Lambda exposing (Lambda)
 import Compiler.Vector as Vector exposing (Vector)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import List.Extra
+import MicroLaTeX.Compiler.LaTeX
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
@@ -46,12 +46,12 @@ getLambda name environment =
     Dict.get name environment |> Maybe.map (\( args, expr ) -> { name = name, args = args, expr = expr })
 
 
-transformST : Language -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
+transformST : Language -> List (Tree (ExpressionBlock Expr)) -> List (Tree (ExpressionBlock Expr))
 transformST lang ast =
     ast |> make lang |> Tuple.second
 
 
-make : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
+make : Language -> List (Tree (ExpressionBlock Expr)) -> ( Accumulator, List (Tree (ExpressionBlock Expr)) )
 make lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
@@ -71,17 +71,17 @@ mapper ast_ ( acc_, tree_ ) =
     ( acc_, tree_ :: ast_ )
 
 
-transformAccumulateTree : Language -> Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
+transformAccumulateTree : Language -> Tree (ExpressionBlock Expr) -> Accumulator -> ( Accumulator, Tree (ExpressionBlock Expr) )
 transformAccumulateTree lang tree acc =
     let
-        transformer : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
+        transformer : Accumulator -> ExpressionBlock Expr -> ( Accumulator, ExpressionBlock Expr )
         transformer =
             \acc_ block__ ->
                 let
                     block_ =
                         case lang of
                             MicroLaTeXLang ->
-                                Compiler.LaTeX.transform block__
+                                MicroLaTeX.Compiler.LaTeX.transform block__
 
                             L0Lang ->
                                 block__
@@ -99,7 +99,7 @@ namedIndex name k =
     name ++ "::" ++ String.fromInt k
 
 
-transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
+transformBlock : Language -> Accumulator -> ExpressionBlock Expr -> ExpressionBlock Expr
 transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "heading", level ] ->
@@ -133,12 +133,12 @@ insertInList a list =
         list
 
 
-expand : Dict String Lambda -> ExpressionBlock -> ExpressionBlock
+expand : Dict String Lambda -> ExpressionBlock Expr -> ExpressionBlock Expr
 expand dict (ExpressionBlock block) =
     ExpressionBlock { block | content = Either.map (List.map (Lambda.expand dict)) block.content }
 
 
-updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
+updateAccumulator : ExpressionBlock Expr -> Accumulator -> Accumulator
 updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id }) as block) accumulator =
     let
         updateReference : String -> String -> String -> Accumulator -> Accumulator

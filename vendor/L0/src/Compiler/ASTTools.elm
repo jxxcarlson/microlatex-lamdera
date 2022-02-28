@@ -27,12 +27,12 @@ filterExpressionsOnName name exprs =
     List.filter (matchExprOnName name) exprs
 
 
-filterBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
+filterBlocksOnName : String -> List (ExpressionBlock Expr) -> List (ExpressionBlock Expr)
 filterBlocksOnName name blocks =
     List.filter (matchBlockOnName name) blocks
 
 
-matchBlockOnName : String -> ExpressionBlock -> Bool
+matchBlockOnName : String -> ExpressionBlock Expr -> Bool
 matchBlockOnName key (ExpressionBlock { name }) =
     Just key == name
 
@@ -55,7 +55,7 @@ matchingIdsInAST key ast =
     ast |> List.map Tree.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
 
 
-idOfMatchingBlockContent : String -> ExpressionBlock -> Maybe String
+idOfMatchingBlockContent : String -> ExpressionBlock Expr -> Maybe String
 idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
     if String.contains key sourceText then
         Just id
@@ -64,7 +64,7 @@ idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
         Nothing
 
 
-titleOLD : SyntaxTree -> List ExpressionBlock
+titleOLD : SyntaxTree -> List (ExpressionBlock Expr)
 titleOLD ast =
     filterBlocksByArgs "title" ast
 
@@ -85,7 +85,7 @@ title lang ast =
                 |> Maybe.withDefault "((untitled))"
 
 
-root : Markup.SyntaxTree -> Maybe ExpressionBlock
+root : Markup.SyntaxTree -> Maybe (ExpressionBlock Expr)
 root syntaxTree =
     Maybe.map Tree.label (List.head syntaxTree)
 
@@ -94,7 +94,7 @@ root syntaxTree =
 -- AST: [Tree (ExpressionBlock { args = [], blockType = Paragraph, children = [], content = Right [Expr "title" [Text "<<untitled>>" { begin = 7, end = 18, index = 3 }] { begin = 0, end = 0, index = 0 }], id = "0", indent = 1, lineNumber = 0, messages = [], name = Nothing, numberOfLines = 1, sourceText = "\\title{<<untitled>>}" })
 
 
-filterBlock : String -> ExpressionBlock -> List Expr
+filterBlock : String -> ExpressionBlock Expr -> List Expr
 filterBlock key (ExpressionBlock { content }) =
     let
         name : Expr -> String
@@ -118,12 +118,12 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
 
-tableOfContents : Markup.SyntaxTree -> List ExpressionBlock
+tableOfContents : Markup.SyntaxTree -> List (ExpressionBlock Expr)
 tableOfContents ast =
     filterBlocksByArgs "heading" ast
 
 
-filterBlocksByArgs : String -> Markup.SyntaxTree -> List ExpressionBlock
+filterBlocksByArgs : String -> Markup.SyntaxTree -> List (ExpressionBlock Expr)
 filterBlocksByArgs key ast =
     ast
         |> List.map Tree.flatten
@@ -131,7 +131,7 @@ filterBlocksByArgs key ast =
         |> List.filter (matchBlock key)
 
 
-matchBlock : String -> ExpressionBlock -> Bool
+matchBlock : String -> ExpressionBlock Expr -> Bool
 matchBlock key (ExpressionBlock { blockType }) =
     case blockType of
         Paragraph ->
@@ -189,7 +189,7 @@ stringValue text =
             str
 
 
-expressionBlockToText : List ExpressionBlock -> String
+expressionBlockToText : List (ExpressionBlock Expr) -> String
 expressionBlockToText =
     toExprRecord >> List.map .content >> List.concat >> List.filterMap getText >> String.join " "
 
@@ -198,7 +198,7 @@ expressionBlockToText =
 -- toExprListList : List L0BlockE -> List (List Expr)
 
 
-toExprRecord : List ExpressionBlock -> List { content : List Expr, blockType : BlockType }
+toExprRecord : List (ExpressionBlock Expr) -> List { content : List Expr, blockType : BlockType }
 toExprRecord blocks =
     List.map toExprList_ blocks
 

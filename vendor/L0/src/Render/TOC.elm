@@ -28,7 +28,7 @@ view counter acc settings ast =
                 (prepareTOC counter acc Render.Settings.defaultSettings ast)
 
 
-viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock -> Element Render.Msg.L0Msg
+viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock Expr -> Element Render.Msg.L0Msg
 viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
     case content of
         Left _ ->

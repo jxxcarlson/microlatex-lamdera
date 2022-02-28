@@ -4,14 +4,17 @@ import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
 import Compiler.Differ as Differ
 import Markup
+import MicroLaTeX.Parser.Classify
+import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
 import Parser.BlockUtil
+import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
 
 
 type alias EditRecord =
-    Abstract.EditRecord (Tree IntermediateBlock) (Tree ExpressionBlock) Compiler.Acc.Accumulator
+    Abstract.EditRecord (Tree IntermediateBlock) (Tree (ExpressionBlock Expr)) Compiler.Acc.Accumulator
 
 
 init : Language -> String -> EditRecord
@@ -41,9 +44,9 @@ chunker =
     Markup.parseToIntermediateBlocks
 
 
-parser : Tree IntermediateBlock -> Tree ExpressionBlock
+parser : Tree IntermediateBlock -> Tree (ExpressionBlock Expr)
 parser =
-    Tree.map Parser.BlockUtil.toExpressionBlockFromIntermediateBlock
+    Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock MicroLaTeX.Parser.Expression.parse)
 
 
 

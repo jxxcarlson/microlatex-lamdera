@@ -16,11 +16,10 @@ consumes trees of ExpressionBlocks to produce Html.
 
 import Either exposing (Either(..))
 import Parser.Expr exposing (Expr)
-import Parser.Expression
 
 
 {-| -}
-type ExpressionBlock
+type ExpressionBlock expr
     = ExpressionBlock
         { name : Maybe String
         , args : List String
@@ -30,9 +29,9 @@ type ExpressionBlock
         , id : String
         , tag : String
         , blockType : BlockType
-        , content : Either String (List Expr)
+        , content : Either String (List expr)
         , messages : List String
-        , children : List ExpressionBlock
+        , children : List (ExpressionBlock expr)
         , sourceText : String
         }
 

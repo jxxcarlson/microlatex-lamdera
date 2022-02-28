@@ -1,6 +1,5 @@
-module Parser.Token exposing
-    ( Meta
-    , Token(..)
+module MicroLaTeX.Parser.Token exposing
+    ( Token(..)
     , TokenType(..)
     , idem
     , idemTest
@@ -12,6 +11,7 @@ module Parser.Token exposing
 
 import Parser.Advanced as Parser exposing (DeadEnd, Parser)
 import Parser.Helpers exposing (Step(..), loop)
+import Parser.Meta exposing (Meta)
 import Parser.Tools as PT exposing (Context, Problem)
 
 
@@ -66,10 +66,6 @@ setIndex k token =
 
         TokenError list meta ->
             TokenError list { meta | index = k }
-
-
-type alias Meta =
-    { begin : Int, end : Int, index : Int }
 
 
 type alias State a =

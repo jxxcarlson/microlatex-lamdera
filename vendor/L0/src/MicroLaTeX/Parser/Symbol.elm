@@ -1,7 +1,7 @@
-module Parser.Symbol exposing (Symbol(..), balance, convertTokens, convertTokens2, toString, value)
+module MicroLaTeX.Parser.Symbol exposing (Symbol(..), balance, convertTokens, convertTokens2, toString, value)
 
 import Maybe.Extra
-import Parser.Token exposing (Token(..))
+import MicroLaTeX.Parser.Token exposing (Token(..))
 
 
 type Symbol
