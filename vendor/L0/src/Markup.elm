@@ -65,10 +65,10 @@ parseToIntermediateBlocks lang sourceText =
         toIntermediateBlock =
             case lang of
                 MicroLaTeXLang ->
-                    Parser.BlockUtil.toIntermediateBlock MicroLaTeX.Parser.Classify.classify MicroLaTeX.Parser.Expression.parseToState MicroLaTeX.Parser.Expression.extractMessages
+                    Parser.BlockUtil.toIntermediateBlock lang MicroLaTeX.Parser.Expression.parseToState MicroLaTeX.Parser.Expression.extractMessages
 
                 L0Lang ->
-                    Parser.BlockUtil.toIntermediateBlock L0.Parser.Classify.classify L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
+                    Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
     in
     sourceText
         |> Tree.BlocksV.fromStringAsParagraphs isVerbatimLine

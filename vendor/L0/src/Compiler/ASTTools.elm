@@ -69,12 +69,33 @@ titleOLD ast =
     filterBlocksByArgs "title" ast
 
 
+title_ lang ast =
+    let
+        mBlock =
+            ast
+                |> List.map Tree.flatten
+                |> List.concat
+                |> filterBlocksOnName "title"
+                |> List.head
+    in
+    case mBlock of
+        Nothing ->
+            "(title)"
+
+        Just (ExpressionBlock { content }) ->
+            case content of
+                Left str ->
+                    str
+
+                Right exprList ->
+                    List.map getText exprList |> Maybe.Extra.values |> String.join ""
+
+
 title : Language -> Markup.SyntaxTree -> String
 title lang ast =
     case lang of
-        -- filterBlocksByArgs "title" ast
         L0Lang ->
-            "((Title unknown (Markup)))"
+            title_ L0Lang ast
 
         MicroLaTeXLang ->
             ast
@@ -82,7 +103,7 @@ title lang ast =
                 |> Maybe.map (filterBlock "title")
                 |> Maybe.andThen List.head
                 |> Maybe.andThen getText
-                |> Maybe.withDefault "((untitled))"
+                |> Maybe.withDefault "((untitled-microLaTeX))"
 
 
 root : Markup.SyntaxTree -> Maybe (ExpressionBlock Expr)

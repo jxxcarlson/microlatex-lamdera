@@ -13,6 +13,8 @@ module Parser.BlockUtil exposing
 
 import Compiler.Util
 import Either exposing (Either(..))
+import L0.Parser.Classify
+import MicroLaTeX.Parser.Classify
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Common
 import Parser.Expr exposing (Expr)
@@ -146,9 +148,17 @@ bareBlockNames =
     [ "makeTableOfContents" ]
 
 
-toIntermediateBlock : (Tree.BlocksV.Block -> BlockType) -> (Int -> String -> state) -> (state -> List String) -> Tree.BlocksV.Block -> IntermediateBlock
-toIntermediateBlock classify parseToState extractMessages block =
+toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> Tree.BlocksV.Block -> IntermediateBlock
+toIntermediateBlock lang parseToState extractMessages block =
     let
+        classify =
+            case lang of
+                MicroLaTeXLang ->
+                    MicroLaTeX.Parser.Classify.classify
+
+                L0Lang ->
+                    L0.Parser.Classify.classify
+
         blockType =
             classify block
 
@@ -198,7 +208,7 @@ toIntermediateBlock classify parseToState extractMessages block =
                     if String.contains endString rawContent then
                         String.replace endString "" rawContent
 
-                    else if not (List.member name [ "item", "numbered" ]) then
+                    else if not (List.member name [ "item", "numbered" ]) && lang == MicroLaTeXLang then
                         rawContent ++ "\n\\red{add end " ++ name ++ " tag}"
 
                     else

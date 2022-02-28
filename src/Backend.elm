@@ -200,14 +200,16 @@ updateFromFrontend sessionId clientId msg model =
                     ]
 
         SaveDocument currentUser document ->
-            let
-                title =
-                    Abstract.getItem document.language "title" document.content
+            case currentUser of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                documentDict =
-                    Dict.insert document.id { document | title = title, modified = model.currentTime } model.documentDict
-            in
-            ( { model | documentDict = documentDict }, Cmd.none )
+                Just _ ->
+                    let
+                        documentDict =
+                            Dict.insert document.id { document | modified = model.currentTime } model.documentDict
+                    in
+                    ( { model | documentDict = documentDict }, Cmd.none )
 
         FetchDocumentById docId ->
             case Dict.get docId model.documentDict of

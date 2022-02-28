@@ -529,7 +529,7 @@ update msg model =
                 Just doc ->
                     let
                         newEditRecord =
-                            Compiler.DifferentialParser.update model.editRecord doc.content
+                            Compiler.DifferentialParser.init doc.language doc.content
                     in
                     ( { model
                         | currentDocument = Just doc
@@ -547,7 +547,7 @@ update msg model =
         SetDocumentAsCurrent permissions doc ->
             let
                 newEditRecord =
-                    Compiler.DifferentialParser.update model.editRecord doc.content
+                    Compiler.DifferentialParser.init doc.language doc.content
             in
             ( { model
                 | currentDocument = Just doc
@@ -560,6 +560,7 @@ update msg model =
                 , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
                 , permissions = setPermissions model.currentUser permissions doc
                 , counter = model.counter + 1
+                , language = doc.language
               }
             , Cmd.batch [ View.Utility.setViewPortToTop ]
             )
@@ -783,7 +784,7 @@ updateDoc model str =
                         Compiler.ASTTools.title model.language model.editRecord.parsed
 
                     ( safeContent, safeTitle ) =
-                        if String.left 1 provisionalTitle == "|" then
+                        if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
                             ( String.replace "| title\n" "| title\n{untitled}\n\n" str, "{untitled}" )
 
                         else
@@ -862,8 +863,7 @@ updateFromBackend msg model =
 
                         CanEdit ->
                             True
-            in
-            let
+
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
             in
