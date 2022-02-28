@@ -23,16 +23,16 @@ transform ((ExpressionBlock data) as block) =
         --Right [ Expr "title" [ Text str m1 ] m2 ] ->
         --    ordinaryBlock "title" str data m1
         Right [ _, Expr "section" exprs m2 ] ->
-            ordinaryBlock [ "heading", "1" ] exprs data m2
+            ordinaryBlock [ "section", "1" ] exprs data m2
 
         Right [ _, Expr "subsection" exprs m2 ] ->
-            ordinaryBlock [ "heading", "2" ] exprs data m2
+            ordinaryBlock [ "section", "2" ] exprs data m2
 
         Right [ _, Expr "subsubsection" exprs m2 ] ->
-            ordinaryBlock [ "heading", "3" ] exprs data m2
+            ordinaryBlock [ "section", "3" ] exprs data m2
 
         Right [ _, Expr "subheading" exprs m2 ] ->
-            ordinaryBlock [ "heading", "4" ] exprs data m2
+            ordinaryBlock [ "section", "4" ] exprs data m2
 
         Right [ _, Expr "makeTableOfContents" [] m2 ] ->
             ordinaryBlock [ "makeTableOfContents" ] [] data m2
