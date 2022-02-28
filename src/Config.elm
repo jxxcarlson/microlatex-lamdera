@@ -15,7 +15,7 @@ import Parser.Language
 
 welcomeDocId =
     -- "id-kl117-ej494"
-    "id-jb162-lb161"
+    "id-xk211-qw247"
 
 
 documentDeletedNotice =
