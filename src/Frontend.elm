@@ -24,17 +24,13 @@ import Html exposing (Html)
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
-import Parser.Block exposing (ExpressionBlock)
-import Parser.BlockUtil as BlockUtil
 import Parser.Language exposing (Language(..))
 import Process
-import Render.Block
 import Render.LaTeX as LaTeX
 import Render.Markup as L0
 import Render.Msg exposing (L0Msg(..))
 import Render.Settings as Settings
 import Task
-import Tree exposing (Tree)
 import Types exposing (..)
 import Url exposing (Url)
 import UrlManager
@@ -108,9 +104,9 @@ init url key =
       , initialText = ""
       , documentsCreatedCounter = 0
       , sourceText = View.Data.welcome
-      , editRecord = Compiler.DifferentialParser.init Config.initialLanguage ""
+      , editRecord = Compiler.DifferentialParser.init Config.initialLanguage "" |> Debug.log "EDIT RECORD (1)"
       , title = "(title not yet defined)"
-      , tableOfContents = Compiler.ASTTools.tableOfContents (Markup.parse View.Data.welcome)
+      , tableOfContents = Compiler.ASTTools.tableOfContents (Markup.parse MicroLaTeXLang View.Data.welcome)
       , debounce = Debounce.init
       , counter = 0
       , inputSearchKey = ""
@@ -286,7 +282,7 @@ update msg model =
         SetDocumentInPhoneAsCurrent permissions doc ->
             let
                 ast =
-                    Markup.parse doc.content |> Compiler.Acc.transformST doc.language
+                    Markup.parse doc.language doc.content |> Compiler.Acc.transformST doc.language
             in
             ( { model
                 | currentDocument = Just doc
@@ -454,7 +450,7 @@ update msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.update model.editRecord str
+                    Compiler.DifferentialParser.update model.editRecord str |> Debug.log "EDIT RECORD (2)"
 
                 messages : List String
                 messages =
@@ -521,7 +517,7 @@ update msg model =
                 Just doc ->
                     let
                         newEditRecord =
-                            Compiler.DifferentialParser.update model.editRecord doc.content
+                            Compiler.DifferentialParser.update model.editRecord doc.content |> Debug.log "EDIT RECORD (3)"
                     in
                     ( { model
                         | currentDocument = Just doc
@@ -539,7 +535,7 @@ update msg model =
         SetDocumentAsCurrent permissions doc ->
             let
                 newEditRecord =
-                    Compiler.DifferentialParser.update model.editRecord doc.content
+                    Compiler.DifferentialParser.update model.editRecord doc.content |> Debug.log "EDIT RECORD (4)"
             in
             ( { model
                 | currentDocument = Just doc
@@ -857,7 +853,7 @@ updateFromBackend msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
+                    Compiler.DifferentialParser.init doc.language doc.content |> Debug.log "EDIT RECORD (5)"
             in
             ( { model
                 | editRecord = editRecord

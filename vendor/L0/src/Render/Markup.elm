@@ -4,6 +4,7 @@ import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
 import Markup exposing (SyntaxTree)
 import Parser.BlockUtil as BlockUtil
+import Parser.Language exposing (Language)
 import Render.Block
 import Render.Msg exposing (L0Msg)
 import Render.Settings exposing (Settings)
@@ -15,9 +16,9 @@ isVerbatimLine str =
     String.left 2 str == "||"
 
 
-renderFromString : Int -> Accumulator -> Settings -> String -> List (Element L0Msg)
-renderFromString count acc settings str =
-    str |> Markup.parse |> renderFromAST count acc settings
+renderFromString : Language -> Int -> Accumulator -> Settings -> String -> List (Element L0Msg)
+renderFromString lang count acc settings str =
+    str |> Markup.parse lang |> renderFromAST count acc settings
 
 
 render_ : Accumulator -> SyntaxTree -> List (Element L0Msg)

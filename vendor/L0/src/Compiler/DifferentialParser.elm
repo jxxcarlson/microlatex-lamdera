@@ -3,6 +3,7 @@ module Compiler.DifferentialParser exposing (EditRecord, init, update)
 import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
 import Compiler.Differ as Differ
+import L0.Parser.Expression
 import Markup
 import MicroLaTeX.Parser.Classify
 import MicroLaTeX.Parser.Expression
@@ -22,31 +23,36 @@ init lang str =
     let
         chunks : List (Tree IntermediateBlock)
         chunks =
-            chunker str
+            chunker lang str
 
         ( newAccumulator, parsed ) =
-            (List.map parser >> Compiler.Acc.make lang) chunks
+            (List.map (parser lang) >> Compiler.Acc.make lang) chunks
     in
     { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
 
 
 update : EditRecord -> String -> EditRecord
 update editRecord text =
-    Abstract.update chunker parser Compiler.Acc.make editRecord text
+    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Compiler.Acc.make editRecord text
 
 
 differentialParser diffRecord editRecord =
     Abstract.differentialParser chunker diffRecord editRecord
 
 
-chunker : String -> List (Tree IntermediateBlock)
-chunker =
-    Markup.parseToIntermediateBlocks
+chunker : Language -> String -> List (Tree IntermediateBlock)
+chunker lang =
+    Markup.parseToIntermediateBlocks lang
 
 
-parser : Tree IntermediateBlock -> Tree (ExpressionBlock Expr)
-parser =
-    Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock MicroLaTeX.Parser.Expression.parse)
+parser : Language -> Tree IntermediateBlock -> Tree (ExpressionBlock Expr)
+parser lang =
+    case lang of
+        MicroLaTeXLang ->
+            Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock MicroLaTeX.Parser.Expression.parse)
+
+        L0Lang ->
+            Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock L0.Parser.Expression.parse)
 
 
 

@@ -34,7 +34,7 @@ generatePdf : Document -> Cmd FrontendMsg
 generatePdf document =
     let
         syntaxTree =
-            Markup.parse document.content
+            Markup.parse document.language document.content
 
         imageUrls : List String
         imageUrls =
