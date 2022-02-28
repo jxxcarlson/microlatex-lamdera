@@ -5,10 +5,8 @@ module MicroLaTeX.Parser.Expression exposing
     , isReducible
     , parse
     , parseToState
-    , prepare
     )
 
-import Either exposing (Either(..))
 import List.Extra
 import MicroLaTeX.Parser.Symbol as Symbol exposing (Symbol(..), convertTokens2)
 import MicroLaTeX.Parser.Token as Token exposing (Token(..), TokenType(..))
@@ -18,38 +16,7 @@ import Parser.Match as M exposing (match, reducible)
 import Parser.Meta exposing (Meta)
 
 
-prepare : List Token -> List (ExprT Token)
-prepare exprs =
-    let
-        f expr =
-            case expr of
-                T (S t m) ->
-                    E (Text t m)
 
-                _ ->
-                    expr
-    in
-    exprs
-        |> List.map T
-        |> List.map f
-
-
-
---getMeta : Expr -> Meta
---getMeta expr =
---    case expr of
---        Expr _ _ m ->
---            m
---
---        Text _ m ->
---            m
---
---        Verbatim _ _ m ->
---            m
---
---        Error _ ->
---            { begin = 0, end = 0, index = -1 }
---
 -- TYPES
 
 
@@ -126,7 +93,6 @@ parseToState lineNumber str =
 
 
 
--- PARSER
 -- PARSER
 
 
@@ -399,23 +365,6 @@ errorMessageBold message =
 errorMessage2 : String -> Expr
 errorMessage2 message =
     Expr "blue" [ Text message dummyLoc ] dummyLoc
-
-
-colorRed : Expr -> Expr
-colorRed expr =
-    Expr "red" [ expr ] dummyLoc
-
-
-colorFirstElementRed : State -> State
-colorFirstElementRed state =
-    let
-        ( a, b ) =
-            M.splitAt 1 state.committed
-
-        newCommitted =
-            List.map colorRed a ++ b
-    in
-    { state | committed = newCommitted }
 
 
 addErrorMessage : String -> State -> State
