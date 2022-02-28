@@ -259,7 +259,7 @@ toIntermediateBlock lang parseToState extractMessages block =
                     if String.contains endString rawContent then
                         ( name, blockType, String.replace endString "" rawContent |> addEnd )
 
-                    else if not (List.member name [ "math" ]) then
+                    else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
                         ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\n\\end{??}" )
 
                     else
