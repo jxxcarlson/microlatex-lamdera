@@ -104,7 +104,7 @@ init url key =
       , initialText = ""
       , documentsCreatedCounter = 0
       , sourceText = View.Data.welcome
-      , editRecord = Compiler.DifferentialParser.init Config.initialLanguage "" |> Debug.log "EDIT RECORD (1)"
+      , editRecord = Compiler.DifferentialParser.init Config.initialLanguage ""
       , title = "(title not yet defined)"
       , tableOfContents = Compiler.ASTTools.tableOfContents (Markup.parse MicroLaTeXLang View.Data.welcome)
       , debounce = Debounce.init
@@ -450,7 +450,7 @@ update msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.update model.editRecord str |> Debug.log "EDIT RECORD (2)"
+                    Compiler.DifferentialParser.update model.editRecord str
 
                 messages : List String
                 messages =
@@ -517,7 +517,7 @@ update msg model =
                 Just doc ->
                     let
                         newEditRecord =
-                            Compiler.DifferentialParser.update model.editRecord doc.content |> Debug.log "EDIT RECORD (3)"
+                            Compiler.DifferentialParser.update model.editRecord doc.content
                     in
                     ( { model
                         | currentDocument = Just doc
@@ -535,7 +535,7 @@ update msg model =
         SetDocumentAsCurrent permissions doc ->
             let
                 newEditRecord =
-                    Compiler.DifferentialParser.update model.editRecord doc.content |> Debug.log "EDIT RECORD (4)"
+                    Compiler.DifferentialParser.update model.editRecord doc.content
             in
             ( { model
                 | currentDocument = Just doc
@@ -853,7 +853,7 @@ updateFromBackend msg model =
             in
             let
                 editRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content |> Debug.log "EDIT RECORD (5)"
+                    Compiler.DifferentialParser.init doc.language doc.content
             in
             ( { model
                 | editRecord = editRecord
