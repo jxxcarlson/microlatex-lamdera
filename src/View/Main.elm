@@ -297,7 +297,8 @@ messageRow model =
 
 header model width_ =
     E.row [ E.spacing 12, E.width E.fill ]
-        [ View.Utility.hideIf (model.currentUser == Nothing) Button.newDocument
+        [ View.Utility.hideIf (model.currentUser == Nothing) (Button.cycleLanguage model.language)
+        , View.Utility.hideIf (model.currentUser == Nothing) Button.newDocument
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.deleteDocument model)
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor Button.closeEditor

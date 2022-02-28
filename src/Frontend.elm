@@ -391,6 +391,18 @@ update msg model =
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
 
         -- DOCUMENT
+        CycleLanguage ->
+            let
+                mewLang =
+                    case model.language of
+                        MicroLaTeXLang ->
+                            L0Lang
+
+                        L0Lang ->
+                            MicroLaTeXLang
+            in
+            ( { model | language = mewLang }, Cmd.none )
+
         Render msg_ ->
             case msg_ of
                 Render.Msg.SendMeta m ->

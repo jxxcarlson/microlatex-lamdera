@@ -3,9 +3,7 @@ module Parser.BlockUtil exposing
     , getMessages
     , l0Empty
     , toBlock
-    ,  toBlockFromIntermediateBlock
-       --, toExpressionBlock
-
+    , toBlockFromIntermediateBlock
     , toExpressionBlockFromIntermediateBlock
     , toIntermediateBlock
     , toL0Block

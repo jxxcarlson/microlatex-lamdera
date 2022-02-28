@@ -1,6 +1,7 @@
 module View.Button exposing
     ( cancelDeleteDocument
     , closeEditor
+    , cycleLanguage
     , deleteDocument
     , export
     , exportJson
@@ -40,6 +41,7 @@ import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import Parser.Language exposing (Language(..))
 import Types exposing (..)
 import View.Color as Color
 import View.Style
@@ -78,6 +80,20 @@ linkStyle =
 
 
 -- UI
+
+
+cycleLanguage : Language -> Element FrontendMsg
+cycleLanguage lang =
+    let
+        langString =
+            case lang of
+                MicroLaTeXLang ->
+                    "MicroLaTeX"
+
+                L0Lang ->
+                    "L0"
+    in
+    buttonTemplate [] CycleLanguage langString
 
 
 deleteDocument : FrontendModel -> Element FrontendMsg

@@ -225,6 +225,7 @@ type FrontendMsg
     | SendSyncLR
     | GetSelection String
       -- DOC
+    | CycleLanguage
     | Fetch String
     | SetPublicDocumentAsCurrentById String
     | SetInitialEditorContent
