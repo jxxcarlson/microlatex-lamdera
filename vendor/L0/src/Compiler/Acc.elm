@@ -54,7 +54,7 @@ transformST lang ast =
 make : Language -> List (Tree (ExpressionBlock Expr)) -> ( Accumulator, List (Tree (ExpressionBlock Expr)) )
 make lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
-        |> (\( acc_, ast_ ) -> ( Debug.log "ACC" acc_, List.reverse ast_ ))
+        |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
 
 
 init : Int -> Accumulator
@@ -104,7 +104,7 @@ transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "section", level ] ->
             ExpressionBlock
-                { block | args = [ level, Vector.toString acc.headingIndex ] |> Debug.log "ARGS (transf)" }
+                { block | args = [ level, Vector.toString acc.headingIndex ] }
 
         OrdinaryBlock args ->
             case List.head args of
@@ -163,9 +163,6 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
         -- provide numbering for sections
         OrdinaryBlock [ "section", level ] ->
             let
-                _ =
-                    Debug.log "section, level" level
-
                 headingIndex =
                     Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
             in
