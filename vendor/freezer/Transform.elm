@@ -62,17 +62,15 @@ an ordinary block with designated arguments
 transform : ExpressionBlock Expr -> ExpressionBlock Expr
 transform ((ExpressionBlock data) as block) =
     let
-        _ =
-            Debug.log "BLOCK" block
 
         normalized : Either String (List Expr)
         normalized =
             case data.content of
                 Right ((Text _ _) :: rest) ->
-                    Right rest |> Debug.log "NORM (1)"
+                    Right rest
 
                 _ ->
-                    data.content |> Debug.log "NORM (2)"
+                    data.content
 
         expressions : List Expr
         expressions =
@@ -83,7 +81,7 @@ transform ((ExpressionBlock data) as block) =
                 _ ->
                     []
             )
-                |> Debug.log "ARGS"
+
 
         args : List String
         args =

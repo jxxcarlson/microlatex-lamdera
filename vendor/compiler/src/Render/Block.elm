@@ -216,7 +216,7 @@ indented count acc settings args id exprs =
 bibitem count acc settings args id exprs =
     let
         label =
-            List.Extra.getAt 1 (args |> Debug.log "ARGS") |> Maybe.withDefault "??" |> (\s -> "[" ++ s ++ "]")
+            List.Extra.getAt 1 args |> Maybe.withDefault "??" |> (\s -> "[" ++ s ++ "]")
     in
     Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
         [ Element.el
