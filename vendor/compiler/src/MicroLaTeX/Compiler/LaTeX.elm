@@ -17,11 +17,18 @@ ordinaryBlock args exprs data m1 =
         }
 
 
+{-| The role of function transform is to map a paragraph block
+containing a single expression of designated name to
+an ordinary block with designated arguments
+-}
 transform : ExpressionBlock Expr -> ExpressionBlock Expr
 transform ((ExpressionBlock data) as block) =
     case data.content of
         --Right [ Expr "title" [ Text str m1 ] m2 ] ->
         --    ordinaryBlock "title" str data m1
+        Right [ _, Expr "bibitem" exprs m2 ] ->
+            ordinaryBlock [ "bibitem!!" ] (List.drop 2 exprs) data m2
+
         Right [ _, Expr "section" exprs m2 ] ->
             ordinaryBlock [ "section", "1" ] exprs data m2
 

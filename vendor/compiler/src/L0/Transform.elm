@@ -1,0 +1,52 @@
+module L0.Transform exposing (transform)
+
+import Compiler.Util
+import Either exposing (Either(..))
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
+import Parser.Expr exposing (Expr(..))
+import Parser.Language exposing (Language(..))
+
+
+ordinaryBlock args exprs data m1 =
+    ExpressionBlock
+        { data
+            | blockType = OrdinaryBlock args
+            , content = Right exprs
+            , args = List.drop 1 args
+            , name = List.head args
+        }
+
+
+splitString splitter str =
+    if String.contains splitter str then
+        String.split splitter str |> List.map String.trim
+
+    else
+        String.words str
+
+
+split exprs =
+    case exprs of
+        [ Text str m ] ->
+            let
+                strs =
+                    splitString "," str
+            in
+            List.map (\s -> Text s m) strs
+
+        _ ->
+            exprs
+
+
+{-| The role of function transform is to map a paragraph block
+containing a single expression of designated name to
+an ordinary block with designated arguments
+-}
+transform : ExpressionBlock Expr -> ExpressionBlock Expr
+transform ((ExpressionBlock data) as block) =
+    case data.content of
+        Right [ Expr "bibitem" exprs m2 ] ->
+            ordinaryBlock [ "bibitem" ] (exprs |> split) data m2
+
+        _ ->
+            block

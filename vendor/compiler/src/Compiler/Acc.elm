@@ -9,6 +9,7 @@ import Compiler.Lambda as Lambda exposing (Lambda)
 import Compiler.Vector as Vector exposing (Vector)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import L0.Transform
 import List.Extra
 import MicroLaTeX.Compiler.LaTeX
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
@@ -84,7 +85,7 @@ transformAccumulateTree lang tree acc =
                                 MicroLaTeX.Compiler.LaTeX.transform block__
 
                             L0Lang ->
-                                block__
+                                L0.Transform.transform block__
 
                     newAcc =
                         updateAccumulator block_ acc_
@@ -194,6 +195,7 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
 
                 Just name_ ->
                     let
+                        -- TODO: restrict to name_ in designated (but dynamic) list
                         newCounter =
                             incrementCounter name_ accumulator.counter
                     in

@@ -105,6 +105,8 @@ blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String
 blockDict =
     Dict.fromList
         [ ( "indent", indented )
+
+        -- , ("bibitem", bibitem)
         , ( "heading", heading )
         , ( "section", heading )
         , ( "title", \_ _ _ _ _ _ -> Element.none )
