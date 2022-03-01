@@ -33,8 +33,9 @@ transform ((ExpressionBlock data) as block) =
                     data.content
     in
     case normalized of
-        --Right [ Expr "title" [ Text str m1 ] m2 ] ->
-        --    ordinaryBlock "title" str data m1
+        Right [ Expr "title" exprs m2 ] ->
+            ordinaryBlock [ "title" ] exprs data m2
+
         Right [ Expr "bibitem" exprs m2, _ ] ->
             let
                 content : List Expr
