@@ -305,7 +305,7 @@ blockDict =
         , ( "subtitle", \_ _ _ -> "" )
         , ( "author", \_ _ _ -> "" )
         , ( "date", \_ _ _ -> "" )
-        , ( "makeTableOfContents", \_ _ _ -> "" )
+        , ( "contents", \_ _ _ -> "" )
         , ( "heading", \_ args body -> heading args body )
         , ( "item", \_ _ body -> macro1 "item" body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
@@ -556,6 +556,6 @@ preamble title author date =
 
 \\maketitle
 
-\\tableofcontents
+\\contents
 
 """

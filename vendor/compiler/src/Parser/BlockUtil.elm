@@ -124,7 +124,7 @@ mapContent parse lineNumber blockType content =
 
 
 bareBlockNames =
-    [ "makeTableOfContents" ]
+    [ "contents" ]
 
 
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> Tree.BlocksV.Block -> IntermediateBlock
@@ -175,7 +175,7 @@ toIntermediateBlock lang parseToState extractMessages block =
 
                 rawContent =
                     if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
-                        firstLine ++ "\n[red Write something below this block header (" ++ String.replace "| " "" firstLine ++ ")]"
+                        firstLine ++ "\n[red •••]"
 
                     else
                         rawContent_

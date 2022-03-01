@@ -63,8 +63,8 @@ transform ((ExpressionBlock data) as block) =
         Right [ Expr "subheading" exprs m2 ] ->
             ordinaryBlock [ "section", "4" ] exprs data m2
 
-        Right [ Expr "makeTableOfContents" [] m2 ] ->
-            ordinaryBlock [ "makeTableOfContents" ] [] data m2
+        Right [ Expr "contents" [] m2 ] ->
+            ordinaryBlock [ "contents" ] [] data m2
 
         _ ->
             block
