@@ -103,17 +103,7 @@ title_ lang ast =
 
 title : Language -> Markup.SyntaxTree -> String
 title lang ast =
-    case lang of
-        L0Lang ->
-            title_ L0Lang ast
-
-        MicroLaTeXLang ->
-            ast
-                |> root
-                |> Maybe.map (filterBlock "title")
-                |> Maybe.andThen List.head
-                |> Maybe.andThen getText
-                |> Maybe.withDefault "((untitled-microLaTeX))"
+    title_ lang ast
 
 
 root : Markup.SyntaxTree -> Maybe (ExpressionBlock Expr)
