@@ -105,8 +105,7 @@ blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String
 blockDict =
     Dict.fromList
         [ ( "indent", indented )
-
-        -- , ("bibitem", bibitem)
+        , ( "bibitem", bibitem )
         , ( "heading", heading )
         , ( "section", heading )
         , ( "title", \_ _ _ _ _ _ -> Element.none )
@@ -221,6 +220,25 @@ renderWithDefault default count acc settings exprs =
 indented count acc settings args id exprs =
     Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ]
         (renderWithDefault "| indent" count acc settings exprs)
+
+
+bibitem count acc settings args id exprs =
+    let
+        label =
+            List.Extra.getAt 1 args |> Maybe.withDefault "??" |> (\s -> "[" ++ s ++ "]")
+    in
+    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+        [ Element.el
+            [ Font.size 14
+            , Element.alignTop
+            , Font.bold
+
+            --  , Element.width (Element.px 34)
+            ]
+            (Element.text label)
+        , Element.paragraph [ Element.paddingEach { left = 25, right = 0, top = 0, bottom = 0 }, Events.onClick (SendId id) ]
+            (renderWithDefault "bibitem" count acc settings exprs)
+        ]
 
 
 env_ : Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg

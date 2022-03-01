@@ -1,7 +1,9 @@
 module MicroLaTeX.Compiler.LaTeX exposing (..)
 
+import Compiler.ASTTools
 import Compiler.Util
 import Either exposing (Either(..))
+import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
@@ -26,8 +28,21 @@ transform ((ExpressionBlock data) as block) =
     case data.content of
         --Right [ Expr "title" [ Text str m1 ] m2 ] ->
         --    ordinaryBlock "title" str data m1
-        Right [ _, Expr "bibitem" exprs m2 ] ->
-            ordinaryBlock [ "bibitem!!" ] (List.drop 2 exprs) data m2
+        Right [ _, Expr "bibitem" exprs m2, _ ] ->
+            let
+                content : List Expr
+                content =
+                    case Either.mapRight (List.drop 2) data.content of
+                        Right val ->
+                            val
+
+                        Left _ ->
+                            []
+
+                args =
+                    List.map Compiler.ASTTools.getText (List.take 2 exprs) |> Maybe.Extra.values
+            in
+            ordinaryBlock ("bibitem" :: args) content data m2
 
         Right [ _, Expr "section" exprs m2 ] ->
             ordinaryBlock [ "section", "1" ] exprs data m2
