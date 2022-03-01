@@ -266,7 +266,7 @@ toIntermediateBlock lang parseToState extractMessages block =
                         ( name, blockType, rawContent )
 
                 addEnd str =
-                    if List.member name Parser.Common.verbatimBlockNames && lang /= MicroLaTeXLang then
+                    if List.member name Parser.Common.verbatimBlockNames && name /= "code" then
                         str ++ "\nend"
 
                     else
