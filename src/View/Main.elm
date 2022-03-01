@@ -1,5 +1,6 @@
 module View.Main exposing (view)
 
+import Compiler.ASTTools
 import Config
 import Document exposing (Document)
 import Element as E exposing (Element)
@@ -10,7 +11,10 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
+import Parser.Expr exposing (Expr(..))
+import Render.Block
 import Render.Markup
+import Render.Msg exposing (L0Msg)
 import Render.Settings
 import Render.TOC
 import String.Extra
@@ -351,10 +355,29 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> E.map Render)
-                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> List.map (E.map Render))
-                    )
+                    (viewDocument model.windowWidth model.counter model.selectedId model.editRecord)
                 ]
+
+
+viewDocument windowWidth counter selectedId editRecord =
+    let
+        title_ : Element FrontendMsg
+        title_ =
+            Compiler.ASTTools.titleOLD editRecord.parsed
+                |> List.head
+                |> Maybe.map (Render.Block.render counter editRecord.accumulator (renderSettings windowWidth))
+                |> Maybe.withDefault E.none
+                |> E.map Render
+
+        toc : Element FrontendMsg
+        toc =
+            Render.TOC.view counter editRecord.accumulator (renderSettings windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
+
+        body : List (Element FrontendMsg)
+        body =
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings windowWidth) editRecord.parsed |> List.map (E.map Render)
+    in
+    title_ :: toc :: body
 
 
 viewRenderedForEditor : Model -> Int -> Element FrontendMsg
@@ -364,6 +387,23 @@ viewRenderedForEditor model width_ =
             E.none
 
         Just _ ->
+            let
+                title_ : Element FrontendMsg
+                title_ =
+                    Compiler.ASTTools.titleOLD model.editRecord.parsed
+                        |> List.head
+                        |> Maybe.map (Render.Block.render model.counter model.editRecord.accumulator (renderSettings model.windowWidth))
+                        |> Maybe.withDefault E.none
+                        |> E.map Render
+
+                toc : Element FrontendMsg
+                toc =
+                    Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render
+
+                body : List (Element FrontendMsg)
+                body =
+                    Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> List.map (E.map Render)
+            in
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
                 , View.Style.bgGray 1.0
@@ -376,9 +416,7 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render)
-                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (editorRenderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> List.map (E.map Render))
-                    )
+                    (viewDocument model.windowWidth model.counter model.selectedId model.editRecord)
                 ]
 
 

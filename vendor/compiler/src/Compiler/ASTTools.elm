@@ -29,12 +29,22 @@ filterExpressionsOnName name exprs =
 
 filterBlocksOnName : String -> List (ExpressionBlock Expr) -> List (ExpressionBlock Expr)
 filterBlocksOnName name blocks =
-    List.filter (matchBlockOnName name) blocks
+    List.filter (matchBlockName name) blocks
 
 
-matchBlockOnName : String -> ExpressionBlock Expr -> Bool
-matchBlockOnName key (ExpressionBlock { name }) =
+filterOutBlockName : String -> List (ExpressionBlock Expr) -> List (ExpressionBlock Expr)
+filterOutBlockName name blocks =
+    List.filter (noMatchOnBlockName name) blocks
+
+
+matchBlockName : String -> ExpressionBlock Expr -> Bool
+matchBlockName key (ExpressionBlock { name }) =
     Just key == name
+
+
+noMatchOnBlockName : String -> ExpressionBlock Expr -> Bool
+noMatchOnBlockName key (ExpressionBlock { name }) =
+    Just key /= name
 
 
 matchExprOnName : String -> Expr -> Bool
