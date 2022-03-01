@@ -355,7 +355,7 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument model.windowWidth model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.7 -200 (panelWidth2_ model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -388,6 +388,18 @@ viewRenderedForEditor model width_ =
 
         Just _ ->
             let
+                w =
+                    model.windowWidth
+
+                widthOfIndex =
+                    indexWidth w
+
+                w2 =
+                    w - widthOfIndex
+
+                renderedWindowWidth =
+                    affine 0.5 0 w2
+
                 title_ : Element FrontendMsg
                 title_ =
                     Compiler.ASTTools.titleOLD model.editRecord.parsed
@@ -416,8 +428,13 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument model.windowWidth model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.8 0 (panelWidth_ model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
+
+
+affine : Float -> Float -> Int -> Int
+affine a b x =
+    a * toFloat x + b |> truncate
 
 
 setSelectedId : String -> Render.Settings.Settings -> Render.Settings.Settings
@@ -478,8 +495,14 @@ outerGutter =
     12
 
 
+panelWidth_ : Int -> Int
 panelWidth_ ww =
     (appWidth ww - indexWidth ww) // 2 - innerGutter - outerGutter
+
+
+panelWidth2_ : Int -> Int
+panelWidth2_ ww =
+    appWidth ww - indexWidth ww - innerGutter
 
 
 
@@ -494,6 +517,7 @@ smallHeaderWidth ww =
     smallAppWidth ww
 
 
+indexWidth : number -> number
 indexWidth ww =
     ramp 150 300 ww
 
