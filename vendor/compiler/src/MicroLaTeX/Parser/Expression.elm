@@ -206,7 +206,7 @@ reduceState state =
         case List.head symbols of
             Just B ->
                 case eval state.lineNumber (state.stack |> List.reverse) of
-                    (Expr "??" [ Text message _ ] _) :: rest ->
+                    (Expr "??(3)" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
 
                     whatever ->
@@ -229,7 +229,7 @@ reduceState state =
                                             ( first, rest )
 
                                         _ ->
-                                            ( Expr "red" [ Text "????" dummyLoc ] dummyLoc, [] )
+                                            ( Expr "red" [ Text "????(4)" dummyLoc ] dummyLoc, [] )
                             in
                             first_ :: Expr "red" [ Text "$" dummyLoc ] dummyLoc :: rest_
 
@@ -270,7 +270,7 @@ eval lineNumber tokens =
 
         _ ->
             -- [ errorMessageInvisible lineNumber "missing macro name", errorMessage <| "??" ]
-            errorMessage2Part lineNumber "\\" "??{??}"
+            errorMessage2Part lineNumber "\\" "{??}(5)"
 
 
 evalList : Maybe String -> Int -> List Token -> List Expr
@@ -281,7 +281,7 @@ evalList macroName lineNumber tokens =
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
                         Nothing ->
-                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) "??}"
+                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) "??(6)}"
 
                         Just k ->
                             let
@@ -299,7 +299,7 @@ evalList macroName lineNumber tokens =
                             expr :: evalList Nothing lineNumber (List.drop 1 tokens)
 
                         Nothing ->
-                            [ errorMessageInvisible lineNumber "Error converting token", Text "error converting Token" dummyLoc ]
+                            [ errorMessage "\\??(7)" ]
 
         _ ->
             []
@@ -322,7 +322,7 @@ errorMessageInvisible lineNumber message =
 
 errorMessage : String -> Expr
 errorMessage message =
-    Expr "red" [ Text message dummyLoc ] dummyLoc
+    Expr "red" [ Expr "underline" [ Text message dummyLoc ] dummyLoc ] dummyLoc
 
 
 errorMessageBold : String -> Expr

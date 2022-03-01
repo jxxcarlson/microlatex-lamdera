@@ -83,7 +83,7 @@ render count acc settings (ExpressionBlock { name, args, indent, blockType, cont
 noSuchVerbatimBlock : String -> String -> Element L0Msg
 noSuchVerbatimBlock functionName content =
     Element.column [ Element.spacing 4 ]
-        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "|| " ++ functionName ++ " ?? " ]
+        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "|| " ++ functionName ++ " ??(8)" ]
         , Element.column [ Element.spacing 4 ] (List.map (\t -> Element.el [] (Element.text t)) (String.lines content))
         ]
 
@@ -91,7 +91,7 @@ noSuchVerbatimBlock functionName content =
 noSuchOrdinaryBlock : Int -> Accumulator -> Settings -> String -> List Expr -> Element L0Msg
 noSuchOrdinaryBlock count acc settings functionName exprs =
     Element.column [ Element.spacing 4 ]
-        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "| " ++ functionName ++ " ?? " ]
+        [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "| " ++ functionName ++ " ??(9) " ]
         , Element.paragraph [] (List.map (Render.Elm.render count acc settings) exprs)
         ]
 
@@ -149,7 +149,7 @@ equation : Int -> Accumulator -> Settings -> List String -> String -> String -> 
 equation count acc settings args id str =
     Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| equation" count acc settings args id str)
-        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
+        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??(10)" 0 args ++ ")")
         ]
 
 
@@ -157,7 +157,7 @@ aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> E
 aligned count acc settings args id str =
     Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count acc settings args id str)
-        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
+        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??(11)" 0 args ++ ")")
         ]
 
 
@@ -216,7 +216,7 @@ indented count acc settings args id exprs =
 bibitem count acc settings args id exprs =
     let
         label =
-            List.Extra.getAt 1 args |> Maybe.withDefault "??" |> (\s -> "[" ++ s ++ "]")
+            List.Extra.getAt 1 args |> Maybe.withDefault "??(12)" |> (\s -> "[" ++ s ++ "]")
     in
     Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
         [ Element.el

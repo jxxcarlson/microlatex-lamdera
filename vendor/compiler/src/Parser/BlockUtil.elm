@@ -175,7 +175,7 @@ toIntermediateBlock lang parseToState extractMessages block =
 
                 rawContent =
                     if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
-                        firstLine ++ "\n[red •••]"
+                        firstLine ++ "\n[red[underline[ ••• (1)]]"
 
                     else
                         rawContent_
@@ -183,12 +183,29 @@ toIntermediateBlock lang parseToState extractMessages block =
                 endString =
                     "\\end{" ++ name ++ "}"
 
+                eraseLastLine str =
+                    let
+                        lines =
+                            str |> String.lines
+
+                        n =
+                            List.length lines
+
+                        lastLine =
+                            List.drop (n - 1) lines |> String.join ""
+                    in
+                    if String.left 1 lastLine == "\\" then
+                        lines |> List.take (n - 1) |> String.join "\n"
+
+                    else
+                        str
+
                 content_ =
                     if String.contains endString rawContent then
                         String.replace endString "" rawContent
 
                     else if not (List.member name [ "item", "numbered" ]) && lang == MicroLaTeXLang then
-                        rawContent ++ "\n\\red{add end " ++ name ++ " tag}"
+                        eraseLastLine rawContent ++ "\n\\red{\\underline{ ••• (2) }}"
 
                     else
                         rawContent
@@ -237,7 +254,7 @@ toIntermediateBlock lang parseToState extractMessages block =
                         ( name, blockType, String.replace endString "" rawContent |> addEnd )
 
                     else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
-                        ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "  •••" )
+                        ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\\red{underline{  ••• (3)}}" )
 
                     else
                         ( name, blockType, rawContent )

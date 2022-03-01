@@ -244,10 +244,10 @@ eval lineNumber tokens =
 
             Nothing ->
                 -- this happens with input of "[]"
-                [ errorMessageInvisible lineNumber "[ ] not legal - you need something between the brackets", errorMessage "[??]" ]
+                [ errorMessageInvisible lineNumber "[ ] not legal - you need something between the brackets", errorMessage "[?? (1)]" ]
 
             _ ->
-                [ errorMessageInvisible lineNumber "[  or [   ] not legal, try [something ...]", errorMessage <| "[" ++ Token.toString args ++ "?? ]" ]
+                [ errorMessageInvisible lineNumber "[  or [   ] not legal, try [something ...]", errorMessage <| "[" ++ Token.toString args ++ "??(2) ]" ]
 
     else
         []
