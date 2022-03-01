@@ -225,15 +225,14 @@ indented count acc settings args id exprs =
 bibitem count acc settings args id exprs =
     let
         label =
-            List.Extra.getAt 1 args |> Maybe.withDefault "??" |> (\s -> "[" ++ s ++ "]")
+            List.Extra.getAt 1 (args |> Debug.log "ARGS") |> Maybe.withDefault "??" |> (\s -> "[" ++ s ++ "]")
     in
     Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop
             , Font.bold
-
-            --  , Element.width (Element.px 34)
+            , Element.width (Element.px 34)
             ]
             (Element.text label)
         , Element.paragraph [ Element.paddingEach { left = 25, right = 0, top = 0, bottom = 0 }, Events.onClick (SendId id) ]

@@ -85,7 +85,7 @@ transformAccumulateTree lang tree acc =
                                 MicroLaTeX.Compiler.LaTeX.transform block__
 
                             L0Lang ->
-                                L0.Transform.transform block__
+                                L0.Transform.transform block__ |> Debug.log "TRANSFORMED"
 
                     newAcc =
                         updateAccumulator block_ acc_
