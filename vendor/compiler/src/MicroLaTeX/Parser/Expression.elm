@@ -281,7 +281,7 @@ evalList macroName lineNumber tokens =
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
                         Nothing ->
-                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) "??(6)}"
+                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
                         Just k ->
                             let

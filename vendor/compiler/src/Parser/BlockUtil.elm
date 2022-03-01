@@ -205,7 +205,7 @@ toIntermediateBlock lang parseToState extractMessages block =
                         String.replace endString "" rawContent
 
                     else if not (List.member name [ "item", "numbered" ]) && lang == MicroLaTeXLang then
-                        eraseLastLine rawContent ++ "\n\\red{\\underline{ ••• (2) }}"
+                        eraseLastLine rawContent ++ "\n\\red{\\underline{ ••• }}"
 
                     else
                         rawContent
