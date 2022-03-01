@@ -1,6 +1,6 @@
-module L0.Parser.Classify exposing (..)
+module L0.Parser.Classify exposing (classify)
 
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
+import Parser.Block exposing (BlockType(..))
 import Tree.BlocksV
 
 

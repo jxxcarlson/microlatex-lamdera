@@ -1,4 +1,4 @@
-module Parser.Meta exposing (..)
+module Parser.Meta exposing (Meta)
 
 
 type alias Meta =

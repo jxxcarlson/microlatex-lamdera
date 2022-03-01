@@ -4,7 +4,7 @@ module Data exposing
     )
 
 import Dict exposing (Dict)
-import Document exposing (Document, empty)
+import Document exposing (Document)
 
 
 documentDict : Dict String Document

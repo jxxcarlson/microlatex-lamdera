@@ -88,15 +88,6 @@ commonInitialSegment x y =
             []
 
 
-commonTerminalSegment : List a -> List a -> List a
-commonTerminalSegment x y =
-    let
-        cis =
-            commonInitialSegment x y
-    in
-    commonTerminalSegmentAux cis x y
-
-
 commonTerminalSegmentAux : List a -> List a -> List a -> List a
 commonTerminalSegmentAux cis x y =
     let

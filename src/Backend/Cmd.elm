@@ -2,7 +2,7 @@ module Backend.Cmd exposing (exportJson, getRandomNumber)
 
 import Backend.Backup
 import Http
-import Lamdera exposing (ClientId, SessionId, sendToFrontend)
+import Lamdera exposing (ClientId, sendToFrontend)
 import Types exposing (BackendModel, BackendMsg(..), ToFrontend(..))
 
 

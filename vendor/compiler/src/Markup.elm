@@ -11,9 +11,7 @@ The documentation is skimpy.
 
 -}
 
-import L0.Parser.Classify
 import L0.Parser.Expression
-import MicroLaTeX.Parser.Classify
 import MicroLaTeX.Parser.Expression
 import Parser.Block
 import Parser.BlockUtil
@@ -21,7 +19,7 @@ import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
 import Tree.BlocksV
-import Tree.Build exposing (Error)
+import Tree.Build
 
 
 {-| -}

@@ -8,12 +8,11 @@ module MicroLaTeX.Parser.Expression exposing
     )
 
 import List.Extra
-import MicroLaTeX.Parser.Symbol as Symbol exposing (Symbol(..), convertTokens2)
+import MicroLaTeX.Parser.Symbol as Symbol exposing (Symbol(..))
 import MicroLaTeX.Parser.Token as Token exposing (Token(..), TokenType(..))
-import Parser.Expr exposing (Expr(..), ExprT(..))
+import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
-import Parser.Match as M exposing (match, reducible)
-import Parser.Meta exposing (Meta)
+import Parser.Match as M
 
 
 
@@ -51,23 +50,6 @@ initWithTokens lineNumber tokens =
     , stack = []
     , messages = []
     , lineNumber = lineNumber
-    }
-
-
-init : String -> State
-init str =
-    let
-        tokens =
-            Token.run str |> List.reverse
-    in
-    { step = 0
-    , tokens = tokens
-    , numberOfTokens = List.length tokens
-    , tokenIndex = 0
-    , committed = []
-    , stack = []
-    , messages = []
-    , lineNumber = 0
     }
 
 
@@ -276,16 +258,6 @@ unbracket list =
     List.drop 1 (List.take (List.length list - 1) list)
 
 
-{-| areBracketed tokns == True iff tokens are derived from "[ ... ]"
--}
-areBracketed : List Token -> Bool
-areBracketed tokens =
-    List.map Token.type_ (List.take 1 tokens)
-        == [ TLB ]
-        && List.map Token.type_ (List.take 1 (List.reverse tokens))
-        == [ TRB ]
-
-
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
     case tokens of
@@ -293,7 +265,7 @@ eval lineNumber tokens =
         (S t m2) :: rest ->
             Text t m2 :: evalList Nothing lineNumber rest
 
-        (BS m1) :: (S name m2) :: rest ->
+        (BS m1) :: (S name _) :: rest ->
             [ Expr name (evalList (Just name) lineNumber rest) m1 ]
 
         _ ->
@@ -345,10 +317,6 @@ errorMessage3Part lineNumber a b c =
 
 errorMessageInvisible : Int -> String -> Expr
 errorMessageInvisible lineNumber message =
-    let
-        m =
-            message
-    in
     Expr "red" [ Text message dummyLoc ] dummyLoc
 
 
@@ -393,7 +361,7 @@ recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
         -- brackets with no intervening text
-        (LB _) :: (RB meta) :: rest ->
+        (LB _) :: (RB meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "[?]" :: state.committed
@@ -403,7 +371,7 @@ recoverFromError state =
                 }
 
         -- consecutive left brackets
-        (LB _) :: (LB meta) :: rest ->
+        (LB _) :: (LB meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "[" :: state.committed
@@ -423,7 +391,7 @@ recoverFromError state =
                 }
 
         -- space after left bracket // OK
-        (LB _) :: (W " " meta) :: rest ->
+        (LB _) :: (W " " meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "[ - can't have space after the bracket " :: state.committed
@@ -433,7 +401,7 @@ recoverFromError state =
                 }
 
         -- left bracket with nothing after it.  // OK
-        (LB meta) :: [] ->
+        (LB _) :: [] ->
             Done
                 { state
                     | committed = errorMessage "[...?" :: state.committed
@@ -444,7 +412,7 @@ recoverFromError state =
                 }
 
         -- extra right bracket
-        (RB meta) :: rest ->
+        (RB meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage " extra ]?" :: state.committed

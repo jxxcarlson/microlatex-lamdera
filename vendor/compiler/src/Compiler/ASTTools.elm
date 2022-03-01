@@ -128,7 +128,7 @@ filterBlock key (ExpressionBlock { content }) =
                     "_no name_"
     in
     case content of
-        Left str ->
+        Left _ ->
             []
 
         Right exprList ->

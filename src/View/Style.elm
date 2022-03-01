@@ -4,7 +4,7 @@ module View.Style exposing
     , fgGray
     )
 
-import Element exposing (Element)
+import Element
 import Element.Background as Background
 import Element.Font as Font
 

@@ -1,18 +1,18 @@
-module Frontend exposing (..)
+module Frontend exposing (Model, adjustId, app, changePrintingState, debounceConfig, exportDoc, exportToLaTeX, firstSyncLR, fixId_, init, issueCommandIfDefined, nextSyncLR, save, setPermissions, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Authentication
 import Backend.Backup
 import Browser exposing (UrlRequest(..))
 import Browser.Events
 import Browser.Navigation as Nav
-import Cmd.Extra exposing (withCmd, withCmds, withNoCmd)
+import Cmd.Extra exposing (withCmd, withNoCmd)
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
 import Config
-import Debounce exposing (Debounce)
+import Debounce
 import Docs
-import Document exposing (Access(..))
+import Document
 import Element
 import File
 import File.Download as Download
@@ -20,7 +20,7 @@ import File.Select as Select
 import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
-import Html exposing (Html)
+import Html
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
@@ -34,7 +34,6 @@ import Task
 import Types exposing (..)
 import Url exposing (Url)
 import UrlManager
-import User
 import Util
 import View.Data
 import View.Main
@@ -53,7 +52,7 @@ app =
         , onUrlChange = UrlChanged
         , update = update
         , updateFromBackend = updateFromBackend
-        , subscriptions = \m -> Sub.none
+        , subscriptions = \_ -> Sub.none
         , view = view
         }
 
@@ -405,7 +404,7 @@ update msg model =
 
         Render msg_ ->
             case msg_ of
-                Render.Msg.SendMeta m ->
+                Render.Msg.SendMeta _ ->
                     -- ( { model | lineNumber = m.loc.begin.row, message = "line " ++ String.fromInt (m.loc.begin.row + 1) }, Cmd.none )
                     ( model, Cmd.none )
 
@@ -618,7 +617,7 @@ update msg model =
             -- TODO: review this
             issueCommandIfDefined model.currentDocument { model | printingState = printingState } (changePrintingState printingState)
 
-        FinallyDoCleanPrintArtefacts privateId ->
+        FinallyDoCleanPrintArtefacts _ ->
             ( model, Cmd.none )
 
         StartSync ->

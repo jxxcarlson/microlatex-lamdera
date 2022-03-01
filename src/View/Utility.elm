@@ -16,10 +16,10 @@ import Browser.Dom as Dom
 import Element exposing (Element)
 import Html
 import Html.Attributes as HA
-import Html.Events exposing (keyCode, on, onClick, onInput)
+import Html.Events exposing (keyCode, on)
 import Json.Decode as D
 import Task exposing (Task)
-import Types exposing (FrontendModel, FrontendMsg)
+import Types exposing (FrontendMsg)
 
 
 onEnter : FrontendMsg -> Html.Attribute FrontendMsg

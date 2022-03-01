@@ -1,6 +1,6 @@
 module L0.Parser.Match exposing (deleteAt, match, reducible, splitAt)
 
-import L0.Parser.Symbol as Symbol exposing (Symbol(..), value)
+import L0.Parser.Symbol exposing (Symbol(..), value)
 import Parser.Helpers exposing (Step(..), loop)
 
 

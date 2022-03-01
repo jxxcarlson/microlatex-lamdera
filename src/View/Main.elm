@@ -1,15 +1,13 @@
 module View.Main exposing (view)
 
 import Config
-import Document exposing (Access(..), Document)
-import Either exposing (Either(..))
+import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
-import Element.Input as Input
 import Element.Keyed
 import Html exposing (Html)
-import Html.Attributes as HtmlAttr exposing (attribute)
+import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
 import Render.Markup
@@ -22,7 +20,7 @@ import View.Button as Button
 import View.Color as Color
 import View.Input
 import View.Style
-import View.Utility exposing (hideIf, showIf)
+import View.Utility
 
 
 type alias Model =
@@ -266,19 +264,6 @@ rightPaddingFooter showEditor =
             E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
 
 
-messageRowInset model =
-    case model.currentUser of
-        Nothing ->
-            10
-
-        Just user ->
-            if user.username == "jxxcarlson" then
-                260
-
-            else
-                10
-
-
 isAdmin : Model -> Bool
 isAdmin model =
     Maybe.map .username model.currentUser == Just "jxxcarlson"
@@ -347,45 +332,13 @@ wordCount model =
             E.el [ Font.size 14, Font.color Color.lightGray ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
-viewEditor : Model -> Int -> Element FrontendMsg
-viewEditor model width_ =
-    E.column
-        [ E.alignTop
-        , E.spacing 8
-        ]
-        [ viewEditor_ model width_
-        ]
-
-
-viewEditor_ : Model -> Int -> Element FrontendMsg
-viewEditor_ model width_ =
-    case model.currentDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            Input.multiline
-                [ E.height (E.px (panelHeight_ model))
-                , E.width (E.px width_)
-                , E.width (E.px width_)
-                , Font.size 14
-                , Background.color (E.rgb255 240 241 255)
-                ]
-                { onChange = InputText
-                , text = model.sourceText
-                , placeholder = Nothing
-                , label = Input.labelHidden "Enter source text here"
-                , spellcheck = False
-                }
-
-
 viewRendered : Model -> Int -> Element FrontendMsg
 viewRendered model width_ =
     case model.currentDocument of
         Nothing ->
             E.none
 
-        Just doc ->
+        Just _ ->
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
                 , View.Style.bgGray 1.0
@@ -410,7 +363,7 @@ viewRenderedForEditor model width_ =
         Nothing ->
             E.none
 
-        Just doc ->
+        Just _ ->
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
                 , View.Style.bgGray 1.0
@@ -458,11 +411,6 @@ viewPublicDocuments model =
     viewDocumentsInIndex ReadOnly model.currentDocument (sorter model.publicDocuments)
 
 
-viewPublicDocument : DocumentLink -> Element FrontendMsg
-viewPublicDocument docLink =
-    E.newTabLink [] { url = docLink.url, label = E.el [] (E.text (softTruncate softTruncateLimit docLink.label)) }
-
-
 softTruncateLimit =
     50
 
@@ -476,15 +424,8 @@ softTruncate k str =
         str2 :: [] ->
             str2
 
-        str2 :: rest ->
+        str2 :: _ ->
             str2 ++ " ..."
-
-
-renderArgs model =
-    { width = panelWidth_ model - 140
-    , selectedId = "foobar"
-    , generation = 0
-    }
 
 
 
@@ -515,10 +456,6 @@ smallHeaderWidth ww =
     smallAppWidth ww
 
 
-headerWidth ww =
-    appWidth ww - 2 * innerGutter
-
-
 indexWidth ww =
     ramp 150 300 ww
 
@@ -529,10 +466,6 @@ appWidth ww =
 
 smallAppWidth ww =
     ramp 700 1000 ww
-
-
-docListWidth =
-    220
 
 
 ramp a b x =
@@ -552,10 +485,6 @@ appHeight_ model =
 
 panelHeight_ model =
     appHeight_ model - 110
-
-
-appWidth_ model =
-    model.windowWidth
 
 
 mainColumnStyle model =

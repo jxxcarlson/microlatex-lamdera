@@ -17,7 +17,6 @@ import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Common
-import Parser.Expr exposing (Expr)
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
 import Tree.BlocksV
@@ -109,31 +108,11 @@ mapContent parse lineNumber blockType content =
         Paragraph ->
             Right (parse lineNumber content)
 
-        OrdinaryBlock args ->
-            let
-                ( firstLine, rawContent_ ) =
-                    split content
-
-                --messages =
-                --    if rawContent_ == "" then
-                --        ("Write something below the block header (" ++ String.replace "| " "" firstLine ++ ")") :: state.messages
-                --
-                --    else
-                --        state.messages
-                rawContent =
-                    if rawContent_ == "" then
-                        firstLine ++ "\n[red Write something below this block header (" ++ String.replace "| " "" firstLine ++ ")]"
-
-                    else
-                        rawContent_
-            in
+        OrdinaryBlock _ ->
             Right (parse lineNumber content)
 
-        VerbatimBlock args ->
+        VerbatimBlock _ ->
             let
-                ( firstLine, rawContent ) =
-                    split content
-
                 content_ =
                     if blockType == VerbatimBlock [ "code" ] then
                         Left (String.replace "```" "" content)
@@ -255,7 +234,7 @@ toIntermediateBlock lang parseToState extractMessages block =
 
                 --content_ =
                 --    String.replace ("\\end{" ++ name ++ "}") "" rawContent
-                ( revisedName, revisedBlocktype, content_ ) =
+                ( revisedName, _, content_ ) =
                     if String.contains endString rawContent then
                         ( name, blockType, String.replace endString "" rawContent |> addEnd )
 
@@ -290,20 +269,6 @@ makeIntermediateBlock block name args content messages blockType_ =
         , children = []
         , sourceText = block.content
         }
-
-
-{-| Split into first line and all the rest
--}
-split : String -> ( String, String )
-split str_ =
-    let
-        lines =
-            str_ |> String.trim |> String.lines
-
-        n =
-            List.length lines
-    in
-    ( List.head lines |> Maybe.withDefault "", lines |> List.take (n - 1) |> List.drop 1 |> String.join "\n" )
 
 
 split_ : String -> ( String, String )

@@ -1,12 +1,9 @@
 module Frontend.Cmd exposing (setInitialEditorContent, setupWindow)
 
-import Backend.Backup
 import Browser.Dom as Dom
-import Document exposing (Document)
-import Lamdera exposing (sendToBackend)
 import Process
 import Task
-import Types exposing (FrontendModel, FrontendMsg(..), ToBackend(..))
+import Types exposing (FrontendMsg(..))
 
 
 setupWindow : Cmd FrontendMsg

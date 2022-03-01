@@ -1,4 +1,4 @@
-module Backend exposing (..)
+module Backend exposing (Model, app, authorLink, authorUrl, filterDict, getAbstract, getBadDocuments, init, makeLink, publicLink, publicUrl, putAbstract, searchForDocuments, searchForPublicDocuments, searchForUserDocuments, searchInAbstract, statusReport, stealId, update, updateAbstracts, updateFromFrontend)
 
 import Abstract exposing (Abstract)
 import Authentication
@@ -7,13 +7,11 @@ import Backend.Cmd
 import Backend.Update
 import Cmd.Extra
 import Config
-import Data
 import DateTimeUtility
 import Dict exposing (Dict)
 import Docs
-import Document exposing (Access(..))
+import Document
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
-import List.Extra
 import Maybe.Extra
 import Parser.Language exposing (Language(..))
 import Random
@@ -32,7 +30,7 @@ app =
         { init = init
         , update = update
         , updateFromFrontend = updateFromFrontend
-        , subscriptions = \m -> Time.every (30 * 1000) Tick
+        , subscriptions = \_ -> Time.every (30 * 1000) Tick
         }
 
 
@@ -175,14 +173,6 @@ updateFromFrontend sessionId clientId msg model =
                             in
                             Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
 
-                list =
-                    case maybeCurrentUser of
-                        Nothing ->
-                            []
-
-                        Just user ->
-                            Dict.get user.id usersDocumentsDict |> Maybe.withDefault []
-
                 message =
                     --  "userIds : " ++ String.fromInt (List.length list)
                     "Author link: " ++ Config.appUrl ++ "/a/au-" ++ authorIdTokenData.token ++ ", Public link:" ++ Config.appUrl ++ "/p/pu-" ++ humanFriendlyPublicId
@@ -296,7 +286,7 @@ updateFromFrontend sessionId clientId msg model =
         GetPublicDocuments ->
             ( model, sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments "" model)) )
 
-        ApplySpecial user id ->
+        ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
             let
                 badDocs =
@@ -327,7 +317,7 @@ updateFromFrontend sessionId clientId msg model =
 
 
 getBadDocuments model =
-    model.documentDict |> Dict.toList |> List.filter (\( id, doc ) -> doc.title == "")
+    model.documentDict |> Dict.toList |> List.filter (\( _, doc ) -> doc.title == "")
 
 
 makeLink : String -> DocumentDict -> AbstractDict -> Maybe DocumentLink

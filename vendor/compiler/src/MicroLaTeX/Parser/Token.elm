@@ -335,11 +335,6 @@ isTextToken token =
     List.member (type_ token) [ TW, TS ]
 
 
-type MergeStatus
-    = TokensUnchanged
-    | TokensMerged
-
-
 mergeToken : Token -> Token -> Token
 mergeToken lastToken currentToken =
     let

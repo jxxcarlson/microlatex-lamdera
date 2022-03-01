@@ -1,10 +1,7 @@
 module Compiler.AbstractDifferentialParser exposing (EditRecord, differentialParser, init, update)
 
-import Compiler.Acc exposing (Accumulator)
 import Compiler.Differ as Differ
-import Parser.Block exposing (ExpressionBlock)
-import Parser.Language exposing (Language(..))
-import Tree exposing (Tree)
+import Parser.Language exposing (Language)
 
 
 type alias EditRecord chunk parsedChunk accumulator =

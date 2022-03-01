@@ -35,7 +35,7 @@ module View.Button exposing
     )
 
 import Config
-import Document exposing (Access(..))
+import Document
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Events as Events
@@ -311,11 +311,6 @@ importJson =
 
 
 -- USER
-
-
-search : Element FrontendMsg
-search =
-    buttonTemplate [] Search "Search"
 
 
 home : Element FrontendMsg

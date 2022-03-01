@@ -4,14 +4,13 @@ import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import List.Extra
 import Markup exposing (SyntaxTree)
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers exposing (Step(..), loop)
 import Render.Settings exposing (Settings)
 import Render.Utility as Utility
-import Tree exposing (Tree)
+import Tree
 
 
 export : Settings -> SyntaxTree -> String
@@ -172,7 +171,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, content, children }) a
 
         OrdinaryBlock args ->
             case content of
-                Left str ->
+                Left _ ->
                     ""
 
                 Right exprs_ ->
@@ -210,7 +209,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, content, children }) a
                                     Just name2 ->
                                         environment name2 str
 
-                Right exprs_ ->
+                Right _ ->
                     "???"
 
 
@@ -302,12 +301,12 @@ functionDict =
 blockDict : Dict String (Settings -> List String -> String -> String)
 blockDict =
     Dict.fromList
-        [ ( "title", \sett args body -> "" )
-        , ( "subtitle", \sett args body -> "" )
-        , ( "author", \sett argfbegs body -> "" )
-        , ( "date", \sett args body -> "" )
-        , ( "makeTableOfContents", \sett args body -> "" )
-        , ( "heading", \sett args body -> heading args body )
+        [ ( "title", \_ _ _ -> "" )
+        , ( "subtitle", \_ _ _ -> "" )
+        , ( "author", \_ _ _ -> "" )
+        , ( "date", \_ _ _ -> "" )
+        , ( "makeTableOfContents", \_ _ _ -> "" )
+        , ( "heading", \_ args body -> heading args body )
         , ( "item", \_ _ body -> macro1 "item" body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
         , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
@@ -331,42 +330,6 @@ heading args body =
 
         _ ->
             macro1 "subheading" body
-
-
-secondArg : List String -> String
-secondArg args =
-    case List.Extra.getAt 1 args of
-        Nothing ->
-            "Error: expecting something here"
-
-        Just arg ->
-            arg
-
-
-{-| For one-element functions
--}
-f1 : Settings -> List Expr -> (String -> String) -> String
-f1 s exprList f =
-    case ASTTools.exprListToStringList exprList of
-        -- TODO: temporary fix: parse is producing the args in reverse order
-        arg1 :: _ ->
-            f arg1
-
-        _ ->
-            "f1 : Invalid arguments"
-
-
-{-| For two-element functions
--}
-f2 : Int -> Settings -> List Expr -> (String -> String -> String) -> String
-f2 element s exprList g =
-    case ASTTools.exprListToStringList exprList of
-        -- TODO: temporary fix: parse is producing the args in reverse order
-        arg1 :: arg2 :: _ ->
-            g arg1 arg2
-
-        _ ->
-            "Invalid arguments"
 
 
 macro1 : String -> String -> String
@@ -432,25 +395,6 @@ renderVerbatim name body =
 
         Just macroName ->
             macro1 macroName body
-
-
-{-| Comment on this!
--}
-unravel : Tree String -> String
-unravel tree =
-    let
-        children =
-            Tree.children tree
-    in
-    if List.isEmpty children then
-        Tree.label tree
-
-    else
-        Tree.label tree ++ ((List.map unravel children |> List.map indentString) |> String.join "\n")
-
-
-indentString s =
-    "  " ++ s
 
 
 

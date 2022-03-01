@@ -6,10 +6,9 @@ module L0.Parser.Expression exposing
     , parseTokenList
     )
 
-import Either exposing (Either(..))
 import L0.Parser.Match as M
 import L0.Parser.Symbol as Symbol exposing (Symbol(..))
-import L0.Parser.Token as Token exposing (Meta, Token(..), TokenType(..))
+import L0.Parser.Token as Token exposing (Token(..), TokenType(..))
 import List.Extra
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
@@ -50,23 +49,6 @@ initWithTokens lineNumber tokens =
     , stack = []
     , messages = []
     , lineNumber = lineNumber
-    }
-
-
-init : String -> State
-init str =
-    let
-        tokens =
-            Token.run str |> List.reverse
-    in
-    { step = 0
-    , tokens = tokens
-    , numberOfTokens = List.length tokens
-    , tokenIndex = 0
-    , committed = []
-    , stack = []
-    , messages = []
-    , lineNumber = 0
     }
 
 
@@ -327,23 +309,6 @@ errorMessage2 message =
     Expr "blue" [ Text message dummyLoc ] dummyLoc
 
 
-colorRed : Expr -> Expr
-colorRed expr =
-    Expr "red" [ expr ] dummyLoc
-
-
-colorFirstElementRed : State -> State
-colorFirstElementRed state =
-    let
-        ( a, b ) =
-            M.splitAt 1 state.committed
-
-        newCommitted =
-            List.map colorRed a ++ b
-    in
-    { state | committed = newCommitted }
-
-
 addErrorMessage : String -> State -> State
 addErrorMessage message state =
     let
@@ -353,16 +318,11 @@ addErrorMessage message state =
     { state | committed = committed }
 
 
-isReducible : List Token -> Bool
-isReducible tokens =
-    tokens |> List.reverse |> Symbol.convertTokens |> M.reducible
-
-
 recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
         -- brackets with no intervening text
-        (LB _) :: (RB meta) :: rest ->
+        (LB _) :: (RB meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "[?]" :: state.committed
@@ -372,7 +332,7 @@ recoverFromError state =
                 }
 
         -- consecutive left brackets
-        (LB _) :: (LB meta) :: rest ->
+        (LB _) :: (LB meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "[" :: state.committed
@@ -392,7 +352,7 @@ recoverFromError state =
                 }
 
         -- space after left bracket // OK
-        (LB _) :: (W " " meta) :: rest ->
+        (LB _) :: (W " " meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "[ - can't have space after the bracket " :: state.committed
@@ -402,7 +362,7 @@ recoverFromError state =
                 }
 
         -- left bracket with nothing after it.  // OK
-        (LB meta) :: [] ->
+        (LB _) :: [] ->
             Done
                 { state
                     | committed = errorMessage "[...?" :: state.committed
@@ -413,7 +373,7 @@ recoverFromError state =
                 }
 
         -- extra right bracket
-        (RB meta) :: rest ->
+        (RB meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage " extra ]?" :: state.committed

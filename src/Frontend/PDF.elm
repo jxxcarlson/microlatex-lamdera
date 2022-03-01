@@ -5,7 +5,7 @@ import Document exposing (Document)
 import Either
 import Http
 import Json.Encode as E
-import Markup exposing (SyntaxTree)
+import Markup
 import Maybe.Extra
 import Parser.Block exposing (ExpressionBlock(..))
 import Process
@@ -13,7 +13,7 @@ import Render.LaTeX as LaTeX
 import Render.Settings
 import Task
 import Tree
-import Types exposing (FrontendModel, FrontendMsg(..), PrintingState(..), ToBackend(..))
+import Types exposing (FrontendModel, FrontendMsg(..), PrintingState(..))
 
 
 print model =
@@ -62,20 +62,13 @@ generatePdf document =
         }
 
 
-normalizeTitle : String -> String
-normalizeTitle str =
-    str
-        |> String.toLower
-        |> String.replace " " "-"
-
-
 gotLink : FrontendModel -> Result error value -> ( FrontendModel, Cmd FrontendMsg )
 gotLink model result =
     case result of
         Err _ ->
             ( model, Cmd.none )
 
-        Ok docId ->
+        Ok _ ->
             ( model
             , Cmd.batch
                 [ Process.sleep 5 |> Task.perform (always (ChangePrintingState PrintReady))

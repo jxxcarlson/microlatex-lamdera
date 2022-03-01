@@ -11,11 +11,6 @@ import Render.Settings exposing (Settings)
 import Tree exposing (Tree)
 
 
-isVerbatimLine : String -> Bool
-isVerbatimLine str =
-    String.left 2 str == "||"
-
-
 renderFromString : Language -> Int -> Accumulator -> Settings -> String -> List (Element L0Msg)
 renderFromString lang count acc settings str =
     str |> Markup.parse lang |> renderFromAST count acc settings

@@ -1,31 +1,17 @@
 module View.Phone exposing (view)
 
-import Config
-import Document exposing (Access(..), Document)
-import Either exposing (Either(..))
+import Document exposing (Document)
 import Element as E exposing (Element)
-import Element.Background as Background
 import Element.Font as Font
-import Element.Input as Input
 import Html exposing (Html)
-import Html.Attributes as HtmlAttr exposing (attribute)
-import Html.Events
-import Json.Decode
-import Markup
-import Parser.Block exposing (ExpressionBlock(..))
-import Parser.Expr exposing (Expr)
-import Render.Elm
 import Render.Markup
-import Render.Msg
 import Render.Settings
 import Render.TOC
-import String.Extra
 import Types exposing (..)
 import View.Button as Button
-import View.Color as Color
 import View.Input
 import View.Style
-import View.Utility exposing (hideIf, showIf)
+import View.Utility
 
 
 type alias Model =
@@ -67,29 +53,6 @@ view model =
 --
 
 
-searchStatus model =
-    let
-        n =
-            List.length model.foundIds
-
-        i =
-            if model.foundIdIndex == 0 then
-                n
-
-            else
-                model.foundIdIndex
-
-        msg =
-            if n > 0 then
-                String.fromInt i ++ "/" ++ String.fromInt n
-
-            else
-                ""
-    in
-    E.el [ Background.color (E.rgb 0.4 0.4 0.4), Font.color (E.rgb 1 1 1), Font.size 14, E.width (E.px 80), E.height (E.px 33) ]
-        (E.el [ E.centerX, E.centerY ] (E.text msg))
-
-
 viewDocumentsInIndex : DocPermissions -> Maybe Document -> List Document -> List (Element FrontendMsg)
 viewDocumentsInIndex docPermissions currentDocument docs =
     List.map (Button.setDocumentInPhoneAsCurrent docPermissions currentDocument) docs
@@ -111,7 +74,7 @@ viewRendered model width_ =
         Nothing ->
             E.none
 
-        Just doc ->
+        Just _ ->
             E.column
                 [ E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
                 , View.Style.bgGray 1.0
@@ -145,64 +108,19 @@ header model width_ =
         ]
 
 
-setSelectedId : String -> Render.Settings.Settings -> Render.Settings.Settings
-setSelectedId id settings =
-    { settings | selectedId = id }
-
-
 renderSettings : Int -> Render.Settings.Settings
 renderSettings w =
     Render.Settings.makeSettings 0.38 w
 
 
-viewPublicDocument : DocumentLink -> Element FrontendMsg
-viewPublicDocument docLink =
-    E.newTabLink [] { url = docLink.url, label = E.el [] (E.text (softTruncate softTruncateLimit docLink.label)) }
-
-
-softTruncateLimit =
-    50
-
-
-softTruncate : Int -> String -> String
-softTruncate k str =
-    case String.Extra.softBreak 40 str of
-        [] ->
-            ""
-
-        str2 :: [] ->
-            str2
-
-        str2 :: rest ->
-            str2 ++ " ..."
-
-
 
 --compile : Language -> Int -> Settings -> List String -> List (Element msg)
 --compile language generation settings lines
-
-
-renderArgs model =
-    { width = panelWidth_ model - 140
-    , selectedId = "foobar"
-    , generation = 0
-    }
-
-
-
 -- DIMENSIONS
 
 
 innerGutter =
     12
-
-
-outerGutter =
-    12
-
-
-panelWidth_ ww =
-    (appWidth ww - indexWidth ww) // 2 - innerGutter - outerGutter
 
 
 
@@ -213,41 +131,10 @@ smallPanelWidth ww =
     smallAppWidth ww - innerGutter
 
 
-indexWidth ww =
-    ramp 150 300 ww
-
-
-appWidth ww =
-    ramp 700 1400 ww
-
-
 smallAppWidth ww =
     -- ramp 700 1000 ww
     ww
 
 
-ramp a b x =
-    if x < a then
-        a
-
-    else if x > b then
-        b
-
-    else
-        x
-
-
 appHeight_ model =
     model.windowHeight
-
-
-mainColumnStyle model =
-    [ E.paddingEach { top = 0, bottom = 0, left = 0, right = 0 }
-    , E.width (E.px model.windowWidth)
-    , E.height (E.px model.windowHeight)
-    ]
-
-
-title : String -> Element msg
-title str =
-    E.row [ E.centerX, View.Style.fgGray 0.9 ] [ E.text str ]

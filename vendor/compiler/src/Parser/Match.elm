@@ -100,9 +100,6 @@ match symbols =
                 let
                     start =
                         Symbol.value symbol == 1
-
-                    initialState =
-                        { start = start, symbols = List.drop 1 symbols, index = 1, brackets = Symbol.value symbol }
                 in
                 loop { start = start, symbols = List.drop 1 symbols, index = 1, brackets = Symbol.value symbol } nextStep
 

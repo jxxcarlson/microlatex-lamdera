@@ -1,7 +1,6 @@
 module DateTimeUtility exposing (toUtcSlug)
 
-import List.Extra
-import Time exposing (Month(..), toDay, toHour, toMinute, toMonth, toSecond, toYear, utc)
+import Time exposing (Month(..), toDay, toHour, toMonth, toYear, utc)
 
 
 toUtcSlug : String -> String -> Time.Posix -> String
@@ -15,20 +14,6 @@ toUtcSlug str1 str2 time =
         ++ str1
         ++ (toHour utc time |> String.fromInt)
         ++ str2
-
-
-hmsSlug : Int -> Int -> Int -> String
-hmsSlug h m s =
-    modBy 1000 (3600 * h + 60 * m + s) |> String.fromInt
-
-
-alphabet =
-    String.split "" "abcdefghijklmnopqrstuvwxyz"
-
-
-letter : Int -> String
-letter k =
-    List.Extra.getAt k alphabet |> Maybe.withDefault "0"
 
 
 monthString : Time.Month -> String

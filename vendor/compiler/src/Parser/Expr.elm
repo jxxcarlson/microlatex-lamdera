@@ -47,8 +47,6 @@ type Expr
 
 type ExprT token
     = T token
-    | E Expr
-    | EL (List Expr)
 
 
 

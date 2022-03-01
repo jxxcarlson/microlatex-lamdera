@@ -1,4 +1,4 @@
-module Types exposing (..)
+module Types exposing (AbstractDict, AbstractDictOLD, AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -9,17 +9,14 @@ import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
 import Document exposing (Document)
-import Element
 import File exposing (File)
 import Http
-import Markup
-import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
+import Parser.Block exposing (ExpressionBlock)
 import Parser.Expr exposing (Expr)
-import Parser.Language exposing (Language(..))
+import Parser.Language exposing (Language)
 import Random
-import Render.Msg exposing (L0Msg)
+import Render.Msg
 import Time
-import Tree
 import Url exposing (Url)
 import User exposing (User)
 
@@ -90,7 +87,6 @@ type SortMode
 
 type DocLoaded
     = NotLoaded
-    | DocLoaded
 
 
 type AppMode
@@ -108,8 +104,7 @@ type PopupWindow
 
 
 type PopupStatus
-    = PopupOpen PopupWindow
-    | PopupClosed
+    = PopupClosed
 
 
 type alias BackendModel =

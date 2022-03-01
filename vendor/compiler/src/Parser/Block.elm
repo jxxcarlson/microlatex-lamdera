@@ -14,8 +14,7 @@ consumes trees of ExpressionBlocks to produce Html.
 
 -}
 
-import Either exposing (Either(..))
-import Parser.Expr exposing (Expr)
+import Either exposing (Either)
 
 
 {-| -}

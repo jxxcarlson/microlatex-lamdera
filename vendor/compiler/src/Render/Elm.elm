@@ -24,7 +24,7 @@ render generation acc settings expr =
         Text string meta ->
             Element.el [ Events.onClick (SendMeta meta), htmlId "DUMMY_ID" ] (Element.text string)
 
-        Expr name exprList meta ->
+        Expr name exprList _ ->
             Element.el [ htmlId "DUMMY_ID" ] (renderMarked name generation acc settings exprList)
 
         Verbatim name str meta ->
@@ -89,7 +89,7 @@ markupDict =
         , ( "ref", \g acc s exprList -> ref g acc s exprList )
         , ( "eqref", \g acc s exprList -> eqref g acc s exprList )
         , ( "underline", \g acc s exprList -> underline g acc s exprList )
-        , ( "comment", \g acc s exprList -> Element.none )
+        , ( "comment", \_ _ _ _ -> Element.none )
 
         -- LATEX
         , ( "title", \g acc s exprList -> title g acc s exprList )
@@ -109,9 +109,9 @@ markupDict =
         , ( "ilink", \g acc s exprList -> ilink g acc s exprList )
         , ( "abstract", \g acc s exprList -> abstract g acc s exprList )
         , ( "large", \g acc s exprList -> large g acc s exprList )
-        , ( "mdash", \g acc s exprList -> Element.el [] (Element.text "—") )
-        , ( "ndash", \g acc s exprList -> Element.el [] (Element.text "–") )
-        , ( "label", \g acc s exprList -> Element.none )
+        , ( "mdash", \_ _ _ _ -> Element.el [] (Element.text "—") )
+        , ( "ndash", \_ _ _ _ -> Element.el [] (Element.text "–") )
+        , ( "label", \_ _ _ _ -> Element.none )
         , ( "cite", \g acc s exprList -> cite g acc s exprList )
         , ( "table", \g acc s exprList -> table g acc s exprList )
         , ( "image", \g acc s exprList -> image g acc s exprList )
@@ -332,10 +332,6 @@ tableItem g acc s expr =
             Element.none
 
 
-verticalPadding top bottom =
-    Element.paddingEach { top = top, bottom = bottom, left = 0, right = 0 }
-
-
 skip g acc s exprList =
     let
         numVal : String -> Int
@@ -473,14 +469,6 @@ errorHighlight g acc s exprList =
 -- HELPERS
 
 
-getArgs : List Expr -> List String
-getArgs exprs =
-    exprs
-        |> ASTTools.exprListToStringList
-        |> String.join " "
-        |> String.words
-
-
 simpleElement : List (Element.Attribute L0Msg) -> Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
 simpleElement formatList g acc s exprList =
     Element.paragraph formatList (List.map (render g acc s) exprList)
@@ -494,19 +482,6 @@ f1 f g acc s exprList =
         -- TODO: temporary fix: parse is producing the args in reverse order
         arg1 :: _ ->
             f arg1
-
-        _ ->
-            el [ Font.color errorColor ] (Element.text "Invalid arguments")
-
-
-{-| For two-element functions
--}
-f2 : (String -> String -> Element L0Msg) -> Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
-f2 element g acc s exprList =
-    case ASTTools.exprListToStringList exprList of
-        -- TODO: temporary fix: parse is producing the args in reverse order
-        arg1 :: arg2 :: _ ->
-            element arg1 arg2
 
         _ ->
             el [ Font.color errorColor ] (Element.text "Invalid arguments")
@@ -537,27 +512,8 @@ mathElement generation settings m str =
     Render.Math.mathText generation "width" "DUMMY_ID" Render.Math.InlineMathMode str
 
 
-makeSlug : String -> String
-makeSlug str =
-    str |> String.toLower |> String.replace " " "-"
-
-
-makeId : List Expr -> Element.Attribute L0Msg
-makeId exprList =
-    Utility.elementAttribute "id" (ASTTools.stringValueOfList exprList |> String.trim |> makeSlug)
-
-
-internalLink : String -> String
-internalLink str =
-    "#" ++ str |> makeSlug
-
-
 
 -- DEFINITIONS
-
-
-blueColor =
-    Element.rgb 0 0 0.8
 
 
 codeColor =

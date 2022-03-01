@@ -9,7 +9,6 @@ module Document exposing
 import Parser.Language exposing (Language(..))
 import Render.Settings
 import Time
-import User exposing (User)
 
 
 type alias Document =
@@ -31,9 +30,7 @@ type alias Username =
 
 
 type Access
-    = Public
-    | Private
-    | Shared { canRead : List Username, canWrite : List Username }
+    = Shared { canRead : List Username, canWrite : List Username }
 
 
 defaultSettings : Render.Settings.Settings

@@ -1,6 +1,5 @@
 module Render.Block exposing (render)
 
-import Compiler.ASTTools as ASTTools
 import Compiler.Acc exposing (Accumulator)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
@@ -156,10 +155,6 @@ equation count acc settings args id str =
 
 aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
 aligned count acc settings args id str =
-    let
-        content =
-            "\\begin{aligned}\n" ++ str ++ "\n\\end{aligned}"
-    in
     Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count acc settings args id str)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??" 0 args ++ ")")
@@ -202,10 +197,6 @@ heading count acc settings args id exprs =
         , Events.onClick (SendId id)
         ]
         { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| heading" count acc settings exprs) }
-
-
-verticalPadding top bottom =
-    Element.paddingEach { top = top, bottom = bottom, left = 0, right = 0 }
 
 
 renderWithDefault : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element L0Msg)
@@ -336,11 +327,6 @@ renderCode count acc settings args id str =
         , Render.Utility.elementAttribute "id" id
         ]
         (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
-
-
-removeFirstLine : String -> String
-removeFirstLine str =
-    str |> String.trim |> String.lines |> List.drop 1 |> String.join "\n"
 
 
 item count acc settings args id exprs =

@@ -57,7 +57,7 @@ expand dict expr =
 subst : Expr -> String -> Expr -> Expr
 subst a var body =
     case body of
-        Text v meta ->
+        Text v _ ->
             if String.trim v == String.trim var then
                 -- the trimming is a temporary hack.  Need to adjust the parser
                 a

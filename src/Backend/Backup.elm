@@ -1,10 +1,10 @@
 module Backend.Backup exposing (Backup, decodeBackup, encode, oldBackupToNew)
 
-import Abstract exposing (Abstract, AbstractOLD)
+import Abstract exposing (Abstract)
 import Authentication
 import Codec exposing (Codec)
 import Credentials
-import Dict exposing (Dict)
+import Dict
 import Document exposing (Document)
 import Parser.Language exposing (Language(..))
 import Random
@@ -12,12 +12,10 @@ import Time
 import Types
     exposing
         ( AbstractDict
-        , AbstractDictOLD
         , AuthorDict
         , BackendModel
         , BackupOLD
         , DocumentDict
-        , DocumentLink
         , PublicIdDict
         , UsersDocumentsDict
         )
@@ -184,25 +182,6 @@ decodeBackup str =
             Err x
 
 
-documentLinkCodec : Codec DocumentLink
-documentLinkCodec =
-    Codec.object DocumentLink
-        |> Codec.field "digest" .digest Codec.string
-        |> Codec.field "label" .label Codec.string
-        |> Codec.field "url" .url Codec.string
-        |> Codec.buildObject
-
-
-abstractCodecOLD : Codec AbstractOLD
-abstractCodecOLD =
-    Codec.object AbstractOLD
-        |> Codec.field "title" .title Codec.string
-        |> Codec.field "author" .author Codec.string
-        |> Codec.field "abstract" .abstract Codec.string
-        |> Codec.field "tags" .tags Codec.string
-        |> Codec.buildObject
-
-
 abstractCodec : Codec Abstract
 abstractCodec =
     Codec.object Abstract
@@ -212,11 +191,6 @@ abstractCodec =
         |> Codec.field "tags" .tags Codec.string
         |> Codec.field "digest" .digest Codec.string
         |> Codec.buildObject
-
-
-authenticationDictCodec : Codec Authentication.AuthenticationDict
-authenticationDictCodec =
-    Codec.dict userDataCodec
 
 
 userCodec : Codec User.User

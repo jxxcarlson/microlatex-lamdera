@@ -1,6 +1,6 @@
 module MicroLaTeX.Parser.Classify exposing (classify)
 
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
+import Parser.Block exposing (BlockType(..))
 import Parser.Common
 import Tree.BlocksV
 

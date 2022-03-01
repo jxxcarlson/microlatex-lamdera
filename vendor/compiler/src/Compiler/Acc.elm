@@ -13,7 +13,7 @@ import L0.Transform
 import List.Extra
 import MicroLaTeX.Compiler.LaTeX
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
-import Parser.Expr exposing (Expr(..))
+import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
 
@@ -40,11 +40,6 @@ getCounterAsString name dict =
 incrementCounter : String -> Dict String Int -> Dict String Int
 incrementCounter name dict =
     Dict.insert name (getCounter name dict + 1) dict
-
-
-getLambda : String -> Dict String ( List String, Expr ) -> Maybe { name : String, args : List String, expr : Expr }
-getLambda name environment =
-    Dict.get name environment |> Maybe.map (\( args, expr ) -> { name = name, args = args, expr = expr })
 
 
 transformST : Language -> List (Tree (ExpressionBlock Expr)) -> List (Tree (ExpressionBlock Expr))
@@ -93,11 +88,6 @@ transformAccumulateTree lang tree acc =
                 ( newAcc, transformBlock lang newAcc block_ )
     in
     Tree.mapAccumulate transformer acc tree
-
-
-namedIndex : String -> Int -> String
-namedIndex name k =
-    name ++ "::" ++ String.fromInt k
 
 
 transformBlock : Language -> Accumulator -> ExpressionBlock Expr -> ExpressionBlock Expr

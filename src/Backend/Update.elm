@@ -11,7 +11,7 @@ import Authentication
 import Dict
 import Document
 import Hex
-import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Lamdera exposing (ClientId, broadcast, sendToFrontend)
 import Maybe.Extra
 import Random
 import Token

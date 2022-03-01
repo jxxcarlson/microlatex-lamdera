@@ -30,11 +30,6 @@ get seed_ =
     { token = token, seed = newSeed }
 
 
-get_ : Random.Seed -> Int -> Int -> { token : String, seed : Random.Seed }
-get_ seed n wordLength =
-    randomWords seed n wordLength |> (\result -> { token = String.join "-" result.words, seed = result.seed })
-
-
 randomWords : Random.Seed -> Int -> Int -> { words : List String, seed : Random.Seed }
 randomWords seed n wordLength =
     loop

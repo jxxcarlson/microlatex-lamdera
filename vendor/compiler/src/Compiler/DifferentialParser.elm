@@ -2,10 +2,8 @@ module Compiler.DifferentialParser exposing (EditRecord, init, update)
 
 import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
-import Compiler.Differ as Differ
 import L0.Parser.Expression
 import Markup
-import MicroLaTeX.Parser.Classify
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
 import Parser.BlockUtil
@@ -34,10 +32,6 @@ init lang str =
 update : EditRecord -> String -> EditRecord
 update editRecord text =
     Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Compiler.Acc.make editRecord text
-
-
-differentialParser diffRecord editRecord =
-    Abstract.differentialParser chunker diffRecord editRecord
 
 
 chunker : Language -> String -> List (Tree IntermediateBlock)

@@ -1,12 +1,10 @@
-module MicroLaTeX.Compiler.LaTeX exposing (..)
+module MicroLaTeX.Compiler.LaTeX exposing (ordinaryBlock, transform)
 
 import Compiler.ASTTools
-import Compiler.Util
 import Either exposing (Either(..))
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
-import Parser.Language exposing (Language(..))
 
 
 ordinaryBlock args exprs data m1 =

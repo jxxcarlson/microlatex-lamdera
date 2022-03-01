@@ -10,7 +10,7 @@ import Markup
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Render.Elm
-import Render.Msg exposing (L0Msg(..))
+import Render.Msg exposing (L0Msg)
 import Render.Settings
 import Render.Utility
 import Tree
@@ -117,20 +117,8 @@ prepareFrontMatter count acc settings ast =
             headings.subtitle
                 |> Maybe.map (List.map (Render.Elm.render count acc settings) >> Element.paragraph [ subtitleSize, Font.color (Element.rgb 0.4 0.4 0.4) ])
                 |> Maybe.withDefault Element.none
-
-        spaceBelow k =
-            Element.el [ Element.paddingEach { bottom = k, top = 0, left = 0, right = 0 } ] (Element.text " ")
     in
     title :: subtitle :: []
-
-
-tocLink : String -> List Expr -> Element L0Msg
-tocLink label exprList =
-    let
-        t =
-            Compiler.ASTTools.stringValueOfList exprList
-    in
-    Element.link [] { url = Render.Utility.internalLink t, label = Element.text (label ++ " " ++ t) }
 
 
 tocIndent args =

@@ -2,9 +2,8 @@ module UrlManager exposing (handleDocId)
 
 import Lamdera exposing (sendToBackend)
 import Parser exposing (..)
-import Types exposing (FrontendMsg(..), ToBackend(..))
+import Types exposing (FrontendMsg, ToBackend(..))
 import Url exposing (Url)
-import Url.Builder
 
 
 type DocUrl
@@ -28,30 +27,6 @@ handleDocId url =
 
 
 -- PARSE
-
-
-getInternalRef : String -> Maybe String
-getInternalRef str =
-    case run parseInternalRef str of
-        Ok str_ ->
-            Just str_
-
-        Err _ ->
-            Nothing
-
-
-parseInternalRef : Parser String
-parseInternalRef =
-    succeed identity
-        |. int
-        |. symbol "#"
-        |= parseRefString
-
-
-parseRefString : Parser String
-parseRefString =
-    getChompedString <|
-        chompWhile (\c -> Char.isAlphaNum c || c == '_')
 
 
 parseDocUrl : Url -> DocUrl
