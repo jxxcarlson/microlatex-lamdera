@@ -5,12 +5,14 @@ module Compiler.Acc exposing
     , transformST
     )
 
+import Compiler.ASTTools
 import Compiler.Lambda as Lambda exposing (Lambda)
 import Compiler.Vector as Vector exposing (Vector)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import L0.Transform
 import List.Extra
+import Maybe.Extra
 import MicroLaTeX.Compiler.LaTeX
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
@@ -82,7 +84,6 @@ transformAccumulateTree lang tree acc =
                             L0Lang ->
                                 L0.Transform.transform block__
 
-                    -- |> Debug.log "TRANSFORMED"
                     newAcc =
                         updateAccumulator block_ acc_
                 in
@@ -95,8 +96,18 @@ transformBlock : Language -> Accumulator -> ExpressionBlock Expr -> ExpressionBl
 transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "section", level ] ->
+            let
+                title =
+                    case block.content of
+                        Left str ->
+                            str
+
+                        Right expr ->
+                            List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
+            in
             ExpressionBlock
                 { block | args = [ level, Vector.toString acc.headingIndex ] }
+                |> Debug.log "SECTION"
 
         OrdinaryBlock args ->
             case List.head args of
@@ -135,7 +146,11 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
     let
         updateReference : String -> String -> String -> Accumulator -> Accumulator
         updateReference tag_ id_ numRef_ acc =
-            { acc | reference = Dict.insert tag_ { id = id_, numRef = numRef_ } acc.reference }
+            if tag_ /= "" then
+                { acc | reference = Dict.insert tag_ { id = id_, numRef = numRef_ } acc.reference }
+
+            else
+                acc
 
         ( inList, initialNumberedCounter ) =
             case ( accumulator.inList, name ) of
@@ -155,11 +170,22 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
         -- provide numbering for sections
         OrdinaryBlock [ "section", level ] ->
             let
+                title =
+                    case content of
+                        Left str ->
+                            str
+
+                        Right expr ->
+                            List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
+
+                sectionTag =
+                    title |> String.toLower |> String.replace " " "-"
+
                 headingIndex =
                     Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
             in
             -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-            { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference tag id (Vector.toString headingIndex)
+            { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
 
         OrdinaryBlock args_ ->
             case List.head args_ of

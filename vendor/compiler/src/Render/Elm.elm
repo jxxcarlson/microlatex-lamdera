@@ -420,6 +420,8 @@ ref g acc s exprList =
     -- Element.el [ Font.color (Element.rgb 0 0 0.7) ] (Element.text val)
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)
+        , Font.bold
+        , Font.underline
         ]
         { url = Utility.internalLink id
         , label = Element.paragraph [] [ Element.text val ]
