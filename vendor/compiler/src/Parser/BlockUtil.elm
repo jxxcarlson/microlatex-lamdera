@@ -232,14 +232,12 @@ toIntermediateBlock lang parseToState extractMessages block =
                 endString =
                     "\\end{" ++ name ++ "}"
 
-                --content_ =
-                --    String.replace ("\\end{" ++ name ++ "}") "" rawContent
                 ( revisedName, _, content_ ) =
                     if String.contains endString rawContent then
                         ( name, blockType, String.replace endString "" rawContent |> addEnd )
 
                     else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
-                        ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\n\\end{??}" )
+                        ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "  •••" )
 
                     else
                         ( name, blockType, rawContent )
