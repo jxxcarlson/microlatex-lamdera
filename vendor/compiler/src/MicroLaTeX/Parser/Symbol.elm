@@ -111,5 +111,8 @@ toSymbol2 token =
         MathToken _ ->
             M
 
+        CodeToken _ ->
+            C
+
         _ ->
             O

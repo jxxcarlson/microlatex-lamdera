@@ -242,8 +242,36 @@ reduceState state =
                 { state | stack = [], committed = committed }
 
             Just C ->
-                { state | stack = [], committed = Verbatim "code" (String.replace "`" "" <| Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
+                let
+                    content =
+                        state.stack |> List.reverse |> Token.toString
 
+                    trailing =
+                        String.right 1 content
+
+                    committed =
+                        if trailing == "`" && content == "`" then
+                            let
+                                ( first_, rest_ ) =
+                                    case state.committed of
+                                        first :: rest ->
+                                            ( first, rest )
+
+                                        _ ->
+                                            ( Expr "red" [ Text "????(4)" dummyLoc ] dummyLoc, [] )
+                            in
+                            first_ :: Expr "red" [ Text "`" dummyLoc ] dummyLoc :: rest_
+
+                        else if trailing == "`" then
+                            Verbatim "code" (String.replace "`" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+
+                        else
+                            Expr "red" [ Text "`" dummyLoc ] dummyLoc :: Verbatim "code" (String.replace "`" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+                in
+                { state | stack = [], committed = committed }
+
+            --Just C ->
+            --    { state | stack = [], committed = Verbatim "code" (String.replace "`" "" <| Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
             _ ->
                 state
 
