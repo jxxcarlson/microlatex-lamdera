@@ -299,7 +299,7 @@ evalList macroName lineNumber tokens =
                             expr :: evalList Nothing lineNumber (List.drop 1 tokens)
 
                         Nothing ->
-                            [ errorMessage "\\??(7)" ]
+                            [ errorMessage "•••?(7)" ]
 
         _ ->
             []

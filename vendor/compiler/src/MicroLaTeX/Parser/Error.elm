@@ -23,26 +23,33 @@ ordinaryBlock name args currentMessages lineNumber revisedContent =
             "\\end{" ++ name ++ "}"
 
         content =
-            if n <= 1 then
-                "\\red{ •••?}"
+            if List.member name [ "item", "numbered" ] then
+                if n <= 1 then
+                    "\n\\red{•••}"
 
-            else if List.member name [ "item", "numbered" ] then
-                List.drop 1 lines |> String.join "\n"
+                else
+                    List.drop 1 lines |> String.join "\n"
+                -- else if String.left 1 lastLine ==
+
+            else if n <= 1 then
+                "\n•••\\vskip{1}\n\\red{\\bs{end} •••}"
 
             else if lastLine == "\\" then
-                sliceList 1 (n - 1) lines
+                sliceList 1 (n - 2) lines
                     |> String.join "\n"
-                    |> (\s -> s ++ "\n\\red{\\•••?}")
+                    |> (\s -> s ++ "\n\\vskip{1}\n\\red{\\bs{end} •••}")
 
             else if lastLine == endString then
                 sliceList 1 (n - 2) lines |> String.join "\n"
 
-            else if lastLine /= endString then
-                -- sliceList 1 (n - 1) lines |> String.join "\n" |> (\x -> x ++ "\n\\vskip{1}\n\\red{••• end?}")
-                sliceList 1 (n - 2) lines |> String.join "\n" |> (\x -> x ++ "\n\\vskip{1}\n\\red{••• ?}")
+            else if String.contains "\\end" lastLine then
+                sliceList 1 (n - 2) lines |> String.join "\n" |> (\x -> x ++ "\n\\vskip{1}\n\\red{\\bs{end} •••}")
+
+            else if String.left 1 lastLine == "\\" then
+                sliceList 1 (n - 2) lines |> String.join "\n" |> (\x -> x ++ "\n\\vskip{1}\n\\red{\\bs{??}}\n\\vskip{1}\n\\red{\\bs{end} •••}")
 
             else
-                sliceList 1 (n - 2) lines |> String.join "\n"
+                sliceList 1 (n - 1) lines |> String.join "\n" |> (\x -> x ++ "\n\\vskip{1}\n\\red{\\bs{end} •••}")
     in
     ( content, messages )
 
