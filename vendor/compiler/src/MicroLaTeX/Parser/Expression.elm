@@ -290,6 +290,9 @@ eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
+        (S t m1) :: (BS m2) :: rest ->
+            Text t m1 :: eval lineNumber (BS m2 :: rest)
+
         (S t m2) :: rest ->
             Text t m2 :: evalList Nothing lineNumber rest
 
