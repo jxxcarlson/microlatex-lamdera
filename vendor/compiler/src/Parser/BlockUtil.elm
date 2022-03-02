@@ -17,6 +17,7 @@ import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Common
+import Parser.Error
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
 import Tree.BlocksV
@@ -123,10 +124,6 @@ mapContent parse lineNumber blockType content =
             content_
 
 
-bareBlockNames =
-    [ "contents" ]
-
-
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> Tree.BlocksV.Block -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages block =
     let
@@ -159,65 +156,77 @@ toIntermediateBlock lang parseToState extractMessages block =
                 name =
                     List.head args |> Maybe.withDefault "anon"
 
-                ( firstLine, rawContent_ ) =
-                    if List.member name [ "item", "numbered" ] then
-                        split_ revisedContent
+                ( newContent, messages ) =
+                    Parser.Error.ordinaryBlock lang name args (extractMessages state) block.lineNumber revisedContent
 
-                    else
-                        split_ revisedContent
-
-                messages =
-                    if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
-                        Helpers.prependMessage block.lineNumber ("Write something below the block header (" ++ String.replace "| " "" firstLine ++ ")") (extractMessages state)
-
-                    else
-                        extractMessages state
-
-                rawContent =
-                    if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
-                        firstLine ++ "\n[red[underline[ ••• (1)]]"
-
-                    else
-                        rawContent_
-
-                endString =
-                    "\\end{" ++ name ++ "}"
-
-                eraseLastLine str =
-                    let
-                        lines =
-                            str |> String.lines
-
-                        n =
-                            List.length lines
-
-                        lastLine =
-                            List.drop (n - 1) lines |> String.join ""
-                    in
-                    if String.left 1 lastLine == "\\" then
-                        lines |> List.take (n - 1) |> String.join "\n"
-
-                    else
-                        str
-
-                content_ =
-                    if String.contains endString rawContent then
-                        String.replace endString "" rawContent
-
-                    else if not (List.member name [ "item", "numbered" ]) && lang == MicroLaTeXLang then
-                        eraseLastLine rawContent ++ "\n\\red{\\underline{ ••• }}"
-
-                    else
-                        rawContent
-
-                content =
-                    if List.member name Parser.Common.verbatimBlockNames && not (List.member name [ "item", "numbered" ]) then
-                        content_ ++ "\nend"
-
-                    else
-                        content_
+                --
+                --name =
+                --    List.head args |> Maybe.withDefault "anon"
+                --
+                --( firstLine, rawContent_ ) =
+                --    if List.member name [ "item", "numbered" ] then
+                --        split_ revisedContent
+                --
+                --    else
+                --        split_ revisedContent
+                --
+                --messages =
+                --    if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
+                --        Helpers.prependMessage block.lineNumber ("Write something below the block header (" ++ String.replace "| " "" firstLine ++ ")") (extractMessages state)
+                --
+                --    else
+                --        extractMessages state
+                --
+                --rawContent =
+                --    if rawContent_ == "" && not (List.member (List.head args |> Maybe.withDefault "!!") bareBlockNames) then
+                --        case lang of
+                --            L0Lang ->
+                --                firstLine ++ "\n[red[underline[ ••• (1)]]"
+                --
+                --            MicroLaTeXLang ->
+                --                firstLine ++ "\n\\red{\\underline{ ••• (1)}}"
+                --
+                --    else
+                --        rawContent_
+                --
+                --endString =
+                --    "\\end{" ++ name ++ "}"
+                --
+                --eraseLastLine str =
+                --    let
+                --        lines =
+                --            str |> String.lines
+                --
+                --        n =
+                --            List.length lines
+                --
+                --        lastLine =
+                --            List.drop (n - 1) lines |> String.join ""
+                --    in
+                --    if String.left 1 lastLine == "\\" then
+                --        lines |> List.take (n - 1) |> String.join "\n"
+                --
+                --    else
+                --        str
+                --
+                --content_ =
+                --    if String.contains endString rawContent then
+                --        String.replace endString "" rawContent
+                --
+                --    else if not (List.member name [ "item", "numbered" ]) && lang == MicroLaTeXLang then
+                --        eraseLastLine rawContent ++ "\n\\red{\\underline{ ••• (X)}}"
+                --
+                --    else
+                --        rawContent
+                --
+                --content =
+                --    if List.member name Parser.Common.verbatimBlockNames && not (List.member name [ "item", "numbered" ]) then
+                --        content_ ++ "\nend"
+                --
+                --    else
+                --        content_
             in
-            makeIntermediateBlock block (List.head args) (List.drop 1 args) content messages blockType
+            makeIntermediateBlock block (List.head args) (List.drop 1 args) newContent messages blockType
 
         VerbatimBlock args ->
             let

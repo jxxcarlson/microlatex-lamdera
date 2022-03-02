@@ -193,7 +193,7 @@ reduceState state =
         case List.head symbols of
             Just L ->
                 case eval state.lineNumber (state.stack |> List.reverse) of
-                    (Expr "invisible" [ Text message _ ] _) :: rest ->
+                    (Expr "invisible (1)" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
 
                     whatever ->
@@ -247,7 +247,8 @@ eval lineNumber tokens =
                 [ errorMessageInvisible lineNumber "[ ] not legal - you need something between the brackets", errorMessage "[?? (1)]" ]
 
             _ ->
-                [ errorMessageInvisible lineNumber "[  or [   ] not legal, try [something ...]", errorMessage <| "[" ++ Token.toString args ++ "??(2) ]" ]
+                -- [ errorMessageInvisible lineNumber "•••", errorMessage <| "[" ++ Token.toString args ++ "??(2) ]" ]
+                [ errorMessage "••••" ]
 
     else
         []
@@ -284,14 +285,7 @@ evalList lineNumber tokens =
 
 errorMessageInvisible : Int -> String -> Expr
 errorMessageInvisible lineNumber message =
-    let
-        m =
-            -- message ++ " (line " ++ String.fromInt lineNumber ++ ")"
-            message
-
-        --  ++ " (line " ++ String.fromInt lineNumber ++ ")"
-    in
-    Expr "invisible" [ Text m dummyLoc ] dummyLoc
+    Expr "invisible" [ Text (message ++ "(X)") dummyLoc ] dummyLoc
 
 
 errorMessage : String -> Expr
