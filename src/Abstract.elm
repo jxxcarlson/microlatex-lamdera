@@ -57,8 +57,44 @@ getItem language key str =
             runParser (macroValParser key) str ("XX:" ++ key)
 
 
-get : String -> Abstract
-get source =
+get : Language -> String -> Abstract
+get lang source =
+    case lang of
+        L0Lang ->
+            getForL0 source
+
+        MicroLaTeXLang ->
+            getForMiniLaTeX source
+
+
+getForL0 : String -> Abstract
+getForL0 source =
+    let
+        title =
+            getBlockContents "title" source
+
+        subtitle =
+            getBlockContents "subtitle" source
+
+        author =
+            getBlockContents "author" source
+
+        abstract =
+            getBlockContents "abstract" source
+
+        tags =
+            getElement "tags" source
+    in
+    { title = title
+    , author = author
+    , abstract = abstract
+    , tags = tags
+    , digest = [ title, subtitle, author, abstract, tags ] |> String.join " " |> String.toLower
+    }
+
+
+getForMiniLaTeX : String -> Abstract
+getForMiniLaTeX source =
     let
         title =
             --getBlockContents "title" source
@@ -77,7 +113,7 @@ get source =
             runParser (macroValParser "abstract") source "abstract"
 
         tags =
-            getElement "tags" source
+            runParser (macroValParser "tags") source "abstract"
     in
     { title = title
     , author = author

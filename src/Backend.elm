@@ -1,4 +1,26 @@
-module Backend exposing (Model, app, authorLink, authorUrl, filterDict, getAbstract, getBadDocuments, init, makeLink, publicLink, publicUrl, putAbstract, searchForDocuments, searchForPublicDocuments, searchForUserDocuments, searchInAbstract, statusReport, stealId, update, updateAbstracts, updateFromFrontend)
+module Backend exposing
+    ( Model
+    , app
+    , authorLink
+    , authorUrl
+    , filterDict
+    , getAbstract
+    , getBadDocuments
+    , init
+    , makeLink
+    , publicLink
+    , publicUrl
+    , putAbstract
+    , searchForDocuments
+    , searchForPublicDocuments
+    , searchForUserDocuments
+    , searchInAbstract
+    , statusReport
+    , stealId
+    , update
+    , updateAbstracts
+    , updateFromFrontend
+    )
 
 import Abstract exposing (Abstract)
 import Authentication
@@ -246,8 +268,25 @@ updateFromFrontend sessionId clientId msg model =
                                 ]
                             )
 
-        GetHomePage str ->
-            ( model, sendToFrontend clientId (SendMessage ("HOME PAGE: " ++ str)) )
+        GetHomePage username ->
+            let
+                docs =
+                    searchForPublicDocuments ("home:" ++ username) model
+            in
+            case List.head docs of
+                Nothing ->
+                    ( model, sendToFrontend clientId (SendMessage "home page not found") )
+
+                Just doc ->
+                    ( model
+                    , Cmd.batch
+                        [ sendToFrontend clientId (SendMessage "Public document received")
+                        , sendToFrontend clientId (SendDocument CanEdit doc)
+                        , sendToFrontend clientId (SetShowEditor True)
+
+                        --, sendToFrontend clientId (SendMessage (Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id))
+                        ]
+                    )
 
         GetDocumentByAuthorId authorId ->
             case Dict.get authorId model.authorIdDict of
@@ -428,7 +467,7 @@ getAbstract documentDict id =
             Abstract.empty
 
         Just doc ->
-            Abstract.get doc.content
+            Abstract.get doc.language doc.content
 
 
 searchInAbstract : String -> Abstract -> Bool

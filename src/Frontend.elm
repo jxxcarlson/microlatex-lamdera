@@ -156,6 +156,9 @@ urlAction path =
             "/a/" ->
                 sendToBackend (GetDocumentByAuthorId id)
 
+            "/h/" ->
+                sendToBackend (GetHomePage id)
+
             "/status/69a1c3be-4971-4673-9e0f-95456fd709a6" ->
                 sendToBackend GetStatus
 
