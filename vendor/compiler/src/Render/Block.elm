@@ -280,9 +280,12 @@ renderDisplayMath prefix count acc settings args id str =
 
         lastLine =
             List.Extra.getAt (n - 1) allLines
+
+        leftPadding =
+            Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
     in
     if lastLine == Just "$" then
-        Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor ]
+        Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor, leftPadding ]
             (List.map Element.text ("$$" :: List.take (n - 1) lines) ++ [ Element.paragraph [] [ Element.text "$", Element.el [ Font.color Render.Settings.redColor ] (Element.text " another $?") ] ])
 
     else if lastLine == Just "$$" || lastLine == Just "end" then
@@ -297,7 +300,7 @@ renderDisplayMath prefix count acc settings args id str =
                 else
                     lines_
         in
-        Element.column [ Events.onClick (SendId id) ]
+        Element.column [ Events.onClick (SendId id), leftPadding ]
             [ Render.Math.mathText count w "id" DisplayMathMode (String.join "\n" adjustedLines) ]
 
     else
@@ -309,7 +312,7 @@ renderDisplayMath prefix count acc settings args id str =
                 else
                     "end"
         in
-        Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor ]
+        Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor, leftPadding ]
             (List.map Element.text (prefix :: List.take n lines) ++ [ Element.paragraph [] [ Element.el [ Font.color Render.Settings.redColor ] (Element.text suffix) ] ])
 
 
