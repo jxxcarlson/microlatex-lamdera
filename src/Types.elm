@@ -281,6 +281,7 @@ type ToBackend
       -- USER
     | SignInOrSignUp String String
       -- DOCUMENT
+    | GetHomePage String
     | FetchDocumentById String
     | GetPublicDocuments
     | SaveDocument (Maybe User) Document

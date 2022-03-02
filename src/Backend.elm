@@ -246,6 +246,9 @@ updateFromFrontend sessionId clientId msg model =
                                 ]
                             )
 
+        GetHomePage str ->
+            ( model, sendToFrontend clientId (SendMessage ("HOME PAGE: " ++ str)) )
+
         GetDocumentByAuthorId authorId ->
             case Dict.get authorId model.authorIdDict of
                 Nothing ->

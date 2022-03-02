@@ -18,8 +18,8 @@ handleDocId url =
         NoDocUrl ->
             Cmd.none
 
-        HomePage _ ->
-            Cmd.none
+        HomePage str ->
+            sendToBackend (GetHomePage str)
 
         DocUrl slug ->
             sendToBackend (GetDocumentByAuthorId slug)
