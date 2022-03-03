@@ -156,6 +156,9 @@ urlAction path =
             "/a/" ->
                 sendToBackend (GetDocumentByAuthorId id)
 
+            "/s/" ->
+                sendToBackend (SearchForDocuments Nothing id)
+
             "/h/" ->
                 sendToBackend (GetHomePage id)
 

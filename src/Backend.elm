@@ -536,3 +536,16 @@ searchForDocuments key model =
                 |> List.map (\( _, id ) -> id)
     in
     List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids |> Maybe.Extra.values
+
+
+
+--searchForDocumentsByTag : String -> Model -> List Document.Document
+--searchForDocumentsByTag ta model =
+--    let
+--        ids =
+--            Dict.toList model.abstractDict
+--                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
+--                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
+--                |> List.map (\( _, id ) -> id)
+--    in
+--    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids |> Maybe.Extra.values
