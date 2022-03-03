@@ -291,14 +291,32 @@ eval lineNumber tokens =
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
         (S t m1) :: (BS m2) :: rest ->
+            let
+                _ =
+                    tokens |> Debug.log "EVAL (1)"
+            in
             Text t m1 :: eval lineNumber (BS m2 :: rest)
 
+        --  |> Debug.log "EVAL (1,  OUT)"
         (S t m2) :: rest ->
+            let
+                _ =
+                    t |> Debug.log "EVAL (2), text"
+
+                _ =
+                    rest |> Debug.log "EVAL (2), rest"
+            in
             Text t m2 :: evalList Nothing lineNumber rest
 
+        --|> Debug.log "EVAL (2, OUT)"
         (BS m1) :: (S name _) :: rest ->
+            let
+                _ =
+                    tokens |> Debug.log "EVAL (3)"
+            in
             [ Expr name (evalList (Just name) lineNumber rest) m1 ]
 
+        --|> Debug.log "EVAL (3, OUT)"
         _ ->
             -- [ errorMessageInvisible lineNumber "missing macro name", errorMessage <| "??" ]
             errorMessage2Part lineNumber "\\" "{??}(5)"
@@ -306,6 +324,10 @@ eval lineNumber tokens =
 
 evalList : Maybe String -> Int -> List Token -> List Expr
 evalList macroName lineNumber tokens =
+    let
+        _ =
+            Debug.log "evalList TOKEN" tokens
+    in
     case List.head tokens of
         Just token ->
             case Token.type_ token of
@@ -316,13 +338,23 @@ evalList macroName lineNumber tokens =
 
                         Just k ->
                             let
+                                _ =
+                                    Debug.log "evalList, k" k
+
                                 ( a, b ) =
                                     M.splitAt (k + 1) tokens
 
+                                _ =
+                                    Debug.log "a" a
+
+                                _ =
+                                    Debug.log "b" b
+
                                 aa =
-                                    a |> List.take (List.length a - 1) |> List.drop 1
+                                    -- drop the leading and trailing LB, RG
+                                    a |> List.take (List.length a - 1) |> List.drop 1 |> Debug.log "aa"
                             in
-                            eval lineNumber aa ++ evalList Nothing lineNumber b
+                            eval lineNumber aa ++ evalList Nothing lineNumber b |> Debug.log "!!!!"
 
                 _ ->
                     case exprOfToken token of
