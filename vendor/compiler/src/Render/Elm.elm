@@ -242,6 +242,7 @@ image generation acc settings body =
         keyValueStrings_ =
             List.filter (\s -> String.contains ":" s) remainingArguments
 
+        keyValueStrings : List String
         keyValueStrings =
             List.filter (\s -> not (String.contains "caption" s)) keyValueStrings_
 
@@ -254,8 +255,9 @@ image generation acc settings body =
             (captionLeadString :: List.filter (\s -> not (String.contains ":" s)) remainingArguments) |> String.join " "
 
         dict =
-            Utility.keyValueDict (List.drop 1 arguments) |> Dict.insert "caption" (Maybe.andThen ASTTools.getText captionExpr |> Maybe.withDefault "")
+            Utility.keyValueDict keyValueStrings
 
+        --  |> Dict.insert "caption" (Maybe.andThen ASTTools.getText captionExpr |> Maybe.withDefault "")
         description =
             Dict.get "caption" dict |> Maybe.withDefault ""
 
