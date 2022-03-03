@@ -460,8 +460,6 @@ reflink g acc s exprList =
     in
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)
-        , Font.bold
-        , Font.underline
         ]
         { url = Utility.internalLink id
         , label = Element.paragraph [] [ Element.text label ]
