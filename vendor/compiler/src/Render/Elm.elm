@@ -407,7 +407,7 @@ ref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
 ref g acc s exprList =
     let
         key =
-            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join ""
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
 
         ref_ =
             Dict.get key acc.reference
