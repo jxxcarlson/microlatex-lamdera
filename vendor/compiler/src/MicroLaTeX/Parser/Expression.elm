@@ -195,11 +195,25 @@ reduceState state =
                 _ ->
                     False
 
-        reducible_ =
+        isMathOrCodeToken maybeTok =
+            case maybeTok of
+                Just (MathToken _) ->
+                    True
+
+                Just (CodeToken _) ->
+                    True
+
+                _ ->
+                    False
+
+        reducible1 =
             isReducible state.stack
+
+        reducible2 =
+            reducible1
                 && isStringToken peek
     in
-    if state.tokenIndex >= state.numberOfTokens || reducible_ then
+    if state.tokenIndex >= state.numberOfTokens || reducible1 then
         let
             symbols =
                 state.stack |> Symbol.convertTokens |> List.reverse
