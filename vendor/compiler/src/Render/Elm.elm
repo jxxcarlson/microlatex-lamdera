@@ -87,6 +87,7 @@ markupDict =
         , ( "boldItalic", \g acc s exprList -> boldItalic g acc s exprList )
         , ( "strike", \g acc s exprList -> strike g acc s exprList )
         , ( "ref", \g acc s exprList -> ref g acc s exprList )
+        , ( "reflink", \g acc s exprList -> reflink g acc s exprList )
         , ( "eqref", \g acc s exprList -> eqref g acc s exprList )
         , ( "underline", \g acc s exprList -> underline g acc s exprList )
         , ( "comment", \_ _ _ _ -> Element.none )
@@ -425,6 +426,45 @@ ref g acc s exprList =
         ]
         { url = Utility.internalLink id
         , label = Element.paragraph [] [ Element.text val ]
+        }
+
+
+{-|
+
+    \reflink{LINK_TEXT LABEL}
+
+-}
+reflink : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+reflink g acc s exprList =
+    let
+        argString =
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join " "
+
+        args =
+            String.words argString
+
+        n =
+            List.length args
+
+        key =
+            List.drop (n - 1) args |> String.join ""
+
+        label =
+            List.take (n - 1) args |> String.join " "
+
+        ref_ =
+            Dict.get key acc.reference
+
+        id =
+            ref_ |> Maybe.map .id |> Maybe.withDefault ""
+    in
+    Element.link
+        [ Font.color (Element.rgb 0 0 0.7)
+        , Font.bold
+        , Font.underline
+        ]
+        { url = Utility.internalLink id
+        , label = Element.paragraph [] [ Element.text label ]
         }
 
 
