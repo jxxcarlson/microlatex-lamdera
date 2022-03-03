@@ -231,10 +231,27 @@ image generation acc settings body =
 
         arguments : List String
         arguments =
-            ASTTools.exprListToStringList body
+            ASTTools.exprListToStringList body |> List.map String.words |> List.concat
 
         url =
             List.head arguments |> Maybe.withDefault "no-image"
+
+        remainingArguments =
+            List.drop 1 arguments
+
+        keyValueStrings_ =
+            List.filter (\s -> String.contains ":" s) remainingArguments
+
+        keyValueStrings =
+            List.filter (\s -> not (String.contains "caption" s)) keyValueStrings_
+
+        captionLeadString =
+            List.filter (\s -> String.contains "caption" s) keyValueStrings_
+                |> String.join ""
+                |> String.replace "caption:" ""
+
+        captionPhrase =
+            (captionLeadString :: List.filter (\s -> not (String.contains ":" s)) remainingArguments) |> String.join " "
 
         dict =
             Utility.keyValueDict (List.drop 1 arguments) |> Dict.insert "caption" (Maybe.andThen ASTTools.getText captionExpr |> Maybe.withDefault "")
@@ -243,12 +260,11 @@ image generation acc settings body =
             Dict.get "caption" dict |> Maybe.withDefault ""
 
         caption =
-            case Dict.get "caption" dict of
-                Nothing ->
-                    Element.none
+            if captionPhrase == "" then
+                Element.none
 
-                Just c ->
-                    Element.row [ placement, Element.width Element.fill ] [ el [ Element.width Element.fill ] (Element.text c) ]
+            else
+                Element.row [ placement, Element.width Element.fill ] [ el [ Element.width Element.fill ] (Element.text captionPhrase) ]
 
         width =
             case Dict.get "width" dict of
