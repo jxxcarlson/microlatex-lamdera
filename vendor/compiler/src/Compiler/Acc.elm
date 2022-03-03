@@ -23,6 +23,7 @@ import Tree exposing (Tree)
 type alias Accumulator =
     { headingIndex : Vector
     , counter : Dict String Int
+    , numberedBlockNames : List String
     , environment : Dict String Lambda
     , inList : Bool
     , reference : Dict String { id : String, numRef : String }
@@ -60,6 +61,7 @@ init k =
     { headingIndex = Vector.init k
     , inList = False
     , counter = Dict.empty
+    , numberedBlockNames = [ "theorem", "lemma", "proposition", "corollary", "definition", "note", "remark", "equation", "aligned" ]
     , environment = Dict.empty
     , reference = Dict.empty
     }
@@ -213,7 +215,11 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                     let
                         -- TODO: restrict to name_ in designated (but dynamic) list
                         newCounter =
-                            incrementCounter name_ accumulator.counter
+                            if List.member name_ accumulator.numberedBlockNames then
+                                incrementCounter name_ accumulator.counter
+
+                            else
+                                accumulator.counter
                     in
                     { accumulator | inList = inList, counter = newCounter }
                         |> updateReference tag id (String.fromInt (getCounter name_ newCounter))
@@ -225,7 +231,11 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
         VerbatimBlock [ name_ ] ->
             let
                 newCounter =
-                    incrementCounter name_ accumulator.counter
+                    if List.member name_ accumulator.numberedBlockNames then
+                        incrementCounter name_ accumulator.counter
+
+                    else
+                        accumulator.counter
             in
             { accumulator | inList = inList, counter = newCounter } |> updateReference tag id (getCounter name_ newCounter |> String.fromInt)
 
