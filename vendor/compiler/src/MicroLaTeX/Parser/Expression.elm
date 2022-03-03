@@ -313,6 +313,15 @@ eval lineNumber tokens =
             let
                 _ =
                     tokens |> Debug.log "EVAL (3)"
+
+                ( a, b ) =
+                    split tokens
+
+                _ =
+                    Debug.log "AA" a
+
+                _ =
+                    Debug.log "BB" b
             in
             [ Expr name (evalList (Just name) lineNumber rest) m1 ]
 
@@ -366,6 +375,17 @@ evalList macroName lineNumber tokens =
 
         _ ->
             []
+
+
+split : List Token -> ( List Token, List Token )
+split tokens =
+    case M.match (Symbol.convertTokens2 tokens) of
+        Nothing ->
+            -- errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
+            ( tokens, [] )
+
+        Just k ->
+            M.splitAt (k + 1) tokens
 
 
 errorMessage2Part : Int -> String -> String -> List Expr
