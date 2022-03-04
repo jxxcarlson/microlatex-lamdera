@@ -355,7 +355,7 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.7 -200 (panelWidth2_ model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
