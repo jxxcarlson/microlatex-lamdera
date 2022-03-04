@@ -380,7 +380,8 @@ index _ acc _ _ _ _ =
                 |> Dict.toList
                 |> List.sortBy (\( name, _ ) -> name)
     in
-    Element.column [ Element.spacing 6 ] (Element.el [ Font.bold ] (Element.text "Index") :: List.map indexItem termList)
+    -- Element.column [ Element.spacing 6 ] (Element.el [ Font.bold ] (Element.text "Index") :: List.map indexItem termList)
+    Element.column [ Element.spacing 6 ] (List.map indexItem termList)
 
 
 indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element msg
