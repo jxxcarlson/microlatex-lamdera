@@ -183,11 +183,13 @@ heading count acc settings args id exprs =
             Render.Settings.maxHeadingFontSize / sqrt headingLevel |> round
     in
     Element.link
-        [ Font.size fontSize
-        , Render.Utility.makeId exprs
-        , Render.Utility.elementAttribute "id" id
-        , Events.onClick (SendId id)
-        ]
+        ([ Font.size fontSize
+         , Render.Utility.makeId exprs
+         , Render.Utility.elementAttribute "id" id
+         , Events.onClick (SendId id)
+         ]
+            ++ highlightAttrs id settings
+        )
         { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| heading" count acc settings exprs) }
 
 
@@ -201,7 +203,7 @@ renderWithDefault default count acc settings exprs =
 
 
 indented count acc settings args id exprs =
-    Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ]
+    Element.paragraph ([ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         (renderWithDefault "| indent" count acc settings exprs)
 
 
@@ -218,7 +220,7 @@ bibitem count acc settings args id exprs =
             , Element.width (Element.px 34)
             ]
             (Element.text label)
-        , Element.paragraph [ Element.paddingEach { left = 25, right = 0, top = 0, bottom = 0 }, Events.onClick (SendId id) ]
+        , Element.paragraph ([ Element.paddingEach { left = 25, right = 0, top = 0, bottom = 0 }, Events.onClick (SendId id) ] ++ highlightAttrs id settings)
             (renderWithDefault "bibitem" count acc settings exprs)
         ]
 
@@ -248,7 +250,7 @@ env name count acc settings args id exprs =
         envHeading =
             name ++ " " ++ label ++ headingString
     in
-    Element.column [ Element.spacing 8, Render.Utility.elementAttribute "id" id ]
+    Element.column ([ Element.spacing 8, Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         [ Element.el [ Font.bold, Events.onClick (SendId id) ] (Element.text envHeading)
         , Element.paragraph [ Font.italic, Events.onClick (SendId id) ]
             (renderWithDefault ("| " ++ name) count acc settings exprs)
@@ -315,6 +317,14 @@ renderDisplayMath prefix count acc settings args id str =
             (List.map Element.text (prefix :: List.take n lines) ++ [ Element.paragraph [] [ Element.el [ Font.color Render.Settings.redColor ] (Element.text suffix) ] ])
 
 
+highlightAttrs id settings =
+    if id == settings.selectedId then
+        [ Events.onClick (SendId id), Background.color (Element.rgb 0.8 0.8 1.0) ]
+
+    else
+        [ Events.onClick (SendId id) ]
+
+
 renderCode : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
 renderCode count acc settings args id str =
     Element.column
@@ -332,7 +342,7 @@ renderCode count acc settings args id str =
 
 
 item count acc settings args id exprs =
-    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 12 ]
+    Element.row ([ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 12 ] ++ highlightAttrs id settings)
         [ Element.el [ Font.size 18, Element.alignTop, Element.moveRight 6, Element.width (Element.px 24), Render.Settings.leftIndentation ] (Element.text "•")
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| item" count acc settings exprs)
@@ -340,7 +350,7 @@ item count acc settings args id exprs =
 
 
 abstract count acc settings args id exprs =
-    Element.paragraph [ Render.Utility.elementAttribute "id" id, Render.Settings.leftIndentation, Events.onClick (SendId id) ]
+    Element.paragraph ([ Render.Utility.elementAttribute "id" id, Render.Settings.leftIndentation, Events.onClick (SendId id) ] ++ highlightAttrs id settings)
         (Element.el [ Font.bold ] (Element.text "Abstract.") :: renderWithDefault "| abstract" count acc settings exprs)
 
 
@@ -350,7 +360,7 @@ desc count acc settings args id exprs =
         label =
             String.join " " args
     in
-    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+    Element.row ([ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ] ++ highlightAttrs id settings)
         [ Element.el [ Font.bold, Element.alignTop, Element.width (Element.px 100) ] (Element.text label)
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| desc" count acc settings exprs)
