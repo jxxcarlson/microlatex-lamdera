@@ -117,6 +117,7 @@ blockDict =
         , ( "item", item )
         , ( "desc", desc )
         , ( "numbered", numbered )
+        , ( "index", index )
         ]
 
 
@@ -370,3 +371,20 @@ numbered count acc settings args id exprs =
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| numbered" count acc settings exprs)
         ]
+
+
+index _ acc _ _ _ _ =
+    let
+        termList =
+            acc.terms
+                |> Dict.toList
+                |> List.sortBy (\( name, _ ) -> name)
+    in
+    Element.column [ Element.spacing 6 ] (Element.el [ Font.bold ] (Element.text "Index") :: List.map indexItem termList)
+
+
+indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element msg
+indexItem ( name, loc ) =
+    -- Element.el [] (Element.text name)
+    Element.link [ Font.color (Element.rgb 0 0 0.8) ]
+        { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text name) }

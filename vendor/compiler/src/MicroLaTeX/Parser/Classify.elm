@@ -20,6 +20,9 @@ classify block =
     if String.left 5 firstLine == "\\item" then
         { blockType = OrdinaryBlock [ "item" ], args = [] }
 
+    else if String.left 6 firstLine == "\\index" then
+        { blockType = OrdinaryBlock [ "index" ], args = [] }
+
     else if String.left 9 firstLine == "\\abstract" then
         { blockType = OrdinaryBlock [ "abstract" ], args = [] }
 

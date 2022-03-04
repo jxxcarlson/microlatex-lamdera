@@ -15,7 +15,7 @@ import List.Extra
 import Maybe.Extra
 import MicroLaTeX.Compiler.LaTeX
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
-import Parser.Expr exposing (Expr)
+import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
 
@@ -27,6 +27,7 @@ type alias Accumulator =
     , environment : Dict String Lambda
     , inList : Bool
     , reference : Dict String { id : String, numRef : String }
+    , terms : Dict String TermLoc
     }
 
 
@@ -64,6 +65,7 @@ init k =
     , numberedBlockNames = [ "theorem", "lemma", "proposition", "corollary", "definition", "note", "remark", "problem", "equation", "aligned" ]
     , environment = Dict.empty
     , reference = Dict.empty
+    , terms = Dict.empty
     }
 
 
@@ -191,6 +193,7 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
         OrdinaryBlock args_ ->
             case List.head args_ of
                 Just "defs" ->
+                    -- incorporate runtime macro definitions
                     case content of
                         Left _ ->
                             accumulator
@@ -221,7 +224,11 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                             else
                                 accumulator.counter
                     in
-                    { accumulator | inList = inList, counter = newCounter }
+                    { accumulator
+                        | inList = inList
+                        , counter = newCounter
+                        , terms = addTermsFromContent id content accumulator.terms
+                    }
                         |> updateReference tag id (String.fromInt (getCounter name_ newCounter))
 
                 _ ->
@@ -237,8 +244,62 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                     else
                         accumulator.counter
             in
-            { accumulator | inList = inList, counter = newCounter } |> updateReference tag id (getCounter name_ newCounter |> String.fromInt)
+            { accumulator | inList = inList, counter = newCounter }
+                |> updateReference tag id (getCounter name_ newCounter |> String.fromInt)
+
+        Paragraph ->
+            { accumulator | inList = inList, terms = addTermsFromContent id content accumulator.terms }
 
         _ ->
             -- TODO: take care of numberedItemIndex
             { accumulator | inList = inList }
+
+
+type alias TermLoc =
+    { begin : Int, end : Int, id : String }
+
+
+type alias TermData =
+    { term : String, loc : TermLoc }
+
+
+getTerms : String -> Either String (List Expr) -> List TermData
+getTerms id content_ =
+    case content_ of
+        Right expressionList ->
+            Compiler.ASTTools.filterExpressionsOnName "term" expressionList
+                |> List.map (extract id)
+                |> Maybe.Extra.values
+
+        -- |> List.map Compiler.ASTTools.getText
+        Left str ->
+            []
+
+
+
+-- TERMS: [Expr "term" [Text "group" { begin = 19, end = 23, index = 4 }] { begin = 13, end = 13, index = 1 }]
+
+
+extract : String -> Expr -> Maybe TermData
+extract id expr =
+    case expr of
+        Expr "term" [ Text name { begin, end, index } ] _ ->
+            Just { term = name, loc = { begin = begin, end = end, id = id } }
+
+        _ ->
+            Nothing
+
+
+addTerm : TermData -> Dict String TermLoc -> Dict String TermLoc
+addTerm termData dict =
+    Dict.insert termData.term termData.loc dict
+
+
+addTerms : List TermData -> Dict String TermLoc -> Dict String TermLoc
+addTerms termDataList dict =
+    List.foldl addTerm dict termDataList
+
+
+addTermsFromContent : String -> Either String (List Expr) -> Dict String TermLoc -> Dict String TermLoc
+addTermsFromContent id content dict =
+    addTerms (getTerms id content) dict
