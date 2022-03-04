@@ -88,8 +88,8 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px width_), E.paddingXY 16 32 ]
-                    ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> E.map Render)
-                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings (round <| 2.5 * toFloat model.windowWidth)) model.editRecord.parsed |> List.map (E.map Render))
+                    ((Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth) model.editRecord.parsed |> E.map Render)
+                        :: (Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.selectedId (round <| 2.5 * toFloat model.windowWidth)) model.editRecord.parsed |> List.map (E.map Render))
                     )
                 ]
 
@@ -108,9 +108,9 @@ header model width_ =
         ]
 
 
-renderSettings : Int -> Render.Settings.Settings
-renderSettings w =
-    Render.Settings.makeSettings 0.38 w
+renderSettings : String -> Int -> Render.Settings.Settings
+renderSettings id w =
+    Render.Settings.makeSettings id 0.38 w
 
 
 

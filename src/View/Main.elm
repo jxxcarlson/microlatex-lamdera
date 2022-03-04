@@ -365,17 +365,17 @@ viewDocument windowWidth counter selectedId editRecord =
         title_ =
             Compiler.ASTTools.titleOLD editRecord.parsed
                 |> List.head
-                |> Maybe.map (Render.Block.render counter editRecord.accumulator (renderSettings windowWidth))
+                |> Maybe.map (Render.Block.render counter editRecord.accumulator (renderSettings selectedId windowWidth))
                 |> Maybe.withDefault E.none
                 |> E.map Render
 
         toc : Element FrontendMsg
         toc =
-            Render.TOC.view counter editRecord.accumulator (renderSettings windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
+            Render.TOC.view counter editRecord.accumulator (renderSettings selectedId windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
 
         body : List (Element FrontendMsg)
         body =
-            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings windowWidth) editRecord.parsed |> List.map (E.map Render)
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
     title_ :: toc :: body
 
@@ -404,17 +404,17 @@ viewRenderedForEditor model width_ =
                 title_ =
                     Compiler.ASTTools.titleOLD model.editRecord.parsed
                         |> List.head
-                        |> Maybe.map (Render.Block.render model.counter model.editRecord.accumulator (renderSettings model.windowWidth))
+                        |> Maybe.map (Render.Block.render model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth))
                         |> Maybe.withDefault E.none
                         |> E.map Render
 
                 toc : Element FrontendMsg
                 toc =
-                    Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render
+                    Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render
 
                 body : List (Element FrontendMsg)
                 body =
-                    Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.windowWidth) model.editRecord.parsed |> List.map (E.map Render)
+                    Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth) model.editRecord.parsed |> List.map (E.map Render)
             in
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
@@ -428,7 +428,7 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.8 0 (panelWidth_ model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.8 0 (panelWidth_ model.windowWidth)) model.counter (model.selectedId |> Debug.log "SELECTED_ID (1)") model.editRecord)
                 ]
 
 
@@ -442,14 +442,14 @@ setSelectedId id settings =
     { settings | selectedId = id }
 
 
-renderSettings : Int -> Render.Settings.Settings
-renderSettings w =
-    Render.Settings.makeSettings 0.38 w
+renderSettings : String -> Int -> Render.Settings.Settings
+renderSettings id w =
+    Render.Settings.makeSettings id 0.38 w
 
 
-editorRenderSettings : Int -> Render.Settings.Settings
-editorRenderSettings w =
-    Render.Settings.makeSettings 0.28 w
+editorRenderSettings : String -> Int -> Render.Settings.Settings
+editorRenderSettings id w =
+    Render.Settings.makeSettings id 0.28 w
 
 
 viewPublicDocuments : Model -> List (Element FrontendMsg)

@@ -26,17 +26,17 @@ type alias Settings =
 
 defaultSettings : Settings
 defaultSettings =
-    makeSettings 1 600
+    makeSettings "" 1 600
 
 
-makeSettings : Float -> Int -> Settings
-makeSettings scale width =
+makeSettings : String -> Float -> Int -> Settings
+makeSettings id scale width =
     { width = round (scale * toFloat width)
     , titleSize = 30
     , paragraphSpacing = 28
     , showTOC = True
     , showErrorMessages = False
-    , selectedId = ""
+    , selectedId = id
     }
 
 
