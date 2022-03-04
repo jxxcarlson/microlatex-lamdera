@@ -291,8 +291,15 @@ renderDisplayMath prefix count acc settings args id str =
 
                 else
                     lines_
+
+            attrs =
+                if id == settings.selectedId then
+                    [ Events.onClick (SendId id), leftPadding, Background.color (Element.rgb 0.8 0.8 1.0) ]
+
+                else
+                    [ Events.onClick (SendId id), leftPadding ]
         in
-        Element.column [ Events.onClick (SendId id), leftPadding ]
+        Element.column attrs
             [ Render.Math.mathText count w "id" DisplayMathMode (String.join "\n" adjustedLines) ]
 
     else
