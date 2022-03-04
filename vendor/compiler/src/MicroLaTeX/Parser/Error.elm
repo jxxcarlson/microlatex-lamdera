@@ -23,7 +23,7 @@ ordinaryBlock name args currentMessages lineNumber revisedContent =
             "\\end{" ++ name ++ "}"
 
         content =
-            if List.member name [ "item", "numbered" ] then
+            if List.member name [ "item", "numbered", "desc" ] then
                 if n <= 1 then
                     "\n\\red{•••}"
 

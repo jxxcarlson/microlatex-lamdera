@@ -133,9 +133,9 @@ toIntermediateBlock lang parseToState extractMessages block =
                     MicroLaTeX.Parser.Classify.classify
 
                 L0Lang ->
-                    L0.Parser.Classify.classify
+                    \block_ -> { blockType = L0.Parser.Classify.classify block_, args = [] }
 
-        blockType =
+        classification =
             classify block
 
         tag =
@@ -147,9 +147,9 @@ toIntermediateBlock lang parseToState extractMessages block =
         state =
             parseToState block.lineNumber block.content
     in
-    case blockType of
+    case classification.blockType of
         Paragraph ->
-            makeIntermediateBlock block Nothing [] revisedContent (extractMessages state) blockType
+            makeIntermediateBlock block Nothing [] revisedContent (extractMessages state) classification.blockType
 
         OrdinaryBlock args ->
             let
@@ -158,8 +158,16 @@ toIntermediateBlock lang parseToState extractMessages block =
 
                 ( newContent, messages ) =
                     Parser.Error.ordinaryBlock lang name args (extractMessages state) block.lineNumber revisedContent
+
+                revisedArgs =
+                    case lang of
+                        L0Lang ->
+                            List.drop 1 args
+
+                        MicroLaTeXLang ->
+                            classification.args
             in
-            makeIntermediateBlock block (List.head args) (List.drop 1 args) newContent messages blockType
+            makeIntermediateBlock block (List.head args) revisedArgs newContent messages classification.blockType
 
         VerbatimBlock args ->
             let
@@ -167,7 +175,7 @@ toIntermediateBlock lang parseToState extractMessages block =
                     split_ revisedContent
 
                 messages =
-                    case blockType of
+                    case classification.blockType of
                         VerbatimBlock [ "math" ] ->
                             if String.endsWith "$$" rawContent then
                                 extractMessages state
@@ -193,13 +201,13 @@ toIntermediateBlock lang parseToState extractMessages block =
 
                 ( revisedName, _, content_ ) =
                     if String.contains endString rawContent then
-                        ( name, blockType, String.replace endString "" rawContent |> addEnd )
+                        ( name, classification.blockType, String.replace endString "" rawContent |> addEnd )
 
                     else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
                         ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\\red{underline{  ••• (3)}}" )
 
                     else
-                        ( name, blockType, rawContent )
+                        ( name, classification.blockType, rawContent )
 
                 addEnd str =
                     if List.member name Parser.Common.verbatimBlockNames && name /= "code" then
@@ -208,7 +216,7 @@ toIntermediateBlock lang parseToState extractMessages block =
                     else
                         str
             in
-            makeIntermediateBlock block (Just revisedName) (List.drop 1 args) content_ messages blockType
+            makeIntermediateBlock block (Just revisedName) classification.args content_ messages classification.blockType
 
 
 makeIntermediateBlock block name args content messages blockType_ =

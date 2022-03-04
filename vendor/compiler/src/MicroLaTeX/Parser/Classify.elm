@@ -5,7 +5,7 @@ import Parser.Common
 import Tree.BlocksV
 
 
-classify : Tree.BlocksV.Block -> BlockType
+classify : Tree.BlocksV.Block -> { blockType : BlockType, args : List String }
 classify block =
     let
         str_ =
@@ -18,10 +18,17 @@ classify block =
             List.head lines |> Maybe.withDefault "FIRSTLINE"
     in
     if String.left 5 firstLine == "\\item" then
-        OrdinaryBlock [ "item" ]
+        { blockType = OrdinaryBlock [ "item" ], args = [] }
 
     else if String.left 9 firstLine == "\\numbered" then
-        OrdinaryBlock [ "numbered" ]
+        { blockType = OrdinaryBlock [ "numbered" ], args = [] }
+
+    else if String.left 5 firstLine == "\\desc" then
+        let
+            args =
+                String.replace "\\desc" "" firstLine |> String.words
+        in
+        { blockType = OrdinaryBlock [ "desc" ], args = args }
 
     else if String.left 7 firstLine == "\\begin{" then
         let
@@ -29,16 +36,16 @@ classify block =
                 firstLine |> String.replace "\\begin{" "" |> String.replace "}" ""
         in
         if List.member name Parser.Common.verbatimBlockNames then
-            VerbatimBlock [ name ]
+            { blockType = VerbatimBlock [ name ], args = [] }
 
         else
-            OrdinaryBlock [ name ]
+            { blockType = OrdinaryBlock [ name ], args = [] }
 
     else if String.left 2 str_ == "$$" then
-        VerbatimBlock [ "math" ]
+        { blockType = VerbatimBlock [ "math" ], args = [] }
 
     else if String.left 3 str_ == "```" then
-        VerbatimBlock [ "code" ]
+        { blockType = VerbatimBlock [ "code" ], args = [] }
 
     else
-        Paragraph
+        { blockType = Paragraph, args = [] }
