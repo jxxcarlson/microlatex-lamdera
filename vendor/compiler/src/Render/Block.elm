@@ -384,8 +384,8 @@ index _ acc _ _ _ _ =
     Element.column [ Element.spacing 6 ] (List.map indexItem termList)
 
 
-indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element msg
+indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element L0Msg
 indexItem ( name, loc ) =
     -- Element.el [] (Element.text name)
-    Element.link [ Font.color (Element.rgb 0 0 0.8) ]
+    Element.link [ Font.color (Element.rgb 0 0 0.8), Events.onClick (SendId loc.id) ]
         { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text (String.toLower name)) }
