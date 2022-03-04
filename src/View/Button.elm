@@ -278,7 +278,7 @@ closeEditor =
 
 openEditor : Element FrontendMsg
 openEditor =
-    buttonTemplate [] OpenEditor "Editor"
+    buttonTemplate [] OpenEditor "Edit"
 
 
 runSpecial : Element FrontendMsg
