@@ -295,7 +295,7 @@ update msg model =
                 , initialText = doc.content
                 , title = Compiler.ASTTools.title model.language ast
                 , tableOfContents = Compiler.ASTTools.tableOfContents ast
-                , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
+                , message = "id = " ++ doc.id
                 , permissions = setPermissions model.currentUser permissions doc
                 , counter = model.counter + 1
                 , phoneMode = PMShowDocument
@@ -543,7 +543,7 @@ update msg model =
                         , editRecord = newEditRecord
                         , title = Compiler.ASTTools.title model.language newEditRecord.parsed
                         , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                        , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
+                        , message = "id = " ++ doc.id
                         , counter = model.counter + 1
                       }
                     , Cmd.batch [ View.Utility.setViewPortToTop ]
@@ -562,7 +562,7 @@ update msg model =
                 , title =
                     Compiler.ASTTools.title model.language newEditRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                , message = Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id
+                , message = "id = " ++ doc.id
                 , permissions = setPermissions model.currentUser permissions doc
                 , counter = model.counter + 1
                 , language = doc.language

@@ -236,8 +236,6 @@ updateFromFrontend sessionId clientId msg model =
                               sendToFrontend clientId (SendDocument CanEdit document)
                             , sendToFrontend clientId (SetShowEditor True)
                             , sendToFrontend clientId (SendMessage "Public document received")
-
-                            -- , sendToFrontend clientId (SendMessage (Config.appUrl ++ "/p/" ++ document.publicId ++ ", id = " ++ document.id))
                             ]
                         )
 
@@ -264,7 +262,7 @@ updateFromFrontend sessionId clientId msg model =
                                 [ sendToFrontend clientId (SendMessage "Public document received")
                                 , sendToFrontend clientId (SendDocument CanEdit doc)
                                 , sendToFrontend clientId (SetShowEditor True)
-                                , sendToFrontend clientId (SendMessage (Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id))
+                                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                                 ]
                             )
 
@@ -283,8 +281,6 @@ updateFromFrontend sessionId clientId msg model =
                         [ sendToFrontend clientId (SendMessage "Public document received")
                         , sendToFrontend clientId (SendDocument CanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
-
-                        --, sendToFrontend clientId (SendMessage (Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id))
                         ]
                     )
 
@@ -307,7 +303,7 @@ updateFromFrontend sessionId clientId msg model =
                             , Cmd.batch
                                 [ sendToFrontend clientId (SendDocument CanEdit doc)
                                 , sendToFrontend clientId (SetShowEditor True)
-                                , sendToFrontend clientId (SendMessage (Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id))
+                                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                                 ]
                             )
 
@@ -321,7 +317,7 @@ updateFromFrontend sessionId clientId msg model =
                     , Cmd.batch
                         [ sendToFrontend clientId (SendDocument CanEdit doc)
                         , sendToFrontend clientId (SetShowEditor False)
-                        , sendToFrontend clientId (SendMessage (Config.appUrl ++ "/p/" ++ doc.publicId ++ ", id = " ++ doc.id))
+                        , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                         ]
                     )
 
