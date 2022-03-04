@@ -387,4 +387,4 @@ indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element msg
 indexItem ( name, loc ) =
     -- Element.el [] (Element.text name)
     Element.link [ Font.color (Element.rgb 0 0 0.8) ]
-        { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text name) }
+        { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text (String.toLower name)) }
