@@ -428,7 +428,7 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.8 0 (panelWidth_ model.windowWidth)) model.counter (model.selectedId |> Debug.log "SELECTED_ID (1)") model.editRecord)
+                    (viewDocument (affine 1.8 0 (panelWidth_ model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
