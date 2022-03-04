@@ -338,7 +338,7 @@ desc count acc settings args id exprs =
             String.join " " args
     in
     Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
-        [ Element.el [ Font.bold, Element.alignTop ] (Element.text label)
+        [ Element.el [ Font.bold, Element.alignTop, Element.width (Element.px 100) ] (Element.text label)
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| desc" count acc settings exprs)
         ]
