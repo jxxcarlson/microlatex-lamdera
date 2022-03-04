@@ -418,6 +418,10 @@ update msg model =
                     -- TODO: the below (using id also for line number) is not a great idea.
                     ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 2) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
+                Render.Msg.SelectId id ->
+                    -- the element with this id will be highlighed
+                    ( { model | selectedId = id }, Cmd.none )
+
                 GetPublicDocument id ->
                     ( model, sendToBackend (FetchDocumentById id) )
 
@@ -684,51 +688,6 @@ nextSyncLR model =
       }
     , View.Utility.setViewportForElement id_
     )
-
-
-
---
---firstSyncLR model searchSourceText =
---    let
---        data =
---            let
---                foundIds_ =
---                    Compiler.ASTTools.matchingIdsInAST searchSourceText model.ast
---
---                id_ =
---                    List.head foundIds_ |> Maybe.withDefault "(nothing)"
---            in
---            { foundIds = foundIds_
---            , foundIdIndex = 1
---            , cmd = View.Utility.setViewportForElement id_
---            , selectedId = id_
---            , searchCount = 0
---            }
---    in
---    ( { model
---        | selectedId = data.selectedId
---        , foundIds = data.foundIds
---        , foundIdIndex = data.foundIdIndex
---        , searchCount = data.searchCount
---        , message = ("[" ++ data.selectedId ++ "]") :: data.foundIds |> String.join ", "
---      }
---    , data.cmd
---    )
---
---
---nextSyncLR model =
---    let
---        id_ =
---            List.Extra.getAt model.foundIdIndex model.foundIds |> Maybe.withDefault "(nothing)"
---    in
---    ( { model
---        | selectedId = id_
---        , foundIdIndex = modBy (List.length model.foundIds) (model.foundIdIndex + 1)
---        , searchCount = model.searchCount + 1
---        , message = ("[" ++ id_ ++ "]") :: model.foundIds |> String.join ", "
---      }
---    , View.Utility.setViewportForElement id_
---    )
 
 
 fixId_ : String -> String

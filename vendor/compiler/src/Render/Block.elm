@@ -386,6 +386,5 @@ index _ acc _ _ _ _ =
 
 indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element L0Msg
 indexItem ( name, loc ) =
-    -- Element.el [] (Element.text name)
-    Element.link [ Font.color (Element.rgb 0 0 0.8), Events.onClick (SendId loc.id) ]
+    Element.link [ Font.color (Element.rgb 0 0 0.8), Events.onClick (SelectId loc.id) ]
         { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text (String.toLower name)) }
