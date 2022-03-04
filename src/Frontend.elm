@@ -83,7 +83,7 @@ init url key =
       , windowWidth = 600
       , windowHeight = 900
       , popupStatus = PopupClosed
-      , showEditor = True
+      , showEditor = False
       , phoneMode = PMShowDocumentList
 
       -- SYNC
@@ -232,7 +232,7 @@ update msg model =
                 , inputSearchKey = ""
                 , inputUsername = ""
                 , inputPassword = ""
-                , showEditor = True
+                , showEditor = False
               }
             , -- Cmd.none
               Nav.pushUrl model.key "/"
