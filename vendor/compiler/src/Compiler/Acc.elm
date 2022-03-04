@@ -61,7 +61,7 @@ init k =
     { headingIndex = Vector.init k
     , inList = False
     , counter = Dict.empty
-    , numberedBlockNames = [ "theorem", "lemma", "proposition", "corollary", "definition", "note", "remark", "equation", "aligned" ]
+    , numberedBlockNames = [ "theorem", "lemma", "proposition", "corollary", "definition", "note", "remark", "problem", "equation", "aligned" ]
     , environment = Dict.empty
     , reference = Dict.empty
     }

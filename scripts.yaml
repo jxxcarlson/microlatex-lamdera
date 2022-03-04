@@ -9,3 +9,6 @@ scripts:
 
 
   cloc: cloc --by-file --exclude-dir=Evergreen src/
+
+  clean-macros:
+    cat macros.txt | sed 's/^, (//g' | sed 's/,.*//g' | sed 's/"//g'

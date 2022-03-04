@@ -113,18 +113,9 @@ blockDict =
         , ( "date", \_ _ _ _ _ _ -> Element.none )
         , ( "defs", \_ _ _ _ _ _ -> Element.none )
         , ( "contents", \_ _ _ _ _ _ -> Element.none )
-
-        --, ( "abstract", env "Abstract" )
-        --, ( "theorem", env "Theorem" )
-        --, ( "proposition", env "Proposition" )
-        --, ( "lemma", env "Lemma" )
-        --, ( "corollary", env "Corollary" )
-        --, ( "problem", env "Problem" )
-        --, ( "remark", env "Remark" )
-        --, ( "example", env "Example" )
-        --, ( "note", env "Note" )
         , ( "env", env_ )
         , ( "item", item )
+        , ( "desc", desc )
         , ( "numbered", numbered )
         ]
 
@@ -337,6 +328,19 @@ item count acc settings args id exprs =
         [ Element.el [ Font.size 18, Element.alignTop, Element.moveRight 6, Element.width (Element.px 24), Render.Settings.leftIndentation ] (Element.text "•")
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| item" count acc settings exprs)
+        ]
+
+
+desc count acc settings args id exprs =
+    let
+        label : String
+        label =
+            String.join " " args
+    in
+    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+        [ Element.el [ Font.bold, Element.alignTop ] (Element.text label)
+        , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
+            (renderWithDefault "| desc" count acc settings exprs)
         ]
 
 

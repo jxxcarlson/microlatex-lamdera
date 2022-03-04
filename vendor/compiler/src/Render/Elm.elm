@@ -226,9 +226,6 @@ ilink g acc s exprList =
 
 image generation acc settings body =
     let
-        captionExpr =
-            ASTTools.filterExpressionsOnName "caption" body |> List.head
-
         arguments : List String
         arguments =
             ASTTools.exprListToStringList body |> List.map String.words |> List.concat
