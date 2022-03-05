@@ -20462,6 +20462,8 @@ window.initCodeMirror = function () {
                    switch (attr) {
 
                       case "linenumber":
+                              // receive info from Elm (see Main.editor_)
+                              // scroll the editor to the given line
                                var lineNumber = parseInt(newVal) + 2;
                                var loc =  editor.state.doc.line(lineNumber);
                                console.log("Attr case lineNumber", loc);
@@ -20470,13 +20472,15 @@ window.initCodeMirror = function () {
                                editor.scrollPosIntoView(loc.from);
                             break
                       case "text":
-                            // replace the editor text with text sent from Elm
-                            // That text is set in property 'text' of editor_
+                            // receive info from Elm (see Main.editor_):
+                            // replace editor text with what was sent from Elm
                             console.log ("Attr case text: set the editor text to the string sent from Elm");
                             setEditorText(editor, newVal);
                             break
 
                       case "selection":
+                           // receive info from Elm (see Main.editor_):
+                           // ask for the current selection to be sent to Elm for LR sync
                            var selectionFrom = editor.state.selection.ranges[0].from;
                            var selectionTo = editor.state.selection.ranges[0].to;
                            var selectionSlice = editor.state.sliceDoc(selectionFrom,selectionTo );
