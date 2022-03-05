@@ -268,7 +268,7 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                             ""
 
                 mathMacroDict =
-                    Parser.MathMacro.makeMacroDict (String.trim definitions) |> Debug.log "DICT"
+                    Parser.MathMacro.makeMacroDict (String.trim definitions)
             in
             { accumulator | mathMacroDict = mathMacroDict }
 
