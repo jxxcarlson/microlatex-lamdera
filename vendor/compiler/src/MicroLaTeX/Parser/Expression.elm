@@ -181,39 +181,51 @@ push token state =
 -- REDUCE
 
 
+isStringToken maybeTok =
+    case maybeTok of
+        Just (S _ _) ->
+            True
+
+        _ ->
+            False
+
+
+isLBToken maybeTok =
+    case maybeTok of
+        Just (LB _) ->
+            True
+
+        _ ->
+            False
+
+
+isMathOrCodeToken maybeTok =
+    case maybeTok of
+        Just (MathToken _) ->
+            True
+
+        Just (CodeToken _) ->
+            True
+
+        _ ->
+            False
+
+
 reduceState : State -> State
 reduceState state =
     let
+        peek : Maybe Token
         peek =
             List.Extra.getAt state.tokenIndex state.tokens
 
-        isStringToken maybeTok =
-            case maybeTok of
-                Just (S _ _) ->
-                    True
-
-                _ ->
-                    False
-
-        isMathOrCodeToken maybeTok =
-            case maybeTok of
-                Just (MathToken _) ->
-                    True
-
-                Just (CodeToken _) ->
-                    True
-
-                _ ->
-                    False
-
         reducible1 =
-            isReducible state.stack
+            isReducible state.stack |> Debug.log "reducible1"
 
         reducible2 =
             reducible1
                 && isStringToken peek
     in
-    if state.tokenIndex >= state.numberOfTokens || reducible1 then
+    if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
         let
             symbols =
                 state.stack |> Symbol.convertTokens |> List.reverse
@@ -285,8 +297,6 @@ reduceState state =
                 in
                 { state | stack = [], committed = committed }
 
-            --Just C ->
-            --    { state | stack = [], committed = Verbatim "code" (String.replace "`" "" <| Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
             _ ->
                 state
 
@@ -306,18 +316,38 @@ eval lineNumber tokens =
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
         (S t m1) :: (BS m2) :: rest ->
+            let
+                _ =
+                    Debug.log "EVAL (1)" tokens
+            in
             Text t m1 :: eval lineNumber (BS m2 :: rest)
 
         (S t m2) :: rest ->
+            let
+                _ =
+                    Debug.log "EVAL (2)" tokens
+            in
             Text t m2 :: evalList Nothing lineNumber rest
 
         (BS m1) :: (S name _) :: rest ->
             let
+                _ =
+                    Debug.log "EVAL (3)" tokens
+
                 ( a, b ) =
                     split rest
+
+                _ =
+                    Debug.log "EVAL, a" a
+
+                _ =
+                    Debug.log "EVAL, b" b
             in
             if b == [] then
                 [ Expr name (evalList (Just name) lineNumber rest) m1 ]
+
+            else if List.head b |> isLBToken then
+                [ Expr name (evalList (Just name) lineNumber a ++ evalList (Just name) lineNumber b) m1 ]
 
             else
                 [ Expr name (evalList (Just name) lineNumber a) m1 ] ++ evalList (Just name) lineNumber b
@@ -328,6 +358,10 @@ eval lineNumber tokens =
 
 evalList : Maybe String -> Int -> List Token -> List Expr
 evalList macroName lineNumber tokens =
+    let
+        _ =
+            Debug.log "EVAL LIST" tokens
+    in
     case List.head tokens of
         Just token ->
             case Token.type_ token of
@@ -343,7 +377,10 @@ evalList macroName lineNumber tokens =
 
                                 aa =
                                     -- drop the leading and trailing LB, RG
-                                    a |> List.take (List.length a - 1) |> List.drop 1
+                                    a |> List.take (List.length a - 1) |> List.drop 1 |> Debug.log "AA"
+
+                                _ =
+                                    Debug.log "B" b
                             in
                             eval lineNumber aa ++ evalList Nothing lineNumber b
 
@@ -367,6 +404,13 @@ split tokens =
             ( tokens, [] )
 
         Just k ->
+            let
+                _ =
+                    Debug.log "split, tokens" tokens
+
+                _ =
+                    Debug.log "split, k" k
+            in
             M.splitAt (k + 1) tokens
 
 
