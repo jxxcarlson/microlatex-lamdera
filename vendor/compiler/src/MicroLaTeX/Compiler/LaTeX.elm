@@ -24,13 +24,31 @@ an ordinary block with designated arguments
 transform : ExpressionBlock Expr -> ExpressionBlock Expr
 transform ((ExpressionBlock data) as block) =
     let
-        normalized =
-            case data.content of
+        _ =
+            Debug.log "CONT (0)" data.content
+
+        normalize : Either String (List Expr) -> Either String (List Expr)
+        normalize exprs =
+            (case exprs of
                 Right ((Text _ _) :: rest) ->
                     Right rest
 
                 _ ->
                     data.content
+            )
+                |> Debug.log "NORMALIZED"
+
+        normalizeExprs : List Expr -> List Expr
+        normalizeExprs exprs =
+            case exprs of
+                (Text _ _) :: rest ->
+                    rest
+
+                _ ->
+                    exprs
+
+        normalized =
+            normalize data.content
     in
     case normalized of
         Right [ Expr "title" exprs m2 ] ->
@@ -38,17 +56,24 @@ transform ((ExpressionBlock data) as block) =
 
         Right [ Expr "bibitem" exprs m2, _ ] ->
             let
+                _ =
+                    Debug.log "HI THERE" 0
+
                 content : List Expr
                 content =
-                    case Either.mapRight (List.drop 2) data.content of
+                    case Either.mapRight (List.drop 1) normalized of
                         Right val ->
-                            val
+                            let
+                                _ =
+                                    normalizeExprs val |> Debug.log "VAL, NORMALIZED"
+                            in
+                            val |> Debug.log "TR, VAL (content)s"
 
                         Left _ ->
-                            []
+                            [] |> Debug.log "EMPTY"
 
                 args =
-                    List.map Compiler.ASTTools.getText (List.take 2 exprs) |> Maybe.Extra.values
+                    List.map Compiler.ASTTools.getText (List.take 2 exprs) |> Maybe.Extra.values |> Debug.log "TR, ARGS"
             in
             ordinaryBlock ("bibitem" :: args) content data m2
 
@@ -68,4 +93,4 @@ transform ((ExpressionBlock data) as block) =
             ordinaryBlock [ "contents" ] [] data m2
 
         _ ->
-            block
+            block |> Debug.log "DEFAULT"

@@ -320,6 +320,9 @@ cite generation acc settings str =
 
         id =
             Dict.get tag acc.reference |> Maybe.map .id |> Maybe.withDefault ""
+
+        _ =
+            Debug.log "REFS" acc.reference
     in
     Element.paragraph
         [ Element.width Element.fill
