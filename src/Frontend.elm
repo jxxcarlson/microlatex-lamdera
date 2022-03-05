@@ -438,7 +438,7 @@ update msg model =
 
                 Render.Msg.SelectId id ->
                     -- the element with this id will be highlighted
-                    ( { model | selectedId = id }, Cmd.none )
+                    ( { model | selectedId = id }, View.Utility.setViewportForElement id )
 
                 GetPublicDocument id ->
                     ( model, sendToBackend (FetchDocumentById id) )
