@@ -129,6 +129,7 @@ verbatimDict =
         , ( "aligned", aligned )
         , ( "code", renderCode )
         , ( "comment", renderComment )
+        , ( "mathmacros", renderComment )
         ]
 
 

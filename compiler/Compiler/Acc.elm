@@ -17,6 +17,7 @@ import MicroLaTeX.Compiler.LaTeX
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))
+import Parser.MathMacro
 import Tree exposing (Tree)
 
 
@@ -28,6 +29,7 @@ type alias Accumulator =
     , inList : Bool
     , reference : Dict String { id : String, numRef : String }
     , terms : Dict String TermLoc
+    , mathMacroDict : Parser.MathMacro.MathMacroDict
     }
 
 
@@ -66,6 +68,7 @@ init k =
     , environment = Dict.empty
     , reference = Dict.empty
     , terms = Dict.empty
+    , mathMacroDict = Dict.empty
     }
 
 
@@ -250,6 +253,25 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                     { accumulator | inList = inList }
 
         -- provide for numbering of equations
+        VerbatimBlock [ "mathmacros" ] ->
+            let
+                definitions =
+                    case content of
+                        Left str ->
+                            str
+                                |> String.replace "\\begin{mathmacros}" ""
+                                |> String.replace "\\end{mathmacros}" ""
+                                |> String.replace "end" ""
+                                |> String.trim
+
+                        _ ->
+                            ""
+
+                mathMacroDict =
+                    Parser.MathMacro.makeMacroDict (String.trim definitions) |> Debug.log "DICT"
+            in
+            { accumulator | mathMacroDict = mathMacroDict }
+
         VerbatimBlock [ name_ ] ->
             let
                 newCounter =
