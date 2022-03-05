@@ -16,6 +16,7 @@ import Render.Math
 import Render.Msg exposing (L0Msg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility as Utility
+import View.Utility
 
 
 render : Int -> Accumulator -> Settings -> Expr -> Element L0Msg
@@ -438,6 +439,7 @@ ref g acc s exprList =
         [ Font.color (Element.rgb 0 0 0.7)
         , Font.bold
         , Font.underline
+        , Events.onClick (SelectId id)
         ]
         { url = Utility.internalLink id
         , label = Element.paragraph [] [ Element.text val ]
@@ -475,6 +477,8 @@ reflink g acc s exprList =
     in
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)
+        , Events.onClick (SendId id)
+        , Events.onClick (SelectId id)
         ]
         { url = Utility.internalLink id
         , label = Element.paragraph [] [ Element.text label ]
