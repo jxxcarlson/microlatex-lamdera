@@ -313,7 +313,15 @@ bibitem generation acc settings str =
 
 cite : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
 cite generation acc settings str =
-    Element.paragraph [ Element.width Element.fill, Events.onClick (SendId settings.selectedId) ] [ Element.text (ASTTools.exprListToStringList str |> String.join " " |> (\s -> "[" ++ s ++ "]")) ]
+    let
+        tag : String
+        tag =
+            ASTTools.exprListToStringList str |> String.join "" |> Debug.log "TAG"
+
+        id =
+            Dict.get tag acc.reference |> Maybe.map .id |> Maybe.withDefault "" |> Debug.log "ID"
+    in
+    Element.paragraph [ Element.width Element.fill, Events.onClick (SendId id), Font.color (Element.rgb 0.2 0.2 1.0) ] [ Element.text (tag |> (\s -> "[" ++ s ++ "]")) ]
 
 
 code g s m str =

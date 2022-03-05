@@ -191,6 +191,13 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
             { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
 
         OrdinaryBlock args_ ->
+            let
+                _ =
+                    Debug.log "ARGS" args_
+
+                _ =
+                    Debug.log "TAG" tag
+            in
             case List.head args_ of
                 Just "defs" ->
                     -- incorporate runtime macro definitions
@@ -216,6 +223,7 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
 
                 Just name_ ->
                     let
+                        -- revisedTag
                         -- TODO: restrict to name_ in designated (but dynamic) list
                         newCounter =
                             if List.member name_ accumulator.numberedBlockNames then
