@@ -244,8 +244,8 @@ footer model width_ =
         , E.width E.fill -- (E.px width_)
         , Font.size 14
         ]
-        [ Button.syncButton
-        , Button.nextSyncButton model.foundIds
+        [ -- Button.syncButton
+          Button.nextSyncButton model.foundIds
         , Button.exportToLaTeX
         , Button.printToPDF model
 
