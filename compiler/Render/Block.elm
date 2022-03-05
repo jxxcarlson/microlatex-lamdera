@@ -11,6 +11,7 @@ import Html.Attributes
 import List.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
+import Parser.MathMacro
 import Render.Elm
 import Render.Math exposing (DisplayMode(..))
 import Render.Msg exposing (L0Msg(..))
@@ -303,7 +304,7 @@ renderDisplayMath prefix count acc settings args id str =
                     [ Events.onClick (SendId id), leftPadding ]
         in
         Element.column attrs
-            [ Render.Math.mathText count w "id" DisplayMathMode (String.join "\n" adjustedLines) ]
+            [ Render.Math.mathText count w "id" DisplayMathMode (Parser.MathMacro.evalStr acc.mathMacroDict (String.join "\n" adjustedLines)) ]
 
     else
         let

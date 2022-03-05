@@ -12,6 +12,7 @@ import Html.Attributes
 import List.Extra
 import Maybe.Extra
 import Parser.Expr exposing (Expr(..))
+import Parser.MathMacro
 import Render.Math
 import Render.Msg exposing (L0Msg(..))
 import Render.Settings exposing (Settings)
@@ -29,19 +30,19 @@ render generation acc settings expr =
             Element.el [ htmlId "DUMMY_ID" ] (renderMarked name generation acc settings exprList)
 
         Verbatim name str meta ->
-            renderVerbatim name generation settings meta str
+            renderVerbatim name generation acc settings meta str
 
         Error str ->
             Element.el [ Font.color redColor ] (Element.text str)
 
 
-renderVerbatim name generation settings meta str =
+renderVerbatim name generation acc settings meta str =
     case Dict.get name verbatimDict of
         Nothing ->
             errorText 1 name
 
         Just f ->
-            f generation settings meta str
+            f generation acc settings meta str
 
 
 renderMarked name generation acc settings exprList =
@@ -135,10 +136,10 @@ markupDict =
 
 verbatimDict =
     Dict.fromList
-        [ ( "$", \g s m str -> math g s m str )
-        , ( "`", \g s m str -> code g s m str )
-        , ( "code", \g s m str -> code g s m str )
-        , ( "math", \g s m str -> math g s m str )
+        [ ( "$", \g a s m str -> math g a s m str )
+        , ( "`", \g a s m str -> code g s m str )
+        , ( "code", \g a s m str -> code g s m str )
+        , ( "math", \g a s m str -> math g a s m str )
         ]
 
 
@@ -334,8 +335,8 @@ code g s m str =
     verbatimElement codeStyle g s m str
 
 
-math g s m str =
-    mathElement g s m str
+math g a s m str =
+    mathElement g a s m str
 
 
 table : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
@@ -581,9 +582,9 @@ invisible g acc s exprList =
     Element.none
 
 
-mathElement generation settings m str =
+mathElement generation acc settings m str =
     -- "width" is not used for inline math, but some string needs to be there
-    Render.Math.mathText generation "width" "DUMMY_ID" Render.Math.InlineMathMode str
+    Render.Math.mathText generation "width" "DUMMY_ID" Render.Math.InlineMathMode (Parser.MathMacro.evalStr acc.mathMacroDict str)
 
 
 
