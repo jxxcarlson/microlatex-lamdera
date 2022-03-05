@@ -316,12 +316,18 @@ cite generation acc settings str =
     let
         tag : String
         tag =
-            ASTTools.exprListToStringList str |> String.join "" |> Debug.log "TAG"
+            ASTTools.exprListToStringList str |> String.join ""
 
         id =
-            Dict.get tag acc.reference |> Maybe.map .id |> Maybe.withDefault "" |> Debug.log "ID"
+            Dict.get tag acc.reference |> Maybe.map .id |> Maybe.withDefault ""
     in
-    Element.paragraph [ Element.width Element.fill, Events.onClick (SendId id), Font.color (Element.rgb 0.2 0.2 1.0) ] [ Element.text (tag |> (\s -> "[" ++ s ++ "]")) ]
+    Element.paragraph
+        [ Element.width Element.fill
+        , Events.onClick (SendId id)
+        , Events.onClick (SelectId id)
+        , Font.color (Element.rgb 0.2 0.2 1.0)
+        ]
+        [ Element.text (tag |> (\s -> "[" ++ s ++ "]")) ]
 
 
 code g s m str =

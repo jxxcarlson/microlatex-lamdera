@@ -192,11 +192,12 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
 
         OrdinaryBlock args_ ->
             let
-                _ =
-                    Debug.log "ARGS" args_
+                newTag =
+                    if name == Just "bibitem" then
+                        List.Extra.getAt 0 args
 
-                _ =
-                    Debug.log "TAG" tag
+                    else
+                        Nothing
             in
             case List.head args_ of
                 Just "defs" ->
@@ -223,7 +224,13 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
 
                 Just name_ ->
                     let
-                        -- revisedTag
+                        revisedTag =
+                            if name == Just "bibitem" then
+                                List.Extra.getAt 0 args |> Maybe.withDefault ""
+
+                            else
+                                tag
+
                         -- TODO: restrict to name_ in designated (but dynamic) list
                         newCounter =
                             if List.member name_ accumulator.numberedBlockNames then
@@ -237,7 +244,7 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                         , counter = newCounter
                         , terms = addTermsFromContent id content accumulator.terms
                     }
-                        |> updateReference tag id (String.fromInt (getCounter name_ newCounter))
+                        |> updateReference revisedTag id (String.fromInt (getCounter name_ newCounter))
 
                 _ ->
                     { accumulator | inList = inList }
