@@ -21,6 +21,7 @@ import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
 import Html
+import Keyboard
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
@@ -52,7 +53,7 @@ app =
         , onUrlChange = UrlChanged
         , update = update
         , updateFromBackend = updateFromBackend
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Sub.map KeyMsg Keyboard.subscriptions
         , view = view
         }
 
@@ -85,6 +86,7 @@ init url key =
       , popupStatus = PopupClosed
       , showEditor = False
       , phoneMode = PMShowDocumentList
+      , pressedKeys = []
 
       -- SYNC
       , doSync = False
@@ -177,6 +179,22 @@ urlIsForGuest url =
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
 update msg model =
     case msg of
+        KeyMsg keyMsg ->
+            let
+                pressedKeys =
+                    Keyboard.update keyMsg model.pressedKeys
+
+                doSync =
+                    if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "S") pressedKeys then
+                        not model.doSync
+
+                    else
+                        model.doSync
+            in
+            ( { model | pressedKeys = pressedKeys, doSync = doSync }
+            , Cmd.none
+            )
+
         UrlClicked urlRequest ->
             case urlRequest of
                 Internal url ->

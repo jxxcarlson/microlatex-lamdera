@@ -11,6 +11,7 @@ import Dict exposing (Dict)
 import Document exposing (Document)
 import File exposing (File)
 import Http
+import Keyboard exposing (Key(..))
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language)
@@ -22,7 +23,7 @@ import User exposing (User)
 
 
 type alias FrontendModel =
-    { key : Key
+    { key : Browser.Navigation.Key
     , url : Url
     , message : String
 
@@ -43,6 +44,7 @@ type alias FrontendModel =
     , showEditor : Bool
     , authorId : String
     , phoneMode : PhoneMode
+    , pressedKeys : List Keyboard.Key
 
     -- SYNC
     , foundIds : List String
@@ -200,6 +202,7 @@ type FrontendMsg
     | CloseEditor
     | OpenEditor
     | Home
+    | KeyMsg Keyboard.Msg
       -- ADMIN
     | InputSpecial String
     | RunSpecial

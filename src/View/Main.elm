@@ -99,8 +99,8 @@ viewEditorAndRenderedText model =
 editor_ : Model -> Element FrontendMsg
 editor_ model =
     Element.Keyed.el
-        [ E.htmlAttribute onSelectionChange
-        , E.htmlAttribute onTextChange
+        [ E.htmlAttribute onSelectionChange -- receive info from codemirror
+        , E.htmlAttribute onTextChange -- receive info from codemirror
         , htmlId "editor-here"
         , E.width (E.px 550)
         , E.height (E.px (appHeight_ model - 110))
@@ -112,9 +112,9 @@ editor_ model =
         ( stringOfBool model.showEditor
         , E.html
             (Html.node "codemirror-editor"
-                [ HtmlAttr.attribute "text" model.initialText
-                , HtmlAttr.attribute "linenumber" (String.fromInt model.linenumber)
-                , HtmlAttr.attribute "selection" (stringOfBool model.doSync)
+                [ HtmlAttr.attribute "text" model.initialText -- send info to codemirror
+                , HtmlAttr.attribute "linenumber" (String.fromInt model.linenumber) -- send info to codemirror
+                , HtmlAttr.attribute "selection" (stringOfBool model.doSync) -- send info to codemirror
                 ]
                 []
             )
