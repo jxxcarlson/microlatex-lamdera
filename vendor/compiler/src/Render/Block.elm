@@ -212,7 +212,7 @@ bibitem count acc settings args id exprs =
         label =
             List.Extra.getAt 1 args |> Maybe.withDefault "??(12)" |> (\s -> "[" ++ s ++ "]")
     in
-    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+    Element.row ([ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ] ++ highlightAttrs id settings)
         [ Element.el
             [ Font.size 14
             , Element.alignTop
