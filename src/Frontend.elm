@@ -419,7 +419,7 @@ update msg model =
                     ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 2) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
                 Render.Msg.SelectId id ->
-                    -- the element with this id will be highlighed
+                    -- the element with this id will be highlighted
                     ( { model | selectedId = id }, Cmd.none )
 
                 GetPublicDocument id ->

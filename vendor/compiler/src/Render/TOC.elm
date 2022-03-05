@@ -4,13 +4,14 @@ import Compiler.ASTTools
 import Compiler.Acc exposing (Accumulator)
 import Either exposing (Either(..))
 import Element exposing (Element)
+import Element.Events as Events
 import Element.Font as Font
 import List.Extra
 import Markup
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Render.Elm
-import Render.Msg exposing (L0Msg)
+import Render.Msg exposing (L0Msg(..))
 import Render.Settings
 import Render.Utility
 import Tree
@@ -28,7 +29,7 @@ view counter acc settings ast =
                 (prepareTOC counter acc Render.Settings.defaultSettings ast)
 
 
-viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock Expr -> Element Render.Msg.L0Msg
+viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock Expr -> Element L0Msg
 viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
     case content of
         Left _ ->
@@ -36,7 +37,7 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
 
         Right exprs ->
             let
-                t =
+                id =
                     String.fromInt lineNumber
 
                 sectionNumber =
@@ -48,7 +49,8 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
                 label =
                     Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Elm.render count acc settings) exprs)
             in
-            Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink t, label = label }
+            Element.el [ Events.onClick (SelectId id) ]
+                (Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink id, label = label })
 
 
 prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element L0Msg)
