@@ -219,11 +219,7 @@ reduceState state =
             List.Extra.getAt state.tokenIndex state.tokens
 
         reducible1 =
-            isReducible state.stack |> Debug.log "reducible1"
-
-        reducible2 =
-            reducible1
-                && isStringToken peek
+            isReducible state.stack
     in
     if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
         let
@@ -316,32 +312,15 @@ eval lineNumber tokens =
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
         (S t m1) :: (BS m2) :: rest ->
-            let
-                _ =
-                    Debug.log "EVAL (1)" tokens
-            in
             Text t m1 :: eval lineNumber (BS m2 :: rest)
 
         (S t m2) :: rest ->
-            let
-                _ =
-                    Debug.log "EVAL (2)" tokens
-            in
             Text t m2 :: evalList Nothing lineNumber rest
 
         (BS m1) :: (S name _) :: rest ->
             let
-                _ =
-                    Debug.log "EVAL (3)" tokens
-
                 ( a, b ) =
                     split rest
-
-                _ =
-                    Debug.log "EVAL, a" a
-
-                _ =
-                    Debug.log "EVAL, b" b
             in
             if b == [] then
                 [ Expr name (evalList (Just name) lineNumber rest) m1 ]
@@ -358,10 +337,6 @@ eval lineNumber tokens =
 
 evalList : Maybe String -> Int -> List Token -> List Expr
 evalList macroName lineNumber tokens =
-    let
-        _ =
-            Debug.log "EVAL LIST" tokens
-    in
     case List.head tokens of
         Just token ->
             case Token.type_ token of
@@ -377,10 +352,7 @@ evalList macroName lineNumber tokens =
 
                                 aa =
                                     -- drop the leading and trailing LB, RG
-                                    a |> List.take (List.length a - 1) |> List.drop 1 |> Debug.log "AA"
-
-                                _ =
-                                    Debug.log "B" b
+                                    a |> List.take (List.length a - 1) |> List.drop 1
                             in
                             eval lineNumber aa ++ evalList Nothing lineNumber b
 
@@ -404,13 +376,6 @@ split tokens =
             ( tokens, [] )
 
         Just k ->
-            let
-                _ =
-                    Debug.log "split, tokens" tokens
-
-                _ =
-                    Debug.log "split, k" k
-            in
             M.splitAt (k + 1) tokens
 
 
