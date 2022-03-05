@@ -24,19 +24,14 @@ an ordinary block with designated arguments
 transform : ExpressionBlock Expr -> ExpressionBlock Expr
 transform ((ExpressionBlock data) as block) =
     let
-        _ =
-            Debug.log "CONT (0)" data.content
-
         normalize : Either String (List Expr) -> Either String (List Expr)
         normalize exprs =
-            (case exprs of
+            case exprs of
                 Right ((Text _ _) :: rest) ->
                     Right rest
 
                 _ ->
                     data.content
-            )
-                |> Debug.log "NORMALIZED"
 
         normalizeExprs : List Expr -> List Expr
         normalizeExprs exprs =
@@ -54,26 +49,23 @@ transform ((ExpressionBlock data) as block) =
         Right [ Expr "title" exprs m2 ] ->
             ordinaryBlock [ "title" ] exprs data m2
 
-        Right [ Expr "bibitem" exprs m2, _ ] ->
+        Right ((Expr "bibitem" exprs m2) :: tail) ->
             let
-                _ =
-                    Debug.log "HI THERE" 0
-
                 content : List Expr
                 content =
                     case Either.mapRight (List.drop 1) normalized of
                         Right val ->
                             let
                                 _ =
-                                    normalizeExprs val |> Debug.log "VAL, NORMALIZED"
+                                    normalizeExprs val
                             in
-                            val |> Debug.log "TR, VAL (content)s"
+                            val
 
                         Left _ ->
-                            [] |> Debug.log "EMPTY"
+                            []
 
                 args =
-                    List.map Compiler.ASTTools.getText (List.take 2 exprs) |> Maybe.Extra.values |> Debug.log "TR, ARGS"
+                    List.map Compiler.ASTTools.getText (List.take 2 exprs) |> Maybe.Extra.values
             in
             ordinaryBlock ("bibitem" :: args) content data m2
 
@@ -93,4 +85,4 @@ transform ((ExpressionBlock data) as block) =
             ordinaryBlock [ "contents" ] [] data m2
 
         _ ->
-            block |> Debug.log "DEFAULT"
+            block
