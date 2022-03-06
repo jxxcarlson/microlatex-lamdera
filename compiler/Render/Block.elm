@@ -289,22 +289,41 @@ renderDisplayMath prefix count acc settings args id str =
             lines_ =
                 List.take (n - 1) lines
 
-            adjustedLines =
-                if prefix == "|| aligned" then
-                    "\\begin{aligned}" :: lines_ ++ [ "\\end{aligned}" ]
-
-                else
-                    lines_
-
             attrs =
                 if id == settings.selectedId then
                     [ Events.onClick (SendId id), leftPadding, Background.color (Element.rgb 0.8 0.8 1.0) ]
 
                 else
                     [ Events.onClick (SendId id), leftPadding ]
+
+            deleteTrailingSlashes str_ =
+                if String.right 2 str_ == "\\\\" then
+                    String.dropRight 2 str_
+
+                else
+                    str_
+
+            adjustedLines_ =
+                List.map (deleteTrailingSlashes >> Parser.MathMacro.evalStr acc.mathMacroDict) lines_
+                    |> List.filter (\line -> line /= "")
+                    |> List.map (\line -> line ++ "\\\\")
+
+            adjustedLines =
+                if prefix == "|| aligned" then
+                    "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
+
+                else
+                    lines_
+
+            content =
+                String.join "\n" adjustedLines
         in
         Element.column attrs
-            [ Render.Math.mathText count w "id" DisplayMathMode (Parser.MathMacro.evalStr acc.mathMacroDict (String.join "\n" adjustedLines)) ]
+            -- BAD::: MATH CONTENT: "4(index):259 MATH CONTENT: "\\begin{aligned} a &= b  \\ \\ c &= d \\end{aligned}"
+            -- GOOD::: MATH CONTENT: "\\begin{aligned}\na &= b \\\\\nc &= d \n\n\\end{aligned}"
+            -- [ Render.Math.mathText count w "id" DisplayMathMode (String.join "\n" adjustedLines |> Debug.log "MATH CONTENT") ]
+            -- [ Render.Math.mathText count w "id" DisplayMathMode (Parser.MathMacro.evalStr acc.mathMacroDict (String.join "\n" adjustedLines) |> Debug.log "MATH CONTENT") ]
+            [ Render.Math.mathText count w "id" DisplayMathMode (content |> Debug.log "MATH CONTENT") ]
 
     else
         let
