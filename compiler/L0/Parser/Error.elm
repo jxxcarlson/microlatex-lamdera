@@ -1,4 +1,4 @@
-module L0.Parser.Error exposing (..)
+module L0.Parser.Error exposing (ordinaryBlock)
 
 
 ordinaryBlock : String -> List String -> List String -> Int -> String -> ( String, List String )
