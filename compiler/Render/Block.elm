@@ -319,10 +319,6 @@ renderDisplayMath prefix count acc settings args id str =
                 String.join "\n" adjustedLines
         in
         Element.column attrs
-            -- BAD::: MATH CONTENT: "4(index):259 MATH CONTENT: "\\begin{aligned} a &= b  \\ \\ c &= d \\end{aligned}"
-            -- GOOD::: MATH CONTENT: "\\begin{aligned}\na &= b \\\\\nc &= d \n\n\\end{aligned}"
-            -- [ Render.Math.mathText count w "id" DisplayMathMode (String.join "\n" adjustedLines |> Debug.log "MATH CONTENT") ]
-            -- [ Render.Math.mathText count w "id" DisplayMathMode (Parser.MathMacro.evalStr acc.mathMacroDict (String.join "\n" adjustedLines) |> Debug.log "MATH CONTENT") ]
             [ Render.Math.mathText count w "id" DisplayMathMode (content |> Debug.log "MATH CONTENT") ]
 
     else
