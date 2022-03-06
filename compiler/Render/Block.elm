@@ -394,8 +394,34 @@ vspace =
 
 numbered count acc settings args id exprs =
     let
+        alphabet =
+            [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ]
+
+        romanNumerals =
+            [ "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx", "xi", "xxii", "xxiii", "xxiv", "xxv", "vi" ]
+
+        alpha k =
+            List.Extra.getAt (modBy 26 (k - 1)) alphabet |> Maybe.withDefault "a"
+
+        roman k =
+            List.Extra.getAt (modBy 26 (k - 1)) romanNumerals |> Maybe.withDefault "i"
+
+        index_ =
+            Dict.get id acc.numberedItemDict |> Maybe.map .index |> Maybe.withDefault 1
+
+        level =
+            Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0
+
         label =
-            List.Extra.getAt 0 args |> Maybe.withDefault ""
+            case modBy 3 level of
+                1 ->
+                    alpha index_
+
+                2 ->
+                    roman index_
+
+                _ ->
+                    String.fromInt index_
     in
     Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
         [ Element.el

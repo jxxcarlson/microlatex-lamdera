@@ -24,6 +24,8 @@ import Tree exposing (Tree)
 type alias Accumulator =
     { headingIndex : Vector
     , counter : Dict String Int
+    , itemVector : Vector
+    , numberedItemDict : Dict String { level : Int, index : Int }
     , numberedBlockNames : List String
     , environment : Dict String Lambda
     , inList : Bool
@@ -64,6 +66,8 @@ init k =
     { headingIndex = Vector.init k
     , inList = False
     , counter = Dict.empty
+    , itemVector = Vector.init 4
+    , numberedItemDict = Dict.empty
     , numberedBlockNames = [ "theorem", "lemma", "proposition", "corollary", "definition", "note", "remark", "problem", "equation", "aligned" ]
     , environment = Dict.empty
     , reference = Dict.empty
@@ -148,7 +152,7 @@ expand dict (ExpressionBlock block) =
 
 
 updateAccumulator : ExpressionBlock Expr -> Accumulator -> Accumulator
-updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id }) as block) accumulator =
+updateAccumulator ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     let
         updateReference : String -> String -> String -> Accumulator -> Accumulator
         updateReference tag_ id_ numRef_ acc =
@@ -158,10 +162,10 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
             else
                 acc
 
-        ( inList, initialNumberedCounter ) =
+        ( inList, initialNumberedVector ) =
             case ( accumulator.inList, name ) of
                 ( False, Just "numbered" ) ->
-                    ( True, Just 1 )
+                    ( True, Just (Vector.init 4 |> Vector.increment 0) )
 
                 ( False, _ ) ->
                     ( False, Nothing )
@@ -234,16 +238,22 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
 
                 Just "numbered" ->
                     let
-                        newCounter =
-                            case initialNumberedCounter of
-                                Nothing ->
-                                    incrementCounter "numbered" accumulator.counter
+                        level =
+                            indent // 2 - 1
 
-                                Just _ ->
-                                    Dict.insert "numbered" 1 accumulator.counter
+                        itemVector =
+                            case initialNumberedVector of
+                                Just v ->
+                                    v
+
+                                Nothing ->
+                                    Vector.increment level accumulator.itemVector
+
+                        numberedItemDict =
+                            Dict.insert id { level = level, index = Vector.get level itemVector } accumulator.numberedItemDict
                     in
-                    { accumulator | inList = inList, counter = newCounter }
-                        |> updateReference tag id (String.fromInt (getCounter "numbered" newCounter))
+                    { accumulator | inList = inList, itemVector = itemVector, numberedItemDict = numberedItemDict }
+                        |> updateReference tag id (String.fromInt (Vector.get level itemVector))
 
                 Just name_ ->
                     let
