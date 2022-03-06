@@ -312,6 +312,9 @@ renderDisplayMath prefix count acc settings args id str =
                 if prefix == "|| aligned" then
                     "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
 
+                else if prefix == "|| equation" then
+                    "\\begin{equation}" :: "\\nonumber" :: adjustedLines_ ++ [ "\\end{equation}" ]
+
                 else
                     lines_
 
