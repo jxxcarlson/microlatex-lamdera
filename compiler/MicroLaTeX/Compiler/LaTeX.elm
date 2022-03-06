@@ -33,15 +33,7 @@ transform ((ExpressionBlock data) as block) =
                 _ ->
                     data.content
 
-        normalizeExprs : List Expr -> List Expr
-        normalizeExprs exprs =
-            case exprs of
-                (Text _ _) :: rest ->
-                    rest
-
-                _ ->
-                    exprs
-
+        -- normalizeExprs : List Expr -> List Expr
         normalized =
             normalize data.content
     in
@@ -49,16 +41,12 @@ transform ((ExpressionBlock data) as block) =
         Right [ Expr "title" exprs m2 ] ->
             ordinaryBlock [ "title" ] exprs data m2
 
-        Right ((Expr "bibitem" exprs m2) :: tail) ->
+        Right ((Expr "bibitem" exprs m2) :: _) ->
             let
                 content : List Expr
                 content =
                     case Either.mapRight (List.drop 1) normalized of
                         Right val ->
-                            let
-                                _ =
-                                    normalizeExprs val
-                            in
                             val
 
                         Left _ ->

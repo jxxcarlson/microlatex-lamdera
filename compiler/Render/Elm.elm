@@ -17,7 +17,6 @@ import Render.Math
 import Render.Msg exposing (L0Msg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility as Utility
-import View.Utility
 
 
 render : Int -> Accumulator -> Settings -> Expr -> Element L0Msg
@@ -137,8 +136,8 @@ markupDict =
 verbatimDict =
     Dict.fromList
         [ ( "$", \g a s m str -> math g a s m str )
-        , ( "`", \g a s m str -> code g s m str )
-        , ( "code", \g a s m str -> code g s m str )
+        , ( "`", \g _ s m str -> code g s m str )
+        , ( "code", \g _ s m str -> code g s m str )
         , ( "math", \g a s m str -> math g a s m str )
         ]
 

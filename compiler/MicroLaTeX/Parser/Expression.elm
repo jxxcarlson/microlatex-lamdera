@@ -181,30 +181,9 @@ push token state =
 -- REDUCE
 
 
-isStringToken maybeTok =
-    case maybeTok of
-        Just (S _ _) ->
-            True
-
-        _ ->
-            False
-
-
 isLBToken maybeTok =
     case maybeTok of
         Just (LB _) ->
-            True
-
-        _ ->
-            False
-
-
-isMathOrCodeToken maybeTok =
-    case maybeTok of
-        Just (MathToken _) ->
-            True
-
-        Just (CodeToken _) ->
             True
 
         _ ->
@@ -300,13 +279,6 @@ reduceState state =
         state
 
 
-{-| remove first and last token
--}
-unbracket : List a -> List a
-unbracket list =
-    List.drop 1 (List.take (List.length list - 1) list)
-
-
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
     case tokens of
@@ -387,11 +359,6 @@ errorMessage2Part lineNumber a b =
 errorMessage3Part : Int -> String -> String -> String -> List Expr
 errorMessage3Part lineNumber a b c =
     [ Expr "blue" [ Text a dummyLoc ] dummyLoc, Expr "blue" [ Text b dummyLoc ] dummyLoc, Expr "red" [ Text c dummyLoc ] dummyLoc ]
-
-
-errorMessageInvisible : Int -> String -> Expr
-errorMessageInvisible lineNumber message =
-    Expr "red" [ Text message dummyLoc ] dummyLoc
 
 
 errorMessage : String -> Expr

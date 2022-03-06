@@ -18,7 +18,7 @@ import Markup exposing (SyntaxTree)
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
-import Parser.Language exposing (Language(..))
+import Parser.Language exposing (Language)
 import Tree
 
 
@@ -32,19 +32,9 @@ filterBlocksOnName name blocks =
     List.filter (matchBlockName name) blocks
 
 
-filterOutBlockName : String -> List (ExpressionBlock Expr) -> List (ExpressionBlock Expr)
-filterOutBlockName name blocks =
-    List.filter (noMatchOnBlockName name) blocks
-
-
 matchBlockName : String -> ExpressionBlock Expr -> Bool
 matchBlockName key (ExpressionBlock { name }) =
     Just key == name
-
-
-noMatchOnBlockName : String -> ExpressionBlock Expr -> Bool
-noMatchOnBlockName key (ExpressionBlock { name }) =
-    Just key /= name
 
 
 matchExprOnName : String -> Expr -> Bool
@@ -106,33 +96,8 @@ title lang ast =
     title_ lang ast
 
 
-root : Markup.SyntaxTree -> Maybe (ExpressionBlock Expr)
-root syntaxTree =
-    Maybe.map Tree.label (List.head syntaxTree)
-
-
 
 -- AST: [Tree (ExpressionBlock { args = [], blockType = Paragraph, children = [], content = Right [Expr "title" [Text "<<untitled>>" { begin = 7, end = 18, index = 3 }] { begin = 0, end = 0, index = 0 }], id = "0", indent = 1, lineNumber = 0, messages = [], name = Nothing, numberOfLines = 1, sourceText = "\\title{<<untitled>>}" })
-
-
-filterBlock : String -> ExpressionBlock Expr -> List Expr
-filterBlock key (ExpressionBlock { content }) =
-    let
-        name : Expr -> String
-        name expr =
-            case expr of
-                Expr name_ _ _ ->
-                    name_
-
-                _ ->
-                    "_no name_"
-    in
-    case content of
-        Left _ ->
-            []
-
-        Right exprList ->
-            List.filter (\expr -> String.contains key (name expr)) exprList
 
 
 extractTextFromSyntaxTreeByKey key syntaxTree =

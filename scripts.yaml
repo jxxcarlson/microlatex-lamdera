@@ -7,6 +7,7 @@ scripts:
       - cp -r vendor/L0/src /Users/jxxcarlson/dev/bluesky/microlatex/
 
 
+  review: npx elm-review --ignore-dirs src/Evergreen/ --fix
 
   cloc: cloc --by-file --exclude-dir=Evergreen src/
 

@@ -4,14 +4,14 @@ import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
-import Browser.Navigation exposing (Key)
+import Browser.Navigation
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
 import Document exposing (Document)
 import File exposing (File)
 import Http
-import Keyboard exposing (Key(..))
+import Keyboard
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language)

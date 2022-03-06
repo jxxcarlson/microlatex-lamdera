@@ -11,10 +11,8 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
-import Parser.Expr exposing (Expr(..))
 import Render.Block
 import Render.Markup
-import Render.Msg exposing (L0Msg)
 import Render.Settings
 import Render.TOC
 import String.Extra
@@ -388,18 +386,6 @@ viewRenderedForEditor model width_ =
 
         Just _ ->
             let
-                w =
-                    model.windowWidth
-
-                widthOfIndex =
-                    indexWidth w
-
-                w2 =
-                    w - widthOfIndex
-
-                renderedWindowWidth =
-                    affine 0.5 0 w2
-
                 title_ : Element FrontendMsg
                 title_ =
                     Compiler.ASTTools.titleOLD model.editRecord.parsed
@@ -445,11 +431,6 @@ setSelectedId id settings =
 renderSettings : String -> Int -> Render.Settings.Settings
 renderSettings id w =
     Render.Settings.makeSettings id 0.38 w
-
-
-editorRenderSettings : String -> Int -> Render.Settings.Settings
-editorRenderSettings id w =
-    Render.Settings.makeSettings id 0.28 w
 
 
 viewPublicDocuments : Model -> List (Element FrontendMsg)

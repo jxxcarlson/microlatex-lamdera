@@ -107,15 +107,6 @@ transformBlock : Language -> Accumulator -> ExpressionBlock Expr -> ExpressionBl
 transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "section", level ] ->
-            let
-                title =
-                    case block.content of
-                        Left str ->
-                            str
-
-                        Right expr ->
-                            List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
-            in
             ExpressionBlock
                 { block | args = [ level, Vector.toString acc.headingIndex ] }
 
@@ -198,14 +189,6 @@ updateAccumulator ((ExpressionBlock { name, indent, args, blockType, content, ta
             { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
 
         OrdinaryBlock args_ ->
-            let
-                newTag =
-                    if name == Just "bibitem" then
-                        List.Extra.getAt 0 args
-
-                    else
-                        Nothing
-            in
             case List.head args_ of
                 Just "defs" ->
                     -- incorporate runtime macro definitions
@@ -339,7 +322,7 @@ getTerms id content_ =
                 |> Maybe.Extra.values
 
         -- |> List.map Compiler.ASTTools.getText
-        Left str ->
+        Left _ ->
             []
 
 
@@ -350,7 +333,7 @@ getTerms id content_ =
 extract : String -> Expr -> Maybe TermData
 extract id expr =
     case expr of
-        Expr "term" [ Text name { begin, end, index } ] _ ->
+        Expr "term" [ Text name { begin, end } ] _ ->
             Just { term = name, loc = { begin = begin, end = end, id = id } }
 
         _ ->

@@ -1,8 +1,5 @@
 module MicroLaTeX.Parser.Error exposing (ordinaryBlock, sliceList)
 
-import Parser.Common
-import Parser.Helpers
-
 
 ordinaryBlock : String -> List String -> List String -> Int -> String -> ( String, List String )
 ordinaryBlock name args currentMessages lineNumber revisedContent =

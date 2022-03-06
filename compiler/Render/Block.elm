@@ -370,11 +370,6 @@ item count acc settings args id exprs =
         ]
 
 
-abstract count acc settings args id exprs =
-    Element.paragraph ([ Render.Utility.elementAttribute "id" id, Render.Settings.leftIndentation, Events.onClick (SendId id) ] ++ highlightAttrs id settings)
-        (Element.el [ Font.bold ] (Element.text "Abstract.") :: renderWithDefault "| abstract" count acc settings exprs)
-
-
 desc count acc settings args id exprs =
     let
         label : String
