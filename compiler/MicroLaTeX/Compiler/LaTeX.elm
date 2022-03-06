@@ -33,7 +33,6 @@ transform ((ExpressionBlock data) as block) =
                 _ ->
                     data.content
 
-        -- normalizeExprs : List Expr -> List Expr
         normalized =
             normalize data.content
     in

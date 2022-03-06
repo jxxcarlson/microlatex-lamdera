@@ -96,7 +96,7 @@ transformAccumulateTree lang tree acc =
                                 L0.Transform.transform block__
 
                     newAcc =
-                        updateAccumulator block_ acc_
+                        updateAccumulator lang block_ acc_
                 in
                 ( newAcc, transformBlock lang newAcc block_ )
     in
@@ -142,8 +142,8 @@ expand dict (ExpressionBlock block) =
     ExpressionBlock { block | content = Either.map (List.map (Lambda.expand dict)) block.content }
 
 
-updateAccumulator : ExpressionBlock Expr -> Accumulator -> Accumulator
-updateAccumulator ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
+updateAccumulator : Language -> ExpressionBlock Expr -> Accumulator -> Accumulator
+updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     let
         updateReference : String -> String -> String -> Accumulator -> Accumulator
         updateReference tag_ id_ numRef_ acc =
@@ -222,7 +222,12 @@ updateAccumulator ((ExpressionBlock { name, indent, args, blockType, content, ta
                 Just "numbered" ->
                     let
                         level =
-                            indent // 2 - 1
+                            case lang of
+                                MicroLaTeXLang ->
+                                    indent // 2
+
+                                L0Lang ->
+                                    indent // 2 - 1
 
                         itemVector =
                             case initialNumberedVector of
