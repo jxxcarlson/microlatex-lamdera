@@ -28,6 +28,8 @@ classify block =
 
     else if String.left 9 firstLine == "\\numbered" then
         { blockType = OrdinaryBlock [ "numbered" ], args = [] }
+        --else if String.left 11 firstLine == "\\setcounter" then
+        --    { blockType = OrdinaryBlock [ "setcounter" ], args = [] }
 
     else if String.left 5 firstLine == "\\desc" then
         let

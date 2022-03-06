@@ -119,6 +119,7 @@ blockDict =
         , ( "desc", desc )
         , ( "numbered", numbered )
         , ( "index", index )
+        , ( "setcounter", \_ _ _ _ _ _ -> Element.none )
         ]
 
 

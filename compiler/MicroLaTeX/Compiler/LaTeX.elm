@@ -69,6 +69,9 @@ transform ((ExpressionBlock data) as block) =
             in
             ordinaryBlock ("bibitem" :: args) content data m2
 
+        Right [ Expr "setcounter" exprs m2 ] ->
+            ordinaryBlock [ "setcounter" ] exprs data m2
+
         Right [ Expr "section" exprs m2 ] ->
             ordinaryBlock [ "section", "1" ] exprs data m2
 

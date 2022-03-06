@@ -212,6 +212,26 @@ updateAccumulator ((ExpressionBlock { name, args, blockType, content, tag, id })
                         Right exprs ->
                             { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
 
+                Just "setcounter" ->
+                    case content of
+                        Left _ ->
+                            accumulator
+
+                        Right exprs ->
+                            let
+                                ctr =
+                                    case exprs of
+                                        [ Text val _ ] ->
+                                            String.toInt val |> Maybe.withDefault 1
+
+                                        _ ->
+                                            1
+
+                                headingIndex =
+                                    Vector.init accumulator.headingIndex.size |> Vector.set 0 (ctr - 1)
+                            in
+                            { accumulator | headingIndex = headingIndex }
+
                 Just "numbered" ->
                     let
                         newCounter =
