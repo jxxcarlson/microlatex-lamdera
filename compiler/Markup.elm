@@ -29,7 +29,13 @@ type alias SyntaxTree =
 
 isVerbatimLine : String -> Bool
 isVerbatimLine str =
-    String.left 2 str == "||"
+    (String.left 2 str == "||")
+        || (String.left 16 str == "\\begin{equation}")
+        || (String.left 15 str == "\\begin{aligned}")
+        || (String.left 15 str == "\\begin{comment}")
+        || (String.left 12 str == "\\begin{code}")
+        || (String.left 18 str == "\\begin{mathmacros}")
+        || (String.left 2 str == "$$")
 
 
 {-| -}

@@ -1,4 +1,4 @@
-module Parser.Error exposing (..)
+module Parser.Error exposing (ordinaryBlock)
 
 import L0.Parser.Error
 import MicroLaTeX.Parser.Error

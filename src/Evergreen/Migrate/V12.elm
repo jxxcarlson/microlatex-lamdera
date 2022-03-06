@@ -1,4 +1,4 @@
-module Evergreen.Migrate.V12 exposing (..)
+module Evergreen.Migrate.V12 exposing (backendModel, backendMsg, frontendModel, frontendMsg, toBackend, toFrontend)
 
 import Evergreen.V12.Types as New
 import Evergreen.V7.Types as Old

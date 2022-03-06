@@ -1,4 +1,4 @@
-module MicroLaTeX.Parser.Error exposing (..)
+module MicroLaTeX.Parser.Error exposing (ordinaryBlock, sliceList)
 
 import Parser.Common
 import Parser.Helpers

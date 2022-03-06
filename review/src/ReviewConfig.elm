@@ -32,4 +32,4 @@ config =
     , NoUnused.Variables.rule
     , NoExposingEverything.rule
     , CognitiveComplexity.rule 15
-    ]
+    ] |> List.map (Review.Rule.ignoreErrorsForDirectories [ "Evergreen/" ])
