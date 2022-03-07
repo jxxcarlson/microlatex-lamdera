@@ -1,6 +1,6 @@
 module Parser.Block exposing
     ( BlockType(..), ExpressionBlock(..), IntermediateBlock(..)
-    , Block, TextBlock(..)
+    , Block, RawBlock(..)
     )
 
 {-| Source text is parsed into a tree of IntermediateBlocks, where the tree
@@ -20,8 +20,8 @@ consumes trees of ExpressionBlocks to produce Html.
 import Either exposing (Either)
 
 
-type TextBlock
-    = TextBlock
+type RawBlock
+    = RawBlock
         { name : Maybe String
         , args : List String
         , indent : Int
