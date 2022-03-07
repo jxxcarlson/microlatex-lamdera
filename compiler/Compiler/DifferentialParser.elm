@@ -7,7 +7,6 @@ import Markup
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock)
 import Parser.BlockUtil
-import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
 

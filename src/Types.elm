@@ -13,7 +13,6 @@ import File exposing (File)
 import Http
 import Keyboard
 import Parser.Block exposing (ExpressionBlock)
-import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language)
 import Random
 import Render.Msg
