@@ -158,17 +158,18 @@ listData accumulator name =
             ( False, Nothing )
 
 
+updateReference : String -> String -> String -> Accumulator -> Accumulator
+updateReference tag_ id_ numRef_ acc =
+    if tag_ /= "" then
+        { acc | reference = Dict.insert tag_ { id = id_, numRef = numRef_ } acc.reference }
+
+    else
+        acc
+
+
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     let
-        updateReference : String -> String -> String -> Accumulator -> Accumulator
-        updateReference tag_ id_ numRef_ acc =
-            if tag_ /= "" then
-                { acc | reference = Dict.insert tag_ { id = id_, numRef = numRef_ } acc.reference }
-
-            else
-                acc
-
         ( inList, initialNumberedVector ) =
             listData accumulator name
     in
