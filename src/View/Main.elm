@@ -17,7 +17,7 @@ import Render.Settings
 import Render.TOC
 import String.Extra
 import Time
-import Types exposing (..)
+import Types exposing (AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), SortMode(..))
 import View.Button as Button
 import View.Color as Color
 import View.Input
@@ -234,7 +234,7 @@ viewPublicDocs model deltaH =
         (E.el [ Font.size 16, Font.color (E.rgb 0.1 0.1 0.1) ] (E.text <| "Published docs (" ++ String.fromInt (List.length model.publicDocuments) ++ ")") :: viewPublicDocuments model)
 
 
-footer model width_ =
+footer model _ =
     E.row
         [ E.spacing 12
         , E.paddingXY 0 8
@@ -282,7 +282,7 @@ messageRow model =
         [ E.text model.message ]
 
 
-header model width_ =
+header model _ =
     E.row [ E.spacing 12, E.width E.fill ]
         [ View.Utility.hideIf (model.currentUser == Nothing) (Button.cycleLanguage model.language)
         , View.Utility.showIf model.showEditor Button.closeEditor
@@ -385,23 +385,6 @@ viewRenderedForEditor model width_ =
             E.none
 
         Just _ ->
-            let
-                title_ : Element FrontendMsg
-                title_ =
-                    Compiler.ASTTools.titleOLD model.editRecord.parsed
-                        |> List.head
-                        |> Maybe.map (Render.Block.render model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth))
-                        |> Maybe.withDefault E.none
-                        |> E.map Render
-
-                toc : Element FrontendMsg
-                toc =
-                    Render.TOC.view model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth |> setSelectedId model.selectedId) model.editRecord.parsed |> E.map Render
-
-                body : List (Element FrontendMsg)
-                body =
-                    Render.Markup.renderFromAST model.counter model.editRecord.accumulator (renderSettings model.selectedId model.windowWidth) model.editRecord.parsed |> List.map (E.map Render)
-            in
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
                 , View.Style.bgGray 1.0

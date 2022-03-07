@@ -1,7 +1,7 @@
 module UrlManager exposing (handleDocId)
 
 import Lamdera exposing (sendToBackend)
-import Parser exposing (..)
+import Parser exposing ((|.), (|=), chompWhile, getChompedString, oneOf, succeed, symbol)
 import Types exposing (FrontendMsg, ToBackend(..))
 import Url exposing (Url)
 
@@ -31,7 +31,7 @@ handleDocId url =
 
 parseDocUrl : Url -> DocUrl
 parseDocUrl url =
-    case run docUrlParser url.path of
+    case Parser.run docUrlParser url.path of
         Ok docUrl ->
             docUrl
 
@@ -39,19 +39,19 @@ parseDocUrl url =
             NoDocUrl
 
 
-docUrlParser : Parser DocUrl
+docUrlParser : Parser.Parser DocUrl
 docUrlParser =
     oneOf [ parseHomePage, docUrlUParser_ ]
 
 
-docUrlUParser_ : Parser DocUrl
+docUrlUParser_ : Parser.Parser DocUrl
 docUrlUParser_ =
     succeed (\k -> DocUrl k)
         |. symbol "/"
         |= oneOf [ uuidParser ]
 
 
-uuidParser : Parser String
+uuidParser : Parser.Parser String
 uuidParser =
     succeed identity
         |. symbol "uuid:"
@@ -62,19 +62,19 @@ uuidParser =
 --
 
 
-parseUuid : Parser String
+parseUuid : Parser.Parser String
 parseUuid =
     getChompedString <|
         chompWhile (\c -> Char.isAlphaNum c || c == '-')
 
 
-parseAlphaNum : Parser String
+parseAlphaNum : Parser.Parser String
 parseAlphaNum =
     getChompedString <|
         chompWhile (\c -> Char.isAlphaNum c)
 
 
-parseHomePage : Parser DocUrl
+parseHomePage : Parser.Parser DocUrl
 parseHomePage =
     succeed HomePage
         |. symbol "/h/"

@@ -2,7 +2,6 @@ module MicroLaTeX.Parser.Classify exposing (classify)
 
 import Parser.Block exposing (BlockType(..), RawBlock)
 import Parser.Common
-import Tree.BlocksV
 
 
 classify : RawBlock -> { blockType : BlockType, args : List String }
