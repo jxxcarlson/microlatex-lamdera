@@ -6,22 +6,22 @@ import Markup exposing (SyntaxTree)
 import Parser.BlockUtil as BlockUtil
 import Parser.Language exposing (Language)
 import Render.Block
-import Render.Msg exposing (L0Msg)
+import Render.Msg exposing (MarkupMsg)
 import Render.Settings exposing (Settings)
 import Tree exposing (Tree)
 
 
-renderFromString : Language -> Int -> Accumulator -> Settings -> String -> List (Element L0Msg)
+renderFromString : Language -> Int -> Accumulator -> Settings -> String -> List (Element MarkupMsg)
 renderFromString lang count acc settings str =
     str |> Markup.parse lang |> renderFromAST count acc settings
 
 
-render_ : Accumulator -> SyntaxTree -> List (Element L0Msg)
+render_ : Accumulator -> SyntaxTree -> List (Element MarkupMsg)
 render_ acc ast =
     renderFromAST 0 acc Render.Settings.defaultSettings ast
 
 
-renderFromAST : Int -> Accumulator -> Settings -> SyntaxTree -> List (Element L0Msg)
+renderFromAST : Int -> Accumulator -> Settings -> SyntaxTree -> List (Element MarkupMsg)
 renderFromAST count accumulator settings ast =
     ast
         |> List.map (Tree.map (Render.Block.render count accumulator settings))
@@ -39,7 +39,7 @@ getMessages syntaxTree =
 
 {-| Comment on this!
 -}
-unravel : Tree (Element L0Msg) -> Element L0Msg
+unravel : Tree (Element MarkupMsg) -> Element MarkupMsg
 unravel tree =
     let
         children =

@@ -14,12 +14,12 @@ import Maybe.Extra
 import Parser.Expr exposing (Expr(..))
 import Parser.MathMacro
 import Render.Math
-import Render.Msg exposing (L0Msg(..))
+import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility as Utility
 
 
-render : Int -> Accumulator -> Settings -> Expr -> Element L0Msg
+render : Int -> Accumulator -> Settings -> Expr -> Element MarkupMsg
 render generation acc settings expr =
     case expr of
         Text string meta ->
@@ -71,7 +71,7 @@ renderMarked name generation acc settings exprList =
 -- DICTIONARIES
 
 
-markupDict : Dict String (Int -> Accumulator -> Settings -> List Expr -> Element L0Msg)
+markupDict : Dict String (Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg)
 markupDict =
     Dict.fromList
         [ ( "bibitem", \g acc s exprList -> bibitem g acc s exprList )
@@ -151,12 +151,12 @@ abstract g acc s exprList =
     Element.paragraph [] [ Element.el [ Font.size 18 ] (Element.text "Abstract."), simpleElement [] g acc s exprList ]
 
 
-large : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+large : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 large g acc s exprList =
     simpleElement [ Font.size 18 ] g acc s exprList
 
 
-link : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+link : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 link _ _ _ exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
@@ -182,7 +182,7 @@ link _ _ _ exprList =
                 }
 
 
-href : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+href : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 href _ _ _ exprList =
     let
         url =
@@ -303,12 +303,12 @@ image generation acc settings body =
         ]
 
 
-bibitem : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+bibitem : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 bibitem generation acc settings str =
     Element.paragraph [ Element.width Element.fill ] [ Element.text (ASTTools.exprListToStringList str |> String.join " " |> (\s -> "[" ++ s ++ "]")) ]
 
 
-cite : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+cite : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 cite generation acc settings str =
     let
         tag : String
@@ -335,12 +335,12 @@ math g a s m str =
     mathElement g a s m str
 
 
-table : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+table : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 table g acc s rows =
     Element.column [ Element.spacing 8 ] (List.map (tableRow g acc s) rows)
 
 
-tableRow : Int -> Accumulator -> Settings -> Expr -> Element L0Msg
+tableRow : Int -> Accumulator -> Settings -> Expr -> Element MarkupMsg
 tableRow g acc s expr =
     case expr of
         Expr "tableRow" items _ ->
@@ -350,7 +350,7 @@ tableRow g acc s expr =
             Element.none
 
 
-tableItem : Int -> Accumulator -> Settings -> Expr -> Element L0Msg
+tableItem : Int -> Accumulator -> Settings -> Expr -> Element MarkupMsg
 tableItem g acc s expr =
     case expr of
         Expr "tableItem" exprList _ ->
@@ -366,7 +366,7 @@ skip g acc s exprList =
         numVal str =
             String.toInt str |> Maybe.withDefault 0
 
-        f : String -> Element L0Msg
+        f : String -> Element MarkupMsg
         f str =
             column [ Element.spacingXY 0 (numVal str) ] [ Element.text "" ]
     in
@@ -430,7 +430,7 @@ highlight g acc s exprList =
     simpleElement [ Background.color (Element.rgb255 255 255 0) ] g acc s exprList
 
 
-ref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+ref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 ref g acc s exprList =
     let
         key =
@@ -462,7 +462,7 @@ ref g acc s exprList =
     \reflink{LINK_TEXT LABEL}
 
 -}
-reflink : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+reflink : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 reflink g acc s exprList =
     let
         argString =
@@ -496,7 +496,7 @@ reflink g acc s exprList =
         }
 
 
-eqref : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+eqref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 eqref g acc s exprList =
     let
         key =
@@ -540,14 +540,14 @@ errorHighlight g acc s exprList =
 -- HELPERS
 
 
-simpleElement : List (Element.Attribute L0Msg) -> Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+simpleElement : List (Element.Attribute MarkupMsg) -> Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 simpleElement formatList g acc s exprList =
     Element.paragraph formatList (List.map (render g acc s) exprList)
 
 
 {-| For one-element functions
 -}
-f1 : (String -> Element L0Msg) -> Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
+f1 : (String -> Element MarkupMsg) -> Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 f1 f g acc s exprList =
     case ASTTools.exprListToStringList exprList of
         -- TODO: temporary fix: parse is producing the args in reverse order

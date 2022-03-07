@@ -1,7 +1,7 @@
-module Render.Msg exposing (L0Msg(..))
+module Render.Msg exposing (MarkupMsg(..))
 
 
-type L0Msg
+type MarkupMsg
     = SendMeta { begin : Int, end : Int, index : Int }
     | SendId String
     | SelectId String

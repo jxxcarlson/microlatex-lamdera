@@ -1,6 +1,6 @@
 module Parser.Block exposing
     ( BlockType(..), ExpressionBlock(..), IntermediateBlock(..)
-    , PrimitiveBlock, RawBlock(..)
+    , RawBlock, TextBlock(..)
     )
 
 {-| Source text is parsed into a tree of IntermediateBlocks, where the tree
@@ -21,7 +21,7 @@ import Either exposing (Either)
 import Parser.Expr exposing (Expr)
 
 
-type alias PrimitiveBlock =
+type alias RawBlock =
     { indent : Int
     , lineNumber : Int
     , numberOfLines : Int
@@ -29,8 +29,8 @@ type alias PrimitiveBlock =
     }
 
 
-type RawBlock
-    = RawBlock
+type TextBlock
+    = TextBlock
         { name : Maybe String
         , args : List String
         , indent : Int

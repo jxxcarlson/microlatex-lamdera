@@ -1,11 +1,11 @@
 module MicroLaTeX.Parser.Classify exposing (classify)
 
-import Parser.Block exposing (BlockType(..))
+import Parser.Block exposing (BlockType(..), RawBlock)
 import Parser.Common
 import Tree.BlocksV
 
 
-classify : Tree.BlocksV.Block -> { blockType : BlockType, args : List String }
+classify : RawBlock -> { blockType : BlockType, args : List String }
 classify block =
     let
         str_ =

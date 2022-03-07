@@ -2,7 +2,6 @@ module Parser.BlockUtil exposing
     ( empty
     , getMessages
     , l0Empty
-    , toBlock
     , toExpressionBlockFromIntermediateBlock
     , toIntermediateBlock
     , toL0Block
@@ -14,13 +13,17 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), PrimitiveBlock, RawBlock(..))
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), RawBlock, TextBlock(..))
 import Parser.Common
 import Parser.Error
 import Parser.Expr exposing (Expr)
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
 import Tree.BlocksV
+
+
+type alias Classification =
+    { blockType : BlockType, args : List String }
 
 
 empty =
@@ -58,11 +61,6 @@ l0Empty =
 getMessages : ExpressionBlock -> List String
 getMessages ((ExpressionBlock { messages }) as block) =
     messages
-
-
-toBlock : ExpressionBlock -> Tree.BlocksV.Block
-toBlock (ExpressionBlock { indent, lineNumber, numberOfLines }) =
-    { indent = indent, content = "XXX", lineNumber = lineNumber, numberOfLines = numberOfLines }
 
 
 toExpressionBlockFromIntermediateBlock : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
@@ -103,7 +101,7 @@ mapContent parse lineNumber blockType content =
             content_
 
 
-toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
+toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> RawBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages block =
     let
         classify =
@@ -156,6 +154,7 @@ makeOrdinaryIntermediateBlock lang extractMessages state block revisedContent cl
     makeIntermediateBlock block (List.head args) revisedArgs newContent messages classification.blockType
 
 
+makeVerbatimInterMediateBlock : Language -> (state -> List String) -> state -> RawBlock -> String -> Classification -> List String -> IntermediateBlock
 makeVerbatimInterMediateBlock lang extractMessages state block revisedContent classification args =
     let
         ( firstLine, rawContent ) =
@@ -206,6 +205,7 @@ makeVerbatimInterMediateBlock lang extractMessages state block revisedContent cl
     makeIntermediateBlock block (Just revisedName) classification.args content_ messages classification.blockType
 
 
+makeIntermediateBlock : RawBlock -> Maybe String -> List String -> String -> List String -> BlockType -> IntermediateBlock
 makeIntermediateBlock block name args content messages blockType_ =
     IntermediateBlock
         { name = name
@@ -240,7 +240,7 @@ split_ str_ =
 -- ( List.head lines |> Maybe.withDefault "", lines |> List.drop 1 |> String.join "\n" )
 
 
-toL0Block : (PrimitiveBlock -> BlockType) -> Tree.BlocksV.Block -> RawBlock
+toL0Block : (RawBlock -> BlockType) -> Tree.BlocksV.Block -> TextBlock
 toL0Block classify block =
     let
         blockType =
@@ -248,7 +248,7 @@ toL0Block classify block =
     in
     case blockType of
         Paragraph ->
-            RawBlock
+            TextBlock
                 { name = Nothing
                 , args = []
                 , indent = block.indent
@@ -259,7 +259,7 @@ toL0Block classify block =
                 }
 
         OrdinaryBlock args ->
-            RawBlock
+            TextBlock
                 { name = List.head args
                 , args = List.drop 1 args
                 , indent = block.indent
@@ -270,7 +270,7 @@ toL0Block classify block =
                 }
 
         VerbatimBlock args ->
-            RawBlock
+            TextBlock
                 { name = List.head args
                 , args = List.drop 1 args
                 , indent = block.indent

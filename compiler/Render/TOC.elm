@@ -11,13 +11,13 @@ import Markup
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Render.Elm
-import Render.Msg exposing (L0Msg(..))
+import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings
 import Render.Utility
 import Tree
 
 
-view : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> Element Render.Msg.L0Msg
+view : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> Element Render.Msg.MarkupMsg
 view counter acc settings ast =
     case ast |> List.map Tree.flatten |> List.concat |> Compiler.ASTTools.filterBlocksOnName "contents" of
         [] ->
@@ -29,7 +29,7 @@ view counter acc settings ast =
                 (prepareTOC counter acc Render.Settings.defaultSettings ast)
 
 
-viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock -> Element L0Msg
+viewTocItem : Int -> Accumulator -> Render.Settings.Settings -> ExpressionBlock -> Element MarkupMsg
 viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
     case content of
         Left _ ->
@@ -45,7 +45,7 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
                         |> Maybe.withDefault ""
                         |> (\s -> Element.el [] (Element.text (s ++ ". ")))
 
-                label : Element L0Msg
+                label : Element MarkupMsg
                 label =
                     Element.paragraph [ tocIndent args ] (sectionNumber :: List.map (Render.Elm.render count acc settings) exprs)
             in
@@ -53,7 +53,7 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
                 (Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink id, label = label })
 
 
-prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element L0Msg)
+prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element MarkupMsg)
 prepareTOC count acc settings ast =
     let
         rawToc =
@@ -95,7 +95,7 @@ prepareTOC count acc settings ast =
         title :: subtitle :: spaceBelow 8 :: toc
 
 
-prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element L0Msg)
+prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element MarkupMsg)
 prepareFrontMatter count acc settings ast =
     let
         headings =

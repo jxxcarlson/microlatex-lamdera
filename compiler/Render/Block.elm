@@ -14,7 +14,7 @@ import Parser.Expr exposing (Expr)
 import Parser.MathMacro
 import Render.Elm
 import Render.Math exposing (DisplayMode(..))
-import Render.Msg exposing (L0Msg(..))
+import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility
 import String.Extra
@@ -24,7 +24,7 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
-render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element L0Msg
+render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element MarkupMsg
 render count acc settings (ExpressionBlock { name, args, blockType, content, id }) =
     case blockType of
         Paragraph ->
@@ -81,7 +81,7 @@ render count acc settings (ExpressionBlock { name, args, blockType, content, id 
                                     f count acc settings args id exprs
 
 
-noSuchVerbatimBlock : String -> String -> Element L0Msg
+noSuchVerbatimBlock : String -> String -> Element MarkupMsg
 noSuchVerbatimBlock functionName content =
     Element.column [ Element.spacing 4 ]
         [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "|| " ++ functionName ++ " ??(8)" ]
@@ -89,7 +89,7 @@ noSuchVerbatimBlock functionName content =
         ]
 
 
-noSuchOrdinaryBlock : Int -> Accumulator -> Settings -> String -> List Expr -> Element L0Msg
+noSuchOrdinaryBlock : Int -> Accumulator -> Settings -> String -> List Expr -> Element MarkupMsg
 noSuchOrdinaryBlock count acc settings functionName exprs =
     Element.column [ Element.spacing 4 ]
         [ Element.paragraph [ Font.color (Element.rgb255 180 0 0) ] [ Element.text <| "| " ++ functionName ++ " ??(9) " ]
@@ -101,7 +101,7 @@ noSuchOrdinaryBlock count acc settings functionName exprs =
 -- DICT
 
 
-blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg)
+blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element MarkupMsg)
 blockDict =
     Dict.fromList
         [ ( "indent", indented )
@@ -123,7 +123,7 @@ blockDict =
         ]
 
 
-verbatimDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg)
+verbatimDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg)
 verbatimDict =
     Dict.fromList
         [ ( "math", renderDisplayMath "$$" )
@@ -135,12 +135,12 @@ verbatimDict =
         ]
 
 
-renderComment : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+renderComment : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderComment _ _ _ _ _ _ =
     Element.none
 
 
-equation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+equation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 equation count acc settings args id str =
     Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| equation" count acc settings args id str)
@@ -148,7 +148,7 @@ equation count acc settings args id str =
         ]
 
 
-aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 aligned count acc settings args id str =
     Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
         [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count acc settings args id str)
@@ -196,7 +196,7 @@ heading count acc settings args id exprs =
         { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| heading" count acc settings exprs) }
 
 
-renderWithDefault : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element L0Msg)
+renderWithDefault : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element MarkupMsg)
 renderWithDefault default count acc settings exprs =
     if List.isEmpty exprs then
         [ Element.el [ Font.color Render.Settings.redColor, Font.size 14 ] (Element.text default) ]
@@ -228,7 +228,7 @@ bibitem count acc settings args id exprs =
         ]
 
 
-env_ : Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg
+env_ : Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element MarkupMsg
 env_ count acc settings args id exprs =
     case List.head args of
         Nothing ->
@@ -238,7 +238,7 @@ env_ count acc settings args id exprs =
             env name count acc settings (List.drop 1 args) id exprs
 
 
-env : String -> Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element L0Msg
+env : String -> Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element MarkupMsg
 env name count acc settings args id exprs =
     let
         label =
@@ -260,7 +260,7 @@ env name count acc settings args id exprs =
         ]
 
 
-renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderDisplayMath prefix count acc settings _ id str =
     let
         w =
@@ -346,7 +346,7 @@ highlightAttrs id settings =
         [ Events.onClick (SendId id) ]
 
 
-renderCode : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
+renderCode : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderCode _ _ _ _ id str =
     Element.column
         [ Font.color (Element.rgb255 170 0 250)
@@ -443,7 +443,7 @@ index _ acc _ _ _ _ =
     Element.column [ Element.spacing 6 ] (List.map indexItem termList)
 
 
-indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element L0Msg
+indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element MarkupMsg
 indexItem ( name, loc ) =
     Element.link [ Font.color (Element.rgb 0 0 0.8), Events.onClick (SelectId loc.id) ]
         { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text (String.toLower name)) }

@@ -243,7 +243,7 @@ type FrontendMsg
     | AskForDocumentByAuthorId
     | DeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
-    | Render Render.Msg.L0Msg
+    | Render Render.Msg.MarkupMsg
     | SetSortMode SortMode
       -- Export
     | ExportToMarkdown

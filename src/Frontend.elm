@@ -29,7 +29,7 @@ import Parser.Language exposing (Language(..))
 import Process
 import Render.LaTeX as LaTeX
 import Render.Markup as L0
-import Render.Msg exposing (L0Msg(..))
+import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
 import Types exposing (..)

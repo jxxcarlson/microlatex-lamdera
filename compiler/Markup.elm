@@ -1,6 +1,6 @@
 module Markup exposing
     ( SyntaxTree, parse, parseToIntermediateBlocks
-    , toBlockForest, toBlocks
+    , toRawBlockForest, toRawBlocks
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -16,7 +16,7 @@ The documentation is skimpy.
 
 import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
-import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), PrimitiveBlock, RawBlock)
+import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock, TextBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
@@ -60,7 +60,7 @@ parse lang sourceText =
 parseToIntermediateBlocks : Language -> String -> List (Tree IntermediateBlock)
 parseToIntermediateBlocks lang sourceText =
     let
-        toIntermediateBlock : PrimitiveBlock -> IntermediateBlock
+        toIntermediateBlock : RawBlock -> IntermediateBlock
         toIntermediateBlock =
             case lang of
                 MicroLaTeXLang ->
@@ -70,7 +70,7 @@ parseToIntermediateBlocks lang sourceText =
                     Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
     in
     sourceText
-        |> toBlockForest
+        |> toRawBlockForest
         |> List.map (Tree.map toIntermediateBlock >> fixup)
 
 
@@ -102,15 +102,15 @@ fixup tree =
         Tree.mapLabel fixContent tree
 
 
-toBlocks : String -> List PrimitiveBlock
-toBlocks =
+toRawBlocks : String -> List RawBlock
+toRawBlocks =
     Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
 
 
-toBlockForest : String -> List (Tree PrimitiveBlock)
-toBlockForest str =
+toRawBlockForest : String -> List (Tree RawBlock)
+toRawBlockForest str =
     str
-        |> toBlocks
+        |> toRawBlocks
         |> Tree.Build.forestFromBlocks emptyBlock identity identity
         |> Result.withDefault []
 
