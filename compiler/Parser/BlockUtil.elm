@@ -4,7 +4,6 @@ module Parser.BlockUtil exposing
     , l0Empty
     , toExpressionBlockFromIntermediateBlock
     , toIntermediateBlock
-    , toL0Block
     )
 
 -- import Parser.Expression
@@ -13,7 +12,7 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), RawBlock, TextBlock(..))
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), RawBlock)
 import Parser.Common
 import Parser.Error
 import Parser.Expr exposing (Expr)
@@ -234,48 +233,3 @@ split_ str_ =
 
         _ ->
             ( "first", "rest" )
-
-
-
--- ( List.head lines |> Maybe.withDefault "", lines |> List.drop 1 |> String.join "\n" )
-
-
-toL0Block : (RawBlock -> BlockType) -> Tree.BlocksV.Block -> TextBlock
-toL0Block classify block =
-    let
-        blockType =
-            classify block
-    in
-    case blockType of
-        Paragraph ->
-            TextBlock
-                { name = Nothing
-                , args = []
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = block.content
-                , blockType = blockType
-                }
-
-        OrdinaryBlock args ->
-            TextBlock
-                { name = List.head args
-                , args = List.drop 1 args
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = block.content
-                , blockType = blockType
-                }
-
-        VerbatimBlock args ->
-            TextBlock
-                { name = List.head args
-                , args = List.drop 1 args
-                , indent = block.indent
-                , lineNumber = block.lineNumber
-                , numberOfLines = block.numberOfLines
-                , content = block.content
-                , blockType = blockType
-                }

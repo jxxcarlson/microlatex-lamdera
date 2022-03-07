@@ -1,6 +1,6 @@
 module Parser.Block exposing
     ( BlockType(..), ExpressionBlock(..), IntermediateBlock(..)
-    , RawBlock, TextBlock(..)
+    , RawBlock
     )
 
 {-| Source text is parsed into a tree of IntermediateBlocks, where the tree
@@ -27,18 +27,6 @@ type alias RawBlock =
     , numberOfLines : Int
     , content : String
     }
-
-
-type TextBlock
-    = TextBlock
-        { name : Maybe String
-        , args : List String
-        , indent : Int
-        , lineNumber : Int
-        , numberOfLines : Int
-        , blockType : BlockType
-        , content : String
-        }
 
 
 {-| -}

@@ -16,7 +16,7 @@ The documentation is skimpy.
 
 import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
-import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock, TextBlock)
+import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
