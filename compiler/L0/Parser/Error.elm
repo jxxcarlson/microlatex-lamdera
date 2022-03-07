@@ -15,7 +15,8 @@ ordinaryBlock name args currentMessages lineNumber revisedContent =
 
         content =
             if n <= 1 then
-                "[red •••? ]"
+                -- TODO: rethink this.
+                " "
 
             else
                 List.drop 1 lines |> String.join "\n"
