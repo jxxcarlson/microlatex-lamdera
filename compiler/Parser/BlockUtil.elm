@@ -3,7 +3,6 @@ module Parser.BlockUtil exposing
     , getMessages
     , l0Empty
     , toBlock
-    , toBlockFromIntermediateBlock
     , toExpressionBlockFromIntermediateBlock
     , toIntermediateBlock
     , toL0Block
@@ -77,11 +76,6 @@ getMessages ((ExpressionBlock { messages }) as block) =
 
 toBlock : ExpressionBlock expr -> Tree.BlocksV.Block
 toBlock (ExpressionBlock { indent, lineNumber, numberOfLines }) =
-    { indent = indent, content = "XXX", lineNumber = lineNumber, numberOfLines = numberOfLines }
-
-
-toBlockFromIntermediateBlock : IntermediateBlock -> Tree.BlocksV.Block
-toBlockFromIntermediateBlock (IntermediateBlock { indent, lineNumber, numberOfLines }) =
     { indent = indent, content = "XXX", lineNumber = lineNumber, numberOfLines = numberOfLines }
 
 

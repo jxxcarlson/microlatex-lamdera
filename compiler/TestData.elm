@@ -16,6 +16,20 @@ m1 =
 """
 
 
+m1b =
+    """
+\\begin{theorem}
+  this is a test.
+  
+  $$
+  c^2
+  $$
+
+  Blah blah
+
+"""
+
+
 m2 =
     """
 \\begin{theorem}

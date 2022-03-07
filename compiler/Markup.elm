@@ -65,10 +65,10 @@ parse lang sourceText =
         |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock parser))
 
 
-{-| -}
 parseToIntermediateBlocks : Language -> String -> List (Tree Parser.Block.IntermediateBlock)
 parseToIntermediateBlocks lang sourceText =
     let
+        toIntermediateBlock : Tree.BlocksV.Block -> Parser.Block.IntermediateBlock
         toIntermediateBlock =
             case lang of
                 MicroLaTeXLang ->
@@ -78,11 +78,36 @@ parseToIntermediateBlocks lang sourceText =
                     Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
     in
     sourceText
-        |> Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
-        |> Tree.Build.forestFromBlocks Parser.BlockUtil.empty
-            toIntermediateBlock
-            Parser.BlockUtil.toBlockFromIntermediateBlock
-        |> Result.withDefault []
+        |> toBlockForest
+        |> List.map (Tree.map toIntermediateBlock >> fixup)
+
+
+{-| The purpose of this function is to supress error messages in the case
+of ordinary blocks that are the root of a nontrivial tree. Not a great
+solution -- need to find something better.
+-}
+fixup : Tree Parser.Block.IntermediateBlock -> Tree Parser.Block.IntermediateBlock
+fixup tree =
+    let
+        numberOfChildren =
+            List.length (Tree.children tree)
+
+        fixContent : Parser.Block.IntermediateBlock -> Parser.Block.IntermediateBlock
+        fixContent (Parser.Block.IntermediateBlock data) =
+            let
+                badString =
+                    "\n•••\\vskip{1}\n\\red{\\bs{end} •••}"
+
+                newContent =
+                    String.replace badString " " data.content
+            in
+            Parser.Block.IntermediateBlock { data | content = newContent }
+    in
+    if numberOfChildren == 0 then
+        tree
+
+    else
+        Tree.mapLabel fixContent tree
 
 
 toBlocks : String -> List Tree.BlocksV.Block
@@ -90,6 +115,7 @@ toBlocks =
     Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
 
 
+toBlockForest : String -> List (Tree { content : String, indent : Int, lineNumber : Int, numberOfLines : Int })
 toBlockForest str =
     str
         |> toBlocks
