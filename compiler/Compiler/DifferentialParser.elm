@@ -13,7 +13,7 @@ import Tree exposing (Tree)
 
 
 type alias EditRecord =
-    Abstract.EditRecord (Tree IntermediateBlock) (Tree (ExpressionBlock Expr)) Compiler.Acc.Accumulator
+    Abstract.EditRecord (Tree IntermediateBlock) (Tree ExpressionBlock) Compiler.Acc.Accumulator
 
 
 init : Language -> String -> EditRecord
@@ -39,7 +39,7 @@ chunker lang =
     Markup.parseToIntermediateBlocks lang
 
 
-parser : Language -> Tree IntermediateBlock -> Tree (ExpressionBlock Expr)
+parser : Language -> Tree IntermediateBlock -> Tree ExpressionBlock
 parser lang =
     case lang of
         MicroLaTeXLang ->

@@ -21,7 +21,7 @@ ordinaryBlock args exprs data m1 =
 containing a single expression of designated name to
 an ordinary block with designated arguments
 -}
-transform : ExpressionBlock Expr -> ExpressionBlock Expr
+transform : ExpressionBlock -> ExpressionBlock
 transform ((ExpressionBlock data) as block) =
     let
         normalize : Either String (List Expr) -> Either String (List Expr)

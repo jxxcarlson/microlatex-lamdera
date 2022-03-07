@@ -27,12 +27,12 @@ filterExpressionsOnName name exprs =
     List.filter (matchExprOnName name) exprs
 
 
-filterBlocksOnName : String -> List (ExpressionBlock Expr) -> List (ExpressionBlock Expr)
+filterBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
 filterBlocksOnName name blocks =
     List.filter (matchBlockName name) blocks
 
 
-matchBlockName : String -> ExpressionBlock Expr -> Bool
+matchBlockName : String -> ExpressionBlock -> Bool
 matchBlockName key (ExpressionBlock { name }) =
     Just key == name
 
@@ -55,7 +55,7 @@ matchingIdsInAST key ast =
     ast |> List.map Tree.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
 
 
-idOfMatchingBlockContent : String -> ExpressionBlock Expr -> Maybe String
+idOfMatchingBlockContent : String -> ExpressionBlock -> Maybe String
 idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
     if String.contains key sourceText then
         Just id
@@ -64,7 +64,7 @@ idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
         Nothing
 
 
-titleOLD : SyntaxTree -> List (ExpressionBlock Expr)
+titleOLD : SyntaxTree -> List ExpressionBlock
 titleOLD ast =
     filterBlocksByArgs "title" ast
 
@@ -104,12 +104,12 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
 
-tableOfContents : Markup.SyntaxTree -> List (ExpressionBlock Expr)
+tableOfContents : Markup.SyntaxTree -> List ExpressionBlock
 tableOfContents ast =
     filterBlocksByArgs "section" ast
 
 
-filterBlocksByArgs : String -> Markup.SyntaxTree -> List (ExpressionBlock Expr)
+filterBlocksByArgs : String -> Markup.SyntaxTree -> List ExpressionBlock
 filterBlocksByArgs key ast =
     ast
         |> List.map Tree.flatten
@@ -117,7 +117,7 @@ filterBlocksByArgs key ast =
         |> List.filter (matchBlock key)
 
 
-matchBlock : String -> ExpressionBlock Expr -> Bool
+matchBlock : String -> ExpressionBlock -> Bool
 matchBlock key (ExpressionBlock { blockType }) =
     case blockType of
         Paragraph ->
@@ -169,7 +169,7 @@ stringValue text =
             str
 
 
-expressionBlockToText : List (ExpressionBlock Expr) -> String
+expressionBlockToText : List ExpressionBlock -> String
 expressionBlockToText =
     toExprRecord >> List.map .content >> List.concat >> List.filterMap getText >> String.join " "
 
@@ -178,7 +178,7 @@ expressionBlockToText =
 -- toExprListList : List L0BlockE -> List (List Expr)
 
 
-toExprRecord : List (ExpressionBlock Expr) -> List { content : List Expr, blockType : BlockType }
+toExprRecord : List ExpressionBlock -> List { content : List Expr, blockType : BlockType }
 toExprRecord blocks =
     List.map toExprList_ blocks
 

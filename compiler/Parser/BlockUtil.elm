@@ -17,6 +17,7 @@ import MicroLaTeX.Parser.Classify
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), RawBlock(..))
 import Parser.Common
 import Parser.Error
+import Parser.Expr exposing (Expr)
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
 import Tree.BlocksV
@@ -54,17 +55,17 @@ l0Empty =
         }
 
 
-getMessages : ExpressionBlock expr -> List String
+getMessages : ExpressionBlock -> List String
 getMessages ((ExpressionBlock { messages }) as block) =
     messages
 
 
-toBlock : ExpressionBlock expr -> Tree.BlocksV.Block
+toBlock : ExpressionBlock -> Tree.BlocksV.Block
 toBlock (ExpressionBlock { indent, lineNumber, numberOfLines }) =
     { indent = indent, content = "XXX", lineNumber = lineNumber, numberOfLines = numberOfLines }
 
 
-toExpressionBlockFromIntermediateBlock : (Int -> String -> List expr) -> IntermediateBlock -> ExpressionBlock expr
+toExpressionBlockFromIntermediateBlock : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
 toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
     ExpressionBlock
         { name = name
@@ -81,7 +82,7 @@ toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, in
         }
 
 
-mapContent : (Int -> String -> List expr) -> Int -> BlockType -> String -> Either String (List expr)
+mapContent : (Int -> String -> List Expr) -> Int -> BlockType -> String -> Either String (List Expr)
 mapContent parse lineNumber blockType content =
     case blockType of
         Paragraph ->

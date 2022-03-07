@@ -50,12 +50,12 @@ incrementCounter name dict =
     Dict.insert name (getCounter name dict + 1) dict
 
 
-transformST : Language -> List (Tree (ExpressionBlock Expr)) -> List (Tree (ExpressionBlock Expr))
+transformST : Language -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
 transformST lang ast =
     ast |> make lang |> Tuple.second
 
 
-make : Language -> List (Tree (ExpressionBlock Expr)) -> ( Accumulator, List (Tree (ExpressionBlock Expr)) )
+make : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
 make lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
@@ -80,10 +80,10 @@ mapper ast_ ( acc_, tree_ ) =
     ( acc_, tree_ :: ast_ )
 
 
-transformAccumulateTree : Language -> Tree (ExpressionBlock Expr) -> Accumulator -> ( Accumulator, Tree (ExpressionBlock Expr) )
+transformAccumulateTree : Language -> Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
 transformAccumulateTree lang tree acc =
     let
-        transformer : Accumulator -> ExpressionBlock Expr -> ( Accumulator, ExpressionBlock Expr )
+        transformer : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
         transformer =
             \acc_ block__ ->
                 let
@@ -103,7 +103,7 @@ transformAccumulateTree lang tree acc =
     Tree.mapAccumulate transformer acc tree
 
 
-transformBlock : Language -> Accumulator -> ExpressionBlock Expr -> ExpressionBlock Expr
+transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
 transformBlock lang acc (ExpressionBlock block) =
     case block.blockType of
         OrdinaryBlock [ "section", level ] ->
@@ -137,12 +137,12 @@ insertInList a list =
         list
 
 
-expand : Dict String Lambda -> ExpressionBlock Expr -> ExpressionBlock Expr
+expand : Dict String Lambda -> ExpressionBlock -> ExpressionBlock
 expand dict (ExpressionBlock block) =
     ExpressionBlock { block | content = Either.map (List.map (Lambda.expand dict)) block.content }
 
 
-updateAccumulator : Language -> ExpressionBlock Expr -> Accumulator -> Accumulator
+updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     let
         updateReference : String -> String -> String -> Accumulator -> Accumulator

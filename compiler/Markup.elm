@@ -27,7 +27,7 @@ import Tree.Build
 
 {-| -}
 type alias SyntaxTree =
-    List (Tree (Parser.Block.ExpressionBlock Expr))
+    List (Tree Parser.Block.ExpressionBlock)
 
 
 isVerbatimLine : String -> Bool
@@ -49,7 +49,7 @@ isVerbatimLine str =
 -- parse : String -> List (Tree Parser.Block.IntermediateBlock)
 
 
-parse : Language -> String -> List (Tree (Parser.Block.ExpressionBlock Expr))
+parse : Language -> String -> List (Tree Parser.Block.ExpressionBlock)
 parse lang sourceText =
     let
         parser =

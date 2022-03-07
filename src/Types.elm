@@ -62,7 +62,7 @@ type alias FrontendModel =
 
     --, ast : Markup.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord
-    , tableOfContents : List (ExpressionBlock Expr)
+    , tableOfContents : List ExpressionBlock
     , title : String
     , searchCount : Int
     , searchSourceText : String

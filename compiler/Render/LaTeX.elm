@@ -39,16 +39,16 @@ type Status
     | InsideNumberedList
 
 
-encloseLists : List (ExpressionBlock Expr) -> List (ExpressionBlock Expr)
+encloseLists : List ExpressionBlock -> List ExpressionBlock
 encloseLists blocks =
     loop { status = OutsideList, inputList = blocks, outputList = [], itemNumber = 0 } nextStep |> List.reverse
 
 
 type alias State =
-    { status : Status, inputList : List (ExpressionBlock Expr), outputList : List (ExpressionBlock Expr), itemNumber : Int }
+    { status : Status, inputList : List ExpressionBlock, outputList : List ExpressionBlock, itemNumber : Int }
 
 
-nextStep : State -> Step State (List (ExpressionBlock Expr))
+nextStep : State -> Step State (List ExpressionBlock)
 nextStep state =
     case List.head state.inputList of
         Nothing ->
@@ -58,7 +58,7 @@ nextStep state =
             Loop (nextState block state)
 
 
-beginItemizedBlock : ExpressionBlock Expr
+beginItemizedBlock : ExpressionBlock
 beginItemizedBlock =
     ExpressionBlock
         { args = []
@@ -75,7 +75,7 @@ beginItemizedBlock =
         }
 
 
-endItemizedBlock : ExpressionBlock Expr
+endItemizedBlock : ExpressionBlock
 endItemizedBlock =
     ExpressionBlock
         { args = []
@@ -92,7 +92,7 @@ endItemizedBlock =
         }
 
 
-beginNumberedBlock : ExpressionBlock Expr
+beginNumberedBlock : ExpressionBlock
 beginNumberedBlock =
     ExpressionBlock
         { args = []
@@ -109,7 +109,7 @@ beginNumberedBlock =
         }
 
 
-endNumberedBlock : ExpressionBlock Expr
+endNumberedBlock : ExpressionBlock
 endNumberedBlock =
     ExpressionBlock
         { args = []
@@ -126,7 +126,7 @@ endNumberedBlock =
         }
 
 
-nextState : ExpressionBlock Expr -> State -> State
+nextState : ExpressionBlock -> State -> State
 nextState ((ExpressionBlock { name }) as block) state =
     case ( state.status, name ) of
         -- ITEMIZED LIST
@@ -154,7 +154,7 @@ nextState ((ExpressionBlock { name }) as block) state =
             { state | outputList = block :: state.outputList, inputList = List.drop 1 state.inputList }
 
 
-exportBlock : Settings -> ExpressionBlock Expr -> String
+exportBlock : Settings -> ExpressionBlock -> String
 exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
     case blockType of
         Paragraph ->

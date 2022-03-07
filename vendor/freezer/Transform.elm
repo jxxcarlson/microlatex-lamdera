@@ -59,7 +59,7 @@ splitExpr expr =
 containing a single expression of designated name to
 an ordinary block with designated arguments
 -}
-transform : ExpressionBlock Expr -> ExpressionBlock Expr
+transform : ExpressionBlock -> ExpressionBlock
 transform ((ExpressionBlock data) as block) =
     let
 
