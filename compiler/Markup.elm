@@ -16,7 +16,7 @@ The documentation is skimpy.
 
 import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
-import Parser.Block
+import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), PrimitiveBlock, RawBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
 import Tree exposing (Tree)
@@ -26,7 +26,7 @@ import Tree.Build
 
 {-| -}
 type alias SyntaxTree =
-    List (Tree Parser.Block.ExpressionBlock)
+    List (Tree ExpressionBlock)
 
 
 isVerbatimLine : String -> Bool
@@ -41,14 +41,7 @@ isVerbatimLine str =
 
 
 {-| -}
-
-
-
--- parse : String -> SyntaxTree
--- parse : String -> List (Tree Parser.Block.IntermediateBlock)
-
-
-parse : Language -> String -> List (Tree Parser.Block.ExpressionBlock)
+parse : Language -> String -> List (Tree ExpressionBlock)
 parse lang sourceText =
     let
         parser =
@@ -64,10 +57,10 @@ parse lang sourceText =
         |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock parser))
 
 
-parseToIntermediateBlocks : Language -> String -> List (Tree Parser.Block.IntermediateBlock)
+parseToIntermediateBlocks : Language -> String -> List (Tree IntermediateBlock)
 parseToIntermediateBlocks lang sourceText =
     let
-        toIntermediateBlock : Tree.BlocksV.Block -> Parser.Block.IntermediateBlock
+        toIntermediateBlock : PrimitiveBlock -> IntermediateBlock
         toIntermediateBlock =
             case lang of
                 MicroLaTeXLang ->
@@ -85,13 +78,13 @@ parseToIntermediateBlocks lang sourceText =
 of ordinary blocks that are the root of a nontrivial tree. Not a great
 solution -- need to find something better.
 -}
-fixup : Tree Parser.Block.IntermediateBlock -> Tree Parser.Block.IntermediateBlock
+fixup : Tree IntermediateBlock -> Tree IntermediateBlock
 fixup tree =
     let
         numberOfChildren =
             List.length (Tree.children tree)
 
-        fixContent : Parser.Block.IntermediateBlock -> Parser.Block.IntermediateBlock
+        fixContent : IntermediateBlock -> IntermediateBlock
         fixContent (Parser.Block.IntermediateBlock data) =
             let
                 badString =
@@ -100,7 +93,7 @@ fixup tree =
                 newContent =
                     String.replace badString " " data.content
             in
-            Parser.Block.IntermediateBlock { data | content = newContent }
+            IntermediateBlock { data | content = newContent }
     in
     if numberOfChildren == 0 then
         tree
@@ -109,12 +102,12 @@ fixup tree =
         Tree.mapLabel fixContent tree
 
 
-toBlocks : String -> List Tree.BlocksV.Block
+toBlocks : String -> List PrimitiveBlock
 toBlocks =
     Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
 
 
-toBlockForest : String -> List (Tree { content : String, indent : Int, lineNumber : Int, numberOfLines : Int })
+toBlockForest : String -> List (Tree PrimitiveBlock)
 toBlockForest str =
     str
         |> toBlocks

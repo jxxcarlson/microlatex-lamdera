@@ -14,7 +14,7 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), RawBlock(..))
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), PrimitiveBlock, RawBlock(..))
 import Parser.Common
 import Parser.Error
 import Parser.Expr exposing (Expr)
@@ -103,7 +103,7 @@ mapContent parse lineNumber blockType content =
             content_
 
 
-toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> Tree.BlocksV.Block -> IntermediateBlock
+toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages block =
     let
         classify =
@@ -240,7 +240,7 @@ split_ str_ =
 -- ( List.head lines |> Maybe.withDefault "", lines |> List.drop 1 |> String.join "\n" )
 
 
-toL0Block : (Tree.BlocksV.Block -> BlockType) -> Tree.BlocksV.Block -> RawBlock
+toL0Block : (PrimitiveBlock -> BlockType) -> Tree.BlocksV.Block -> RawBlock
 toL0Block classify block =
     let
         blockType =
