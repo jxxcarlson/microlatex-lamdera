@@ -31,7 +31,6 @@ type Block
         , numberOfLines : Int
         , blockType : BlockType
         , content : String
-        , children : List Block
         }
 
 
@@ -47,7 +46,6 @@ empty =
         , blockType = Paragraph
         , content = ""
         , messages = []
-        , children = []
         , sourceText = "YYY"
         }
 
@@ -64,7 +62,6 @@ l0Empty =
         , blockType = Paragraph
         , content = Left "YYY"
         , messages = []
-        , children = []
         , sourceText = "YYY"
         }
 
@@ -80,7 +77,7 @@ toBlock (ExpressionBlock { indent, lineNumber, numberOfLines }) =
 
 
 toExpressionBlockFromIntermediateBlock : (Int -> String -> List expr) -> IntermediateBlock -> ExpressionBlock expr
-toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, children, sourceText }) =
+toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
     ExpressionBlock
         { name = name
         , args = args
@@ -92,7 +89,6 @@ toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, in
         , blockType = blockType
         , content = mapContent parse lineNumber blockType content
         , messages = messages
-        , children = List.map (toExpressionBlockFromIntermediateBlock parse) children
         , sourceText = sourceText
         }
 
@@ -233,7 +229,6 @@ makeIntermediateBlock block name args content messages blockType_ =
         , content = content
         , messages = messages
         , blockType = blockType_
-        , children = []
         , sourceText = block.content
         }
 
@@ -272,7 +267,6 @@ toL0Block classify block =
                 , numberOfLines = block.numberOfLines
                 , content = block.content
                 , blockType = blockType
-                , children = []
                 }
 
         OrdinaryBlock args ->
@@ -284,7 +278,6 @@ toL0Block classify block =
                 , numberOfLines = block.numberOfLines
                 , content = block.content
                 , blockType = blockType
-                , children = []
                 }
 
         VerbatimBlock args ->
@@ -296,5 +289,4 @@ toL0Block classify block =
                 , numberOfLines = block.numberOfLines
                 , content = block.content
                 , blockType = blockType
-                , children = []
                 }

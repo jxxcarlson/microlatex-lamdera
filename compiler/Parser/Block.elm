@@ -30,7 +30,6 @@ type ExpressionBlock expr
         , blockType : BlockType
         , content : Either String (List expr)
         , messages : List String
-        , children : List (ExpressionBlock expr)
         , sourceText : String
         }
 
@@ -48,7 +47,6 @@ type IntermediateBlock
         , blockType : BlockType
         , content : String
         , messages : List String
-        , children : List IntermediateBlock
         , sourceText : String
         }
 

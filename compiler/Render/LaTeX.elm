@@ -63,7 +63,6 @@ beginItemizedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "beginBlock" ]
-        , children = []
         , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
@@ -81,7 +80,6 @@ endItemizedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "endBlock" ]
-        , children = []
         , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
@@ -99,7 +97,6 @@ beginNumberedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "beginNumberedBlock" ]
-        , children = []
         , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
@@ -117,7 +114,6 @@ endNumberedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "endNumberedBlock" ]
-        , children = []
         , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0 } ]
         , messages = []
         , id = "0"
@@ -159,7 +155,7 @@ nextState ((ExpressionBlock { name }) as block) state =
 
 
 exportBlock : Settings -> ExpressionBlock Expr -> String
-exportBlock settings ((ExpressionBlock { blockType, name, content, children }) as block) =
+exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
     case blockType of
         Paragraph ->
             case content of
