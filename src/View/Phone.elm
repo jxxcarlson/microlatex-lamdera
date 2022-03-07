@@ -7,7 +7,7 @@ import Html exposing (Html)
 import Render.Markup
 import Render.Settings
 import Render.TOC
-import Types exposing (..)
+import Types exposing (DocPermissions(..), FrontendModel, FrontendMsg(..), PhoneMode(..))
 import View.Button as Button
 import View.Input
 import View.Style
