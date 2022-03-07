@@ -609,7 +609,3 @@ errorColor =
 
 linkColor =
     Element.rgb 0 0 0.8
-
-
-redColor =
-    Element.rgb 0.6 0 0.8
