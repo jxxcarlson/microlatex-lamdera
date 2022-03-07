@@ -1,4 +1,7 @@
-module Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
+module Parser.Block exposing
+    ( BlockType(..), ExpressionBlock(..), IntermediateBlock(..)
+    , Block(..)
+    )
 
 {-| Source text is parsed into a tree of IntermediateBlocks, where the tree
 structure is determined by the indentation level. The expression parser
@@ -15,6 +18,18 @@ consumes trees of ExpressionBlocks to produce Html.
 -}
 
 import Either exposing (Either)
+
+
+type Block
+    = Block
+        { name : Maybe String
+        , args : List String
+        , indent : Int
+        , lineNumber : Int
+        , numberOfLines : Int
+        , blockType : BlockType
+        , content : String
+        }
 
 
 {-| -}

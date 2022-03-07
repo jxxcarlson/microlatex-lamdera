@@ -14,24 +14,12 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
+import Parser.Block exposing (Block(..), BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Common
 import Parser.Error
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
 import Tree.BlocksV
-
-
-type Block
-    = Block
-        { name : Maybe String
-        , args : List String
-        , indent : Int
-        , lineNumber : Int
-        , numberOfLines : Int
-        , blockType : BlockType
-        , content : String
-        }
 
 
 empty =
