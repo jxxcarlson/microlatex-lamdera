@@ -453,7 +453,7 @@ softTruncateLimit =
 
 softTruncate : Int -> String -> String
 softTruncate k str =
-    case String.Extra.softBreak 40 str of
+    case String.Extra.softBreak k str of
         [] ->
             ""
 

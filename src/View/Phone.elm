@@ -99,7 +99,7 @@ viewPublicDocuments model =
     viewDocumentsInIndex ReadOnly model.currentDocument model.publicDocuments
 
 
-header model width_ =
+header model _ =
     E.row [ E.spacing 12, E.width E.fill ]
         [ View.Input.searchDocsInput model
         , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9) ] (E.text (currentAuthor model.currentDocument))
