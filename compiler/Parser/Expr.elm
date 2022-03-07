@@ -42,7 +42,6 @@ type Expr
     = Expr String (List Expr) Meta
     | Text String Meta
     | Verbatim String String Meta
-    | Error String
 
 
 type ExprT token

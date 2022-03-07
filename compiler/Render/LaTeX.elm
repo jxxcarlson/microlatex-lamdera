@@ -383,9 +383,6 @@ exportExpr settings expr =
         Verbatim name body _ ->
             renderVerbatim name body
 
-        Error err ->
-            "error: " ++ err
-
 
 renderVerbatim : String -> String -> String
 renderVerbatim name body =

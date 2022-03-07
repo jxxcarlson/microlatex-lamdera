@@ -150,9 +150,6 @@ getText text =
         Expr _ expressions _ ->
             List.map getText expressions |> Maybe.Extra.values |> String.join " " |> Just
 
-        _ ->
-            Nothing
-
 
 stringValueOfList : List Expr -> String
 stringValueOfList textList =
@@ -169,9 +166,6 @@ stringValue text =
             String.join " " (List.map stringValue textList)
 
         Verbatim _ str _ ->
-            str
-
-        Error str ->
             str
 
 

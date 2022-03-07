@@ -31,9 +31,6 @@ render generation acc settings expr =
         Verbatim name str meta ->
             renderVerbatim name generation acc settings meta str
 
-        Error str ->
-            Element.el [ Font.color redColor ] (Element.text str)
-
 
 renderVerbatim name generation acc settings meta str =
     case Dict.get name verbatimDict of
