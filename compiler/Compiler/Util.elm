@@ -1,7 +1,39 @@
-module Compiler.Util exposing (eraseItem, getItem)
+module Compiler.Util exposing (depth, eraseItem, getItem, size)
 
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
+import Tree exposing (Tree)
+
+
+depth : Tree a -> Int
+depth t =
+    let
+        c =
+            Tree.children t
+    in
+    if c == [] then
+        0
+
+    else
+        1 + maxiumumPositiveInteger (List.map depth c)
+
+
+maxiumumPositiveInteger : List Int -> Int
+maxiumumPositiveInteger ints =
+    List.foldl (\i acc -> max i acc) 0 ints
+
+
+size : Tree a -> Int
+size t =
+    let
+        c =
+            Tree.children t
+    in
+    if c == [] then
+        1
+
+    else
+        1 + List.sum (List.map size c)
 
 
 {-|

@@ -1,4 +1,7 @@
-module Markup exposing (SyntaxTree, parse, parseToIntermediateBlocks)
+module Markup exposing
+    ( SyntaxTree, parse, parseToIntermediateBlocks
+    , toBlockForest, toBlocks
+    )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
 The Render folder in app could have been included with the parser. However, this way
@@ -80,3 +83,19 @@ parseToIntermediateBlocks lang sourceText =
             toIntermediateBlock
             Parser.BlockUtil.toBlockFromIntermediateBlock
         |> Result.withDefault []
+
+
+toBlocks : String -> List Tree.BlocksV.Block
+toBlocks =
+    Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
+
+
+toBlockForest str =
+    str
+        |> toBlocks
+        |> Tree.Build.forestFromBlocks emptyBlock identity identity
+        |> Result.withDefault []
+
+
+emptyBlock =
+    { content = "", indent = 0, lineNumber = 0, numberOfLines = 1 }

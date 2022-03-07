@@ -9,6 +9,30 @@ m1 =
   $$
   c^2
   $$
+
+  Blah blah
+  
+\\end{theorem}
+"""
+
+
+m2 =
+    """
+\\begin{theorem}
+  this is a test.
+  
+  $$
+  c^2
+  $$
+  
+\\end{theorem}
+
+\\begin{theorem}
+  this is a test.
+  
+  $$
+  c^2
+  $$
   
 \\end{theorem}
 """
