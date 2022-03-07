@@ -254,6 +254,53 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
             accumulator
 
 
+updateWithMathMacros accumulator content =
+    let
+        definitions =
+            case content of
+                Left str ->
+                    str
+                        |> String.replace "\\begin{mathmacros}" ""
+                        |> String.replace "\\end{mathmacros}" ""
+                        |> String.replace "end" ""
+                        |> String.trim
+
+                _ ->
+                    ""
+
+        mathMacroDict =
+            Parser.MathMacro.makeMacroDict (String.trim definitions)
+    in
+    { accumulator | mathMacroDict = mathMacroDict }
+
+
+updateWithVerbatimBlock accumulator name_ tag id =
+    let
+        ( inList, initialNumberedVector ) =
+            listData accumulator name_
+
+        name =
+            Maybe.withDefault "---" name_
+
+        newCounter =
+            if List.member name accumulator.numberedBlockNames then
+                incrementCounter name accumulator.counter
+
+            else
+                accumulator.counter
+    in
+    { accumulator | inList = inList, counter = newCounter }
+        |> updateReference tag id (getCounter name newCounter |> String.fromInt)
+
+
+updateWithParagraph accumulator name content id =
+    let
+        ( inList, initialNumberedVector ) =
+            listData accumulator name
+    in
+    { accumulator | inList = inList, terms = addTermsFromContent id content accumulator.terms }
+
+
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     case blockType of
@@ -266,45 +313,13 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
 
         -- provide for numbering of equations
         VerbatimBlock [ "mathmacros" ] ->
-            let
-                definitions =
-                    case content of
-                        Left str ->
-                            str
-                                |> String.replace "\\begin{mathmacros}" ""
-                                |> String.replace "\\end{mathmacros}" ""
-                                |> String.replace "end" ""
-                                |> String.trim
-
-                        _ ->
-                            ""
-
-                mathMacroDict =
-                    Parser.MathMacro.makeMacroDict (String.trim definitions)
-            in
-            { accumulator | mathMacroDict = mathMacroDict }
+            updateWithMathMacros accumulator content
 
         VerbatimBlock [ name_ ] ->
-            let
-                ( inList, initialNumberedVector ) =
-                    listData accumulator name
-
-                newCounter =
-                    if List.member name_ accumulator.numberedBlockNames then
-                        incrementCounter name_ accumulator.counter
-
-                    else
-                        accumulator.counter
-            in
-            { accumulator | inList = inList, counter = newCounter }
-                |> updateReference tag id (getCounter name_ newCounter |> String.fromInt)
+            updateWithVerbatimBlock accumulator name tag id
 
         Paragraph ->
-            let
-                ( inList, initialNumberedVector ) =
-                    listData accumulator name
-            in
-            { accumulator | inList = inList, terms = addTermsFromContent id content accumulator.terms }
+            updateWithParagraph accumulator name content id
 
         _ ->
             -- TODO: take care of numberedItemIndex
