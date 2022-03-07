@@ -146,71 +146,79 @@ toIntermediateBlock lang parseToState extractMessages block =
             makeIntermediateBlock block Nothing [] revisedContent (extractMessages state) classification.blockType
 
         OrdinaryBlock args ->
-            let
-                name =
-                    List.head args |> Maybe.withDefault "anon"
-
-                ( newContent, messages ) =
-                    Parser.Error.ordinaryBlock lang name args (extractMessages state) block.lineNumber revisedContent
-
-                revisedArgs =
-                    case lang of
-                        L0Lang ->
-                            List.drop 1 args
-
-                        MicroLaTeXLang ->
-                            classification.args
-            in
-            makeIntermediateBlock block (List.head args) revisedArgs newContent messages classification.blockType
+            makeOrdinaryIntermediateBlock lang extractMessages state block revisedContent classification args
 
         VerbatimBlock args ->
-            let
-                ( firstLine, rawContent ) =
-                    split_ revisedContent
+            makeVerbatimInterMediateBlock lang extractMessages state block revisedContent classification args
 
-                messages =
-                    case classification.blockType of
-                        VerbatimBlock [ "math" ] ->
-                            if String.endsWith "$$" rawContent then
-                                extractMessages state
 
-                            else
-                                Helpers.prependMessage block.lineNumber "You need to close this math expression with '$$'" (extractMessages state)
+makeOrdinaryIntermediateBlock lang extractMessages state block revisedContent classification args =
+    let
+        name =
+            List.head args |> Maybe.withDefault "anon"
 
-                        VerbatimBlock [ "code" ] ->
-                            if String.startsWith "```" firstLine && not (String.endsWith "```" rawContent) then
-                                Helpers.prependMessage block.lineNumber "You need to close this code block with triple backticks" (extractMessages state)
+        ( newContent, messages ) =
+            Parser.Error.ordinaryBlock lang name args (extractMessages state) block.lineNumber revisedContent
 
-                            else
-                                extractMessages state
+        revisedArgs =
+            case lang of
+                L0Lang ->
+                    List.drop 1 args
 
-                        _ ->
-                            extractMessages state
+                MicroLaTeXLang ->
+                    classification.args
+    in
+    makeIntermediateBlock block (List.head args) revisedArgs newContent messages classification.blockType
 
-                name =
-                    List.head args |> Maybe.withDefault "anon"
 
-                endString =
-                    "\\end{" ++ name ++ "}"
+makeVerbatimInterMediateBlock lang extractMessages state block revisedContent classification args =
+    let
+        ( firstLine, rawContent ) =
+            split_ revisedContent
 
-                ( revisedName, _, content_ ) =
-                    if String.contains endString rawContent then
-                        ( name, classification.blockType, String.replace endString "" rawContent |> addEnd )
-
-                    else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
-                        ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\\red{underline{  ••• (3)}}" )
+        messages =
+            case classification.blockType of
+                VerbatimBlock [ "math" ] ->
+                    if String.endsWith "$$" rawContent then
+                        extractMessages state
 
                     else
-                        ( name, classification.blockType, rawContent )
+                        Helpers.prependMessage block.lineNumber "You need to close this math expression with '$$'" (extractMessages state)
 
-                addEnd str =
-                    if List.member name Parser.Common.verbatimBlockNames && name /= "code" then
-                        str ++ "\nend"
+                VerbatimBlock [ "code" ] ->
+                    if String.startsWith "```" firstLine && not (String.endsWith "```" rawContent) then
+                        Helpers.prependMessage block.lineNumber "You need to close this code block with triple backticks" (extractMessages state)
 
                     else
-                        str
-            in
-            makeIntermediateBlock block (Just revisedName) classification.args content_ messages classification.blockType
+                        extractMessages state
+
+                _ ->
+                    extractMessages state
+
+        name =
+            List.head args |> Maybe.withDefault "anon"
+
+        endString =
+            "\\end{" ++ name ++ "}"
+
+        ( revisedName, _, content_ ) =
+            if String.contains endString rawContent then
+                ( name, classification.blockType, String.replace endString "" rawContent |> addEnd )
+
+            else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
+                ( "code", VerbatimBlock [ "code" ], "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\\red{underline{  ••• (3)}}" )
+
+            else
+                ( name, classification.blockType, rawContent )
+
+        addEnd str =
+            if List.member name Parser.Common.verbatimBlockNames && name /= "code" then
+                str ++ "\nend"
+
+            else
+                str
+    in
+    makeIntermediateBlock block (Just revisedName) classification.args content_ messages classification.blockType
 
 
 makeIntermediateBlock block name args content messages blockType_ =
