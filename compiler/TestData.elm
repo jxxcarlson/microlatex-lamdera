@@ -1,4 +1,4 @@
-module TestData exposing (..)
+module TestData exposing (l1, l2, m1, m1b, m2)
 
 
 m1 =
