@@ -252,15 +252,55 @@ get state start input =
             TokenError errorList { begin = start, end = start + 1, index = state.tokenIndex }
 
 
+finish : State Token -> Step (State Token) (List Token)
+finish state =
+    case state.currentToken of
+        Just token ->
+            Done (token :: state.tokens)
+
+        Nothing ->
+            Done state.tokens
+
+
+handleMerge : State Token -> Token -> ( List Token, Int, Maybe Token )
+handleMerge state token =
+    ( state.tokens, state.tokenIndex, updateCurrentToken state.tokenIndex token state.currentToken )
+
+
+handleBS : State Token -> Token -> ( List Token, Int, Maybe Token )
+handleBS state token =
+    case state.currentToken of
+        Nothing ->
+            ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
+
+        Just textToken ->
+            ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+
+
+handleLB : State Token -> Token -> ( List Token, Int, Maybe Token )
+handleLB state token =
+    case state.currentToken of
+        Nothing ->
+            ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
+
+        Just textToken ->
+            ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+
+
+handleDefault : State Token -> Token -> ( List Token, Int, Maybe Token )
+handleDefault state token =
+    case state.currentToken of
+        Nothing ->
+            ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
+
+        Just textToken ->
+            ( setIndex (state.tokenIndex + 1) token :: textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+
+
 nextStep : State Token -> Step (State Token) (List Token)
 nextStep state =
     if state.scanpointer >= state.sourceLength then
-        case state.currentToken of
-            Just token ->
-                Done (token :: state.tokens)
-
-            Nothing ->
-                Done state.tokens
+        finish state
 
     else
         let
@@ -273,35 +313,19 @@ nextStep state =
             ( tokens, tokenIndex, currentToken_ ) =
                 if isTextToken token then
                     -- update the current token so as to merge words into a single phrase
-                    ( state.tokens, state.tokenIndex, updateCurrentToken state.tokenIndex token state.currentToken )
+                    handleMerge state token
 
                 else if type_ token == TBS then
-                    -- commit a left bracket token immediately, taking care to commit the currentToken if it contains text
-                    case state.currentToken of
-                        Nothing ->
-                            ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
-
-                        Just textToken ->
-                            ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+                    handleBS state token
 
                 else if type_ token == TLB then
                     -- commit a left bracket token immediately, taking care to commit the currentToken if it contains text
-                    case state.currentToken of
-                        Nothing ->
-                            ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
-
-                        Just textToken ->
-                            ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+                    handleLB state token
 
                 else
                     -- the token is neither a left bracket token nore a text token.  Commit it immediately, taking care
                     -- to also commit the currentToken if it holds text.
-                    case state.currentToken of
-                        Nothing ->
-                            ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
-
-                        Just textToken ->
-                            ( setIndex (state.tokenIndex + 1) token :: textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+                    handleDefault state token
 
             currentToken =
                 if isTextToken token then
