@@ -55,7 +55,7 @@ generatePdf document =
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
         , url = "https://pdfserv.app/pdf"
-        , body = Http.jsonBody (encodeForPDF document.id "-" contentForExport imageUrls)
+        , body = Http.jsonBody (encodeForPDF document.id contentForExport imageUrls)
         , expect = Http.expectString GotPdfLink
         , timeout = Nothing
         , tracker = Nothing
@@ -76,8 +76,8 @@ gotLink model result =
             )
 
 
-encodeForPDF : String -> String -> String -> List String -> E.Value
-encodeForPDF id title content urlList =
+encodeForPDF : String -> String -> List String -> E.Value
+encodeForPDF id content urlList =
     E.object
         [ ( "id", E.string id )
         , ( "content", E.string content )

@@ -1,4 +1,4 @@
-module Frontend exposing (Model, adjustId, app, changePrintingState, debounceConfig, exportDoc, exportToLaTeX, firstSyncLR, fixId_, init, issueCommandIfDefined, nextSyncLR, save, setPermissions, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
+module Frontend exposing (Model, adjustId, app, changePrintingState, debounceConfig, exportDoc, exportToLaTeX, firstSyncLR, fixId_, init, issueCommandIfDefined, nextSyncLR, save, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Authentication
 import Backend.Backup
@@ -180,48 +180,10 @@ update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
 update msg model =
     case msg of
         KeyMsg keyMsg ->
-            let
-                pressedKeys =
-                    Keyboard.update keyMsg model.pressedKeys
-
-                doSync =
-                    if List.member Keyboard.Control pressedKeys && List.member (Keyboard.Character "S") pressedKeys then
-                        not model.doSync
-
-                    else
-                        model.doSync
-            in
-            ( { model | pressedKeys = pressedKeys, doSync = doSync }
-            , Cmd.none
-            )
+            Frontend.Update.updateKeys model keyMsg
 
         UrlClicked urlRequest ->
-            case urlRequest of
-                Internal url ->
-                    let
-                        cmd =
-                            case .fragment url of
-                                Just internalId ->
-                                    -- internalId is the part after '#', if present
-                                    View.Utility.setViewportForElement internalId
-
-                                Nothing ->
-                                    --if String.left 3 url.path == "/a/" then
-                                    sendToBackend (GetDocumentByAuthorId (String.dropLeft 3 url.path))
-
-                        --
-                        --else if String.left 3 url.path == "/p/" then
-                        --    sendToBackend (GetDocumentByPublicId (String.dropLeft 3 url.path))
-                        --
-                        --else
-                        --    Nav.pushUrl model.key (Url.toString url)
-                    in
-                    ( model, cmd )
-
-                External url ->
-                    ( model
-                    , Nav.load url
-                    )
+            Frontend.Update.handleUrlRequest model urlRequest
 
         UrlChanged url ->
             -- ( model, Cmd.none )
@@ -233,28 +195,10 @@ update msg model =
 
         -- USER
         SignIn ->
-            if String.length model.inputPassword >= 8 then
-                ( model
-                , sendToBackend (SignInOrSignUp model.inputUsername (Authentication.encryptForTransit model.inputPassword))
-                )
-
-            else
-                ( { model | message = "Password must be at least 8 letters long." }, Cmd.none )
+            Frontend.Update.handleSignIn model
 
         SignOut ->
-            ( { model
-                | currentUser = Nothing
-                , currentDocument = Just Docs.notSignedIn
-                , documents = []
-                , message = "Signed out"
-                , inputSearchKey = ""
-                , inputUsername = ""
-                , inputPassword = ""
-                , showEditor = False
-              }
-            , -- Cmd.none
-              Nav.pushUrl model.key "/"
-            )
+            Frontend.Update.handleSignOut model
 
         -- ADMIN
         ExportJson ->
@@ -278,16 +222,7 @@ update msg model =
             { model | inputSpecial = str } |> withNoCmd
 
         RunSpecial ->
-            case model.currentUser of
-                Nothing ->
-                    model |> withNoCmd
-
-                Just user ->
-                    if user.username == "jxxcarlson" then
-                        model |> withCmd (sendToBackend (ApplySpecial user model.inputSpecial))
-
-                    else
-                        model |> withNoCmd
+            Frontend.Update.runSpecial model
 
         InputUsername str ->
             ( { model | inputUsername = str }, Cmd.none )
@@ -303,23 +238,7 @@ update msg model =
             ( { model | phoneMode = PMShowDocumentList }, Cmd.none )
 
         SetDocumentInPhoneAsCurrent permissions doc ->
-            let
-                ast =
-                    Markup.parse doc.language doc.content |> Compiler.Acc.transformST doc.language
-            in
-            ( { model
-                | currentDocument = Just doc
-                , sourceText = doc.content
-                , initialText = doc.content
-                , title = Compiler.ASTTools.title model.language ast
-                , tableOfContents = Compiler.ASTTools.tableOfContents ast
-                , message = "id = " ++ doc.id
-                , permissions = setPermissions model.currentUser permissions doc
-                , counter = model.counter + 1
-                , phoneMode = PMShowDocument
-              }
-            , View.Utility.setViewPortToTop
-            )
+            Frontend.Update.setDocumentInPhoneAsCurrent model doc permissions
 
         SetAppMode appMode ->
             ( { model | appMode = appMode }, Cmd.none )
@@ -331,14 +250,7 @@ update msg model =
             Frontend.Update.updateWithViewport vp model
 
         SetViewPortForElement result ->
-            case result of
-                Ok ( element, viewport ) ->
-                    ( { model | message = model.message ++ ", setting viewport" }, View.Utility.setViewPortForSelectedLine element viewport )
-
-                Err _ ->
-                    -- TODO: restore error message
-                    -- ( { model | message = model.message ++ ", could not set viewport" }, Cmd.none )
-                    ( model, Cmd.none )
+            Frontend.Update.setViewportForElement model result
 
         InputSearchSource str ->
             ( { model | searchSourceText = str, foundIdIndex = 0 }, Cmd.none )
@@ -572,25 +484,7 @@ update msg model =
                     )
 
         SetDocumentAsCurrent permissions doc ->
-            let
-                newEditRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
-            in
-            ( { model
-                | currentDocument = Just doc
-                , sourceText = doc.content
-                , initialText = doc.content
-                , editRecord = newEditRecord
-                , title =
-                    Compiler.ASTTools.title model.language newEditRecord.parsed
-                , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                , message = "id = " ++ doc.id
-                , permissions = setPermissions model.currentUser permissions doc
-                , counter = model.counter + 1
-                , language = doc.language
-              }
-            , Cmd.batch [ View.Utility.setViewPortToTop ]
-            )
+            Frontend.Update.setDocumentAsCurrent model doc permissions
 
         SetPublic doc public ->
             let
@@ -727,19 +621,6 @@ fixId_ str =
                     String.toInt prefix |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt
             in
             (p :: List.drop 1 parts) |> String.join "."
-
-
-setPermissions currentUser permissions document =
-    case document.author of
-        Nothing ->
-            permissions
-
-        Just author ->
-            if Just author == Maybe.map .username currentUser then
-                CanEdit
-
-            else
-                permissions
 
 
 save : String -> Cmd FrontendMsg
