@@ -167,114 +167,102 @@ updateReference tag_ id_ numRef_ acc =
         acc
 
 
-updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
+updateWithOrdinarySectionBlock : Accumulator -> Maybe String -> Either String (List Expr) -> String -> String -> Accumulator
+updateWithOrdinarySectionBlock accumulator name content level id =
+    let
+        ( inList, initialNumberedVector ) =
+            listData accumulator name
+
+        title =
+            case content of
+                Left str ->
+                    str
+
+                Right expr ->
+                    List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
+
+        sectionTag =
+            title |> String.toLower |> String.replace " " "-"
+
+        headingIndex =
+            Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
+    in
+    -- TODO: take care of numberedItemIndex = 0 here and elsewhere
+    { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
+
+
+updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
     let
         ( inList, initialNumberedVector ) =
             listData accumulator name
     in
+    case List.head args_ of
+        Just "defs" ->
+            -- incorporate runtime macro definitions
+            case content of
+                Left _ ->
+                    accumulator
+
+                Right exprs ->
+                    { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
+
+        Just "setcounter" ->
+            case content of
+                Left _ ->
+                    accumulator
+
+                Right exprs ->
+                    let
+                        ctr =
+                            case exprs of
+                                [ Text val _ ] ->
+                                    String.toInt val |> Maybe.withDefault 1
+
+                                _ ->
+                                    1
+
+                        headingIndex =
+                            Vector.init accumulator.headingIndex.size |> Vector.set 0 (ctr - 1)
+                    in
+                    { accumulator | headingIndex = headingIndex }
+
+        Just "numbered" ->
+            let
+                level =
+                    case lang of
+                        MicroLaTeXLang ->
+                            indent // 2
+
+                        L0Lang ->
+                            indent // 2 - 1
+
+                itemVector =
+                    case initialNumberedVector of
+                        Just v ->
+                            v
+
+                        Nothing ->
+                            Vector.increment level accumulator.itemVector
+
+                numberedItemDict =
+                    Dict.insert id { level = level, index = Vector.get level itemVector } accumulator.numberedItemDict
+            in
+            { accumulator | inList = inList, itemVector = itemVector, numberedItemDict = numberedItemDict }
+                |> updateReference tag id (String.fromInt (Vector.get level itemVector))
+
+        _ ->
+            accumulator
+
+
+updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
+updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     case blockType of
         -- provide numbering for sections
         OrdinaryBlock [ "section", level ] ->
-            let
-                title =
-                    case content of
-                        Left str ->
-                            str
-
-                        Right expr ->
-                            List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
-
-                sectionTag =
-                    title |> String.toLower |> String.replace " " "-"
-
-                headingIndex =
-                    Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
-            in
-            -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-            { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
+            updateWithOrdinarySectionBlock accumulator name content level id
 
         OrdinaryBlock args_ ->
-            case List.head args_ of
-                Just "defs" ->
-                    -- incorporate runtime macro definitions
-                    case content of
-                        Left _ ->
-                            accumulator
-
-                        Right exprs ->
-                            { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
-
-                Just "setcounter" ->
-                    case content of
-                        Left _ ->
-                            accumulator
-
-                        Right exprs ->
-                            let
-                                ctr =
-                                    case exprs of
-                                        [ Text val _ ] ->
-                                            String.toInt val |> Maybe.withDefault 1
-
-                                        _ ->
-                                            1
-
-                                headingIndex =
-                                    Vector.init accumulator.headingIndex.size |> Vector.set 0 (ctr - 1)
-                            in
-                            { accumulator | headingIndex = headingIndex }
-
-                Just "numbered" ->
-                    let
-                        level =
-                            case lang of
-                                MicroLaTeXLang ->
-                                    indent // 2
-
-                                L0Lang ->
-                                    indent // 2 - 1
-
-                        itemVector =
-                            case initialNumberedVector of
-                                Just v ->
-                                    v
-
-                                Nothing ->
-                                    Vector.increment level accumulator.itemVector
-
-                        numberedItemDict =
-                            Dict.insert id { level = level, index = Vector.get level itemVector } accumulator.numberedItemDict
-                    in
-                    { accumulator | inList = inList, itemVector = itemVector, numberedItemDict = numberedItemDict }
-                        |> updateReference tag id (String.fromInt (Vector.get level itemVector))
-
-                Just name_ ->
-                    let
-                        revisedTag =
-                            if name == Just "bibitem" then
-                                List.Extra.getAt 0 args |> Maybe.withDefault ""
-
-                            else
-                                tag
-
-                        -- TODO: restrict to name_ in designated (but dynamic) list
-                        newCounter =
-                            if List.member name_ accumulator.numberedBlockNames then
-                                incrementCounter name_ accumulator.counter
-
-                            else
-                                accumulator.counter
-                    in
-                    { accumulator
-                        | inList = inList
-                        , counter = newCounter
-                        , terms = addTermsFromContent id content accumulator.terms
-                    }
-                        |> updateReference revisedTag id (String.fromInt (getCounter name_ newCounter))
-
-                _ ->
-                    { accumulator | inList = inList }
+            updateWitOrdinaryBlock lang accumulator name content args_ tag id indent
 
         -- provide for numbering of equations
         VerbatimBlock [ "mathmacros" ] ->
@@ -298,6 +286,9 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
 
         VerbatimBlock [ name_ ] ->
             let
+                ( inList, initialNumberedVector ) =
+                    listData accumulator name
+
                 newCounter =
                     if List.member name_ accumulator.numberedBlockNames then
                         incrementCounter name_ accumulator.counter
@@ -309,10 +300,18 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
                 |> updateReference tag id (getCounter name_ newCounter |> String.fromInt)
 
         Paragraph ->
+            let
+                ( inList, initialNumberedVector ) =
+                    listData accumulator name
+            in
             { accumulator | inList = inList, terms = addTermsFromContent id content accumulator.terms }
 
         _ ->
             -- TODO: take care of numberedItemIndex
+            let
+                ( inList, initialNumberedVector ) =
+                    listData accumulator name
+            in
             { accumulator | inList = inList }
 
 
