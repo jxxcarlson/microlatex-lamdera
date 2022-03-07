@@ -90,9 +90,6 @@ init =
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
 update msg model =
     case msg of
-        NoOpBackendMsg ->
-            ( model, Cmd.none )
-
         GotAtomsphericRandomNumber result ->
             Backend.Update.gotAtmosphericRandomNumber model result
 
@@ -103,9 +100,6 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
-        NoOpToBackend ->
-            ( model, Cmd.none )
-
         -- ADMIN
         GetBackupData ->
             ( model, Backend.Cmd.exportJson model clientId )

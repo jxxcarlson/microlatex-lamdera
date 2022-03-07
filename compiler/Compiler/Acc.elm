@@ -142,6 +142,22 @@ expand dict (ExpressionBlock block) =
     ExpressionBlock { block | content = Either.map (List.map (Lambda.expand dict)) block.content }
 
 
+listData : Accumulator -> Maybe String -> ( Bool, Maybe Vector )
+listData accumulator name =
+    case ( accumulator.inList, name ) of
+        ( False, Just "numbered" ) ->
+            ( True, Just (Vector.init 4 |> Vector.increment 0) )
+
+        ( False, _ ) ->
+            ( False, Nothing )
+
+        ( True, Just "numbered" ) ->
+            ( True, Nothing )
+
+        ( True, _ ) ->
+            ( False, Nothing )
+
+
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
     let
@@ -154,18 +170,7 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
                 acc
 
         ( inList, initialNumberedVector ) =
-            case ( accumulator.inList, name ) of
-                ( False, Just "numbered" ) ->
-                    ( True, Just (Vector.init 4 |> Vector.increment 0) )
-
-                ( False, _ ) ->
-                    ( False, Nothing )
-
-                ( True, Just "numbered" ) ->
-                    ( True, Nothing )
-
-                ( True, _ ) ->
-                    ( False, Nothing )
+            listData accumulator name
     in
     case blockType of
         -- provide numbering for sections

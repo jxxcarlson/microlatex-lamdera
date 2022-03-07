@@ -829,9 +829,6 @@ issueCommandIfDefined maybeSomething model cmdMsg =
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     case msg of
-        NoOpToFrontend ->
-            ( model, Cmd.none )
-
         -- DOCUMENT
         SendDocument access doc ->
             let

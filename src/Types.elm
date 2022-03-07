@@ -274,9 +274,8 @@ type SearchTerm
 
 
 type ToBackend
-    = NoOpToBackend
-      -- ADMIN
-    | GetBackupData
+    = --ADMIN
+      GetBackupData
     | RunTask
     | GetStatus
     | RestoreBackup BackupOLD
@@ -297,15 +296,13 @@ type ToBackend
 
 
 type BackendMsg
-    = NoOpBackendMsg
-    | GotAtomsphericRandomNumber (Result Http.Error String)
+    = GotAtomsphericRandomNumber (Result Http.Error String)
     | Tick Time.Posix
 
 
 type ToFrontend
-    = NoOpToFrontend
-      -- ADMIN
-    | SendBackupData String
+    = -- ADMIN
+      SendBackupData String
       -- USEr
     | SendUser User
       -- DOCUMENT
