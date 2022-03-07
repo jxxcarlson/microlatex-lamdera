@@ -160,7 +160,7 @@ large g acc s exprList =
 
 
 link : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
-link g acc s exprList =
+link _ _ _ exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
             errorText_ "Please provide label and url"
@@ -186,7 +186,7 @@ link g acc s exprList =
 
 
 href : Int -> Accumulator -> Settings -> List Expr -> Element L0Msg
-href g acc s exprList =
+href _ _ _ exprList =
     let
         url =
             List.Extra.getAt 0 exprList |> Maybe.andThen ASTTools.getText |> Maybe.withDefault ""
@@ -200,7 +200,7 @@ href g acc s exprList =
         }
 
 
-ilink g acc s exprList =
+ilink _ _ _ exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
             errorText_ "Please provide label and url"
@@ -376,7 +376,7 @@ skip g acc s exprList =
     f1 f g acc s exprList
 
 
-vskip g acc s exprList =
+vskip _ _ _ exprList =
     let
         h =
             ASTTools.exprListToStringList exprList |> String.join "" |> String.toInt |> Maybe.withDefault 0

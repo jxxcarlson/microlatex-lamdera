@@ -25,7 +25,7 @@ htmlId str =
 
 
 render : Int -> Accumulator -> Settings -> ExpressionBlock Expr -> Element L0Msg
-render count acc settings (ExpressionBlock { name, args, indent, blockType, content, lineNumber, id, children }) =
+render count acc settings (ExpressionBlock { name, args, blockType, content, id }) =
     case blockType of
         Paragraph ->
             case content of
@@ -205,7 +205,7 @@ renderWithDefault default count acc settings exprs =
         List.map (Render.Elm.render count acc settings) exprs
 
 
-indented count acc settings args id exprs =
+indented count acc settings _ id exprs =
     Element.paragraph ([ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         (renderWithDefault "| indent" count acc settings exprs)
 
@@ -261,7 +261,7 @@ env name count acc settings args id exprs =
 
 
 renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
-renderDisplayMath prefix count acc settings args id str =
+renderDisplayMath prefix count acc settings _ id str =
     let
         w =
             String.fromInt settings.width ++ "px"
@@ -347,7 +347,7 @@ highlightAttrs id settings =
 
 
 renderCode : Int -> Accumulator -> Settings -> List String -> String -> String -> Element L0Msg
-renderCode count acc settings args id str =
+renderCode _ _ _ _ id str =
     Element.column
         [ Font.color (Element.rgb255 170 0 250)
         , Font.family
@@ -362,7 +362,7 @@ renderCode count acc settings args id str =
         (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
 
 
-item count acc settings args id exprs =
+item count acc settings _ id exprs =
     Element.row ([ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 12 ] ++ highlightAttrs id settings)
         [ Element.el [ Font.size 18, Element.alignTop, Element.moveRight 6, Element.width (Element.px 24), Render.Settings.leftIndentation ] (Element.text "•")
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
