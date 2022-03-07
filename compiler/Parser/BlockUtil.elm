@@ -14,7 +14,7 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
-import Parser.Block exposing (Block(..), BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), TextBlock(..))
 import Parser.Common
 import Parser.Error
 import Parser.Helpers as Helpers
@@ -239,7 +239,7 @@ split_ str_ =
 -- ( List.head lines |> Maybe.withDefault "", lines |> List.drop 1 |> String.join "\n" )
 
 
-toL0Block : (Tree.BlocksV.Block -> BlockType) -> Tree.BlocksV.Block -> Block
+toL0Block : (Tree.BlocksV.Block -> BlockType) -> Tree.BlocksV.Block -> TextBlock
 toL0Block classify block =
     let
         blockType =
@@ -247,7 +247,7 @@ toL0Block classify block =
     in
     case blockType of
         Paragraph ->
-            Block
+            TextBlock
                 { name = Nothing
                 , args = []
                 , indent = block.indent
@@ -258,7 +258,7 @@ toL0Block classify block =
                 }
 
         OrdinaryBlock args ->
-            Block
+            TextBlock
                 { name = List.head args
                 , args = List.drop 1 args
                 , indent = block.indent
@@ -269,7 +269,7 @@ toL0Block classify block =
                 }
 
         VerbatimBlock args ->
-            Block
+            TextBlock
                 { name = List.head args
                 , args = List.drop 1 args
                 , indent = block.indent
