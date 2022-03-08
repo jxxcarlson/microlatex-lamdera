@@ -3,7 +3,7 @@ module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLa
 import Backend.Backup
 import Browser.Events
 import Browser.Navigation as Nav
-import Cmd.Extra exposing (withCmd, withNoCmd)
+import Cmd.Extra exposing (withNoCmd)
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
@@ -32,7 +32,6 @@ import Util
 import View.Data
 import View.Main
 import View.Phone
-import View.Utility
 
 
 type alias Model =

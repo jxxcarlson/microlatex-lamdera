@@ -53,7 +53,6 @@ import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
 import Types exposing (..)
-import Url exposing (Url)
 import View.Utility
 
 

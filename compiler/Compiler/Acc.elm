@@ -170,7 +170,7 @@ updateReference tag_ id_ numRef_ acc =
 updateWithOrdinarySectionBlock : Accumulator -> Maybe String -> Either String (List Expr) -> String -> String -> Accumulator
 updateWithOrdinarySectionBlock accumulator name content level id =
     let
-        ( inList, initialNumberedVector ) =
+        ( inList, _ ) =
             listData accumulator name
 
         title =
@@ -276,7 +276,7 @@ updateWithMathMacros accumulator content =
 
 updateWithVerbatimBlock accumulator name_ tag id =
     let
-        ( inList, initialNumberedVector ) =
+        ( inList, _ ) =
             listData accumulator name_
 
         name =
@@ -295,7 +295,7 @@ updateWithVerbatimBlock accumulator name_ tag id =
 
 updateWithParagraph accumulator name content id =
     let
-        ( inList, initialNumberedVector ) =
+        ( inList, _ ) =
             listData accumulator name
     in
     { accumulator | inList = inList, terms = addTermsFromContent id content accumulator.terms }
@@ -315,7 +315,7 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
         VerbatimBlock [ "mathmacros" ] ->
             updateWithMathMacros accumulator content
 
-        VerbatimBlock [ name_ ] ->
+        VerbatimBlock [ _ ] ->
             updateWithVerbatimBlock accumulator name tag id
 
         Paragraph ->
@@ -324,7 +324,7 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
         _ ->
             -- TODO: take care of numberedItemIndex
             let
-                ( inList, initialNumberedVector ) =
+                ( inList, _ ) =
                     listData accumulator name
             in
             { accumulator | inList = inList }
