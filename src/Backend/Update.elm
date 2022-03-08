@@ -1,7 +1,10 @@
 module Backend.Update exposing
-    ( createDocument
+    ( applySpecial
+    , createDocument
     , deleteDocument
     , fetchDocumentById
+    , getDocumentByAuthorId
+    , getDocumentById
     , getDocumentByPublicId
     , getHomePage
     , getUserDocuments
@@ -25,6 +28,7 @@ import Document
 import Hex
 import Lamdera exposing (ClientId, broadcast, sendToFrontend)
 import Maybe.Extra
+import Parser.Language exposing (Language(..))
 import Random
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, DocPermissions(..), DocumentDict, ToFrontend(..), UsersDocumentsDict)
@@ -33,6 +37,75 @@ import User exposing (User)
 
 type alias Model =
     BackendModel
+
+
+applySpecial model clientId =
+    let
+        badDocs =
+            getBadDocuments model
+
+        updateDoc doc mod =
+            let
+                content =
+                    case doc.language of
+                        L0Lang ->
+                            "| title\n<<untitled>>\n\n"
+
+                        MicroLaTeXLang ->
+                            "\\title{<<untitled>>}\n\n"
+
+                documentDict =
+                    Dict.insert doc.id { doc | title = "<<untitled>>", content = content, modified = model.currentTime } mod.documentDict
+            in
+            { mod | documentDict = documentDict }
+
+        newModel =
+            List.foldl (\doc m -> updateDoc doc m) model (badDocs |> List.map Tuple.second)
+    in
+    ( newModel, sendToFrontend clientId (SendMessage ("Bad docs: " ++ String.fromInt (List.length badDocs))) )
+
+
+getBadDocuments model =
+    model.documentDict |> Dict.toList |> List.filter (\( _, doc ) -> doc.title == "")
+
+
+getDocumentById model clientId id =
+    case Dict.get id model.documentDict of
+        Nothing ->
+            ( model, sendToFrontend clientId (SendMessage "No document for that docId") )
+
+        Just doc ->
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (SendDocument CanEdit doc)
+                , sendToFrontend clientId (SetShowEditor False)
+                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
+                ]
+            )
+
+
+getDocumentByAuthorId model clientId authorId =
+    case Dict.get authorId model.authorIdDict of
+        Nothing ->
+            ( model
+            , sendToFrontend clientId (SendMessage "GetDocumentByAuthorId, No docId for that authorId")
+            )
+
+        Just docId ->
+            case Dict.get docId model.documentDict of
+                Nothing ->
+                    ( model
+                    , sendToFrontend clientId (SendMessage "No document for that docId")
+                    )
+
+                Just doc ->
+                    ( model
+                    , Cmd.batch
+                        [ sendToFrontend clientId (SendDocument CanEdit doc)
+                        , sendToFrontend clientId (SetShowEditor True)
+                        , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
+                        ]
+                    )
 
 
 getHomePage model clientId username =

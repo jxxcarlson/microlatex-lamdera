@@ -5,7 +5,6 @@ module Backend exposing
     , authorUrl
     , filterDict
     , getAbstract
-    , getBadDocuments
     , init
     , makeLink
     , publicLink
@@ -131,77 +130,20 @@ updateFromFrontend _ clientId msg model =
             Backend.Update.getHomePage model clientId username
 
         GetDocumentByAuthorId authorId ->
-            case Dict.get authorId model.authorIdDict of
-                Nothing ->
-                    ( model
-                    , sendToFrontend clientId (SendMessage "GetDocumentByAuthorId, No docId for that authorId")
-                    )
-
-                Just docId ->
-                    case Dict.get docId model.documentDict of
-                        Nothing ->
-                            ( model
-                            , sendToFrontend clientId (SendMessage "No document for that docId")
-                            )
-
-                        Just doc ->
-                            ( model
-                            , Cmd.batch
-                                [ sendToFrontend clientId (SendDocument CanEdit doc)
-                                , sendToFrontend clientId (SetShowEditor True)
-                                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
-                                ]
-                            )
+            Backend.Update.getDocumentByAuthorId model clientId authorId
 
         GetDocumentById id ->
-            case Dict.get id model.documentDict of
-                Nothing ->
-                    ( model, sendToFrontend clientId (SendMessage "No document for that docId") )
-
-                Just doc ->
-                    ( model
-                    , Cmd.batch
-                        [ sendToFrontend clientId (SendDocument CanEdit doc)
-                        , sendToFrontend clientId (SetShowEditor False)
-                        , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
-                        ]
-                    )
+            Backend.Update.getDocumentById model clientId id
 
         GetPublicDocuments ->
             ( model, sendToFrontend clientId (GotPublicDocuments (Backend.Update.searchForDocuments_ "" model)) )
 
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
-            let
-                badDocs =
-                    getBadDocuments model
-
-                updateDoc doc mod =
-                    let
-                        content =
-                            case doc.language of
-                                L0Lang ->
-                                    "| title\n<<untitled>>\n\n"
-
-                                MicroLaTeXLang ->
-                                    "\\title{<<untitled>>}\n\n"
-
-                        documentDict =
-                            Dict.insert doc.id { doc | title = "<<untitled>>", content = content, modified = model.currentTime } mod.documentDict
-                    in
-                    { mod | documentDict = documentDict }
-
-                newModel =
-                    List.foldl (\doc m -> updateDoc doc m) model (badDocs |> List.map Tuple.second)
-            in
-            ( newModel, sendToFrontend clientId (SendMessage ("Bad docs: " ++ String.fromInt (List.length badDocs))) )
+            Backend.Update.applySpecial model clientId
 
         DeleteDocumentBE doc ->
             Backend.Update.deleteDocument doc model
-
-
-getBadDocuments model =
-    model.documentDict |> Dict.toList |> List.filter (\( _, doc ) -> doc.title == "")
 
 
 makeLink : String -> DocumentDict -> AbstractDict -> Maybe DocumentLink
