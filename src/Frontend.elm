@@ -1,4 +1,4 @@
-module Frontend exposing (Model, app, changePrintingState, debounceConfig, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, save, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
+module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Authentication
 import Backend.Backup
@@ -28,7 +28,6 @@ import Markup
 import Parser.Language exposing (Language(..))
 import Process
 import Render.LaTeX as LaTeX
-import Render.Markup as L0
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
@@ -127,13 +126,6 @@ init url key =
         , sendToBackend GetPublicDocuments
         ]
     )
-
-
-debounceConfig : Debounce.Config FrontendMsg
-debounceConfig =
-    { strategy = Debounce.soon 300
-    , transform = DebounceMsg
-    }
 
 
 urlAction path =
@@ -305,17 +297,7 @@ update msg model =
             ( model, sendToBackend (FetchDocumentById id) )
 
         DebounceMsg msg_ ->
-            let
-                ( debounce, cmd ) =
-                    Debounce.update
-                        debounceConfig
-                        (Debounce.takeLast save)
-                        msg_
-                        model.debounce
-            in
-            ( { model | debounce = debounce }
-            , cmd
-            )
+            Frontend.Update.debounceMsg model msg_
 
         Saved str ->
             updateDoc model str
@@ -340,31 +322,7 @@ update msg model =
 
         -- ( model, Cmd.none )
         InputText str ->
-            let
-                -- Push your values here.
-                ( debounce, cmd ) =
-                    Debounce.push debounceConfig str model.debounce
-            in
-            let
-                editRecord =
-                    Compiler.DifferentialParser.update model.editRecord str
-
-                messages : List String
-                messages =
-                    L0.getMessages
-                        editRecord.parsed
-            in
-            ( { model
-                | sourceText = str
-                , editRecord = editRecord
-                , title = Compiler.ASTTools.title model.language editRecord.parsed
-                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , message = String.join ", " messages
-                , debounce = debounce
-                , counter = model.counter + 1
-              }
-            , cmd
-            )
+            Frontend.Update.inputText model str
 
         SetInitialEditorContent ->
             case model.currentDocument of
@@ -508,11 +466,6 @@ fixId_ str =
                     String.toInt prefix |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt
             in
             (p :: List.drop 1 parts) |> String.join "."
-
-
-save : String -> Cmd FrontendMsg
-save s =
-    Task.perform Saved (Task.succeed s)
 
 
 updateDoc model str =

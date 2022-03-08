@@ -1,10 +1,12 @@
 module Frontend.Update exposing
     ( adjustId
     , cycleLanguage
+    , debounceMsg
     , firstSyncLR
     , handleSignIn
     , handleSignOut
     , handleUrlRequest
+    , inputText
     , newDocument
     , nextSyncLR
     , render
@@ -21,44 +23,80 @@ module Frontend.Update exposing
 --
 
 import Authentication
-import Backend.Backup
 import Browser exposing (UrlRequest(..))
-import Browser.Events
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
-import Config
 import Debounce
 import Docs
 import Document exposing (Document)
-import Element
-import File
-import File.Download as Download
-import File.Select as Select
-import Frontend.Cmd
-import Frontend.PDF as PDF
-import Html
 import Keyboard
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
 import Parser.Language exposing (Language(..))
-import Process
-import Render.LaTeX as LaTeX
-import Render.Markup as L0
+import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
-import Render.Settings as Settings
 import Task
 import Types exposing (..)
 import Url exposing (Url)
-import UrlManager
-import Util
-import View.Data
-import View.Main
-import View.Phone
 import View.Utility
+
+
+save : String -> Cmd FrontendMsg
+save s =
+    Task.perform Saved (Task.succeed s)
+
+
+inputText model str =
+    let
+        -- Push your values here.
+        ( debounce, cmd ) =
+            Debounce.push debounceConfig str model.debounce
+    in
+    let
+        editRecord =
+            Compiler.DifferentialParser.update model.editRecord str
+
+        messages : List String
+        messages =
+            Render.Markup.getMessages
+                editRecord.parsed
+    in
+    ( { model
+        | sourceText = str
+        , editRecord = editRecord
+        , title = Compiler.ASTTools.title model.language editRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
+        , message = String.join ", " messages
+        , debounce = debounce
+        , counter = model.counter + 1
+      }
+    , cmd
+    )
+
+
+debounceMsg model msg_ =
+    let
+        ( debounce, cmd ) =
+            Debounce.update
+                debounceConfig
+                (Debounce.takeLast save)
+                msg_
+                model.debounce
+    in
+    ( { model | debounce = debounce }
+    , cmd
+    )
+
+
+debounceConfig : Debounce.Config FrontendMsg
+debounceConfig =
+    { strategy = Debounce.soon 300
+    , transform = DebounceMsg
+    }
 
 
 render model msg_ =
