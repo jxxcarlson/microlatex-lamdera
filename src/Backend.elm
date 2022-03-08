@@ -11,9 +11,6 @@ module Backend exposing
     , publicLink
     , publicUrl
     , putAbstract
-    , searchForDocuments
-    , searchForPublicDocuments
-    , searchForUserDocuments
     , searchInAbstract
     , statusReport
     , stealId
@@ -111,34 +108,14 @@ updateFromFrontend _ clientId msg model =
             ( model, Cmd.none )
 
         SearchForDocuments maybeUsername key ->
-            ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (SendDocuments (searchForUserDocuments maybeUsername key model))
-                , sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments key model))
-                ]
-            )
+            Backend.Update.searchForDocuments model clientId maybeUsername key
 
         GetStatus ->
             ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
 
         -- USER
         SignInOrSignUp username encryptedPassword ->
-            case Dict.get username model.authenticationDict of
-                Just userData ->
-                    if Authentication.verify username encryptedPassword model.authenticationDict then
-                        ( model
-                        , Cmd.batch
-                            [ sendToFrontend clientId (SendDocuments <| Backend.Update.getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
-                            , sendToFrontend clientId (SendUser userData.user)
-                            , sendToFrontend clientId (SendMessage <| "Success! your are signed in and your documents are now available")
-                            ]
-                        )
-
-                    else
-                        ( model, sendToFrontend clientId (SendMessage <| "Sorry, password and username don't match") )
-
-                Nothing ->
-                    Backend.Update.setupUser model clientId username encryptedPassword
+            Backend.Update.signInOrSignUp model clientId username encryptedPassword
 
         -- DOCUMENTS
         CreateDocument maybeCurrentUser doc_ ->
@@ -263,7 +240,7 @@ updateFromFrontend _ clientId msg model =
         GetHomePage username ->
             let
                 docs =
-                    searchForPublicDocuments ("home:" ++ username) model
+                    Backend.Update.searchForDocuments_ ("home:" ++ username) model
             in
             case List.head docs of
                 Nothing ->
@@ -316,7 +293,7 @@ updateFromFrontend _ clientId msg model =
                     )
 
         GetPublicDocuments ->
-            ( model, sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments "" model)) )
+            ( model, sendToFrontend clientId (GotPublicDocuments (Backend.Update.searchForDocuments_ "" model)) )
 
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
@@ -489,43 +466,6 @@ filterDict predicate dict =
                     item :: list_
     in
     List.foldl (\key list_ -> add key dict list_) [] (Dict.keys dict)
-
-
-searchForPublicDocuments : String -> Model -> List Document.Document
-searchForPublicDocuments key model =
-    searchForDocuments key model |> List.filter (\doc -> doc.public)
-
-
-searchForUserDocuments : Maybe String -> String -> Model -> List Document.Document
-searchForUserDocuments maybeUsername key model =
-    --case maybeUsername of
-    --    Nothing ->
-    --        []
-    --
-    --    Just username ->
-    --        searchForDocuments key model |> List.filter (\doc -> doc.author == Just username)
-    let
-        ids =
-            Dict.toList model.abstractDict
-                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
-                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
-                |> List.map (\( _, id ) -> id)
-    in
-    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids
-        |> Maybe.Extra.values
-        |> List.filter (\doc -> doc.author /= Just "" && doc.author == maybeUsername)
-
-
-searchForDocuments : String -> Model -> List Document.Document
-searchForDocuments key model =
-    let
-        ids =
-            Dict.toList model.abstractDict
-                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
-                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
-                |> List.map (\( _, id ) -> id)
-    in
-    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids |> Maybe.Extra.values
 
 
 

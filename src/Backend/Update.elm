@@ -2,7 +2,11 @@ module Backend.Update exposing
     ( deleteDocument
     , getUserDocuments
     , gotAtmosphericRandomNumber
+    , searchForDocuments
+    , searchForDocuments_
+    , searchForPublicDocuments
     , setupUser
+    , signInOrSignUp
     , updateAbstracts
     )
 
@@ -21,6 +25,65 @@ import User exposing (User)
 
 type alias Model =
     BackendModel
+
+
+signInOrSignUp model clientId username encryptedPassword =
+    case Dict.get username model.authenticationDict of
+        Just userData ->
+            if Authentication.verify username encryptedPassword model.authenticationDict then
+                ( model
+                , Cmd.batch
+                    [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
+                    , sendToFrontend clientId (SendUser userData.user)
+                    , sendToFrontend clientId (SendMessage <| "Success! your are signed in and your documents are now available")
+                    ]
+                )
+
+            else
+                ( model, sendToFrontend clientId (SendMessage <| "Sorry, password and username don't match") )
+
+        Nothing ->
+            setupUser model clientId username encryptedPassword
+
+
+searchForDocuments model clientId maybeUsername key =
+    ( model
+    , Cmd.batch
+        [ sendToFrontend clientId (SendDocuments (searchForUserDocuments maybeUsername key model))
+        , sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments key model))
+        ]
+    )
+
+
+searchForPublicDocuments : String -> Model -> List Document.Document
+searchForPublicDocuments key model =
+    searchForDocuments_ key model |> List.filter (\doc -> doc.public)
+
+
+searchForDocuments_ : String -> Model -> List Document.Document
+searchForDocuments_ key model =
+    let
+        ids =
+            Dict.toList model.abstractDict
+                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
+                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
+                |> List.map (\( _, id ) -> id)
+    in
+    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids |> Maybe.Extra.values
+
+
+searchForUserDocuments : Maybe String -> String -> Model -> List Document.Document
+searchForUserDocuments maybeUsername key model =
+    let
+        ids =
+            Dict.toList model.abstractDict
+                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
+                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
+                |> List.map (\( _, id ) -> id)
+    in
+    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids
+        |> Maybe.Extra.values
+        |> List.filter (\doc -> doc.author /= Just "" && doc.author == maybeUsername)
 
 
 
