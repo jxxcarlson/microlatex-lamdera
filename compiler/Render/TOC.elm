@@ -18,7 +18,7 @@ import Tree
 
 
 view : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> Element Render.Msg.MarkupMsg
-view counter acc settings ast =
+view counter acc _ ast =
     case ast |> List.map Tree.flatten |> List.concat |> Compiler.ASTTools.filterBlocksOnName "contents" of
         [] ->
             Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 36 } ]
