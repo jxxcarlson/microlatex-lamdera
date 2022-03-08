@@ -52,7 +52,7 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
-import Types exposing (..)
+import Types exposing (DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), ToBackend(..))
 import View.Utility
 
 
