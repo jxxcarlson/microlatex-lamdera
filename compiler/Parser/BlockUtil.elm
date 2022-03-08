@@ -174,28 +174,16 @@ getVerbatimBlockErrorMessages block rawContent classification state extractMessa
 
 
 fixupVerbatimContent lang rawContent name =
-    let
-        _ =
-            Debug.log "NAME (1)" name
-    in
-    (case lang of
+    case lang of
         L0Lang ->
             rawContent
 
         MicroLaTeXLang ->
-            let
-                _ =
-                    Debug.log "NAME (2)" name
-            in
             case name of
                 "math" ->
                     rawContent
 
                 "equation" ->
-                    let
-                        _ =
-                            Debug.log "EQUATION BRANCH"
-                    in
                     rawContent |> String.replace "\\begin{equation}\n" "" |> String.replace "\n\\end{equation}" ""
 
                 "aligned" ->
@@ -203,8 +191,10 @@ fixupVerbatimContent lang rawContent name =
 
                 _ ->
                     rawContent
-    )
-        |> Debug.log "fixupVerbatimContent"
+
+
+
+-- |> Debug.log "fixupVerbatimContent"
 
 
 addEnd name str =
@@ -224,9 +214,15 @@ makeVerbatimInterMediateBlock lang messages block revisedContent classification 
         -- messages =
         -- getVerbatimBlockErrorMessages block rawContent classification state extractMessages firstLine
         content_ =
-            fixupVerbatimContent lang (rawContent |> Debug.log "RAW") (classification.name |> Maybe.withDefault "((anon))" |> Debug.log "NAME")
+            fixupVerbatimContent lang rawContent (classification.name |> Maybe.withDefault "((anon))")
+
+        -- Debug.log "content_"
     in
-    makeIntermediateBlock block classification.name classification.args content_ messages classification.blockType |> Debug.log "makeVerbatimInterMediateBlock"
+    makeIntermediateBlock block classification.name classification.args content_ messages classification.blockType
+
+
+
+-- |> Debug.log "makeVerbatimInterMediateBlock"
 
 
 makeIntermediateBlock : RawBlock -> Maybe String -> List String -> String -> List String -> BlockType -> IntermediateBlock

@@ -324,13 +324,13 @@ aligned_ count acc settings _ id str =
             -- lines of math text to be rendered: filter stuff out
             String.lines str
                 |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
-                |> Debug.log "FILTERED LINES"
+                |-- > Debug.log "FILTERED LINES"
 
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
 
         lines_ =
-            List.take (n - 1) filteredLines |> Debug.log "LINES_"
+            List.take (n - 1) filteredLines -- |> Debug.log "LINES_"
 
         attrs =
             if id == settings.selectedId then

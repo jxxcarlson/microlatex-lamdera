@@ -187,24 +187,28 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                             else
                                 environment name_ (exportExprList settings exprs_)
 
-        VerbatimBlock _ ->
+        VerbatimBlock args ->
             case content of
                 Left str ->
-                    case name of
-                        Nothing ->
+                    case List.head args of
+                        Just "math" ->
+                            -- TODO: there should be a trailing "$$"
+                            [ "$$", str ] |> String.join "\n"
+
+                        Just "equation" ->
+                            -- TODO: there should be a trailing "$$"
+                            -- TODO: equation numbers and label
+                            [ "\\begin{equation}", str ] |> String.join "\n"
+
+                        Just "aligned" ->
+                            -- TODO: equation numbers and label
+                            [ "\\begin{align}", str, "\\end{align}" ] |> String.join "\n"
+
+                        Just "code" ->
+                            str
+
+                        _ ->
                             environment "anon" str
-
-                        Just name1 ->
-                            if name1 == "$$" || name1 == "math" then
-                                [ "$$", str, "$$" ] |> String.join "\n"
-
-                            else
-                                case Dict.get name1 blockNames of
-                                    Nothing ->
-                                        environment "anon" str
-
-                                    Just name2 ->
-                                        environment name2 str
 
                 Right _ ->
                     "???(13)"
