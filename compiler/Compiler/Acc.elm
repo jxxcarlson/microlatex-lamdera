@@ -231,10 +231,13 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
                 level =
                     case lang of
                         MicroLaTeXLang ->
-                            indent // 2
+                            -- TODO: the -2 shift is due to a bad choice in converting a list of
+                            -- TODO: blocks with indentation info into a forest of trees.
+                            -- TODO: This needs to be fixed
+                            (indent - 2) // 2
 
                         L0Lang ->
-                            indent // 2 - 1
+                            (indent - 2) // 2
 
                 itemVector =
                     case initialNumberedVector of
