@@ -21,7 +21,7 @@ import Parser.Language exposing (Language(..))
 
 
 type alias Classification =
-    { blockType : BlockType, args : List String }
+    { blockType : BlockType, args : List String, name : Maybe String }
 
 
 empty =
@@ -105,7 +105,7 @@ classify lang block =
             MicroLaTeX.Parser.Classify.classify block
 
         L0Lang ->
-            (\block_ -> { blockType = L0.Parser.Classify.classify block_, args = [] }) block
+            L0.Parser.Classify.classify block
 
 
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> RawBlock -> IntermediateBlock
@@ -173,32 +173,38 @@ getVerbatimBlockErrorMessages block rawContent classification state extractMessa
             extractMessages state
 
 
-fixupVerbatimName lang rawContent name =
-    if String.contains ("\\end{" ++ name ++ "}") rawContent then
-        name
-
-    else if String.contains "$$" rawContent then
-        name
-
-    else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
-        "code"
-
-    else
-        "code"
-
-
 fixupVerbatimContent lang rawContent name =
-    if String.contains ("\\end{" ++ name ++ "}") rawContent then
-        String.replace ("\\end{" ++ name ++ "}") "" rawContent |> addEnd name
+    let
+        _ =
+            Debug.log "NAME (1)" name
+    in
+    (case lang of
+        L0Lang ->
+            rawContent
 
-    else if String.contains "$$" rawContent then
-        String.replace "$$" "" rawContent |> addEnd name
+        MicroLaTeXLang ->
+            let
+                _ =
+                    Debug.log "NAME (2)" name
+            in
+            case name of
+                "math" ->
+                    rawContent
 
-    else if not (List.member name [ "math" ]) && lang == MicroLaTeXLang then
-        "\\begin{" ++ name ++ "}\n" ++ rawContent ++ "\\red{underline{  ••• (3)}}"
+                "equation" ->
+                    let
+                        _ =
+                            Debug.log "EQUATION BRANCH"
+                    in
+                    rawContent |> String.replace "\\begin{equation}\n" "" |> String.replace "\n\\end{equation}" ""
 
-    else
-        rawContent
+                "aligned" ->
+                    rawContent |> String.replace "\\begin{aligned}\n" "" |> String.replace "\n\\end{aligned}" ""
+
+                _ ->
+                    rawContent
+    )
+        |> Debug.log "fixupVerbatimContent"
 
 
 addEnd name str =
@@ -209,10 +215,6 @@ addEnd name str =
         str
 
 
-
--- makeVerbatimInterMediateBlock lang messages block filteredContent classification args
-
-
 makeVerbatimInterMediateBlock : Language -> List String -> RawBlock -> String -> Classification -> List String -> IntermediateBlock
 makeVerbatimInterMediateBlock lang messages block revisedContent classification args =
     let
@@ -221,13 +223,10 @@ makeVerbatimInterMediateBlock lang messages block revisedContent classification 
 
         -- messages =
         -- getVerbatimBlockErrorMessages block rawContent classification state extractMessages firstLine
-        revisedName =
-            fixupVerbatimName lang rawContent (List.head args |> Maybe.withDefault "anon")
-
         content_ =
-            fixupVerbatimContent lang rawContent revisedName
+            fixupVerbatimContent lang (rawContent |> Debug.log "RAW") (classification.name |> Maybe.withDefault "((anon))" |> Debug.log "NAME")
     in
-    makeIntermediateBlock block (Just revisedName) classification.args content_ messages classification.blockType |> Debug.log "makeVerbatimInterMediateBlock"
+    makeIntermediateBlock block classification.name classification.args content_ messages classification.blockType |> Debug.log "makeVerbatimInterMediateBlock"
 
 
 makeIntermediateBlock : RawBlock -> Maybe String -> List String -> String -> List String -> BlockType -> IntermediateBlock

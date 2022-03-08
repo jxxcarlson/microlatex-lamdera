@@ -140,18 +140,10 @@ renderComment _ _ _ _ _ _ =
     Element.none
 
 
-equation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
-equation count acc settings args id str =
-    Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
-        [ Element.el [ Element.centerX ] (renderDisplayMath "|| equation" count acc settings args id str)
-        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??(10)" 0 args ++ ")")
-        ]
-
-
 aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 aligned count acc settings args id str =
     Element.row [ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ]
-        [ Element.el [ Element.centerX ] (renderDisplayMath "|| aligned" count acc settings args id str)
+        [ Element.el [ Element.centerX ] (aligned_ count acc settings args id str)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??(11)" 0 args ++ ")")
         ]
 
@@ -290,8 +282,6 @@ renderEquation count acc settings args id str =
             -- lines of math text to be rendered: filter stuff out
             String.lines str
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
-                --|> List.filter (\line -> not (String.left 6 line == "[label"))
-                |> Debug.log "FILTERED LINES"
 
         adjustedLines =
             "\\begin{equation}" :: "\\nonumber" :: filteredLines ++ [ "\\end{equation}" ]
@@ -315,8 +305,8 @@ renderEquation count acc settings args id str =
         ]
 
 
-renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
-renderDisplayMath prefix count acc settings _ id str =
+aligned_ : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+aligned_ count acc settings _ id str =
     let
         w =
             String.fromInt settings.width ++ "px"
@@ -333,9 +323,8 @@ renderDisplayMath prefix count acc settings _ id str =
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines str
-                |> List.filter (\line -> not (String.left 2 line == "$$"))
-                |> List.filter (\line -> not (String.left 6 line == "[label"))
-                |> Debug.log "LINES"
+                |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
+                |> Debug.log "FILTERED LINES"
 
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
@@ -363,14 +352,7 @@ renderDisplayMath prefix count acc settings _ id str =
                 |> List.map (\line -> line ++ "\\\\")
 
         adjustedLines =
-            if prefix == "|| aligned" then
-                "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
-
-            else if prefix == "|| equation" then
-                "\\begin{equation}" :: "\\nonumber" :: adjustedLines_ ++ [ "\\end{equation}" ]
-
-            else
-                lines_
+            "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
 
         content =
             String.join "\n" adjustedLines

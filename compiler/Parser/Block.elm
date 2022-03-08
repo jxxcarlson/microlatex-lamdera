@@ -30,23 +30,6 @@ type alias RawBlock =
 
 
 {-| -}
-type ExpressionBlock
-    = ExpressionBlock
-        { name : Maybe String
-        , args : List String
-        , indent : Int
-        , lineNumber : Int
-        , numberOfLines : Int
-        , id : String
-        , tag : String
-        , blockType : BlockType
-        , content : Either String (List Expr)
-        , messages : List String
-        , sourceText : String
-        }
-
-
-{-| -}
 type IntermediateBlock
     = IntermediateBlock
         { name : Maybe String
@@ -58,6 +41,23 @@ type IntermediateBlock
         , tag : String
         , blockType : BlockType
         , content : String
+        , messages : List String
+        , sourceText : String
+        }
+
+
+{-| -}
+type ExpressionBlock
+    = ExpressionBlock
+        { name : Maybe String
+        , args : List String
+        , indent : Int
+        , lineNumber : Int
+        , numberOfLines : Int
+        , id : String
+        , tag : String
+        , blockType : BlockType
+        , content : Either String (List Expr)
         , messages : List String
         , sourceText : String
         }

@@ -4,23 +4,29 @@ import Parser.Block exposing (BlockType(..))
 import Tree.BlocksV
 
 
-classify : Tree.BlocksV.Block -> BlockType
+classify : Tree.BlocksV.Block -> { blockType : BlockType, args : List String, name : Maybe String }
 classify block =
     let
         str_ =
             String.trim block.content
+
+        args =
+            str_ |> String.lines |> List.head |> Maybe.withDefault "" |> String.words |> List.drop 1
+
+        name =
+            List.head args
     in
     if String.left 2 str_ == "||" then
-        VerbatimBlock (str_ |> String.lines |> List.head |> Maybe.withDefault "" |> String.words |> List.drop 1)
+        { blockType = VerbatimBlock args, args = args, name = name }
 
     else if String.left 1 str_ == "|" then
-        OrdinaryBlock (str_ |> String.lines |> List.head |> Maybe.withDefault "" |> String.words |> List.drop 1)
+        { blockType = OrdinaryBlock args, args = args, name = name }
 
     else if String.left 2 str_ == "$$" then
-        VerbatimBlock [ "math" ]
+        { blockType = VerbatimBlock [ "math" ], args = args, name = name }
 
     else if String.left 3 str_ == "```" then
-        VerbatimBlock [ "code" ]
+        { blockType = VerbatimBlock [ "code" ], args = args, name = name }
 
     else
-        Paragraph
+        { blockType = Paragraph, args = [], name = Nothing }
