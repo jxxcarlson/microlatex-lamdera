@@ -30,11 +30,9 @@ import Dict exposing (Dict)
 import Docs
 import Document
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
-import Maybe.Extra
 import Parser.Language exposing (Language(..))
 import Random
 import Time
-import Token
 import Types exposing (..)
 import User exposing (User)
 
@@ -121,77 +119,16 @@ updateFromFrontend _ clientId msg model =
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
         SaveDocument currentUser document ->
-            case currentUser of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just _ ->
-                    let
-                        documentDict =
-                            Dict.insert document.id { document | modified = model.currentTime } model.documentDict
-                    in
-                    ( { model | documentDict = documentDict }, Cmd.none )
+            Backend.Update.saveDocument model currentUser document
 
         FetchDocumentById docId ->
-            case Dict.get docId model.documentDict of
-                Nothing ->
-                    ( model, sendToFrontend clientId (SendMessage "Couldn't find that document") )
-
-                Just document ->
-                    if document.public then
-                        ( model
-                        , Cmd.batch
-                            [ -- sendToFrontend clientId (SendDocument ReadOnly document)
-                              sendToFrontend clientId (SendDocument CanEdit document)
-                            , sendToFrontend clientId (SetShowEditor True)
-                            , sendToFrontend clientId (SendMessage "Public document received")
-                            ]
-                        )
-
-                    else
-                        ( model
-                        , Cmd.batch
-                            [ sendToFrontend clientId (SendMessage "Sorry, that document is not public")
-                            ]
-                        )
+            Backend.Update.fetchDocumentById model clientId docId
 
         GetDocumentByPublicId publicId ->
-            case Dict.get publicId model.publicIdDict of
-                Nothing ->
-                    ( model, sendToFrontend clientId (SendMessage "GetDocumentByPublicId, No docId for that publicId") )
-
-                Just docId ->
-                    case Dict.get docId model.documentDict of
-                        Nothing ->
-                            ( model, sendToFrontend clientId (SendMessage "No document for that docId") )
-
-                        Just doc ->
-                            ( model
-                            , Cmd.batch
-                                [ sendToFrontend clientId (SendMessage "Public document received")
-                                , sendToFrontend clientId (SendDocument CanEdit doc)
-                                , sendToFrontend clientId (SetShowEditor True)
-                                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
-                                ]
-                            )
+            Backend.Update.getDocumentByPublicId model clientId publicId
 
         GetHomePage username ->
-            let
-                docs =
-                    Backend.Update.searchForDocuments_ ("home:" ++ username) model
-            in
-            case List.head docs of
-                Nothing ->
-                    ( model, sendToFrontend clientId (SendMessage "home page not found") )
-
-                Just doc ->
-                    ( model
-                    , Cmd.batch
-                        [ sendToFrontend clientId (SendMessage "Public document received")
-                        , sendToFrontend clientId (SendDocument CanEdit doc)
-                        , sendToFrontend clientId (SetShowEditor True)
-                        ]
-                    )
+            Backend.Update.getHomePage model clientId username
 
         GetDocumentByAuthorId authorId ->
             case Dict.get authorId model.authorIdDict of

@@ -1,8 +1,12 @@
 module Backend.Update exposing
     ( createDocument
     , deleteDocument
+    , fetchDocumentById
+    , getDocumentByPublicId
+    , getHomePage
     , getUserDocuments
     , gotAtmosphericRandomNumber
+    , saveDocument
     , searchForDocuments
     , searchForDocuments_
     , searchForPublicDocuments
@@ -29,6 +33,83 @@ import User exposing (User)
 
 type alias Model =
     BackendModel
+
+
+getHomePage model clientId username =
+    let
+        docs =
+            searchForDocuments_ ("home:" ++ username) model
+    in
+    case List.head docs of
+        Nothing ->
+            ( model, sendToFrontend clientId (SendMessage "home page not found") )
+
+        Just doc ->
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (SendMessage "Public document received")
+                , sendToFrontend clientId (SendDocument CanEdit doc)
+                , sendToFrontend clientId (SetShowEditor True)
+                ]
+            )
+
+
+getDocumentByPublicId model clientId publicId =
+    case Dict.get publicId model.publicIdDict of
+        Nothing ->
+            ( model, sendToFrontend clientId (SendMessage "GetDocumentByPublicId, No docId for that publicId") )
+
+        Just docId ->
+            case Dict.get docId model.documentDict of
+                Nothing ->
+                    ( model, sendToFrontend clientId (SendMessage "No document for that docId") )
+
+                Just doc ->
+                    ( model
+                    , Cmd.batch
+                        [ sendToFrontend clientId (SendMessage "Public document received")
+                        , sendToFrontend clientId (SendDocument CanEdit doc)
+                        , sendToFrontend clientId (SetShowEditor True)
+                        , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
+                        ]
+                    )
+
+
+fetchDocumentById model clientId docId =
+    case Dict.get docId model.documentDict of
+        Nothing ->
+            ( model, sendToFrontend clientId (SendMessage "Couldn't find that document") )
+
+        Just document ->
+            if document.public then
+                ( model
+                , Cmd.batch
+                    [ -- sendToFrontend clientId (SendDocument ReadOnly document)
+                      sendToFrontend clientId (SendDocument CanEdit document)
+                    , sendToFrontend clientId (SetShowEditor True)
+                    , sendToFrontend clientId (SendMessage "Public document received")
+                    ]
+                )
+
+            else
+                ( model
+                , Cmd.batch
+                    [ sendToFrontend clientId (SendMessage "Sorry, that document is not public")
+                    ]
+                )
+
+
+saveDocument model currentUser document =
+    case currentUser of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just _ ->
+            let
+                documentDict =
+                    Dict.insert document.id { document | modified = model.currentTime } model.documentDict
+            in
+            ( { model | documentDict = documentDict }, Cmd.none )
 
 
 createDocument model clientId maybeCurrentUser doc_ =
