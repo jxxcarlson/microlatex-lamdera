@@ -29,7 +29,6 @@ rawExport settings ast =
         |> List.map Tree.flatten
         |> List.concat
         |> encloseLists
-        |> Debug.log "ST"
         |> List.map (exportBlock settings)
         |> String.join "\n\n"
 
