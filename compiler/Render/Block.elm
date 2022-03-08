@@ -127,7 +127,7 @@ verbatimDict : Dict String (Int -> Accumulator -> Settings -> List String -> Str
 verbatimDict =
     Dict.fromList
         [ ( "math", renderDisplayMath_ )
-        , ( "equation", equation )
+        , ( "equation", renderEquation )
         , ( "aligned", aligned )
         , ( "code", renderCode )
         , ( "comment", renderComment )
@@ -283,6 +283,51 @@ renderDisplayMath_ count acc settings _ id str =
         [ Render.Math.mathText count w id DisplayMathMode (filteredLines |> String.join "\n") ]
 
 
+renderEquation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+renderEquation count acc settings _ id str =
+    let
+        w =
+            String.fromInt settings.width ++ "px"
+
+        allLines =
+            String.lines str
+
+        n =
+            List.length allLines
+
+        lastLine =
+            List.Extra.getAt (n - 1) allLines
+
+        filteredLines =
+            -- lines of math text to be rendered: filter stuff out
+            String.lines str
+                |> List.filter (\line -> not (String.left 2 line == "$$"))
+                |> List.filter (\line -> not (String.left 6 line == "[label"))
+                |> Debug.log "LINES"
+
+        leftPadding =
+            Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
+
+        lines_ =
+            List.take (n - 1) filteredLines |> Debug.log "LINES_"
+
+        attrs =
+            if id == settings.selectedId then
+                [ Events.onClick (SendId id), leftPadding, Background.color (Element.rgb 0.8 0.8 1.0) ]
+
+            else
+                [ Events.onClick (SendId id), leftPadding ]
+
+        adjustedLines =
+            "\\begin{equation}" :: "\\nonumber" :: lines_ ++ [ "\\end{equation}" ]
+
+        content =
+            String.join "\n" adjustedLines
+    in
+    Element.column attrs
+        [ Render.Math.mathText count w id DisplayMathMode content ]
+
+
 renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderDisplayMath prefix count acc settings _ id str =
     let
@@ -307,66 +352,44 @@ renderDisplayMath prefix count acc settings _ id str =
 
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
+
+        lines_ =
+            List.take (n - 1) filteredLines |> Debug.log "LINES_"
+
+        attrs =
+            if id == settings.selectedId then
+                [ Events.onClick (SendId id), leftPadding, Background.color (Element.rgb 0.8 0.8 1.0) ]
+
+            else
+                [ Events.onClick (SendId id), leftPadding ]
+
+        deleteTrailingSlashes str_ =
+            if String.right 2 str_ == "\\\\" then
+                String.dropRight 2 str_
+
+            else
+                str_
+
+        adjustedLines_ =
+            List.map (deleteTrailingSlashes >> Parser.MathMacro.evalStr acc.mathMacroDict) lines_
+                |> List.filter (\line -> line /= "")
+                |> List.map (\line -> line ++ "\\\\")
+
+        adjustedLines =
+            if prefix == "|| aligned" then
+                "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
+
+            else if prefix == "|| equation" then
+                "\\begin{equation}" :: "\\nonumber" :: adjustedLines_ ++ [ "\\end{equation}" ]
+
+            else
+                lines_
+
+        content =
+            String.join "\n" adjustedLines
     in
-    if lastLine == Just "$" then
-        -- handle error
-        Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor, leftPadding ]
-            (List.map Element.text ("$$" :: List.take (n - 1) filteredLines) ++ [ Element.paragraph [] [ Element.text "$", Element.el [ Font.color Render.Settings.redColor ] (Element.text " another $?") ] ])
-
-    else if lastLine == Just "$$" || lastLine == Just "end" then
-        let
-            _ =
-                Debug.log "HAPPY PATH"
-
-            lines_ =
-                List.take (n - 1) filteredLines |> Debug.log "LINES_"
-
-            attrs =
-                if id == settings.selectedId then
-                    [ Events.onClick (SendId id), leftPadding, Background.color (Element.rgb 0.8 0.8 1.0) ]
-
-                else
-                    [ Events.onClick (SendId id), leftPadding ]
-
-            deleteTrailingSlashes str_ =
-                if String.right 2 str_ == "\\\\" then
-                    String.dropRight 2 str_
-
-                else
-                    str_
-
-            adjustedLines_ =
-                List.map (deleteTrailingSlashes >> Parser.MathMacro.evalStr acc.mathMacroDict) lines_
-                    |> List.filter (\line -> line /= "")
-                    |> List.map (\line -> line ++ "\\\\")
-
-            adjustedLines =
-                if prefix == "|| aligned" then
-                    "\\begin{aligned}" :: adjustedLines_ ++ [ "\\end{aligned}" ]
-
-                else if prefix == "|| equation" then
-                    "\\begin{equation}" :: "\\nonumber" :: adjustedLines_ ++ [ "\\end{equation}" ]
-
-                else
-                    lines_
-
-            content =
-                String.join "\n" adjustedLines
-        in
-        Element.column attrs
-            [ Render.Math.mathText count w id DisplayMathMode content ]
-
-    else
-        let
-            suffix =
-                if prefix == "$$" then
-                    "$$"
-
-                else
-                    "end"
-        in
-        Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor, leftPadding ]
-            (List.map Element.text (prefix :: List.take n filteredLines) ++ [ Element.paragraph [] [ Element.el [ Font.color Render.Settings.redColor ] (Element.text suffix) ] ])
+    Element.column attrs
+        [ Render.Math.mathText count w id DisplayMathMode content ]
 
 
 highlightAttrs id settings =
