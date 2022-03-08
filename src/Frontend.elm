@@ -1,4 +1,4 @@
-module Frontend exposing (Model, adjustId, app, changePrintingState, debounceConfig, exportDoc, exportToLaTeX, firstSyncLR, fixId_, init, issueCommandIfDefined, nextSyncLR, save, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
+module Frontend exposing (Model, app, changePrintingState, debounceConfig, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, save, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Authentication
 import Backend.Backup
@@ -260,50 +260,19 @@ update msg model =
 
         -- SYNC
         SelectedText str ->
-            firstSyncLR model str
+            Frontend.Update.firstSyncLR model str
 
         SendSyncLR ->
             ( { model | syncRequestIndex = model.syncRequestIndex + 1 }, Cmd.none )
 
         SyncLR ->
-            let
-                data =
-                    if model.foundIdIndex == 0 then
-                        let
-                            foundIds_ =
-                                Compiler.ASTTools.matchingIdsInAST model.searchSourceText model.editRecord.parsed
+            Frontend.Update.syncLR model
 
-                            id_ =
-                                List.head foundIds_ |> Maybe.withDefault "(nothing)"
-                        in
-                        { foundIds = foundIds_
-                        , foundIdIndex = 1
-                        , cmd = View.Utility.setViewportForElement id_
-                        , selectedId = id_
-                        , searchCount = 0
-                        }
+        StartSync ->
+            ( { model | doSync = not model.doSync }, Cmd.none )
 
-                    else
-                        let
-                            id_ =
-                                List.Extra.getAt model.foundIdIndex model.foundIds |> Maybe.withDefault "(nothing)"
-                        in
-                        { foundIds = model.foundIds
-                        , foundIdIndex = modBy (List.length model.foundIds) (model.foundIdIndex + 1)
-                        , cmd = View.Utility.setViewportForElement id_
-                        , selectedId = id_
-                        , searchCount = model.searchCount + 1
-                        }
-            in
-            ( { model
-                | selectedId = data.selectedId
-                , foundIds = data.foundIds
-                , foundIdIndex = data.foundIdIndex
-                , searchCount = data.searchCount
-                , message = ("!![" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", "
-              }
-            , data.cmd
-            )
+        NextSync ->
+            Frontend.Update.nextSyncLR model
 
         ChangePopupStatus status ->
             ( { model | popupStatus = status }, Cmd.none )
@@ -327,33 +296,10 @@ update msg model =
 
         -- DOCUMENT
         CycleLanguage ->
-            let
-                mewLang =
-                    case model.language of
-                        MicroLaTeXLang ->
-                            L0Lang
-
-                        L0Lang ->
-                            MicroLaTeXLang
-            in
-            ( { model | language = mewLang }, Cmd.none )
+            Frontend.Update.cycleLanguage model
 
         Render msg_ ->
-            case msg_ of
-                Render.Msg.SendMeta _ ->
-                    -- ( { model | lineNumber = m.loc.begin.row, message = "line " ++ String.fromInt (m.loc.begin.row + 1) }, Cmd.none )
-                    ( model, Cmd.none )
-
-                Render.Msg.SendId line ->
-                    -- TODO: the below (using id also for line number) is not a great idea.
-                    ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 2) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
-
-                Render.Msg.SelectId id ->
-                    -- the element with this id will be highlighted
-                    ( { model | selectedId = id }, View.Utility.setViewportForElement id )
-
-                GetPublicDocument id ->
-                    ( model, sendToBackend (FetchDocumentById id) )
+            Frontend.Update.render model msg_
 
         Fetch id ->
             ( model, sendToBackend (FetchDocumentById id) )
@@ -541,65 +487,6 @@ update msg model =
 
         FinallyDoCleanPrintArtefacts _ ->
             ( model, Cmd.none )
-
-        StartSync ->
-            ( { model | doSync = not model.doSync }, Cmd.none )
-
-        NextSync ->
-            nextSyncLR model
-
-
-adjustId : String -> String
-adjustId str =
-    case String.toInt str of
-        Nothing ->
-            str
-
-        Just n ->
-            String.fromInt (n + 2)
-
-
-firstSyncLR model searchSourceText =
-    let
-        data =
-            let
-                foundIds_ =
-                    Compiler.ASTTools.matchingIdsInAST searchSourceText model.editRecord.parsed
-
-                id_ =
-                    List.head foundIds_ |> Maybe.withDefault "(nothing)"
-            in
-            { foundIds = foundIds_
-            , foundIdIndex = 1
-            , cmd = View.Utility.setViewportForElement id_
-            , selectedId = id_
-            , searchCount = 0
-            }
-    in
-    ( { model
-        | selectedId = data.selectedId
-        , foundIds = data.foundIds
-        , foundIdIndex = data.foundIdIndex
-        , searchCount = data.searchCount
-        , message = ("[" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", "
-      }
-    , data.cmd
-    )
-
-
-nextSyncLR model =
-    let
-        id_ =
-            List.Extra.getAt model.foundIdIndex model.foundIds |> Maybe.withDefault "(nothing)"
-    in
-    ( { model
-        | selectedId = id_
-        , foundIdIndex = modBy (List.length model.foundIds) (model.foundIdIndex + 1)
-        , searchCount = model.searchCount + 1
-        , message = ("[" ++ adjustId id_ ++ "]") :: List.map adjustId model.foundIds |> String.join ", "
-      }
-    , View.Utility.setViewportForElement id_
-    )
 
 
 fixId_ : String -> String
