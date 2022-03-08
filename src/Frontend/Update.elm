@@ -2,6 +2,9 @@ module Frontend.Update exposing
     ( adjustId
     , cycleLanguage
     , debounceMsg
+    , deleteDocument
+    , exportToLaTeX
+    , exportToMarkdown
     , firstSyncLR
     , handleSignIn
     , handleSignOut
@@ -11,8 +14,12 @@ module Frontend.Update exposing
     , nextSyncLR
     , render
     , runSpecial
+    , searchText
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
+    , setInitialEditorContent
+    , setPublic
+    , setPublicDocumentAsCurrentById
     , setViewportForElement
     , syncLR
     , updateCurrentDocument
@@ -29,20 +36,124 @@ import Cmd.Extra exposing (withCmd, withNoCmd)
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
+import Config
 import Debounce
 import Docs
 import Document exposing (Document)
+import File.Download as Download
 import Keyboard
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
 import Parser.Language exposing (Language(..))
+import Process
+import Render.LaTeX as LaTeX
 import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
+import Render.Settings as Settings
 import Task
 import Types exposing (..)
 import Url exposing (Url)
 import View.Utility
+
+
+exportToLaTeX model =
+    let
+        textToExport =
+            LaTeX.export Settings.defaultSettings model.editRecord.parsed
+
+        fileName =
+            (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
+    in
+    ( model, Download.string fileName "application/x-latex" textToExport )
+
+
+exportToMarkdown model =
+    let
+        markdownText =
+            -- TODO:implement this
+            -- L1.Render.Markdown.transformDocument model.currentDocument.content
+            "Not implemented"
+
+        fileName_ =
+            "foo" |> String.replace " " "-" |> String.toLower |> (\name -> name ++ ".md")
+    in
+    ( model, Download.string fileName_ "text/markdown" markdownText )
+
+
+setPublic model doc public =
+    let
+        newDocument_ =
+            { doc | public = public }
+
+        documents =
+            List.Extra.setIf (\d -> d.id == newDocument_.id) newDocument_ model.documents
+    in
+    ( { model | documents = documents, currentDocument = Just newDocument_ }, sendToBackend (SaveDocument model.currentUser newDocument_) )
+
+
+setPublicDocumentAsCurrentById model id =
+    case List.filter (\doc -> doc.id == id) model.publicDocuments |> List.head of
+        Nothing ->
+            ( { model | message = "No document of id " ++ id ++ " found" }, Cmd.none )
+
+        Just doc ->
+            let
+                newEditRecord =
+                    Compiler.DifferentialParser.init doc.language doc.content
+            in
+            ( { model
+                | currentDocument = Just doc
+                , sourceText = doc.content
+                , initialText = doc.content
+                , editRecord = newEditRecord
+                , title = Compiler.ASTTools.title model.language newEditRecord.parsed
+                , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
+                , message = "id = " ++ doc.id
+                , counter = model.counter + 1
+              }
+            , Cmd.batch [ View.Utility.setViewPortToTop ]
+            )
+
+
+deleteDocument model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc ->
+            ( { model
+                | currentDocument = Just Docs.deleted
+                , documents = List.filter (\d -> d.id /= doc.id) model.documents
+                , deleteDocumentState = WaitingForDeleteAction
+              }
+            , Cmd.batch [ sendToBackend (DeleteDocumentBE doc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            )
+
+
+setInitialEditorContent model =
+    case model.currentDocument of
+        Nothing ->
+            ( { model | message = "Could not set editor content: there is no current document" }, Cmd.none )
+
+        Just doc ->
+            ( { model | initialText = doc.content }, Cmd.none )
+
+
+searchText model =
+    let
+        ids =
+            Compiler.ASTTools.matchingIdsInAST model.searchSourceText model.editRecord.parsed
+
+        ( cmd, id ) =
+            case List.head ids of
+                Nothing ->
+                    ( Cmd.none, "(none)" )
+
+                Just id_ ->
+                    ( View.Utility.setViewportForElement id_, id_ )
+    in
+    ( { model | selectedId = id, searchCount = model.searchCount + 1, message = "ids: " ++ String.join ", " ids }, cmd )
 
 
 save : String -> Cmd FrontendMsg
