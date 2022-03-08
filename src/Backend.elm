@@ -26,7 +26,6 @@ import Backend.Cmd
 import Backend.Update
 import Cmd.Extra
 import Config
-import DateTimeUtility
 import Dict exposing (Dict)
 import Docs
 import Document
@@ -119,68 +118,7 @@ updateFromFrontend _ clientId msg model =
 
         -- DOCUMENTS
         CreateDocument maybeCurrentUser doc_ ->
-            let
-                idTokenData =
-                    Token.get model.randomSeed
-
-                authorIdTokenData =
-                    Token.get idTokenData.seed
-
-                publicIdTokenData =
-                    Token.get authorIdTokenData.seed
-
-                humanFriendlyPublicId =
-                    case maybeCurrentUser of
-                        Nothing ->
-                            publicIdTokenData.token
-
-                        Just user ->
-                            user.username ++ "-" ++ DateTimeUtility.toUtcSlug (String.left 1 publicIdTokenData.token) (String.slice 1 2 publicIdTokenData.token) model.currentTime
-
-                doc =
-                    { doc_
-                        | id = "id-" ++ idTokenData.token
-                        , publicId = humanFriendlyPublicId
-                        , created = model.currentTime
-                        , modified = model.currentTime
-                    }
-
-                documentDict =
-                    Dict.insert ("id-" ++ idTokenData.token) doc model.documentDict
-
-                authorIdDict =
-                    Dict.insert ("au-" ++ authorIdTokenData.token) doc.id model.authorIdDict
-
-                publicIdDict =
-                    Dict.insert humanFriendlyPublicId doc.id model.publicIdDict
-
-                usersDocumentsDict =
-                    case maybeCurrentUser of
-                        Nothing ->
-                            model.usersDocumentsDict
-
-                        Just user ->
-                            let
-                                oldIdList =
-                                    Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
-                            in
-                            Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
-
-                message =
-                    --  "userIds : " ++ String.fromInt (List.length list)
-                    "Author link: " ++ Config.appUrl ++ "/a/au-" ++ authorIdTokenData.token ++ ", Public link:" ++ Config.appUrl ++ "/p/pu-" ++ humanFriendlyPublicId
-            in
-            { model
-                | randomSeed = publicIdTokenData.seed
-                , documentDict = documentDict
-                , authorIdDict = authorIdDict
-                , publicIdDict = publicIdDict
-                , usersDocumentsDict = usersDocumentsDict
-            }
-                |> Cmd.Extra.withCmds
-                    [ sendToFrontend clientId (SendDocument CanEdit doc)
-                    , sendToFrontend clientId (SendMessage message)
-                    ]
+            Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
         SaveDocument currentUser document ->
             case currentUser of
