@@ -98,7 +98,7 @@ update msg model =
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
-updateFromFrontend sessionId clientId msg model =
+updateFromFrontend _ clientId msg model =
     case msg of
         -- ADMIN
         GetBackupData ->

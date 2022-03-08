@@ -33,4 +33,4 @@ config =
     , NoExposingEverything.rule
     , CognitiveComplexity.rule 15
     ]
-        |> List.map (Review.Rule.ignoreErrorsForFiles [ "src/Types.elm" ])
+        |> List.map (Review.Rule.ignoreErrorsForFiles [ "src/Types.elm", "src/Env.elm", "src/Document.elm" ])
