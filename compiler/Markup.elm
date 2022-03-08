@@ -54,6 +54,7 @@ parse lang sourceText =
     in
     sourceText
         |> parseToIntermediateBlocks lang
+        |> Debug.log "INTERMEDIATE"
         |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock parser))
 
 

@@ -126,7 +126,7 @@ blockDict =
 verbatimDict : Dict String (Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg)
 verbatimDict =
     Dict.fromList
-        [ ( "math", renderDisplayMath "$$" )
+        [ ( "math", renderDisplayMath_ )
         , ( "equation", equation )
         , ( "aligned", aligned )
         , ( "code", renderCode )
@@ -260,6 +260,29 @@ env name count acc settings args id exprs =
         ]
 
 
+renderDisplayMath_ : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+renderDisplayMath_ count acc settings _ id str =
+    let
+        w =
+            String.fromInt settings.width ++ "px"
+
+        allLines =
+            String.lines str
+
+        n =
+            List.length allLines
+
+        filteredLines =
+            -- lines of math text to be rendered: filter stuff out
+            String.lines str
+                |> List.filter (\line -> not (String.left 2 line == "$$"))
+                |> List.filter (\line -> not (String.left 6 line == "[label"))
+                |> List.filter (\line -> line /= "")
+    in
+    Element.column []
+        [ Render.Math.mathText count w id DisplayMathMode (filteredLines |> String.join "\n") ]
+
+
 renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderDisplayMath prefix count acc settings _ id str =
     let
@@ -269,26 +292,34 @@ renderDisplayMath prefix count acc settings _ id str =
         allLines =
             String.lines str
 
-        lines =
-            String.lines str |> List.filter (\line -> not (String.left 2 line == "$$")) |> List.filter (\line -> not (String.left 6 line == "[label"))
-
         n =
             List.length allLines
 
         lastLine =
             List.Extra.getAt (n - 1) allLines
 
+        filteredLines =
+            -- lines of math text to be rendered: filter stuff out
+            String.lines str
+                |> List.filter (\line -> not (String.left 2 line == "$$"))
+                |> List.filter (\line -> not (String.left 6 line == "[label"))
+                |> Debug.log "LINES"
+
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
     in
     if lastLine == Just "$" then
+        -- handle error
         Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor, leftPadding ]
-            (List.map Element.text ("$$" :: List.take (n - 1) lines) ++ [ Element.paragraph [] [ Element.text "$", Element.el [ Font.color Render.Settings.redColor ] (Element.text " another $?") ] ])
+            (List.map Element.text ("$$" :: List.take (n - 1) filteredLines) ++ [ Element.paragraph [] [ Element.text "$", Element.el [ Font.color Render.Settings.redColor ] (Element.text " another $?") ] ])
 
     else if lastLine == Just "$$" || lastLine == Just "end" then
         let
+            _ =
+                Debug.log "HAPPY PATH"
+
             lines_ =
-                List.take (n - 1) lines
+                List.take (n - 1) filteredLines |> Debug.log "LINES_"
 
             attrs =
                 if id == settings.selectedId then
@@ -335,7 +366,7 @@ renderDisplayMath prefix count acc settings _ id str =
                     "end"
         in
         Element.column [ Events.onClick (SendId id), Font.color Render.Settings.blueColor, leftPadding ]
-            (List.map Element.text (prefix :: List.take n lines) ++ [ Element.paragraph [] [ Element.el [ Font.color Render.Settings.redColor ] (Element.text suffix) ] ])
+            (List.map Element.text (prefix :: List.take n filteredLines) ++ [ Element.paragraph [] [ Element.el [ Font.color Render.Settings.redColor ] (Element.text suffix) ] ])
 
 
 highlightAttrs id settings =

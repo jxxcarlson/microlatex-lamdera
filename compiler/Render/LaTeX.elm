@@ -29,6 +29,7 @@ rawExport settings ast =
         |> List.map Tree.flatten
         |> List.concat
         |> encloseLists
+        |> Debug.log "ST"
         |> List.map (exportBlock settings)
         |> String.join "\n\n"
 
@@ -291,6 +292,7 @@ functionDict =
         , ( "bold", "textbf" )
         , ( "b", "textbf" )
         , ( "image", "imagecenter" )
+        , ( "contents", "tableofcontents" )
         ]
 
 
@@ -302,7 +304,7 @@ blockDict =
         , ( "author", \_ _ _ -> "" )
         , ( "date", \_ _ _ -> "" )
         , ( "contents", \_ _ _ -> "" )
-        , ( "heading", \_ args body -> heading args body )
+        , ( "section", \_ args body -> section args body )
         , ( "item", \_ _ body -> macro1 "item" body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
         , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
@@ -312,8 +314,8 @@ blockDict =
         ]
 
 
-heading : List String -> String -> String
-heading args body =
+section : List String -> String -> String
+section args body =
     case Utility.getArg "4" 1 args of
         "1" ->
             macro1 "section" body
@@ -549,6 +551,6 @@ preamble title author date =
 
 \\maketitle
 
-\\contents
+\\tableofcontents
 
 """

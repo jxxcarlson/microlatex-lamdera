@@ -20,12 +20,12 @@ init lang str =
     let
         chunks : List (Tree IntermediateBlock)
         chunks =
-            chunker lang str
+            chunker lang str |> Debug.log "CHUNKED"
 
         ( newAccumulator, parsed ) =
             (List.map (parser lang) >> Compiler.Acc.make lang) chunks
     in
-    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
+    { lang = lang, chunks = chunks, parsed = parsed |> Debug.log "PARSED", accumulator = newAccumulator }
 
 
 update : EditRecord -> String -> EditRecord
