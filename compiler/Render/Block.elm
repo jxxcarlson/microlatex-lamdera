@@ -266,50 +266,41 @@ renderDisplayMath_ count acc settings _ id str =
         w =
             String.fromInt settings.width ++ "px"
 
-        allLines =
-            String.lines str
-
-        n =
-            List.length allLines
-
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines str
                 |> List.filter (\line -> not (String.left 2 line == "$$"))
                 |> List.filter (\line -> not (String.left 6 line == "[label"))
                 |> List.filter (\line -> line /= "")
+
+        leftPadding =
+            Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
     in
-    Element.column []
+    Element.column [ leftPadding ]
         [ Render.Math.mathText count w id DisplayMathMode (filteredLines |> String.join "\n") ]
 
 
 renderEquation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
-renderEquation count acc settings _ id str =
+renderEquation count acc settings args id str =
     let
         w =
             String.fromInt settings.width ++ "px"
 
-        allLines =
-            String.lines str
-
-        n =
-            List.length allLines
-
-        lastLine =
-            List.Extra.getAt (n - 1) allLines
-
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines str
-                |> List.filter (\line -> not (String.left 2 line == "$$"))
-                |> List.filter (\line -> not (String.left 6 line == "[label"))
-                |> Debug.log "LINES"
+                |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
+                --|> List.filter (\line -> not (String.left 6 line == "[label"))
+                |> Debug.log "FILTERED LINES"
+
+        adjustedLines =
+            "\\begin{equation}" :: "\\nonumber" :: filteredLines ++ [ "\\end{equation}" ]
+
+        content =
+            String.join "\n" adjustedLines
 
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
-
-        lines_ =
-            List.take (n - 1) filteredLines |> Debug.log "LINES_"
 
         attrs =
             if id == settings.selectedId then
@@ -317,15 +308,11 @@ renderEquation count acc settings _ id str =
 
             else
                 [ Events.onClick (SendId id), leftPadding ]
-
-        adjustedLines =
-            "\\begin{equation}" :: "\\nonumber" :: lines_ ++ [ "\\end{equation}" ]
-
-        content =
-            String.join "\n" adjustedLines
     in
-    Element.column attrs
-        [ Render.Math.mathText count w id DisplayMathMode content ]
+    Element.row ([ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ] ++ attrs)
+        [ Element.el [ Element.centerX ] (Render.Math.mathText count w id DisplayMathMode content)
+        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??(10)" 0 args ++ ")")
+        ]
 
 
 renderDisplayMath : String -> Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
