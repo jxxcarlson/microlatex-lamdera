@@ -30,6 +30,16 @@ type alias State =
     }
 
 
+makeId : Int -> Int -> String
+makeId a b =
+    String.fromInt a ++ "." ++ String.fromInt b
+
+
+makeIdFromState : State -> String
+makeIdFromState state =
+    String.fromInt state.lineNumber ++ "." ++ String.fromInt state.tokenIndex
+
+
 extractMessages : State -> List String
 extractMessages state =
     state.messages
@@ -165,10 +175,10 @@ exprOfToken : Token -> Maybe Expr
 exprOfToken token =
     case token of
         S str loc ->
-            Just (Text str loc)
+            Just (Text str (boostMeta 0 (Token.indexOf token) loc))
 
         W str loc ->
-            Just (Text str loc)
+            Just (Text str (boostMeta 0 (Token.indexOf token) loc))
 
         _ ->
             Nothing
@@ -201,10 +211,30 @@ reduceState state =
 
             -- { state | stack = [], committed = eval (state.stack |> List.reverse) ++ state.committed }
             Just M ->
-                { state | stack = [], committed = Verbatim "math" (Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
+                { state
+                    | stack = []
+                    , committed =
+                        Verbatim "math"
+                            (Token.toString <|
+                                unbracket <|
+                                    List.reverse state.stack
+                            )
+                            { begin = 0, end = 0, index = 0, id = makeIdFromState state }
+                            :: state.committed
+                }
 
             Just C ->
-                { state | stack = [], committed = Verbatim "code" (Token.toString <| unbracket <| List.reverse state.stack) { begin = 0, end = 0, index = 0 } :: state.committed }
+                { state
+                    | stack = []
+                    , committed =
+                        Verbatim "code"
+                            (Token.toString <|
+                                unbracket <|
+                                    List.reverse state.stack
+                            )
+                            { begin = 0, end = 0, index = 0, id = makeIdFromState state }
+                            :: state.committed
+                }
 
             _ ->
                 state
@@ -230,6 +260,11 @@ areBracketed tokens =
         == [ TRB ]
 
 
+boostMeta : Int -> Int -> { begin : Int, end : Int, index : Int } -> { begin : Int, end : Int, index : Int, id : String }
+boostMeta lineNumber tokenIndex { begin, end, index } =
+    { begin = begin, end = end, index = index, id = makeId lineNumber tokenIndex }
+
+
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
     if areBracketed tokens then
@@ -240,7 +275,7 @@ eval lineNumber tokens =
         case List.head args of
             -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
             Just (S name meta) ->
-                [ Expr name (evalList lineNumber (List.drop 1 args)) meta ]
+                [ Expr name (evalList lineNumber (List.drop 1 args)) (boostMeta lineNumber meta.index meta) ]
 
             Nothing ->
                 -- this happens with input of "[]"
@@ -262,7 +297,7 @@ evalList lineNumber tokens =
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
                         Nothing ->
-                            [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLoc ]
+                            [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLocWithId ]
 
                         Just k ->
                             let
@@ -277,7 +312,7 @@ evalList lineNumber tokens =
                             expr :: evalList lineNumber (List.drop 1 tokens)
 
                         Nothing ->
-                            [ errorMessageInvisible lineNumber "Error converting token", Text "error converting Token" dummyLoc ]
+                            [ errorMessageInvisible lineNumber "Error converting token", Text "error converting Token" dummyLocWithId ]
 
         _ ->
             []
@@ -285,22 +320,22 @@ evalList lineNumber tokens =
 
 errorMessageInvisible : Int -> String -> Expr
 errorMessageInvisible lineNumber message =
-    Expr "invisible" [ Text (message ++ "(X)") dummyLoc ] dummyLoc
+    Expr "invisible" [ Text (message ++ "(X)") dummyLocWithId ] dummyLocWithId
 
 
 errorMessage : String -> Expr
 errorMessage message =
-    Expr "red" [ Text message dummyLoc ] dummyLoc
+    Expr "red" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 errorMessageBold : String -> Expr
 errorMessageBold message =
-    Expr "bold" [ Expr "red" [ Text message dummyLoc ] dummyLoc ] dummyLoc
+    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
 
 
 errorMessage2 : String -> Expr
 errorMessage2 message =
-    Expr "blue" [ Text message dummyLoc ] dummyLoc
+    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 addErrorMessage : String -> State -> State
@@ -510,6 +545,10 @@ dummyTokenIndex =
 
 dummyLoc =
     { begin = 0, end = 0, index = dummyTokenIndex }
+
+
+dummyLocWithId =
+    { begin = 0, end = 0, index = dummyTokenIndex, id = "dummy (2)" }
 
 
 

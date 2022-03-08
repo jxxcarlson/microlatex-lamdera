@@ -63,7 +63,7 @@ beginItemizedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "beginBlock" ]
-        , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0 } ]
+        , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0, id = "" } ]
         , messages = []
         , id = "0"
         , tag = ""
@@ -80,7 +80,7 @@ endItemizedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "endBlock" ]
-        , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0 } ]
+        , content = Right [ Text "itemize" { begin = 0, end = 7, index = 0, id = "" } ]
         , messages = []
         , id = "0"
         , tag = ""
@@ -97,7 +97,7 @@ beginNumberedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "beginNumberedBlock" ]
-        , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0 } ]
+        , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0, id = "begin" } ]
         , messages = []
         , id = "0"
         , tag = ""
@@ -114,7 +114,7 @@ endNumberedBlock =
     ExpressionBlock
         { args = []
         , blockType = OrdinaryBlock [ "endNumberedBlock" ]
-        , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0 } ]
+        , content = Right [ Text "enumerate" { begin = 0, end = 7, index = 0, id = "end" } ]
         , messages = []
         , id = "0"
         , tag = ""

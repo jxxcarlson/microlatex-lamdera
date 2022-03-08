@@ -25,7 +25,7 @@ mathText generation width id displayMode content =
         , HA.style "width" width
         ]
         [ -- ( String.fromInt generation, mathText_ displayMode "ID" (content |> String.replace "\\ \\" "\\\\") )
-          ( String.fromInt generation, mathText_ displayMode "ID" content )
+          ( String.fromInt generation, mathText_ displayMode id content )
         ]
         |> Element.html
 

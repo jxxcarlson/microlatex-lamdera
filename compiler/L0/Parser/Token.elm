@@ -4,6 +4,7 @@ module L0.Parser.Token exposing
     , TokenType(..)
     , idem
     , idemTest
+    , indexOf
     , init
     , run
     , toString
@@ -37,6 +38,31 @@ type Token
     | MathToken Meta
     | CodeToken Meta
     | TokenError (List (DeadEnd Context Problem)) Meta
+
+
+indexOf : Token -> Int
+indexOf token =
+    case token of
+        LB meta ->
+            meta.index
+
+        RB meta ->
+            meta.index
+
+        S str meta ->
+            meta.index
+
+        W str meta ->
+            meta.index
+
+        MathToken meta ->
+            meta.index
+
+        CodeToken meta ->
+            meta.index
+
+        TokenError list meta ->
+            meta.index
 
 
 setIndex : Int -> Token -> Token

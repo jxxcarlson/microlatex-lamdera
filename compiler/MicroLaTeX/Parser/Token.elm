@@ -249,7 +249,12 @@ get state start input =
             token
 
         Err errorList ->
-            TokenError errorList { begin = start, end = start + 1, index = state.tokenIndex }
+            TokenError errorList { begin = start, end = start + 1, index = state.tokenIndex, id = makeId start state.tokenIndex }
+
+
+makeId : Int -> Int -> String
+makeId a b =
+    String.fromInt a ++ "." ++ String.fromInt b
 
 
 finish : State Token -> Step (State Token) (List Token)
@@ -371,7 +376,12 @@ mergeToken lastToken currentToken =
         meta =
             { begin = lastTokenMeta.begin, end = currentTokenMeta.end, index = -1 }
     in
-    S (stringValue lastToken ++ stringValue currentToken) meta
+    S (stringValue lastToken ++ stringValue currentToken) (boostMeta meta.begin meta.end meta)
+
+
+boostMeta : Int -> Int -> { begin : Int, end : Int, index : Int } -> { begin : Int, end : Int, index : Int, id : String }
+boostMeta lineNumber tokenIndex { begin, end, index } =
+    { begin = begin, end = end, index = index, id = makeId lineNumber tokenIndex }
 
 
 newMode : Token -> Mode -> Mode
@@ -468,49 +478,49 @@ codeParser_ start index =
 whiteSpaceParser : Int -> Int -> TokenParser
 whiteSpaceParser start index =
     PT.text (\c -> c == ' ') (\c -> c == ' ')
-        |> Parser.map (\data -> W data.content { begin = start, end = start, index = index })
+        |> Parser.map (\data -> W data.content { begin = start, end = start, index = index, id = makeId start index })
 
 
 backslashParser : Int -> Int -> TokenParser
 backslashParser start index =
     PT.text (\c -> c == '\\') (\_ -> False)
-        |> Parser.map (\_ -> BS { begin = start, end = start, index = index })
+        |> Parser.map (\_ -> BS { begin = start, end = start, index = index, id = makeId start index })
 
 
 leftBraceParser : Int -> Int -> TokenParser
 leftBraceParser start index =
     PT.text (\c -> c == '{') (\_ -> False)
-        |> Parser.map (\_ -> LB { begin = start, end = start, index = index })
+        |> Parser.map (\_ -> LB { begin = start, end = start, index = index, id = makeId start index })
 
 
 rightBraceParser : Int -> Int -> TokenParser
 rightBraceParser start index =
     PT.text (\c -> c == '}') (\_ -> False)
-        |> Parser.map (\_ -> RB { begin = start, end = start, index = index })
+        |> Parser.map (\_ -> RB { begin = start, end = start, index = index, id = makeId start index })
 
 
 textParser start index =
     PT.text (\c -> not <| List.member c (' ' :: languageChars)) (\c -> not <| List.member c (' ' :: languageChars))
-        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
+        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index, id = makeId start index })
 
 
 mathTextParser start index =
     PT.text (\c -> not <| List.member c (' ' :: mathChars)) (\c -> not <| List.member c (' ' :: languageChars))
-        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
+        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index, id = makeId start index })
 
 
 codeTextParser start index =
     PT.text (\c -> not <| List.member c (' ' :: codeChars)) (\c -> not <| List.member c (' ' :: languageChars))
-        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
+        |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index, id = makeId start index })
 
 
 mathParser : Int -> Int -> TokenParser
 mathParser start index =
     PT.text (\c -> c == '$') (\_ -> False)
-        |> Parser.map (\_ -> MathToken { begin = start, end = start, index = index })
+        |> Parser.map (\_ -> MathToken { begin = start, end = start, index = index, id = makeId start index })
 
 
 codeParser : Int -> Int -> TokenParser
 codeParser start index =
     PT.text (\c -> c == '`') (\_ -> False)
-        |> Parser.map (\_ -> CodeToken { begin = start, end = start, index = index })
+        |> Parser.map (\_ -> CodeToken { begin = start, end = start, index = index, id = makeId start index })

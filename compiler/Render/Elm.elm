@@ -23,10 +23,10 @@ render : Int -> Accumulator -> Settings -> Expr -> Element MarkupMsg
 render generation acc settings expr =
     case expr of
         Text string meta ->
-            Element.el [ Events.onClick (SendMeta meta), htmlId "DUMMY_ID" ] (Element.text string)
+            Element.el [ Events.onClick (SendMeta meta), htmlId meta.id ] (Element.text string)
 
-        Expr name exprList _ ->
-            Element.el [ htmlId "DUMMY_ID" ] (renderMarked name generation acc settings exprList)
+        Expr name exprList meta ->
+            Element.el [ htmlId meta.id ] (renderMarked name generation acc settings exprList)
 
         Verbatim name str meta ->
             renderVerbatim name generation acc settings meta str
@@ -558,8 +558,8 @@ f1 f g acc s exprList =
             el [ Font.color errorColor ] (Element.text "Invalid arguments")
 
 
-verbatimElement formatList g s m str =
-    Element.el (htmlId "DUMMY_ID" :: formatList) (Element.text str)
+verbatimElement formatList g s meta str =
+    Element.el (htmlId meta.id :: formatList) (Element.text str)
 
 
 htmlId str =
@@ -578,9 +578,9 @@ invisible g acc s exprList =
     Element.none
 
 
-mathElement generation acc settings m str =
+mathElement generation acc settings meta str =
     -- "width" is not used for inline math, but some string needs to be there
-    Render.Math.mathText generation "width" "DUMMY_ID" Render.Math.InlineMathMode (Parser.MathMacro.evalStr acc.mathMacroDict str)
+    Render.Math.mathText generation "width" meta.id Render.Math.InlineMathMode (Parser.MathMacro.evalStr acc.mathMacroDict str)
 
 
 

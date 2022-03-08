@@ -78,7 +78,7 @@ E "group" exprs2 ...
 -}
 substInList : Expr -> String -> List Expr -> Expr
 substInList a var exprs =
-    Expr "group" (List.map (\e -> subst e var a) exprs) { begin = 0, end = 0, index = 0 }
+    Expr "group" (List.map (\e -> subst e var a) exprs) { begin = 0, end = 0, index = 0, id = "dummy" }
 
 
 {-| Apply a lambda to an expression.

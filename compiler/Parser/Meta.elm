@@ -2,4 +2,4 @@ module Parser.Meta exposing (Meta)
 
 
 type alias Meta =
-    { begin : Int, end : Int, index : Int }
+    { begin : Int, end : Int, index : Int, id : String }

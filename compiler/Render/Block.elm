@@ -323,7 +323,7 @@ renderDisplayMath prefix count acc settings _ id str =
                 String.join "\n" adjustedLines
         in
         Element.column attrs
-            [ Render.Math.mathText count w "id" DisplayMathMode content ]
+            [ Render.Math.mathText count w id DisplayMathMode content ]
 
     else
         let

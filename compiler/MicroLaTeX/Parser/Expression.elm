@@ -231,15 +231,17 @@ reduceState state =
                                             ( first, rest )
 
                                         _ ->
-                                            ( Expr "red" [ Text "????(4)" dummyLoc ] dummyLoc, [] )
+                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
                             in
-                            first_ :: Expr "red" [ Text "$" dummyLoc ] dummyLoc :: rest_
+                            first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
 
                         else if trailing == "$" then
-                            Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+                            Verbatim "math" (String.replace "$" "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
 
                         else
-                            Expr "red" [ Text "$" dummyLoc ] dummyLoc :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+                            Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
+                                :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+                                :: state.committed
                 in
                 { state | stack = [], committed = committed }
 
@@ -260,15 +262,15 @@ reduceState state =
                                             ( first, rest )
 
                                         _ ->
-                                            ( Expr "red" [ Text "????(4)" dummyLoc ] dummyLoc, [] )
+                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
                             in
-                            first_ :: Expr "red" [ Text "`" dummyLoc ] dummyLoc :: rest_
+                            first_ :: Expr "red" [ Text "`" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId :: rest_
 
                         else if trailing == "`" then
-                            Verbatim "code" (String.replace "`" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+                            Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
 
                         else
-                            Expr "red" [ Text "`" dummyLoc ] dummyLoc :: Verbatim "code" (String.replace "`" "" content) { begin = 0, end = 0, index = 0 } :: state.committed
+                            Expr "red" [ Text "`" dummyLocWithId ] dummyLocWithId :: Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
                 in
                 { state | stack = [], committed = committed }
 
@@ -353,27 +355,27 @@ split tokens =
 
 errorMessage2Part : Int -> String -> String -> List Expr
 errorMessage2Part lineNumber a b =
-    [ Expr "red" [ Text b dummyLoc ] dummyLoc, Expr "blue" [ Text a dummyLoc ] dummyLoc ]
+    [ Expr "red" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
 
 
 errorMessage3Part : Int -> String -> String -> String -> List Expr
 errorMessage3Part lineNumber a b c =
-    [ Expr "blue" [ Text a dummyLoc ] dummyLoc, Expr "blue" [ Text b dummyLoc ] dummyLoc, Expr "red" [ Text c dummyLoc ] dummyLoc ]
+    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text b dummyLocWithId ] dummyLocWithId, Expr "red" [ Text c dummyLocWithId ] dummyLocWithId ]
 
 
 errorMessage : String -> Expr
 errorMessage message =
-    Expr "red" [ Expr "underline" [ Text message dummyLoc ] dummyLoc ] dummyLoc
+    Expr "red" [ Expr "underline" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
 
 
 errorMessageBold : String -> Expr
 errorMessageBold message =
-    Expr "bold" [ Expr "red" [ Text message dummyLoc ] dummyLoc ] dummyLoc
+    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
 
 
 errorMessage2 : String -> Expr
 errorMessage2 message =
-    Expr "blue" [ Text message dummyLoc ] dummyLoc
+    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 addErrorMessage : String -> State -> State
@@ -522,6 +524,16 @@ errorSuffix rest =
             ""
 
 
+boostMeta : Int -> Int -> { begin : Int, end : Int, index : Int } -> { begin : Int, end : Int, index : Int, id : String }
+boostMeta lineNumber tokenIndex { begin, end, index } =
+    { begin = begin, end = end, index = index, id = makeId lineNumber tokenIndex }
+
+
+makeId : Int -> Int -> String
+makeId a b =
+    String.fromInt a ++ "." ++ String.fromInt b
+
+
 recoverFromError1 : State -> Step State State
 recoverFromError1 state =
     let
@@ -529,7 +541,7 @@ recoverFromError1 state =
             Symbol.balance <| Symbol.convertTokens (List.reverse state.stack)
 
         newStack =
-            List.repeat k (RB dummyLoc) ++ state.stack
+            List.repeat k (RB (boostMeta state.lineNumber state.tokenIndex dummyLoc)) ++ state.stack
 
         newSymbols =
             Symbol.convertTokens (List.reverse newStack)
@@ -596,6 +608,10 @@ dummyTokenIndex =
 
 dummyLoc =
     { begin = 0, end = 0, index = dummyTokenIndex }
+
+
+dummyLocWithId =
+    { begin = 0, end = 0, index = dummyTokenIndex, id = "dummy (3)" }
 
 
 
