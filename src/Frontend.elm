@@ -25,7 +25,7 @@ import Markup
 import Parser.Language exposing (Language(..))
 import Process
 import Task
-import Types exposing (..)
+import Types exposing (AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -50,7 +50,7 @@ app =
         }
 
 
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
         ]
