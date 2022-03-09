@@ -394,7 +394,7 @@ item1 count acc settings _ id exprs =
 item count acc settings args id exprs =
     let
         level =
-            Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0 |> Debug.log "LEVEL (R)"
+            Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0
 
         label =
             case modBy 3 level of
