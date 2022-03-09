@@ -1,10 +1,10 @@
 module L0.Parser.Classify exposing (classify)
 
 import Parser.Block exposing (BlockType(..))
-import Tree.BlocksV
+import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
-classify : Tree.BlocksV.Block -> { blockType : BlockType, args : List String, name : Maybe String }
+classify : PrimitiveBlock -> { blockType : BlockType, args : List String, name : Maybe String }
 classify block =
     let
         str_ =

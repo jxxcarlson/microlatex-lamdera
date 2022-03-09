@@ -116,13 +116,13 @@ toIntermediateBlock lang parseToState extractMessages block =
             classify lang block
 
         tag =
-            Compiler.Util.getItem MicroLaTeXLang "label" block.content
+            Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
 
         filteredContent =
-            Compiler.Util.eraseItem MicroLaTeXLang "label" tag block.content
+            Compiler.Util.eraseItem MicroLaTeXLang "label" tag block.sourceText
 
         messages =
-            parseToState block.lineNumber block.content |> extractMessages
+            parseToState block.lineNumber block.sourceText |> extractMessages
     in
     case classification.blockType of
         Paragraph ->

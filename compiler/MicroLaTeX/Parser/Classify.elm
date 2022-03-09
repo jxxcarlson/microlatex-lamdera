@@ -13,36 +13,38 @@ type alias Classification =
 
 classify : PrimitiveBlock -> Classification
 classify block =
-   case block.name of 
-       "item" -> 
-        { blockType = OrdinaryBlock [ "item" ], args = [], name = Just "item" }
+    case block.name of
+        Just "item" ->
+            { blockType = OrdinaryBlock [ "item" ], args = [], name = Just "item" }
 
-       "index" -> 
-        { blockType = OrdinaryBlock [ "index" ], args = [], name = Just "index" }
+        Just "index" ->
+            { blockType = OrdinaryBlock [ "index" ], args = [], name = Just "index" }
 
-       "abstract" ->
-        { blockType = OrdinaryBlock [ "abstract" ], args = [], name = Just "abstract" }
+        Just "abstract" ->
+            { blockType = OrdinaryBlock [ "abstract" ], args = [], name = Just "abstract" }
 
-        "numbered" ->
-        { blockType = OrdinaryBlock [ "numbered" ], args = [], name = Just "numbered" }
+        Just "numbered" ->
+            { blockType = OrdinaryBlock [ "numbered" ], args = [], name = Just "numbered" }
 
-       "desc" ->
-        { blockType = OrdinaryBlock [ "desc" ], args = block.args, name = Just "desc" }
+        Just "desc" ->
+            { blockType = OrdinaryBlock [ "desc" ], args = block.args, name = Just "desc" }
 
-       Just name_  ->
-                if List.member name_ Parser.Common.verbatimBlockNames ->
-                     { blockType = VerbatimBlock [ block.name ], args = block.args, name = Just name }
-                else
-                     {blockType = OrdinaryBlock [ block.name ], args = block.args, name = Just name }
+        Just name_ ->
+            if List.member name_ Parser.Common.verbatimBlockNames then
+                { blockType = VerbatimBlock [ name_ ], args = block.args, name = Just name_ }
 
-       Nothing ->
-           (case List.Extra.getAt 1 block.content of
+            else
+                { blockType = OrdinaryBlock [ name_ ], args = block.args, name = Just name_ }
 
-               Just "$$" ->
-                   { blockType = VerbatimBlock [ "math" ], args = [], name = Just "math" }
-               Just "```" ->
-                   { blockType = VerbatimBlock [ "code" ], args = [], name = Just "code" }
+        Nothing ->
+            (case List.Extra.getAt 1 block.content of
+                Just "$$" ->
+                    { blockType = VerbatimBlock [ "math" ], args = [], name = Just "math" }
 
-               _ -> {blockType = Paragraph, args = [],  name = block.name }) |> Debug.log "BT, X"
+                Just "```" ->
+                    { blockType = VerbatimBlock [ "code" ], args = [], name = Just "code" }
 
-
+                _ ->
+                    { blockType = Paragraph, args = [], name = block.name }
+            )
+                |> Debug.log "BT, X"

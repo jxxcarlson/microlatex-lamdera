@@ -3,8 +3,10 @@ module Parser.PrimitiveBlock exposing
     , blockListOfStringList
     , idem
     , lidem
+    , lidem2
     , lt
     , midem
+    , midem2
     , mt
     , toString
     )
@@ -28,7 +30,7 @@ considered the first line of a verbatim block.
 -}
 
 import Parser.Language exposing (Language(..))
-import Parser.Line as Line exposing (Line)
+import Parser.Line as Line exposing (Line, PrimitiveBlockType(..))
 
 
 {-| -}
@@ -40,6 +42,8 @@ type alias PrimitiveBlock =
     , name : Maybe String
     , args : List String
     , named : Bool
+    , sourceText : String
+    , blockType : PrimitiveBlockType
     }
 
 
@@ -72,14 +76,32 @@ lidem =
     idem L0Lang
 
 
+midem2 =
+    idem2 MicroLaTeXLang
+
+
+lidem2 =
+    idem2 L0Lang
+
+
 idem : Language -> String -> Bool
 idem lang str =
     str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString)
 
 
+idem2 : Language -> String -> Bool
+idem2 lang str =
+    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString2)
+
+
 toString : List { a | content : List String } -> String
 toString blocks =
     blocks |> List.map (.content >> String.join "\n") |> String.join "\n"
+
+
+toString2 : List { a | sourceText : String } -> String
+toString2 blocks =
+    blocks |> List.map .sourceText |> String.join "\n"
 
 
 
@@ -89,7 +111,19 @@ toString blocks =
 blockListOfStringList : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 blockListOfStringList lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
-        |> List.map (\block -> { block | content = List.reverse block.content })
+        |> List.map (\block -> finalize block)
+
+
+finalize : PrimitiveBlock -> PrimitiveBlock
+finalize block =
+    let
+        content =
+            List.reverse block.content
+
+        sourceText =
+            String.join "\n" content
+    in
+    { block | content = content, sourceText = sourceText }
 
 
 {-|
@@ -119,7 +153,16 @@ init lang isVerbatimLine lines =
 
 blockFromLine : Language -> Line -> PrimitiveBlock
 blockFromLine lang { indent, lineNumber, position, prefix, content } =
-    { indent = indent, lineNumber = lineNumber, position = position, content = [ prefix ++ content ], name = Nothing, args = [], named = False }
+    { indent = indent
+    , lineNumber = lineNumber
+    , position = position
+    , content = [ prefix ++ content ]
+    , name = Nothing
+    , args = []
+    , named = False
+    , sourceText = ""
+    , blockType = PBWhatever
+    }
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
@@ -186,12 +229,18 @@ addCurrentLine lang ({ prefix, content, indent } as line) block =
     if block.named then
         { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
+    else if content == "$$" then
+        { block | indent = newIndent, content = (prefix ++ content) :: block.content, name = Just "math", named = True }
+
+    else if content == "```" then
+        { block | indent = newIndent, content = (prefix ++ content) :: block.content, name = Just "code", named = True }
+
     else
         let
-            ( name, args ) =
+            ( blockType, name, args ) =
                 Line.getNameAndArgs lang line
         in
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content, name = name, args = args, named = True }
+        { block | blockType = blockType, indent = newIndent, content = (prefix ++ content) :: block.content, name = name, args = args, named = True }
 
 
 handleGT : Line -> State -> State

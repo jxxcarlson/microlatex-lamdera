@@ -1,7 +1,8 @@
-module Parser.Line exposing (Line, classify, getNameAndArgs, prefixLength, prefixLengths)
+module Parser.Line exposing (Line, PrimitiveBlockType(..), classify, getNameAndArgs, prefixLength, prefixLengths)
 
 import Compiler.Util
 import Parser exposing ((|.), (|=), Parser)
+import Parser.Common
 import Parser.Language exposing (Language(..))
 
 
@@ -15,6 +16,12 @@ type alias Line =
     { indent : Int, prefix : String, content : String, lineNumber : Int, position : Int }
 
 
+type PrimitiveBlockType
+    = PBVerbatim
+    | PBOrdinary
+    | PBWhatever
+
+
 classify : Int -> Int -> String -> Line
 classify position lineNumber str =
     case Parser.run (prefixParser position lineNumber) str of
@@ -25,11 +32,22 @@ classify position lineNumber str =
             result
 
 
-getNameAndArgs : Language -> Line -> ( Maybe String, List String )
+getNameAndArgs : Language -> Line -> ( PrimitiveBlockType, Maybe String, List String )
 getNameAndArgs lang line =
     case lang of
         MicroLaTeXLang ->
-            ( Compiler.Util.getMicroLaTeXItem "begin" line.content, Compiler.Util.getBracketedItems line.content )
+            let
+                name =
+                    Compiler.Util.getMicroLaTeXItem "begin" line.content |> Maybe.withDefault "anon"
+
+                bt =
+                    if List.member name Parser.Common.verbatimBlockNames then
+                        PBVerbatim
+
+                    else
+                        PBOrdinary
+            in
+            ( bt, Compiler.Util.getMicroLaTeXItem "begin" line.content, Compiler.Util.getBracketedItems line.content )
 
         L0Lang ->
             if String.left 1 line.content == "|" then
@@ -43,7 +61,7 @@ getNameAndArgs lang line =
                     args =
                         List.drop 1 words
                 in
-                ( Just name, args )
+                ( PBOrdinary, Just name, args )
 
             else if String.left 1 line.content == "||" then
                 let
@@ -56,10 +74,10 @@ getNameAndArgs lang line =
                     args =
                         List.drop 1 words
                 in
-                ( Just name, args )
+                ( PBVerbatim, Just name, args )
 
             else
-                ( Nothing, [] )
+                ( PBOrdinary, Nothing, [] )
 
 
 prefixLength : Int -> Int -> String -> Int
