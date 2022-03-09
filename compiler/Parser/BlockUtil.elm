@@ -12,12 +12,13 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..), RawBlock)
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Common
 import Parser.Error
 import Parser.Expr exposing (Expr)
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
+import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
 type alias Classification =
@@ -34,7 +35,7 @@ empty =
         , tag = ""
         , numberOfLines = 0
         , blockType = Paragraph
-        , content = ""
+        , content = []
         , messages = []
         , sourceText = "YYY"
         }
@@ -68,11 +69,11 @@ toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, in
         , args = args
         , indent = indent
         , lineNumber = lineNumber
-        , numberOfLines = List.length (String.lines content)
+        , numberOfLines = List.length content
         , id = id
         , tag = tag
         , blockType = blockType
-        , content = mapContent parse lineNumber blockType content
+        , content = mapContent parse lineNumber blockType sourceText
         , messages = messages
         , sourceText = sourceText
         }
@@ -108,7 +109,7 @@ classify lang block =
             L0.Parser.Classify.classify block
 
 
-toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> RawBlock -> IntermediateBlock
+toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages block =
     let
         classification =
@@ -205,7 +206,7 @@ addEnd name str =
         str
 
 
-makeVerbatimInterMediateBlock : Language -> List String -> RawBlock -> String -> Classification -> List String -> IntermediateBlock
+makeVerbatimInterMediateBlock : Language -> List String -> PrimitiveBlock -> String -> Classification -> List String -> IntermediateBlock
 makeVerbatimInterMediateBlock lang messages block revisedContent classification args =
     let
         ( firstLine, rawContent ) =
@@ -225,7 +226,7 @@ makeVerbatimInterMediateBlock lang messages block revisedContent classification 
 -- |> Debug.log "makeVerbatimInterMediateBlock"
 
 
-makeIntermediateBlock : RawBlock -> Maybe String -> List String -> String -> List String -> BlockType -> IntermediateBlock
+makeIntermediateBlock : PrimitiveBlock -> Maybe String -> List String -> String -> List String -> BlockType -> IntermediateBlock
 makeIntermediateBlock block name args content messages blockType_ =
     IntermediateBlock
         { name = name

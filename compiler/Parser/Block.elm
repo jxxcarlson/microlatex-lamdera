@@ -40,7 +40,7 @@ type IntermediateBlock
         , id : String
         , tag : String
         , blockType : BlockType
-        , content : String
+        , content : List String
         , messages : List String
         , sourceText : String
         }

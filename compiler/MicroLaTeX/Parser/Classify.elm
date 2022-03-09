@@ -1,60 +1,48 @@
 module MicroLaTeX.Parser.Classify exposing (Classification, classify)
 
-import Parser.Block exposing (BlockType(..), RawBlock)
+import Compiler.Util
+import List.Extra
+import Parser.Block exposing (BlockType(..))
 import Parser.Common
+import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
 type alias Classification =
     { blockType : BlockType, args : List String, name : Maybe String }
 
 
-classify : RawBlock -> Classification
+classify : PrimitiveBlock -> Classification
 classify block =
-    let
-        str_ =
-            String.trim block.content
-
-        lines =
-            String.lines str_
-
-        firstLine =
-            List.head lines |> Maybe.withDefault "FIRSTLINE"
-    in
-    if String.left 5 firstLine == "\\item" then
+   case block.name of 
+       "item" -> 
         { blockType = OrdinaryBlock [ "item" ], args = [], name = Just "item" }
 
-    else if String.left 6 firstLine == "\\index" then
+       "index" -> 
         { blockType = OrdinaryBlock [ "index" ], args = [], name = Just "index" }
 
-    else if String.left 9 firstLine == "\\abstract" then
+       "abstract" ->
         { blockType = OrdinaryBlock [ "abstract" ], args = [], name = Just "abstract" }
 
-    else if String.left 9 firstLine == "\\numbered" then
+        "numbered" ->
         { blockType = OrdinaryBlock [ "numbered" ], args = [], name = Just "numbered" }
 
-    else if String.left 5 firstLine == "\\desc" then
-        let
-            args =
-                String.replace "\\desc" "" firstLine |> String.words
-        in
-        { blockType = OrdinaryBlock [ "desc" ], args = args, name = Just "desc" }
+       "desc" ->
+        { blockType = OrdinaryBlock [ "desc" ], args = block.args, name = Just "desc" }
 
-    else if String.left 7 firstLine == "\\begin{" then
-        let
-            name =
-                firstLine |> String.replace "\\begin{" "" |> String.replace "}" ""
-        in
-        if List.member name Parser.Common.verbatimBlockNames then
-            { blockType = VerbatimBlock [ name ], args = [], name = Just name }
+       Just name_  ->
+                if List.member name_ Parser.Common.verbatimBlockNames ->
+                     { blockType = VerbatimBlock [ block.name ], args = block.args, name = Just name }
+                else
+                     {blockType = OrdinaryBlock [ block.name ], args = block.args, name = Just name }
 
-        else
-            { blockType = OrdinaryBlock [ name ], args = [], name = Just name }
+       Nothing ->
+           (case List.Extra.getAt 1 block.content of
 
-    else if String.left 2 str_ == "$$" then
-        { blockType = VerbatimBlock [ "math" ], args = [], name = Just "math" }
+               Just "$$" ->
+                   { blockType = VerbatimBlock [ "math" ], args = [], name = Just "math" }
+               Just "```" ->
+                   { blockType = VerbatimBlock [ "code" ], args = [], name = Just "code" }
 
-    else if String.left 3 str_ == "```" then
-        { blockType = VerbatimBlock [ "code" ], args = [], name = Just "code" }
+               _ -> {blockType = Paragraph, args = [],  name = block.name }) |> Debug.log "BT, X"
 
-    else
-        { blockType = Paragraph, args = [], name = Nothing }
+
