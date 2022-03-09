@@ -148,10 +148,16 @@ listData accumulator name =
         ( False, Just "numbered" ) ->
             ( True, Just (Vector.init 4 |> Vector.increment 0) )
 
+        ( False, Just "item" ) ->
+            ( True, Just (Vector.init 4 |> Vector.increment 0) )
+
         ( False, _ ) ->
             ( False, Nothing )
 
         ( True, Just "numbered" ) ->
+            ( True, Nothing )
+
+        ( True, Just "item" ) ->
             ( True, Nothing )
 
         ( True, _ ) ->
@@ -227,6 +233,33 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
                     { accumulator | headingIndex = headingIndex }
 
         Just "numbered" ->
+            let
+                level =
+                    case lang of
+                        MicroLaTeXLang ->
+                            -- TODO: the -2 shift is due to a bad choice in converting a list of
+                            -- TODO: blocks with indentation info into a forest of trees.
+                            -- TODO: This needs to be fixed
+                            (indent - 2) // 2
+
+                        L0Lang ->
+                            (indent - 2) // 2
+
+                itemVector =
+                    case initialNumberedVector of
+                        Just v ->
+                            v
+
+                        Nothing ->
+                            Vector.increment level accumulator.itemVector
+
+                numberedItemDict =
+                    Dict.insert id { level = level, index = Vector.get level itemVector } accumulator.numberedItemDict
+            in
+            { accumulator | inList = inList, itemVector = itemVector, numberedItemDict = numberedItemDict }
+                |> updateReference tag id (String.fromInt (Vector.get level itemVector))
+
+        Just "item" ->
             let
                 level =
                     case lang of

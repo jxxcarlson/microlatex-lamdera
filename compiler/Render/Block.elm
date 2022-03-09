@@ -329,9 +329,6 @@ aligned_ count acc settings _ id str =
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
 
-        lines_ =
-            List.take (n - 1) filteredLines
-
         -- |> Debug.log "LINES_"
         attrs =
             if id == settings.selectedId then
@@ -348,7 +345,7 @@ aligned_ count acc settings _ id str =
                 str_
 
         adjustedLines_ =
-            List.map (deleteTrailingSlashes >> Parser.MathMacro.evalStr acc.mathMacroDict) lines_
+            List.map (deleteTrailingSlashes >> Parser.MathMacro.evalStr acc.mathMacroDict) filteredLines
                 |> List.filter (\line -> line /= "")
                 |> List.map (\line -> line ++ "\\\\")
 
@@ -386,9 +383,39 @@ renderCode _ _ _ _ id str =
         (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
 
 
-item count acc settings _ id exprs =
+item1 count acc settings _ id exprs =
     Element.row ([ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 12 ] ++ highlightAttrs id settings)
         [ Element.el [ Font.size 18, Element.alignTop, Element.moveRight 6, Element.width (Element.px 24), Render.Settings.leftIndentation ] (Element.text "•")
+        , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
+            (renderWithDefault "| item" count acc settings exprs)
+        ]
+
+
+item count acc settings args id exprs =
+    let
+        level =
+            Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0 |> Debug.log "LEVEL (R)"
+
+        label =
+            case modBy 3 level of
+                0 ->
+                    String.fromChar '●'
+
+                1 ->
+                    String.fromChar '○'
+
+                _ ->
+                    "◊"
+    in
+    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+        [ Element.el
+            [ Font.size 14
+            , Element.alignTop
+            , Element.moveRight 6
+            , Element.width (Element.px 24)
+            , Render.Settings.leftIndentation
+            ]
+            (Element.text label)
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| item" count acc settings exprs)
         ]
