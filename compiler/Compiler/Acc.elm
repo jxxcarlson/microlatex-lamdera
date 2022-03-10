@@ -316,6 +316,18 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
             { accumulator | inList = inList, itemVector = itemVector, numberedItemDict = numberedItemDict }
                 |> updateReference tag id (String.fromInt (Vector.get level itemVector))
 
+        Just name_ ->
+            let
+                newCounter =
+                    if List.member name_ accumulator.numberedBlockNames then
+                        incrementCounter name_ accumulator.counter
+
+                    else
+                        accumulator.counter
+            in
+            { accumulator | counter = newCounter }
+
+        --  |> updateReference tag id (String.fromInt (Vector.get level itemVector))
         _ ->
             accumulator
 
