@@ -120,18 +120,12 @@ fromBlocks defaultNode makeNode blocks =
 forestFromBlocks : data -> (Block data -> data) -> (data -> Block data) -> List (Block data) -> Result Error (List (Tree data))
 forestFromBlocks defaultNode makeNode renderNode blocks =
     let
-        quantum =
-            quantumOfBlocks blocks
-
-        blocks1 : List (Block data)
-        blocks1 =
-            blocks |> List.map (\b -> { b | indent = b.indent + quantum })
-
         blocks2 : List (Block data)
         blocks2 =
-            renderNode defaultNode :: blocks1
+            renderNode defaultNode :: blocks
     in
-    fromBlocks defaultNode makeNode blocks2 |> Result.map Tree.children
+    fromBlocks defaultNode makeNode blocks2
+        |> Result.map Tree.children
 
 
 differences : List Int -> List Int

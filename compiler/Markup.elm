@@ -102,10 +102,14 @@ fixup tree =
         Tree.mapLabel fixContent tree
 
 
+emptyBlock =
+    Parser.PrimitiveBlock.empty
+
+
 toRawBlockForest : Language -> String -> List (Tree PrimitiveBlock)
 toRawBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
-        |> Parser.Tree.forestFromBlocks Parser.PrimitiveBlock.empty identity identity
+        |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []

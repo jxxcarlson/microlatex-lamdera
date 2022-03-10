@@ -242,12 +242,13 @@ updateWithOrdinarySectionBlock accumulator name content level id =
     { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString (headingIndex |> Debug.log "VECTOR, headingIndex") |> Debug.log "VECTOR.toString")
 
 
+updateWitOrdinaryBlock : a -> Accumulator -> Maybe String -> Either b (List Expr) -> e -> String -> String -> Int -> Accumulator
 updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
     let
         ( inList, initialNumberedVector ) =
             listData accumulator name
     in
-    case List.head args_ of
+    case name of
         Just "defs" ->
             -- incorporate runtime macro definitions
             case content of
@@ -280,15 +281,7 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
         Just "numbered" ->
             let
                 level =
-                    case lang of
-                        MicroLaTeXLang ->
-                            -- TODO: the -2 shift is due to a bad choice in converting a list of
-                            -- TODO: blocks with indentation info into a forest of trees.
-                            -- TODO: This needs to be fixed
-                            (indent - 2) // 2
-
-                        L0Lang ->
-                            (indent - 2) // 2
+                    (indent - 2) // 2
 
                 itemVector =
                     case initialNumberedVector of
@@ -307,15 +300,7 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
         Just "item" ->
             let
                 level =
-                    case lang of
-                        MicroLaTeXLang ->
-                            -- TODO: the -2 shift is due to a bad choice in converting a list of
-                            -- TODO: blocks with indentation info into a forest of trees.
-                            -- TODO: This needs to be fixed
-                            (indent - 2) // 2
-
-                        L0Lang ->
-                            (indent - 2) // 2
+                    (indent - 2) // 2
 
                 itemVector =
                     case initialNumberedVector of

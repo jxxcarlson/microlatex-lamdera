@@ -198,7 +198,6 @@ makeIntermediateBlock lang block messages =
                                     (\line -> not (String.contains "label" line))
                     in
                     List.drop 1 adjustedContent
-                        -- |> dropLastIf (lang == MicroLaTeXLang)
                         |> handleLastLine
 
         _ =
@@ -207,12 +206,12 @@ makeIntermediateBlock lang block messages =
     IntermediateBlock
         { name = block.name
         , args = block.args
-        , indent = block.indent
+        , indent = block.indent |> Debug.log "INDENT"
         , lineNumber = block.lineNumber
         , id = String.fromInt block.lineNumber
         , tag = Compiler.Util.getItem lang "label" block.sourceText
         , numberOfLines = List.length block.content
-        , content = content |> Debug.log "CONTENT"
+        , content = content
         , messages = messages
         , blockType = toBlockType block.blockType (List.drop 1 block.args)
         , sourceText = block.sourceText
