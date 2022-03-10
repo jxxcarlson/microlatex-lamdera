@@ -90,10 +90,10 @@ transformAccumulateTree lang tree acc =
                     block_ =
                         case lang of
                             MicroLaTeXLang ->
-                                MicroLaTeX.Compiler.LaTeX.transform block__
+                                MicroLaTeX.Compiler.LaTeX.transform block__ |> Debug.log "VECTOR Transform (1)"
 
                             L0Lang ->
-                                L0.Transform.transform block__ |> Debug.log "L0 Transform"
+                                L0.Transform.transform block__ |> Debug.log "VECTOR Transform (2)"
 
                     newAcc =
                         updateAccumulator lang block_ acc_
@@ -105,12 +105,12 @@ transformAccumulateTree lang tree acc =
 
 transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
 transformBlock lang acc (ExpressionBlock block) =
-    case block.blockType of
-        OrdinaryBlock [ "section", level ] ->
+    case ( block.name, block.args ) of
+        ( Just "section", level :: rest ) ->
             ExpressionBlock
-                { block | args = [ level, Vector.toString acc.headingIndex ] }
+                { block | args = [ level, Vector.toString acc.headingIndex ] |> Debug.log "VECTOR" }
 
-        OrdinaryBlock args ->
+        ( Just _, args ) ->
             case List.head args of
                 -- TODO: review this code
                 Just name ->
@@ -119,10 +119,6 @@ transformBlock lang acc (ExpressionBlock block) =
 
                 _ ->
                     ExpressionBlock block
-
-        VerbatimBlock [ name ] ->
-            ExpressionBlock
-                { block | args = insertInList (getCounterAsString name acc.counter) block.args }
 
         _ ->
             expand acc.environment (ExpressionBlock block)
@@ -181,7 +177,14 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
     in
     case ( name, blockType ) of
         -- provide numbering for sections
-        ( Just "section", OrdinaryBlock [ "section", level ] ) ->
+        ( Just "section", OrdinaryBlock args_ ) ->
+            let
+                _ =
+                    Debug.log "ARGS_" args
+
+                level =
+                    List.head args |> Debug.log "ARGS_, head" |> Maybe.withDefault "1" |> Debug.log "ARGS_, level"
+            in
             updateWithOrdinarySectionBlock accumulator name content level id
 
         ( Just name_, OrdinaryBlock args_ ) ->
@@ -225,11 +228,14 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         sectionTag =
             title |> String.toLower |> String.replace " " "-"
 
+        _ =
+            Debug.log "VECTOR LEVEL" level
+
         headingIndex =
-            Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
+            Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex |> Debug.log ("VECTOR inc, " ++ level)
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-    { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
+    { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString (headingIndex |> Debug.log "VECTOR, headingIndex") |> Debug.log "VECTOR.toString")
 
 
 updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =

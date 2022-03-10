@@ -15,7 +15,6 @@ ordinaryBlock name args exprs data m1 =
             , args = args
             , name = name
         }
-        |> Debug.log "OUT"
 
 
 {-| The role of function transform is to map a paragraph block
