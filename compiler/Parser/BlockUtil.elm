@@ -65,6 +65,10 @@ getMessages ((ExpressionBlock { messages }) as block) =
 
 toExpressionBlockFromIntermediateBlock : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
 toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
+    let
+        _ =
+            Debug.log "INT CONT" content
+    in
     ExpressionBlock
         { name = name
         , args = args
@@ -74,7 +78,7 @@ toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, in
         , id = id
         , tag = tag
         , blockType = blockType
-        , content = mapContent parse lineNumber blockType sourceText
+        , content = mapContent parse lineNumber blockType (String.join "\n" content |> Debug.log "EFF CONT!")
         , messages = messages
         , sourceText = sourceText
         }
@@ -112,7 +116,7 @@ classify lang block =
 
 
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
-toIntermediateBlock lang parseToState extractMessages block =
+toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType } as block) =
     let
         classification =
             classify lang block
@@ -126,19 +130,112 @@ toIntermediateBlock lang parseToState extractMessages block =
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
-    case classification.blockType of
-        Paragraph ->
-            makeIntermediateBlock block messages
+    case blockType of
+        PBParagraph ->
+            makeIntermediateBlock lang block messages
 
-        OrdinaryBlock args ->
-            makeOrdinaryIntermediateBlock block messages
+        PBOrdinary ->
+            makeIntermediateBlock lang block messages
 
-        VerbatimBlock args ->
-            makeVerbatimInterMediateBlock lang block messages (String.lines filteredContent)
+        PBVerbatim ->
+            makeIntermediateBlock lang block messages
 
 
-makeOrdinaryIntermediateBlock block messages =
-    makeIntermediateBlock block messages
+dropLast : List a -> List a
+dropLast items =
+    let
+        n =
+            List.length items
+    in
+    List.take (n - 1) items
+
+
+dropLastIf : Bool -> List a -> List a
+dropLastIf ok items =
+    if ok then
+        dropLast items
+
+    else
+        items
+
+
+makeIntermediateBlock : Language -> PrimitiveBlock -> List String -> IntermediateBlock
+makeIntermediateBlock lang block messages =
+    let
+        blockType =
+            toBlockType block.blockType block.args
+
+        content =
+            case blockType of
+                Paragraph ->
+                    block.content
+
+                OrdinaryBlock _ ->
+                    List.drop 1 (normalize block.content)
+                        |> dropLastIf (lang == MicroLaTeXLang)
+
+                VerbatimBlock _ ->
+                    let
+                        tag =
+                            Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
+
+                        adjustedContent =
+                            -- TODO: better way of filtering for LaTeX
+                            block.content
+                                |> normalize
+                                |> List.filter
+                                    (\line -> not (String.contains "label" line))
+                    in
+                    List.drop 1 adjustedContent
+                        |> Debug.log "NORM VERB"
+                        |> dropLastIf (lang == MicroLaTeXLang)
+
+        _ =
+            Debug.log "NAMED" ( block.named, ( block.name, block.args, blockType ), block.sourceText )
+    in
+    IntermediateBlock
+        { name = block.name
+        , args = block.args
+        , indent = block.indent
+        , lineNumber = block.lineNumber
+        , id = String.fromInt block.lineNumber
+        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
+        , numberOfLines = List.length block.content
+        , content = content |> Debug.log "CONTENT"
+        , messages = messages
+        , blockType = toBlockType block.blockType block.args
+        , sourceText = block.sourceText
+        }
+
+
+normalize : List String -> List String
+normalize strs =
+    case List.head strs of
+        Nothing ->
+            strs
+
+        Just "" ->
+            List.drop 1 strs
+
+        _ ->
+            strs
+
+
+toBlockType : PrimitiveBlockType -> List String -> BlockType
+toBlockType pbt args =
+    case pbt of
+        PBParagraph ->
+            Paragraph
+
+        PBOrdinary ->
+            OrdinaryBlock args
+
+        PBVerbatim ->
+            VerbatimBlock args
+
+
+
+-- UNUSED
 
 
 getVerbatimBlockErrorMessages block rawContent classification state extractMessages firstLine =
@@ -181,70 +278,9 @@ fixupVerbatimContent lang rawContent name =
                     rawContent
 
 
-
--- |> Debug.log "fixupVerbatimContent"
-
-
 addEnd name str =
     if List.member name Parser.Common.verbatimBlockNames && name /= "code" then
         str ++ "\nend"
 
     else
         str
-
-
-makeVerbatimInterMediateBlock : Language -> PrimitiveBlock -> List String -> List String -> IntermediateBlock
-makeVerbatimInterMediateBlock lang block messages filteredContent =
-    let
-        (IntermediateBlock data) =
-            makeIntermediateBlock block messages
-    in
-    IntermediateBlock { data | content = filteredContent }
-
-
-
--- |> Debug.log "makeVerbatimInterMediateBlock"
-
-
-makeIntermediateBlock : PrimitiveBlock -> List String -> IntermediateBlock
-makeIntermediateBlock block messages =
-    IntermediateBlock
-        { name = block.name
-        , args = block.args -- List.drop 1 args
-        , indent = block.indent
-        , lineNumber = block.lineNumber
-        , id = String.fromInt block.lineNumber
-        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
-        , numberOfLines = List.length block.content
-        , content = block.content
-        , messages = messages
-        , blockType = toBlockType block.blockType block.args
-        , sourceText = block.sourceText
-        }
-
-
-toBlockType : PrimitiveBlockType -> List String -> BlockType
-toBlockType pbt args =
-    case pbt of
-        PBParagraph ->
-            Paragraph
-
-        PBOrdinary ->
-            OrdinaryBlock args
-
-        PBVerbatim ->
-            VerbatimBlock args
-
-
-split_ : String -> ( String, String )
-split_ str_ =
-    let
-        lines =
-            str_ |> String.trim |> String.lines
-    in
-    case lines of
-        first :: rest ->
-            ( first, String.join "\n" rest )
-
-        _ ->
-            ( "first", "rest" )

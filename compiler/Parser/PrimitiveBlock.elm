@@ -75,50 +75,6 @@ type alias State =
     }
 
 
-mt str =
-    str |> String.lines |> blockListOfStringList MicroLaTeXLang (\_ -> True)
-
-
-lt str =
-    str |> String.lines |> blockListOfStringList L0Lang (\_ -> True)
-
-
-midem =
-    idem MicroLaTeXLang
-
-
-lidem =
-    idem L0Lang
-
-
-midem2 =
-    idem2 MicroLaTeXLang
-
-
-lidem2 =
-    idem2 L0Lang
-
-
-idem : Language -> String -> Bool
-idem lang str =
-    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString)
-
-
-idem2 : Language -> String -> Bool
-idem2 lang str =
-    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString2)
-
-
-toString : List { a | content : List String } -> String
-toString blocks =
-    blocks |> List.map (.content >> String.join "\n") |> String.join "\n"
-
-
-toString2 : List { a | sourceText : String } -> String
-toString2 blocks =
-    blocks |> List.map .sourceText |> String.join "\n"
-
-
 
 -- |> String.join "\n"
 
@@ -151,8 +107,16 @@ finalize block =
 init : Language -> (String -> Bool) -> List String -> State
 init lang isVerbatimLine lines =
     let
+        firstLine : Maybe Line
+        firstLine =
+            List.head lines |> Maybe.map (Line.classify 0 0)
+
+        firstBlock_ : Maybe PrimitiveBlock
+        firstBlock_ =
+            Maybe.map (blockFromLine lang) firstLine
+
         firstBlock =
-            List.head lines |> Maybe.map (Line.classify 0 0 >> blockFromLine lang)
+            Maybe.map2 (elaborate lang) firstLine firstBlock_
     in
     { blocks = []
     , currentBlock = firstBlock
@@ -203,9 +167,6 @@ nextStep state =
                 newLineNumber =
                     state.lineNumber + 1
 
-                _ =
-                    Debug.log "n, p, r" ( newLineNumber, newPosition, rawLine )
-
                 currentLine =
                     -- TODO: the below is wrong
                     Line.classify state.position newLineNumber rawLine
@@ -231,9 +192,31 @@ indentationOf k =
 addCurrentLine : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine lang ({ prefix, content, indent } as line) block =
     let
-        _ =
-            Debug.log "add current line" content
+        pb =
+            addCurrentLine_ lang line block
+    in
+    elaborate lang line pb
 
+
+elaborate : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
+elaborate lang line pb =
+    if pb.named then
+        pb
+
+    else if pb.content == [ "" ] then
+        pb
+
+    else
+        let
+            ( blockType, name, args ) =
+                Line.getNameAndArgs lang line
+        in
+        { pb | blockType = blockType, name = name, args = args, named = True }
+
+
+addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine_ lang ({ prefix, content, indent } as line) block =
+    let
         newIndent =
             if block.indent == 0 && indent > 0 then
                 indent
@@ -245,17 +228,13 @@ addCurrentLine lang ({ prefix, content, indent } as line) block =
         { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
     else if content == "$$" then
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content, name = Just "math", named = True }
+        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
     else if content == "```" then
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content, name = Just "code", named = True }
+        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
     else
-        let
-            ( blockType, name, args ) =
-                Line.getNameAndArgs lang line
-        in
-        { block | blockType = blockType, indent = newIndent, content = (prefix ++ content) :: block.content, name = name, args = args, named = True }
+        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
 
 handleGT : Line -> State -> State
@@ -359,3 +338,51 @@ loop s f =
 
         Done b ->
             b
+
+
+
+-- FOR TESTING
+
+
+mt str =
+    str |> String.lines |> blockListOfStringList MicroLaTeXLang (\_ -> True)
+
+
+lt str =
+    str |> String.lines |> blockListOfStringList L0Lang (\_ -> True)
+
+
+midem =
+    idem MicroLaTeXLang
+
+
+lidem =
+    idem L0Lang
+
+
+midem2 =
+    idem2 MicroLaTeXLang
+
+
+lidem2 =
+    idem2 L0Lang
+
+
+idem : Language -> String -> Bool
+idem lang str =
+    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString)
+
+
+idem2 : Language -> String -> Bool
+idem2 lang str =
+    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString2)
+
+
+toString : List { a | content : List String } -> String
+toString blocks =
+    blocks |> List.map (.content >> String.join "\n") |> String.join "\n"
+
+
+toString2 : List { a | sourceText : String } -> String
+toString2 blocks =
+    blocks |> List.map .sourceText |> String.join "\n"

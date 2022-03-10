@@ -33,7 +33,7 @@ classify block =
                 { blockType = OrdinaryBlock [ name_ ], args = block.args, name = Just name_ }
 
         Nothing ->
-            (case List.Extra.getAt 1 block.content of
+            case List.Extra.getAt 1 block.content of
                 Just "$$" ->
                     { blockType = VerbatimBlock [ "math" ], args = [], name = Just "math" }
 
@@ -42,5 +42,3 @@ classify block =
 
                 _ ->
                     { blockType = Paragraph, args = [], name = block.name }
-            )
-                |> Debug.log "BT, X"

@@ -38,32 +38,31 @@ getNameAndArgs lang line =
         MicroLaTeXLang ->
             let
                 name =
-                    Compiler.Util.getMicroLaTeXItem "begin" line.content |> Maybe.withDefault "anon"
+                    case Compiler.Util.getMicroLaTeXItem "begin" line.content of
+                        Just str ->
+                            Just str |> Debug.log "Micro, NAME(1)"
+
+                        Nothing ->
+                            if line.content == "$$" then
+                                Just "math" |> Debug.log "Micro, NAME(2)"
+
+                            else
+                                Nothing |> Debug.log "Micro, NAME(3)"
 
                 bt =
-                    if List.member name Parser.Common.verbatimBlockNames then
+                    if name == Nothing then
+                        PBParagraph
+
+                    else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || line.content == "$$" then
                         PBVerbatim
 
                     else
                         PBOrdinary
             in
-            ( bt, Compiler.Util.getMicroLaTeXItem "begin" line.content, Compiler.Util.getBracketedItems line.content )
+            ( bt, name, Compiler.Util.getBracketedItems line.content )
 
         L0Lang ->
-            if String.left 1 line.content == "|" then
-                let
-                    words =
-                        String.words (String.dropLeft 2 line.content)
-
-                    name =
-                        List.head words |> Maybe.withDefault "anon"
-
-                    args =
-                        List.drop 1 words
-                in
-                ( PBOrdinary, Just name, args )
-
-            else if String.left 1 line.content == "||" then
+            if String.left 2 line.content == "||" then
                 let
                     words =
                         String.words (String.dropLeft 3 line.content)
@@ -76,8 +75,24 @@ getNameAndArgs lang line =
                 in
                 ( PBVerbatim, Just name, args )
 
+            else if String.left 1 line.content == "|" then
+                let
+                    words =
+                        String.words (String.dropLeft 2 line.content)
+
+                    name =
+                        List.head words |> Maybe.withDefault "anon"
+
+                    args =
+                        List.drop 1 words
+                in
+                ( PBOrdinary, Just name, args )
+
+            else if String.left 2 line.content == "$$" then
+                ( PBVerbatim, Just "math", [] )
+
             else
-                ( PBOrdinary, Nothing, [] )
+                ( PBParagraph, Nothing, [] )
 
 
 prefixLength : Int -> Int -> String -> Int

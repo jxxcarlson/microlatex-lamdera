@@ -25,7 +25,11 @@ htmlId str =
 
 
 render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element MarkupMsg
-render count acc settings (ExpressionBlock { name, args, blockType, content, id }) =
+render count acc settings (ExpressionBlock { name, args, blockType, content, id, sourceText }) =
+    let
+        _ =
+            Debug.log "NAME (ExprBlock)" ( name, sourceText )
+    in
     case blockType of
         Paragraph ->
             case content of
@@ -68,6 +72,10 @@ render count acc settings (ExpressionBlock { name, args, blockType, content, id 
                     Element.none
 
                 Right exprs ->
+                    let
+                        _ =
+                            Debug.log "NAME (RIGHT)" ( name, sourceText, exprs )
+                    in
                     case name of
                         Nothing ->
                             noSuchOrdinaryBlock count acc settings "name" exprs
@@ -301,7 +309,7 @@ renderEquation count acc settings args id str =
     in
     Element.row ([ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ] ++ attrs)
         [ Element.el [ Element.centerX ] (Render.Math.mathText count w id DisplayMathMode content)
-        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "??(10)" 0 args ++ ")")
+        , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "(??)" 0 args ++ ")")
         ]
 
 
@@ -325,11 +333,9 @@ aligned_ count acc settings _ id str =
             String.lines str
                 |> List.filter (\line -> not (String.left 6 line == "[label") && not (line == ""))
 
-        -- |> Debug.log "FILTERED LINES"
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
 
-        -- |> Debug.log "LINES_"
         attrs =
             if id == settings.selectedId then
                 [ Events.onClick (SendId id), leftPadding, Background.color (Element.rgb 0.8 0.8 1.0) ]

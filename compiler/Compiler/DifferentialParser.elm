@@ -22,7 +22,6 @@ init lang str =
         chunks =
             chunker lang str
 
-        -- |> Debug.log "CHUNKED"
         ( newAccumulator, parsed ) =
             (List.map (parser lang) >> Compiler.Acc.make lang) chunks
     in
@@ -47,9 +46,3 @@ parser lang =
 
         L0Lang ->
             Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock L0.Parser.Expression.parse)
-
-
-
---renderer =
---    Tree.map (Render.Block.render 0 Settings.defaultSettings)
---differentialParser = differentialParser parser diffRecord editRecord
