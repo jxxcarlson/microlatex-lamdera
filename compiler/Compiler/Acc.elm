@@ -58,7 +58,7 @@ transformST lang ast =
 make : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
 make lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
-        |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
+        |> (\( acc_, ast_ ) -> ( acc_ |> Debug.log "ACC", List.reverse ast_ ))
 
 
 init : Int -> Accumulator
@@ -361,7 +361,7 @@ updateWithVerbatimBlock accumulator name_ tag id =
     in
     { accumulator | inList = inList, counter = newCounter }
         -- Update the references dictionary
-        |> updateReference tag id (getCounter name newCounter |> String.fromInt)
+        |> updateReference tag id (getCounter (reduceName name) newCounter |> String.fromInt)
 
 
 updateWithParagraph accumulator name content id =

@@ -118,15 +118,6 @@ classify lang block =
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType } as block) =
     let
-        classification =
-            classify lang block
-
-        tag =
-            Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
-
-        filteredContent =
-            Compiler.Util.eraseItem MicroLaTeXLang "label" tag block.sourceText
-
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
@@ -187,9 +178,6 @@ makeIntermediateBlock lang block messages =
 
                 VerbatimBlock _ ->
                     let
-                        tag =
-                            Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
-
                         adjustedContent =
                             -- TODO: better way of filtering for LaTeX
                             block.content
@@ -209,7 +197,7 @@ makeIntermediateBlock lang block messages =
         , indent = block.indent |> Debug.log "INDENT"
         , lineNumber = block.lineNumber
         , id = String.fromInt block.lineNumber
-        , tag = Compiler.Util.getItem lang "label" block.sourceText
+        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
         , numberOfLines = List.length block.content
         , content = content
         , messages = messages
