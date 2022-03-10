@@ -110,18 +110,22 @@ transformBlock lang acc (ExpressionBlock block) =
             ExpressionBlock
                 { block | args = [ level, Vector.toString acc.headingIndex ] |> Debug.log "VECTOR" }
 
-        ( Just _, args ) ->
-            case List.head args of
-                -- TODO: review this code
-                Just name ->
-                    ExpressionBlock
-                        { block | args = insertInList (getCounterAsString name acc.counter) block.args }
-
-                _ ->
-                    ExpressionBlock block
+        ( Just name_, args ) ->
+            -- Insert the numerical counter, e.g,, equation number, in the arg list of the block
+            ExpressionBlock
+                { block | args = insertInList (getCounterAsString (reduceName name_) acc.counter) block.args |> Debug.log "ACC, insert arg" }
 
         _ ->
             expand acc.environment (ExpressionBlock block)
+
+
+reduceName : String -> String
+reduceName str =
+    if List.member str [ "equation", "aligned" ] then
+        "equation"
+
+    else
+        str
 
 
 insertInList : a -> List a -> List a
@@ -160,6 +164,11 @@ listData accumulator name =
             ( False, Nothing )
 
 
+{-| Update the references dictionary: add a key-value pair where the
+key is defined as in the examples \\lable{foo} or [label foo],
+and where value is a record with an id and a "numerical" reference,
+e.g, "2" or "2.3"
+-}
 updateReference : String -> String -> String -> Accumulator -> Accumulator
 updateReference tag_ id_ numRef_ acc =
     if tag_ /= "" then
@@ -188,9 +197,9 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
         ( Just "mathmacros", VerbatimBlock [] ) ->
             updateWithMathMacros accumulator content
 
-        ( Just name_, VerbatimBlock [ _ ] ) ->
+        ( Just name_, VerbatimBlock _ ) ->
             -- TODO: tighten up
-            updateWithVerbatimBlock accumulator (Just name_) tag id
+            updateWithVerbatimBlock accumulator name tag id
 
         ( Nothing, Paragraph ) ->
             updateWithParagraph accumulator Nothing content id
@@ -348,20 +357,25 @@ updateWithMathMacros accumulator content =
 
 updateWithVerbatimBlock accumulator name_ tag id =
     let
+        b_ =
+            Debug.log "ACC, update Verbtim" name_
+
         ( inList, _ ) =
             listData accumulator name_
 
         name =
-            Maybe.withDefault "---" name_
+            Maybe.withDefault "---" name_ |> Debug.log "ACC, name"
 
+        -- Increment the appropriate counter, e.g., "equation"
         newCounter =
             if List.member name accumulator.numberedBlockNames then
-                incrementCounter name accumulator.counter
+                incrementCounter (reduceName name) accumulator.counter
 
             else
                 accumulator.counter
     in
     { accumulator | inList = inList, counter = newCounter }
+        -- Update the references dictionary
         |> updateReference tag id (getCounter name newCounter |> String.fromInt)
 
 

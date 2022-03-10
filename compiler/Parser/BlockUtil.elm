@@ -151,12 +151,31 @@ dropLastIf ok items =
         items
 
 
+lastItem : List a -> List a
+lastItem items =
+    let
+        n =
+            List.length items
+    in
+    List.drop (n - 1) items
+
+
+handleLastLine : List String -> List String
+handleLastLine content =
+    if List.member (lastItem content) [ [ "$$" ], [ "\\end{equation}" ], [ "\\end{aligned}" ] ] then
+        dropLast content
+
+    else
+        content ++ [ "\\red{end??}" ]
+
+
 makeIntermediateBlock : Language -> PrimitiveBlock -> List String -> IntermediateBlock
 makeIntermediateBlock lang block messages =
     let
         blockType =
             toBlockType block.blockType block.args
 
+        content : List String
         content =
             case blockType of
                 Paragraph ->
@@ -179,8 +198,8 @@ makeIntermediateBlock lang block messages =
                                     (\line -> not (String.contains "label" line))
                     in
                     List.drop 1 adjustedContent
-                        |> Debug.log "NORM VERB"
-                        |> dropLastIf (lang == MicroLaTeXLang)
+                        -- |> dropLastIf (lang == MicroLaTeXLang)
+                        |> handleLastLine
 
         _ =
             Debug.log "NAMED" ( block.named, ( block.name, block.args, blockType ), block.sourceText )
@@ -191,7 +210,7 @@ makeIntermediateBlock lang block messages =
         , indent = block.indent
         , lineNumber = block.lineNumber
         , id = String.fromInt block.lineNumber
-        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
+        , tag = Compiler.Util.getItem lang "label" block.sourceText
         , numberOfLines = List.length block.content
         , content = content |> Debug.log "CONTENT"
         , messages = messages

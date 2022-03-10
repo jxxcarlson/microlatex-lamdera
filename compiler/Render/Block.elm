@@ -283,6 +283,9 @@ renderDisplayMath_ count acc settings _ id str =
 renderEquation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderEquation count acc settings args id str =
     let
+        _ =
+            Debug.log "((ARGS))" args
+
         w =
             String.fromInt settings.width ++ "px"
 
