@@ -42,7 +42,7 @@ transform ((ExpressionBlock data) as block) =
     in
     case normalized of
         Right [ Expr "title" exprs m2 ] ->
-            ordinaryBlock data.name [ "title" ] exprs data m2
+            ordinaryBlock (Just "title") data.args exprs data m2
 
         Right ((Expr "bibitem" exprs m2) :: _) ->
             let

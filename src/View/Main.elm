@@ -361,11 +361,8 @@ viewDocument windowWidth counter selectedId editRecord =
     let
         title_ : Element FrontendMsg
         title_ =
-            Compiler.ASTTools.titleOLD editRecord.parsed
-                |> List.head
-                |> Maybe.map (Render.Block.render counter editRecord.accumulator (renderSettings selectedId windowWidth))
-                |> Maybe.withDefault E.none
-                |> E.map Render
+            Compiler.ASTTools.title editRecord.parsed
+                |> (\s -> E.paragraph [ Font.size Config.titleSize ] [ E.text s ])
 
         toc : Element FrontendMsg
         toc =

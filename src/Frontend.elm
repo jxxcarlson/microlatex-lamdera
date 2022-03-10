@@ -400,7 +400,7 @@ updateDoc model str =
                 let
                     provisionalTitle : String
                     provisionalTitle =
-                        Compiler.ASTTools.title model.language model.editRecord.parsed
+                        Compiler.ASTTools.title model.editRecord.parsed
 
                     ( safeContent, safeTitle ) =
                         if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
@@ -485,7 +485,7 @@ updateFromBackend msg model =
             in
             ( { model
                 | editRecord = editRecord
-                , title = Compiler.ASTTools.title model.language editRecord.parsed
+                , title = Compiler.ASTTools.title editRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
                 , showEditor = showEditor
                 , currentDocument = Just doc

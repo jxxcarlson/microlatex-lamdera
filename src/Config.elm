@@ -6,6 +6,7 @@ module Config exposing
     , initialLanguage
     , pdfServer
     , startupHelpDocumentId
+    , titleSize
     , transitKey
     , welcomeDocId
     )
@@ -49,3 +50,7 @@ transitKey =
 
 initialLanguage =
     Parser.Language.MicroLaTeXLang
+
+
+titleSize =
+    32

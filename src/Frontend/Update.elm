@@ -106,7 +106,7 @@ setPublicDocumentAsCurrentById model id =
                 , sourceText = doc.content
                 , initialText = doc.content
                 , editRecord = newEditRecord
-                , title = Compiler.ASTTools.title model.language newEditRecord.parsed
+                , title = Compiler.ASTTools.title newEditRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
                 , message = "id = " ++ doc.id
                 , counter = model.counter + 1
@@ -178,7 +178,7 @@ inputText model str =
     ( { model
         | sourceText = str
         , editRecord = editRecord
-        , title = Compiler.ASTTools.title model.language editRecord.parsed
+        , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , message = String.join ", " messages
         , debounce = debounce
@@ -356,7 +356,7 @@ setDocumentAsCurrent model doc permissions =
         , initialText = doc.content
         , editRecord = newEditRecord
         , title =
-            Compiler.ASTTools.title model.language newEditRecord.parsed
+            Compiler.ASTTools.title newEditRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
         , message = "id = " ++ doc.id
         , permissions = setPermissions model.currentUser permissions doc
@@ -389,7 +389,7 @@ setDocumentInPhoneAsCurrent model doc permissions =
         | currentDocument = Just doc
         , sourceText = doc.content
         , initialText = doc.content
-        , title = Compiler.ASTTools.title model.language ast
+        , title = Compiler.ASTTools.title ast
         , tableOfContents = Compiler.ASTTools.tableOfContents ast
         , message = "id = " ++ doc.id
         , permissions = setPermissions model.currentUser permissions doc

@@ -69,7 +69,7 @@ titleOLD ast =
     filterBlocksByArgs "title" ast
 
 
-title_ lang ast =
+title_ ast =
     let
         mBlock =
             ast
@@ -91,9 +91,9 @@ title_ lang ast =
                     List.map getText exprList |> Maybe.Extra.values |> String.join ""
 
 
-title : Language -> Markup.SyntaxTree -> String
-title lang ast =
-    title_ lang ast
+title : Markup.SyntaxTree -> String
+title ast =
+    title_ ast |> Debug.log "GET TITLE"
 
 
 
