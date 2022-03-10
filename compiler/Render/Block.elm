@@ -28,7 +28,7 @@ render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element MarkupMsg
 render count acc settings (ExpressionBlock { name, args, blockType, content, id, sourceText }) =
     let
         _ =
-            Debug.log "NAME (ExprBlock)" ( name, sourceText )
+            Debug.log "NAME (ExprBlock)" ( name, args, sourceText )
     in
     case blockType of
         Paragraph ->
@@ -74,7 +74,7 @@ render count acc settings (ExpressionBlock { name, args, blockType, content, id,
                 Right exprs ->
                     let
                         _ =
-                            Debug.log "NAME (RIGHT)" ( name, sourceText, exprs )
+                            Debug.log "NAME (RIGHT)" ( ( name, args ), sourceText, exprs )
                     in
                     case name of
                         Nothing ->

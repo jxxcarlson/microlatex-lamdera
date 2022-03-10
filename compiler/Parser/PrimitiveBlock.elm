@@ -5,10 +5,10 @@ module Parser.PrimitiveBlock exposing
     , idem
     , lidem
     , lidem2
-    , lt
+    , lpb
     , midem
     , midem2
-    , mt
+    , mpb
     , toString
     )
 
@@ -211,7 +211,7 @@ elaborate lang line pb =
             ( blockType, name, args ) =
                 Line.getNameAndArgs lang line
         in
-        { pb | blockType = blockType, name = name, args = args, named = True }
+        { pb | blockType = blockType |> Debug.log "PRIM, bt", name = name, args = args |> Debug.log "PRIM, args", named = True }
 
 
 addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
@@ -344,11 +344,13 @@ loop s f =
 -- FOR TESTING
 
 
-mt str =
+mpb : String -> List PrimitiveBlock
+mpb str =
     str |> String.lines |> blockListOfStringList MicroLaTeXLang (\_ -> True)
 
 
-lt str =
+lpb : String -> List PrimitiveBlock
+lpb str =
     str |> String.lines |> blockListOfStringList L0Lang (\_ -> True)
 
 

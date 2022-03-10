@@ -93,7 +93,7 @@ transformAccumulateTree lang tree acc =
                                 MicroLaTeX.Compiler.LaTeX.transform block__
 
                             L0Lang ->
-                                L0.Transform.transform block__
+                                L0.Transform.transform block__ |> Debug.log "L0 Transform"
 
                     newAcc =
                         updateAccumulator lang block_ acc_
@@ -171,6 +171,41 @@ updateReference tag_ id_ numRef_ acc =
 
     else
         acc
+
+
+updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
+updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
+    let
+        _ =
+            Debug.log "ACC: ( name, blockType )" ( name, blockType )
+    in
+    case ( name, blockType ) of
+        -- provide numbering for sections
+        ( Just "section", OrdinaryBlock [ "section", level ] ) ->
+            updateWithOrdinarySectionBlock accumulator name content level id
+
+        ( Just name_, OrdinaryBlock args_ ) ->
+            -- TODO: tighten up
+            updateWitOrdinaryBlock lang accumulator (Just name_) content args_ tag id indent
+
+        -- provide for numbering of equations
+        ( Just "mathmacros", VerbatimBlock [] ) ->
+            updateWithMathMacros accumulator content
+
+        ( Just name_, VerbatimBlock [ _ ] ) ->
+            -- TODO: tighten up
+            updateWithVerbatimBlock accumulator (Just name_) tag id
+
+        ( Nothing, Paragraph ) ->
+            updateWithParagraph accumulator Nothing content id
+
+        _ ->
+            -- TODO: take care of numberedItemIndex
+            let
+                ( inList, _ ) =
+                    listData accumulator name
+            in
+            { accumulator | inList = inList }
 
 
 updateWithOrdinarySectionBlock : Accumulator -> Maybe String -> Either String (List Expr) -> String -> String -> Accumulator
@@ -335,35 +370,6 @@ updateWithParagraph accumulator name content id =
             listData accumulator name
     in
     { accumulator | inList = inList, terms = addTermsFromContent id content accumulator.terms }
-
-
-updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
-    case blockType of
-        -- provide numbering for sections
-        OrdinaryBlock [ "section", level ] ->
-            updateWithOrdinarySectionBlock accumulator name content level id
-
-        OrdinaryBlock args_ ->
-            updateWitOrdinaryBlock lang accumulator name content args_ tag id indent
-
-        -- provide for numbering of equations
-        VerbatimBlock [ "mathmacros" ] ->
-            updateWithMathMacros accumulator content
-
-        VerbatimBlock [ _ ] ->
-            updateWithVerbatimBlock accumulator name tag id
-
-        Paragraph ->
-            updateWithParagraph accumulator name content id
-
-        _ ->
-            -- TODO: take care of numberedItemIndex
-            let
-                ( inList, _ ) =
-                    listData accumulator name
-            in
-            { accumulator | inList = inList }
 
 
 type alias TermLoc =

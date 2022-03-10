@@ -67,7 +67,7 @@ toExpressionBlockFromIntermediateBlock : (Int -> String -> List Expr) -> Interme
 toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
     let
         _ =
-            Debug.log "INT CONT" content
+            Debug.log "INTERMED" ( args, sourceText )
     in
     ExpressionBlock
         { name = name
@@ -130,15 +130,7 @@ toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType }
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
-    case blockType of
-        PBParagraph ->
-            makeIntermediateBlock lang block messages
-
-        PBOrdinary ->
-            makeIntermediateBlock lang block messages
-
-        PBVerbatim ->
-            makeIntermediateBlock lang block messages
+    makeIntermediateBlock lang block messages
 
 
 dropLast : List a -> List a
@@ -203,7 +195,7 @@ makeIntermediateBlock lang block messages =
         , numberOfLines = List.length block.content
         , content = content |> Debug.log "CONTENT"
         , messages = messages
-        , blockType = toBlockType block.blockType block.args
+        , blockType = toBlockType block.blockType (List.drop 1 block.args)
         , sourceText = block.sourceText
         }
 
