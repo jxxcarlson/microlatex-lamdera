@@ -106,7 +106,7 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
 
 tableOfContents : Markup.SyntaxTree -> List ExpressionBlock
 tableOfContents ast =
-    filterBlocksByArgs "section" ast
+    filterBlocksOnName "section" (List.map Tree.flatten ast |> List.concat)
 
 
 filterBlocksByArgs : String -> Markup.SyntaxTree -> List ExpressionBlock

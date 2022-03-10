@@ -171,25 +171,18 @@ updateReference tag_ id_ numRef_ acc =
 
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
-    let
-        _ =
-            Debug.log "ACC: ( name, blockType )" ( name, blockType )
-    in
-    case ( name, blockType ) of
+    (case ( name, blockType ) of
         -- provide numbering for sections
-        ( Just "section", OrdinaryBlock args_ ) ->
+        ( Just "section", OrdinaryBlock _ ) ->
             let
-                _ =
-                    Debug.log "ARGS_" args
-
                 level =
-                    List.head args |> Debug.log "ARGS_, head" |> Maybe.withDefault "1" |> Debug.log "ARGS_, level"
+                    List.head args |> Maybe.withDefault "1"
             in
             updateWithOrdinarySectionBlock accumulator name content level id
 
-        ( Just name_, OrdinaryBlock args_ ) ->
+        ( Just name_, OrdinaryBlock _ ) ->
             -- TODO: tighten up
-            updateWitOrdinaryBlock lang accumulator (Just name_) content args_ tag id indent
+            updateWitOrdinaryBlock lang accumulator (Just name_) content args tag id indent
 
         -- provide for numbering of equations
         ( Just "mathmacros", VerbatimBlock [] ) ->
@@ -209,6 +202,8 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
                     listData accumulator name
             in
             { accumulator | inList = inList }
+    )
+        |> Debug.log "ACC"
 
 
 updateWithOrdinarySectionBlock : Accumulator -> Maybe String -> Either String (List Expr) -> String -> String -> Accumulator
