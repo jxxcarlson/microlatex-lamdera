@@ -4,11 +4,11 @@
 // BRACKETS: https://bl.ocks.org/curran/d8de41605fa68b627defa9906183b92f
 
 import {EditorState,basicSetup} from "@codemirror/basic-setup"
-// import {javascript} from "@codemirror/lang-javascript"
-
-import {EditorView} from "@codemirror/view"
-
+import {EditorView, keymap} from "@codemirror/view"
 // import {search} from "@codemirror/search"
+import {indentWithTab} from "@codemirror/commands"
+import {javascript} from "@codemirror/lang-javascript"
+
 
 let myTheme = EditorView.theme({
 
@@ -76,6 +76,7 @@ class CodemirrorEditor extends HTMLElement {
                                    // should use this: -> // , search({top: true})
                                    , panelTheme
                                    , EditorView.lineWrapping
+                                   , keymap.of([indentWithTab])
                                    // Below: send updated text from CM to Elm
                                    , EditorView.updateListener.of((v)=> {
                                        if(v.docChanged) {

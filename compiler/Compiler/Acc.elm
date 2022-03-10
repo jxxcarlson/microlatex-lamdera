@@ -8,6 +8,7 @@ module Compiler.Acc exposing
 import Compiler.ASTTools
 import Compiler.Lambda as Lambda exposing (Lambda)
 import Compiler.Vector as Vector exposing (Vector)
+import Config
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import L0.Transform
@@ -281,7 +282,7 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
         Just "numbered" ->
             let
                 level =
-                    (indent - 2) // 2
+                    indent // Config.indentationQuantum
 
                 itemVector =
                     case initialNumberedVector of
@@ -300,7 +301,7 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
         Just "item" ->
             let
                 level =
-                    (indent - 2) // 2
+                    indent // Config.indentationQuantum
 
                 itemVector =
                     case initialNumberedVector of

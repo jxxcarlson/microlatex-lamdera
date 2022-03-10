@@ -3,6 +3,7 @@ module Config exposing
     , appUrl
     , documentDeletedNotice
     , helpDocumentId
+    , indentationQuantum
     , initialLanguage
     , pdfServer
     , startupHelpDocumentId
@@ -54,3 +55,7 @@ initialLanguage =
 
 titleSize =
     32
+
+
+indentationQuantum =
+    2

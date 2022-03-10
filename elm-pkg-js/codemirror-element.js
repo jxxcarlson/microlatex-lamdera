@@ -15682,6 +15682,13 @@ window.initCodeMirror = function () {
         { key: "Shift-Mod-k", run: deleteLine },
         { key: "Shift-Mod-\\", run: cursorMatchingBracket }
     ].concat(standardKeymap);
+    /**
+    A binding that binds Tab to [`indentMore`](https://codemirror.net/6/docs/ref/#commands.indentMore) and
+    Shift-Tab to [`indentLess`](https://codemirror.net/6/docs/ref/#commands.indentLess).
+    Please see the [Tab example](../../examples/tab/) before using
+    this.
+    */
+    const indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
     const defaults = {
         brackets: ["(", "[", "{", "'", '"'],
@@ -20349,8 +20356,6 @@ window.initCodeMirror = function () {
         ])
     ];
 
-    // import {search} from "@codemirror/search"
-
     let myTheme = EditorView.theme({
 
       ".cm-content": {
@@ -20416,6 +20421,7 @@ window.initCodeMirror = function () {
                                        // should use this: -> // , search({top: true})
                                        , panelTheme
                                        , EditorView.lineWrapping
+                                       , keymap.of([indentWithTab])
                                        // Below: send updated text from CM to Elm
                                        , EditorView.updateListener.of((v)=> {
                                            if(v.docChanged) {
