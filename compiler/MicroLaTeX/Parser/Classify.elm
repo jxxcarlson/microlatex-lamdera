@@ -1,14 +1,10 @@
-module MicroLaTeX.Parser.Classify exposing (Classification, classify)
+module MicroLaTeX.Parser.Classify exposing (classify)
 
 import Compiler.Util
 import List.Extra
 import Parser.Block exposing (BlockType(..))
-import Parser.Common
+import Parser.Common exposing (Classification)
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
-
-
-type alias Classification =
-    { blockType : BlockType, args : List String, name : Maybe String }
 
 
 classify : PrimitiveBlock -> Classification

@@ -1,6 +1,6 @@
 module Markup exposing
     ( SyntaxTree, parse, parseToIntermediateBlocks
-    , toRawBlockForest, toRawBlocks
+    , toRawBlockForest
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -19,9 +19,9 @@ import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
+import Parser.PrimitiveBlock exposing (PrimitiveBlock)
+import Parser.Tree
 import Tree exposing (Tree)
-import Tree.BlocksV
-import Tree.Build
 
 
 {-| -}
@@ -54,14 +54,13 @@ parse lang sourceText =
     in
     sourceText
         |> parseToIntermediateBlocks lang
-        -- |> Debug.log "INTERMEDIATE"
         |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock parser))
 
 
 parseToIntermediateBlocks : Language -> String -> List (Tree IntermediateBlock)
 parseToIntermediateBlocks lang sourceText =
     let
-        toIntermediateBlock : RawBlock -> IntermediateBlock
+        toIntermediateBlock : PrimitiveBlock -> IntermediateBlock
         toIntermediateBlock =
             case lang of
                 MicroLaTeXLang ->
@@ -71,7 +70,7 @@ parseToIntermediateBlocks lang sourceText =
                     Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
     in
     sourceText
-        |> toRawBlockForest
+        |> toRawBlockForest lang
         |> List.map (Tree.map toIntermediateBlock >> fixup)
 
 
@@ -91,10 +90,10 @@ fixup tree =
                 badString =
                     "\n•••\\vskip{1}\n\\red{\\bs{end} •••}"
 
-                newContent =
-                    String.replace badString " " data.content
+                newSource =
+                    String.replace badString " " data.sourceText
             in
-            IntermediateBlock { data | content = newContent }
+            IntermediateBlock { data | content = String.lines newSource }
     in
     if numberOfChildren == 0 then
         tree
@@ -103,18 +102,10 @@ fixup tree =
         Tree.mapLabel fixContent tree
 
 
-toRawBlocks : String -> List RawBlock
-toRawBlocks =
-    Tree.BlocksV.fromStringAsParagraphs isVerbatimLine
-
-
-toRawBlockForest : String -> List (Tree RawBlock)
-toRawBlockForest str =
+toRawBlockForest : Language -> String -> List (Tree PrimitiveBlock)
+toRawBlockForest lang str =
     str
-        |> toRawBlocks
-        |> Tree.Build.forestFromBlocks emptyBlock identity identity
+        |> String.lines
+        |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
+        |> Parser.Tree.forestFromBlocks Parser.PrimitiveBlock.empty identity identity
         |> Result.withDefault []
-
-
-emptyBlock =
-    { content = "", indent = 0, lineNumber = 0, numberOfLines = 1 }

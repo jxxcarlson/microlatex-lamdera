@@ -1,6 +1,7 @@
 module Parser.PrimitiveBlock exposing
     ( PrimitiveBlock
     , blockListOfStringList
+    , empty
     , idem
     , lidem
     , lidem2
@@ -44,6 +45,20 @@ type alias PrimitiveBlock =
     , named : Bool
     , sourceText : String
     , blockType : PrimitiveBlockType
+    }
+
+
+empty : PrimitiveBlock
+empty =
+    { indent = 0
+    , lineNumber = 0
+    , position = 0
+    , content = []
+    , name = Nothing
+    , args = []
+    , named = False
+    , sourceText = ""
+    , blockType = PBParagraph
     }
 
 
@@ -161,7 +176,7 @@ blockFromLine lang { indent, lineNumber, position, prefix, content } =
     , args = []
     , named = False
     , sourceText = ""
-    , blockType = PBWhatever
+    , blockType = PBParagraph
     }
 
 

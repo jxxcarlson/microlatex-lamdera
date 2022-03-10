@@ -18,6 +18,7 @@ import Parser.Error
 import Parser.Expr exposing (Expr)
 import Parser.Helpers as Helpers
 import Parser.Language exposing (Language(..))
+import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
@@ -100,6 +101,7 @@ mapContent parse lineNumber blockType content =
             content_
 
 
+classify : Language -> PrimitiveBlock -> Parser.Common.Classification
 classify lang block =
     case lang of
         MicroLaTeXLang ->
@@ -126,32 +128,17 @@ toIntermediateBlock lang parseToState extractMessages block =
     in
     case classification.blockType of
         Paragraph ->
-            makeIntermediateBlock block Nothing [] filteredContent messages classification.blockType
+            makeIntermediateBlock block messages
 
         OrdinaryBlock args ->
-            makeOrdinaryIntermediateBlock lang messages block filteredContent classification args
+            makeOrdinaryIntermediateBlock block messages
 
         VerbatimBlock args ->
-            makeVerbatimInterMediateBlock lang messages block filteredContent classification args
+            makeVerbatimInterMediateBlock lang block messages (String.lines filteredContent)
 
 
-makeOrdinaryIntermediateBlock lang messages block revisedContent classification args =
-    let
-        name =
-            List.head args |> Maybe.withDefault "anon"
-
-        ( newContent, newMessages ) =
-            Parser.Error.ordinaryBlock lang name args messages block.lineNumber revisedContent
-
-        revisedArgs =
-            case lang of
-                L0Lang ->
-                    List.drop 1 args
-
-                MicroLaTeXLang ->
-                    classification.args
-    in
-    makeIntermediateBlock block (List.head args) revisedArgs newContent messages classification.blockType
+makeOrdinaryIntermediateBlock block messages =
+    makeIntermediateBlock block messages
 
 
 getVerbatimBlockErrorMessages block rawContent classification state extractMessages firstLine =
@@ -206,41 +193,47 @@ addEnd name str =
         str
 
 
-makeVerbatimInterMediateBlock : Language -> List String -> PrimitiveBlock -> String -> Classification -> List String -> IntermediateBlock
-makeVerbatimInterMediateBlock lang messages block revisedContent classification args =
+makeVerbatimInterMediateBlock : Language -> PrimitiveBlock -> List String -> List String -> IntermediateBlock
+makeVerbatimInterMediateBlock lang block messages filteredContent =
     let
-        ( firstLine, rawContent ) =
-            split_ revisedContent
-
-        -- messages =
-        -- getVerbatimBlockErrorMessages block rawContent classification state extractMessages firstLine
-        content_ =
-            fixupVerbatimContent lang rawContent (classification.name |> Maybe.withDefault "((anon))")
-
-        -- Debug.log "content_"
+        (IntermediateBlock data) =
+            makeIntermediateBlock block messages
     in
-    makeIntermediateBlock block classification.name classification.args content_ messages classification.blockType
+    IntermediateBlock { data | content = filteredContent }
 
 
 
 -- |> Debug.log "makeVerbatimInterMediateBlock"
 
 
-makeIntermediateBlock : PrimitiveBlock -> Maybe String -> List String -> String -> List String -> BlockType -> IntermediateBlock
-makeIntermediateBlock block name args content messages blockType_ =
+makeIntermediateBlock : PrimitiveBlock -> List String -> IntermediateBlock
+makeIntermediateBlock block messages =
     IntermediateBlock
-        { name = name
-        , args = args -- List.drop 1 args
+        { name = block.name
+        , args = block.args -- List.drop 1 args
         , indent = block.indent
         , lineNumber = block.lineNumber
         , id = String.fromInt block.lineNumber
-        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.content
-        , numberOfLines = block.numberOfLines
-        , content = content
+        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
+        , numberOfLines = List.length block.content
+        , content = block.content
         , messages = messages
-        , blockType = blockType_
-        , sourceText = block.content
+        , blockType = toBlockType block.blockType block.args
+        , sourceText = block.sourceText
         }
+
+
+toBlockType : PrimitiveBlockType -> List String -> BlockType
+toBlockType pbt args =
+    case pbt of
+        PBParagraph ->
+            Paragraph
+
+        PBOrdinary ->
+            OrdinaryBlock args
+
+        PBVerbatim ->
+            VerbatimBlock args
 
 
 split_ : String -> ( String, String )

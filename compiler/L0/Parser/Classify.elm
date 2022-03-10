@@ -1,32 +1,29 @@
 module L0.Parser.Classify exposing (classify)
 
 import Parser.Block exposing (BlockType(..))
+import Parser.Common exposing (Classification)
+import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
-classify : PrimitiveBlock -> { blockType : BlockType, args : List String, name : Maybe String }
+classify : PrimitiveBlock -> Classification
 classify block =
     let
-        str_ =
-            String.trim block.content
+        bt =
+            case block.blockType of
+                PBParagraph ->
+                    Paragraph
+
+                PBOrdinary ->
+                    OrdinaryBlock args
+
+                PBVerbatim ->
+                    VerbatimBlock args
 
         args =
-            str_ |> String.lines |> List.head |> Maybe.withDefault "" |> String.words |> List.drop 1
+            block.args
 
         name =
-            List.head args
+            block.name
     in
-    if String.left 2 str_ == "||" then
-        { blockType = VerbatimBlock args, args = args, name = name }
-
-    else if String.left 1 str_ == "|" then
-        { blockType = OrdinaryBlock args, args = args, name = name }
-
-    else if String.left 2 str_ == "$$" then
-        { blockType = VerbatimBlock [ "math" ], args = args, name = name }
-
-    else if String.left 3 str_ == "```" then
-        { blockType = VerbatimBlock [ "code" ], args = args, name = name }
-
-    else
-        { blockType = Paragraph, args = [], name = Nothing }
+    { blockType = bt, args = args, name = name }

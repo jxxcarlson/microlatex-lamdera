@@ -19,7 +19,7 @@ type alias Line =
 type PrimitiveBlockType
     = PBVerbatim
     | PBOrdinary
-    | PBWhatever
+    | PBParagraph
 
 
 classify : Int -> Int -> String -> Line
