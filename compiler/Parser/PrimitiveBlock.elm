@@ -53,11 +53,11 @@ empty =
     { indent = 0
     , lineNumber = 0
     , position = 0
-    , content = []
+    , content = [ "???" ]
     , name = Nothing
     , args = []
     , named = False
-    , sourceText = ""
+    , sourceText = "???"
     , blockType = PBParagraph
     }
 
@@ -72,6 +72,7 @@ type alias State =
     , inVerbatim : Bool
     , isVerbatimLine : String -> Bool
     , lang : Language
+    , count : Int
     }
 
 
@@ -127,6 +128,7 @@ init lang isVerbatimLine lines =
     , inVerbatim = False
     , isVerbatimLine = isVerbatimLine
     , lang = lang
+    , count = 0
     }
 
 
@@ -146,6 +148,10 @@ blockFromLine lang { indent, lineNumber, position, prefix, content } =
 
 nextStep : State -> Step State (List PrimitiveBlock)
 nextStep state =
+    let
+        _ =
+            Debug.log "xx:STATE" ( state.count, List.length state.blocks, List.map .content state.blocks )
+    in
     case List.head state.lines of
         Nothing ->
             case state.currentBlock of
@@ -172,7 +178,7 @@ nextStep state =
                     Line.classify state.position newLineNumber rawLine
 
                 newState =
-                    { state | lineNumber = newLineNumber, position = newPosition }
+                    { state | lineNumber = newLineNumber, position = newPosition, count = state.count + 1 }
             in
             case compare currentLine.indent state.indent of
                 GT ->
@@ -224,21 +230,29 @@ addCurrentLine_ lang ({ prefix, content, indent } as line) block =
             else
                 block.indent
     in
-    if block.named then
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
+    { block | indent = newIndent, content = (prefix ++ content) :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
 
-    else if content == "$$" then
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
-    else if content == "```" then
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
-    else
-        { block | indent = newIndent, content = (prefix ++ content) :: block.content }
+--if block.named then
+--    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
+--
+--else if content == "$$" then
+--    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
+--
+--else if content == "```" then
+--    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
+--
+--else
+--    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
 
 handleGT : Line -> State -> State
 handleGT currentLine state =
+    let
+        _ =
+            Debug.log "xx:GT" ( state.count, currentLine.content )
+    in
     case state.currentBlock of
         Nothing ->
             { state | lines = List.drop 1 state.lines, indent = currentLine.indent }
@@ -269,6 +283,10 @@ handleGT currentLine state =
 
 handleEQ : Line -> State -> State
 handleEQ currentLine state =
+    let
+        _ =
+            Debug.log "xx:EQ" ( state.count, currentLine.content )
+    in
     case state.currentBlock of
         Nothing ->
             { state | lines = List.drop 1 state.lines }
@@ -308,6 +326,10 @@ handleEQ currentLine state =
 
 handleLT : Line -> State -> State
 handleLT currentLine state =
+    let
+        _ =
+            Debug.log "xx:LT" ( state.count, currentLine.content )
+    in
     case state.currentBlock of
         Nothing ->
             { state
@@ -317,11 +339,20 @@ handleLT currentLine state =
 
         Just block ->
             -- TODO: explain and examine currentBlock = ..
+            --{ state
+            --    | lines = List.drop 1 state.lines
+            --    , indent = currentLine.indent
+            --    , blocks = block :: state.blocks
+            --    , currentBlock = Nothing -- TODO ??
+            --}
+            -- make new block and reset inVerbatim
             { state
                 | lines = List.drop 1 state.lines
+                , position = state.position + String.length currentLine.content
                 , indent = currentLine.indent
                 , blocks = block :: state.blocks
-                , currentBlock = Nothing -- TODO ??
+                , inVerbatim = state.isVerbatimLine currentLine.content
+                , currentBlock = Just (blockFromLine state.lang currentLine)
             }
 
 

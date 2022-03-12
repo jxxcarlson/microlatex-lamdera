@@ -85,21 +85,6 @@ init defaultNode makeNode blocks =
                 }
 
 
-type Quantum
-    = ProvisionalQuantum Int
-    | ConfirmedQuantum Int
-
-
-quantumValue : Quantum -> Int
-quantumValue quantum =
-    case quantum of
-        ProvisionalQuantum k ->
-            k
-
-        ConfirmedQuantum k ->
-            k
-
-
 {-| -}
 fromBlocks : data -> (Block data -> data) -> List (Block data) -> Result Error (Tree data)
 fromBlocks defaultNode makeNode blocks =
@@ -273,8 +258,6 @@ handleLT indent block state =
         , level = state.level - deltaLevel
         , indentationChanges = deltaInfo.remaining
         , zipper = attachAtFocus newTree (repeat deltaLevel Zipper.parent state.zipper)
-
-        -- , indentationQuantum = getIndentationQuantum state.indentationQuantum block.indent
     }
 
 
