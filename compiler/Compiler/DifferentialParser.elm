@@ -23,14 +23,14 @@ init lang str =
             chunker lang str
 
         ( newAccumulator, parsed ) =
-            (List.map (parser lang) >> Compiler.Acc.make lang) chunks
+            (List.map (parser lang) >> Compiler.Acc.build lang) chunks
     in
     { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
 
 
 update : EditRecord -> String -> EditRecord
 update editRecord text =
-    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Compiler.Acc.make editRecord text
+    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Compiler.Acc.build editRecord text
 
 
 chunker : Language -> String -> List (Tree IntermediateBlock)
