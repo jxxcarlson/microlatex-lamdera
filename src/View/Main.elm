@@ -503,7 +503,7 @@ ramp a b x =
 
 
 appHeight_ model =
-    model.windowHeight - 50
+    model.windowHeight - 40
 
 
 panelHeight_ model =
