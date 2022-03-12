@@ -26,10 +26,6 @@ htmlId str =
 
 render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element MarkupMsg
 render count acc settings (ExpressionBlock { name, args, blockType, content, id, sourceText }) =
-    let
-        _ =
-            Debug.log "NAME (ExprBlock)" ( name, args, sourceText )
-    in
     case blockType of
         Paragraph ->
             case content of
@@ -72,10 +68,6 @@ render count acc settings (ExpressionBlock { name, args, blockType, content, id,
                     Element.none
 
                 Right exprs ->
-                    let
-                        _ =
-                            Debug.log "NAME (RIGHT)" ( ( name, args ), sourceText, exprs )
-                    in
                     case name of
                         Nothing ->
                             noSuchOrdinaryBlock count acc settings "name" exprs
@@ -283,9 +275,6 @@ renderDisplayMath_ count acc settings _ id str =
 renderEquation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderEquation count acc settings args id str =
     let
-        _ =
-            Debug.log "((ARGS))" args
-
         w =
             String.fromInt settings.width ++ "px"
 

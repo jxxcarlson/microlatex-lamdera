@@ -65,10 +65,6 @@ getMessages ((ExpressionBlock { messages }) as block) =
 
 toExpressionBlockFromIntermediateBlock : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
 toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
-    let
-        _ =
-            Debug.log "INTERMED" ( args, sourceText )
-    in
     ExpressionBlock
         { name = name
         , args = args
@@ -78,7 +74,7 @@ toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, in
         , id = id
         , tag = tag
         , blockType = blockType
-        , content = mapContent parse lineNumber blockType (String.join "\n" content |> Debug.log "EFF CONT!")
+        , content = mapContent parse lineNumber blockType (String.join "\n" content)
         , messages = messages
         , sourceText = sourceText
         }
@@ -187,14 +183,11 @@ makeIntermediateBlock lang block messages =
                     in
                     List.drop 1 adjustedContent
                         |> handleLastLine
-
-        _ =
-            Debug.log "NAMED" ( block.named, ( block.name, block.args, blockType ), block.sourceText )
     in
     IntermediateBlock
         { name = block.name
         , args = block.args
-        , indent = block.indent |> Debug.log "INDENT"
+        , indent = block.indent
         , lineNumber = block.lineNumber
         , id = String.fromInt block.lineNumber
         , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText

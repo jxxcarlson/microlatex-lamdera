@@ -499,20 +499,17 @@ reflink g acc s exprList =
 eqref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 eqref g acc s exprList =
     let
-        _ =
-            Debug.log "REF" acc.reference
-
         key =
-            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim |> Debug.log "REF KEY"
+            List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
 
         ref_ =
-            Dict.get key acc.reference |> Debug.log "REF_ "
+            Dict.get key acc.reference
 
         val =
-            ref_ |> Maybe.map .numRef |> Maybe.withDefault "" |> Debug.log "REF VAL"
+            ref_ |> Maybe.map .numRef |> Maybe.withDefault ""
 
         id =
-            ref_ |> Maybe.map .id |> Maybe.withDefault "" |> Debug.log "REF ID"
+            ref_ |> Maybe.map .id |> Maybe.withDefault ""
     in
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)

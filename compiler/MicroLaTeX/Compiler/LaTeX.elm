@@ -24,9 +24,6 @@ an ordinary block with designated arguments
 transform : ExpressionBlock -> ExpressionBlock
 transform ((ExpressionBlock data) as block) =
     let
-        _ =
-            Debug.log "DATA" data
-
         normalize : Either String (List Expr) -> Either String (List Expr)
         normalize exprs =
             case exprs of

@@ -107,39 +107,10 @@ emptyBlock =
     Parser.PrimitiveBlock.empty
 
 
-toRawBlockForest1 : Language -> String -> List (Tree PrimitiveBlock)
-toRawBlockForest1 lang str =
-    str
-        |> String.lines
-        |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
-        |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
-        |> Result.withDefault []
-        |> debugLog2 "(size, depth)" (\f -> ( List.map Compiler.Util.size f, List.map Compiler.Util.depth f ))
-
-
-
--- toRawBlockForest : Language -> String -> List (Tree PrimitiveBlock)
--- toRawBlockForest : Language -> String -> Result Parser.Tree.Error (Tree PrimitiveBlock)
--- toRawBlockForest : Language -> String -> Result Parser.Tree.Error (List (Tree PrimitiveBlock))
-
-
-debugLog2 : String -> (a -> b) -> a -> a
-debugLog2 label f a =
-    Debug.log (label ++ ":: " ++ Debug.toString (f a)) a
-
-
 toRawBlockForest : Language -> String -> List (Tree PrimitiveBlock)
 toRawBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
-        |> debugLog2 "xx -indent" (\list -> List.map (\l -> ( l.indent, l.sourceText )) list)
-        |> List.map (\b -> { b | indent = b.indent + 2 })
-        |> Parser.Tree.fromBlocks emptyBlock identity
-        |> Result.map Tree.children
+        |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []
-        |> debugLog2 "xx - (size, depth)" (\f -> ( List.map Compiler.Util.size f, List.map Compiler.Util.depth f ))
-
-
-
---  |> List.map (Tree.children)

@@ -59,7 +59,7 @@ transformST lang ast =
 make : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
 make lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
-        |> (\( acc_, ast_ ) -> ( acc_ |> Debug.log "ACC", List.reverse ast_ ))
+        |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
 
 
 init : Int -> Accumulator
@@ -91,10 +91,10 @@ transformAccumulateTree lang tree acc =
                     block_ =
                         case lang of
                             MicroLaTeXLang ->
-                                MicroLaTeX.Compiler.LaTeX.transform block__ |> Debug.log "VECTOR Transform (1)"
+                                MicroLaTeX.Compiler.LaTeX.transform block__
 
                             L0Lang ->
-                                L0.Transform.transform block__ |> Debug.log "VECTOR Transform (2)"
+                                L0.Transform.transform block__
 
                     newAcc =
                         updateAccumulator lang block_ acc_
@@ -109,12 +109,12 @@ transformBlock lang acc (ExpressionBlock block) =
     case ( block.name, block.args ) of
         ( Just "section", level :: rest ) ->
             ExpressionBlock
-                { block | args = [ level, Vector.toString acc.headingIndex ] |> Debug.log "VECTOR" }
+                { block | args = [ level, Vector.toString acc.headingIndex ] }
 
         ( Just name_, args ) ->
             -- Insert the numerical counter, e.g,, equation number, in the arg list of the block
             ExpressionBlock
-                { block | args = insertInList (getCounterAsString (reduceName name_) acc.counter) block.args |> Debug.log "ACC, insert arg" }
+                { block | args = insertInList (getCounterAsString (reduceName name_) acc.counter) block.args }
 
         _ ->
             expand acc.environment (ExpressionBlock block)
@@ -181,7 +181,7 @@ updateReference tag_ id_ numRef_ acc =
 
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
-    (case ( name, blockType ) of
+    case ( name, blockType ) of
         -- provide numbering for sections
         ( Just "section", OrdinaryBlock _ ) ->
             let
@@ -212,8 +212,6 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
                     listData accumulator name
             in
             { accumulator | inList = inList }
-    )
-        |> Debug.log "ACC"
 
 
 updateWithOrdinarySectionBlock : Accumulator -> Maybe String -> Either String (List Expr) -> String -> String -> Accumulator
@@ -233,14 +231,11 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         sectionTag =
             title |> String.toLower |> String.replace " " "-"
 
-        _ =
-            Debug.log "VECTOR LEVEL" level
-
         headingIndex =
-            Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex |> Debug.log ("VECTOR inc, " ++ level)
+            Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
-    { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString (headingIndex |> Debug.log "VECTOR, headingIndex") |> Debug.log "VECTOR.toString")
+    { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
 
 
 updateWitOrdinaryBlock : a -> Accumulator -> Maybe String -> Either b (List Expr) -> e -> String -> String -> Int -> Accumulator
@@ -355,14 +350,11 @@ updateWithMathMacros accumulator content =
 
 updateWithVerbatimBlock accumulator name_ tag id =
     let
-        b_ =
-            Debug.log "ACC, update Verbtim" name_
-
         ( inList, _ ) =
             listData accumulator name_
 
         name =
-            Maybe.withDefault "---" name_ |> Debug.log "ACC, name"
+            Maybe.withDefault "---" name_
 
         -- Increment the appropriate counter, e.g., "equation"
         newCounter =

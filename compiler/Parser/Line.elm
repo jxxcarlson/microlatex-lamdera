@@ -40,14 +40,14 @@ getNameAndArgs lang line =
                 name =
                     case Compiler.Util.getMicroLaTeXItem "begin" line.content of
                         Just str ->
-                            Just str |> Debug.log "Micro, NAME(1)"
+                            Just str
 
                         Nothing ->
                             if line.content == "$$" then
-                                Just "math" |> Debug.log "Micro, NAME(2)"
+                                Just "math"
 
                             else
-                                Nothing |> Debug.log "Micro, NAME(3)"
+                                Nothing
 
                 bt =
                     if name == Nothing then

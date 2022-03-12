@@ -148,10 +148,6 @@ blockFromLine lang { indent, lineNumber, position, prefix, content } =
 
 nextStep : State -> Step State (List PrimitiveBlock)
 nextStep state =
-    let
-        _ =
-            Debug.log "xx:STATE" ( state.count, List.length state.blocks, List.map .content state.blocks )
-    in
     case List.head state.lines of
         Nothing ->
             case state.currentBlock of
@@ -217,7 +213,7 @@ elaborate lang line pb =
             ( blockType, name, args ) =
                 Line.getNameAndArgs lang line
         in
-        { pb | blockType = blockType |> Debug.log "PRIM, bt", name = name, args = args |> Debug.log "PRIM, args", named = True }
+        { pb | blockType = blockType, name = name, args = args, named = True }
 
 
 addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
@@ -249,10 +245,6 @@ addCurrentLine_ lang ({ prefix, content, indent } as line) block =
 
 handleGT : Line -> State -> State
 handleGT currentLine state =
-    let
-        _ =
-            Debug.log "xx:GT" ( state.count, currentLine.content )
-    in
     case state.currentBlock of
         Nothing ->
             { state | lines = List.drop 1 state.lines, indent = currentLine.indent }
@@ -283,10 +275,6 @@ handleGT currentLine state =
 
 handleEQ : Line -> State -> State
 handleEQ currentLine state =
-    let
-        _ =
-            Debug.log "xx:EQ" ( state.count, currentLine.content )
-    in
     case state.currentBlock of
         Nothing ->
             { state | lines = List.drop 1 state.lines }
@@ -326,10 +314,6 @@ handleEQ currentLine state =
 
 handleLT : Line -> State -> State
 handleLT currentLine state =
-    let
-        _ =
-            Debug.log "xx:LT" ( state.count, currentLine.content )
-    in
     case state.currentBlock of
         Nothing ->
             { state
