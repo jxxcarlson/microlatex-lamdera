@@ -419,3 +419,41 @@ toString blocks =
 toString2 : List { a | sourceText : String } -> String
 toString2 blocks =
     blocks |> List.map .sourceText |> String.join "\n"
+
+
+
+-- TOOLS
+
+
+good =
+    """[{ args = [], blockType = PBParagraph, content = [""], indent = 0, lineNumber = 0, name = Nothing, named = False, position = 0, sourceText = "" },{ args = [], blockType = PBOrdinary, content = ["","| title","L0 BAD!!!!!"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 1, sourceText = "
+| title
+L0 BAD!!!!!" },{ args = [], blockType = PBParagraph, content = ["","AAA"], indent = 0, lineNumber = 4, name = Nothing, named = True, position = 22, sourceText = "
+AAA" }]"""
+
+
+bad =
+    """[{ args = [], blockType = PBOrdinary, content = ["| title","L0 BAD!!!!!"], indent = 0, lineNumber = 0, name = Just "title", named = True, position = 0, sourceText = "| title
+L0 BAD!!!!!" },{ args = [], blockType = PBParagraph, content = ["","AAA"], indent = 0, lineNumber = 2, name = Nothing, named = True, position = 20, sourceText = "
+AAA" }]"""
+
+
+greatestCommonPrefix : String -> String -> String
+greatestCommonPrefix a b =
+    let
+        p =
+            greatestCommonPrefixAux a b (String.length a)
+    in
+    String.left p a
+
+
+greatestCommonPrefixAux : String -> String -> Int -> Int
+greatestCommonPrefixAux a b n =
+    if String.left n a == String.left n b then
+        n
+
+    else if n == 0 then
+        0
+
+    else
+        greatestCommonPrefixAux (String.left (n - 1) a) (String.left (n - 1) b) (n - 1)
