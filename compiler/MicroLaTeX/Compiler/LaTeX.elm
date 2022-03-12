@@ -24,21 +24,16 @@ an ordinary block with designated arguments
 transform : ExpressionBlock -> ExpressionBlock
 transform ((ExpressionBlock data) as block) =
     let
-        normalize : Either String (List Expr) -> Either String (List Expr)
-        normalize exprs =
-            case exprs of
-                Right ((Text _ _) :: rest) ->
-                    Right rest
+        _ =
+            Debug.log "IN" block
 
-                _ ->
-                    data.content
-
+        normalized : Either String (List Expr)
         normalized =
-            normalize data.content
+            normalize data.content |> Debug.log "NORMALIZED"
     in
     case normalized of
         Right [ Expr "title" exprs m2 ] ->
-            ordinaryBlock (Just "title") data.args exprs data m2
+            ordinaryBlock (Just "title") data.args exprs data m2 |> Debug.log "OUT"
 
         Right ((Expr "bibitem" exprs m2) :: _) ->
             let
@@ -74,5 +69,25 @@ transform ((ExpressionBlock data) as block) =
         Right [ Expr "contents" [] m2 ] ->
             ordinaryBlock (Just "contents") data.args [] data m2
 
+        Right [ Expr txt [] m2 ] ->
+            if String.left 5 txt == "item\n" then
+                ordinaryBlock (Just "item") data.args [ Text (String.dropLeft 5 txt) m2 ] data m2
+
+            else if String.left 9 txt == "numbered\n" then
+                ordinaryBlock (Just "numbered") data.args [ Text (String.dropLeft 9 txt) m2 ] data m2
+
+            else
+                block
+
         _ ->
             block
+
+
+normalize : Either String (List Expr) -> Either String (List Expr)
+normalize exprs =
+    case exprs of
+        Right ((Text _ _) :: rest) ->
+            Right rest
+
+        _ ->
+            exprs
