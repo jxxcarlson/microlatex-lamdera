@@ -147,9 +147,28 @@ lastItem items =
     List.drop (n - 1) items
 
 
-handleLastLine : List String -> List String
-handleLastLine content =
+handleLastLine : Language -> List String -> List String
+handleLastLine lang content =
+    case lang of
+        L0Lang ->
+            handleLastLineL0 content
+
+        MicroLaTeXLang ->
+            handleLastLineMicroLaTeX content
+
+
+handleLastLineL0 : List String -> List String
+handleLastLineL0 content =
     if List.member (lastItem content) [ [ "$$" ], [ "\\end{equation}" ], [ "\\end{aligned}" ] ] then
+        dropLast content
+
+    else
+        content
+
+
+handleLastLineMicroLaTeX : List String -> List String
+handleLastLineMicroLaTeX content =
+    if List.member (lastItem content) [ [ "$$" ], [ "\\end{equation}" ], [ "\\end{aligned}" ], [ "\\end{code}" ] ] then
         dropLast content
 
     else
@@ -182,7 +201,7 @@ makeIntermediateBlock lang block messages =
                                     (\line -> not (String.contains "label" line))
                     in
                     List.drop 1 adjustedContent
-                        |> handleLastLine
+                        |> handleLastLine lang
     in
     IntermediateBlock
         { name = block.name
