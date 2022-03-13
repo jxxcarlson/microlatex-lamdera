@@ -25,7 +25,7 @@ init lang str =
         ( newAccumulator, parsed ) =
             (List.map (parser lang) >> Compiler.Acc.build lang) chunks
     in
-    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
+    { lang = lang, chunks = chunks, parsed = parsed |> Debug.log "DP PARSED", accumulator = newAccumulator }
 
 
 update : EditRecord -> String -> EditRecord

@@ -24,16 +24,13 @@ an ordinary block with designated arguments
 transform : ExpressionBlock -> ExpressionBlock
 transform ((ExpressionBlock data) as block) =
     let
-        _ =
-            Debug.log "IN" block
-
         normalized : Either String (List Expr)
         normalized =
-            normalize data.content |> Debug.log "NORMALIZED"
+            Compiler.ASTTools.normalize data.content
     in
     case normalized of
         Right [ Expr "title" exprs m2 ] ->
-            ordinaryBlock (Just "title") data.args exprs data m2 |> Debug.log "OUT"
+            ordinaryBlock (Just "title") data.args exprs data m2
 
         Right ((Expr "bibitem" exprs m2) :: _) ->
             let
@@ -49,7 +46,7 @@ transform ((ExpressionBlock data) as block) =
                 args =
                     List.map Compiler.ASTTools.getText (List.take 2 exprs) |> Maybe.Extra.values
             in
-            ordinaryBlock (Just "bibitem") data.args content data m2
+            ordinaryBlock (Just "bibitem") args content data m2
 
         Right [ Expr "setcounter" exprs m2 ] ->
             ordinaryBlock (Just "setcounter") data.args exprs data m2
@@ -69,25 +66,13 @@ transform ((ExpressionBlock data) as block) =
         Right [ Expr "contents" [] m2 ] ->
             ordinaryBlock (Just "contents") data.args [] data m2
 
-        Right [ Expr txt [] m2 ] ->
-            if String.left 5 txt == "item\n" then
-                ordinaryBlock (Just "item") data.args [ Text (String.dropLeft 5 txt) m2 ] data m2
-
-            else if String.left 9 txt == "numbered\n" then
-                ordinaryBlock (Just "numbered") data.args [ Text (String.dropLeft 9 txt) m2 ] data m2
-
-            else
-                block
-
+        --Right [ Expr txt exprs m2 ] ->
+        --    --if String.left 5 txt == "item\n" then
+        --    --    ordinaryBlock (Just "item") data.args [ Text (String.dropLeft 5 txt) m2 ] data m2
+        --    if String.left 9 txt == "numbered\n" then
+        --        ordinaryBlock (Just "numbered") data.args [ Text (String.dropLeft 9 txt) m2 ] data m2
+        --
+        --    else
+        --        block |> Debug.log "ESCAPE (1)"
         _ ->
-            block
-
-
-normalize : Either String (List Expr) -> Either String (List Expr)
-normalize exprs =
-    case exprs of
-        Right ((Text _ _) :: rest) ->
-            Right rest
-
-        _ ->
-            exprs
+            block |> Debug.log "ESCAPE (2)"

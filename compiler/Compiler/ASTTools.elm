@@ -6,6 +6,7 @@ module Compiler.ASTTools exposing
     , filterExpressionsOnName
     , getText
     , matchingIdsInAST
+    , normalize
     , stringValueOfList
     , tableOfContents
     , title
@@ -20,6 +21,16 @@ import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language)
 import Tree
+
+
+normalize : Either String (List Expr) -> Either String (List Expr)
+normalize exprs =
+    case exprs of
+        Right ((Text _ _) :: rest) ->
+            Right rest
+
+        _ ->
+            exprs
 
 
 filterExpressionsOnName : String -> List Expr -> List Expr

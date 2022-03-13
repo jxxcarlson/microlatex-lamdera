@@ -175,6 +175,10 @@ handleLastLineMicroLaTeX content =
         content ++ [ "\\red{end??}" ]
 
 
+exclusionList =
+    List.map Just [ "item", "numbered" ]
+
+
 makeIntermediateBlock : Language -> PrimitiveBlock -> List String -> IntermediateBlock
 makeIntermediateBlock lang block messages =
     let
@@ -189,7 +193,7 @@ makeIntermediateBlock lang block messages =
 
                 OrdinaryBlock _ ->
                     List.drop 1 (normalize block.content)
-                        |> dropLastIf (lang == MicroLaTeXLang)
+                        |> dropLastIf (lang == MicroLaTeXLang && not (List.member block.name exclusionList))
 
                 VerbatimBlock _ ->
                     let

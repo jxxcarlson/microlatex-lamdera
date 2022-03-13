@@ -114,7 +114,7 @@ transformBlock lang acc (ExpressionBlock block) =
         ( Just name_, args ) ->
             -- Insert the numerical counter, e.g,, equation number, in the arg list of the block
             ExpressionBlock
-                { block | args = insertInList (getCounterAsString (reduceName name_) acc.counter) block.args }
+                { block | args = insertInStringList (getCounterAsString (reduceName name_) acc.counter) block.args }
 
         _ ->
             expand acc.environment (ExpressionBlock block)
@@ -133,6 +133,18 @@ insertInList : a -> List a -> List a
 insertInList a list =
     if List.Extra.notMember a list then
         a :: list
+
+    else
+        list
+
+
+insertInStringList : String -> List String -> List String
+insertInStringList str list =
+    if str == "" then
+        list
+
+    else if List.Extra.notMember str list then
+        str :: list
 
     else
         list
