@@ -56,15 +56,18 @@ transformMiniLaTeX block =
                         name_
                     )
                         |> Debug.log "NAME"
+
+                macroExpr =
+                    Parser.MathMacro.parseOne name_
             in
             if List.member name pseudoBlockNames then
-                handlePseudoblock block name rest_
+                handlePseudoblock block name rest_ macroExpr
 
             else if List.member name pseudoBlockNamesWithContent then
-                handlePseudoBlockWithContent block name name_ rest_
+                handlePseudoBlockWithContent block name name_ macroExpr
 
             else if List.member name pseudoBlockNamesWithArgs then
-                handlePseudoblockWithArgs block name name_ rest_
+                handlePseudoblockWithArgs block name rest_ macroExpr
 
             else
                 block
@@ -73,11 +76,24 @@ transformMiniLaTeX block =
             block
 
 
-handlePseudoblock block name rest_ =
-    { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary } |> Debug.log "PSEUDO"
+handlePseudoblock block name rest_ macroExpr =
+    case macroExpr of
+        Nothing ->
+            { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary }
+
+        Just ((Macro macroName args) as macro) ->
+            { block
+                | content = ("| " ++ macroName) :: rest_
+                , name = Just name
+                , args = List.map Parser.MathMacro.getArgs args |> List.concat
+                , blockType = PBOrdinary
+            }
+
+        _ ->
+            { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary }
 
 
-handlePseudoBlockWithContent block name name_ rest_ =
+handlePseudoBlockWithContent block name name_ macroExpr =
     let
         _ =
             Debug.log "function" "handlePseudoBlockWithContent"
@@ -88,7 +104,7 @@ handlePseudoBlockWithContent block name name_ rest_ =
         _ =
             Debug.log "MACRO (2)" (Parser.MathMacro.parseOne name_)
     in
-    case Parser.MathMacro.parseOne name_ of
+    case macroExpr of
         Nothing ->
             block
 
@@ -114,12 +130,12 @@ handlePseudoBlockWithContent block name name_ rest_ =
             block
 
 
-handlePseudoblockWithArgs block name name_ rest_ =
+handlePseudoblockWithArgs block name rest_ macroExpr =
     let
         _ =
             Debug.log "function" "handlePseudoblockWithArgs, 1"
     in
-    case Parser.MathMacro.parseOne name_ of
+    case macroExpr of
         Nothing ->
             block
 
