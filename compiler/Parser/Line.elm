@@ -38,7 +38,7 @@ getNameAndArgs lang line =
         MicroLaTeXLang ->
             let
                 normalizedLine =
-                    String.trim line.content |> Debug.log "NORMALIZED"
+                    String.trim line.content
 
                 name =
                     case Compiler.Util.getMicroLaTeXItem "begin" normalizedLine of
