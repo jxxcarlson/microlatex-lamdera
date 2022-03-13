@@ -156,6 +156,12 @@ listData accumulator name =
         ( False, Just "item" ) ->
             ( True, Just (Vector.init 4 |> Vector.increment 0) )
 
+        ( _, Nothing ) ->
+            -- Don't change state if there are anonymous blocks
+            -- TODO: think about this, consistent with markdown semantics but not LaTeX
+            -- TODO: however it does fix a numbering bug (see MicroLaTeX Visual Test)
+            ( accumulator.inList, Nothing )
+
         ( False, _ ) ->
             ( False, Nothing )
 
@@ -236,7 +242,8 @@ updateWithOrdinarySectionBlock accumulator name content level id =
             title |> String.toLower |> String.replace " " "-"
 
         headingIndex =
-            Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
+            --Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
+            Vector.increment (String.toInt level |> Maybe.withDefault 0) accumulator.headingIndex
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
     { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
@@ -291,8 +298,11 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
                         Nothing ->
                             Vector.increment level accumulator.itemVector
 
+                index =
+                    Vector.get level itemVector
+
                 numberedItemDict =
-                    Dict.insert id { level = level, index = Vector.get level itemVector } accumulator.numberedItemDict
+                    Dict.insert id { level = level, index = index } accumulator.numberedItemDict
             in
             { accumulator | inList = inList, itemVector = itemVector, numberedItemDict = numberedItemDict }
                 |> updateReference tag id (String.fromInt (Vector.get level itemVector))

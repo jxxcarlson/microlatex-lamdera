@@ -1,5 +1,6 @@
 module Render.Block exposing (render)
 
+import Compiler.ASTTools as ASTTools
 import Compiler.Acc exposing (Accumulator)
 import Dict exposing (Dict)
 import Either exposing (Either(..))
@@ -9,6 +10,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Html.Attributes
 import List.Extra
+import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Parser.MathMacro
@@ -450,11 +452,14 @@ numbered count acc settings args id exprs =
         roman k =
             List.Extra.getAt (modBy 26 (k - 1)) romanNumerals |> Maybe.withDefault "i"
 
+        val =
+            Dict.get id acc.numberedItemDict
+
         index_ =
-            Dict.get id acc.numberedItemDict |> Maybe.map .index |> Maybe.withDefault 1
+            val |> Maybe.map .index |> Maybe.withDefault 1
 
         level =
-            Dict.get id acc.numberedItemDict |> Maybe.map .level |> Maybe.withDefault 0
+            val |> Maybe.map .level |> Maybe.withDefault 0
 
         label =
             case modBy 3 level of
