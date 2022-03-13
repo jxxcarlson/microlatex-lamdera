@@ -17,11 +17,11 @@ The documentation is skimpy.
 import Compiler.Util
 import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
+import MicroLaTeX.Parser.Primitive
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
-import Parser.PrimitiveTransform
 import Parser.Tree
 import Tree exposing (Tree)
 
@@ -113,6 +113,6 @@ toRawBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
-        |> List.map (Parser.PrimitiveTransform.transform lang)
+        |> List.map (MicroLaTeX.Parser.Primitive.transform lang)
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []

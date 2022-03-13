@@ -14,7 +14,7 @@ import Either exposing (Either(..))
 import L0.Transform
 import List.Extra
 import Maybe.Extra
-import MicroLaTeX.Compiler.LaTeX
+import MicroLaTeX.Parser.Primitive
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))

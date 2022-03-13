@@ -1,4 +1,4 @@
-module Parser.PrimitiveTransform exposing (transform)
+module MicroLaTeX.Parser.Primitive exposing (transform)
 
 import Dict exposing (Dict)
 import Parser.Language exposing (Language(..))

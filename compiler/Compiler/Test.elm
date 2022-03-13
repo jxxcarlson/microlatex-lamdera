@@ -3,9 +3,9 @@ module Compiler.Test exposing (bib, bib2, bib3, bll, blm, blmt, dpl, dpm, ibl, i
 import Compiler.Acc
 import Compiler.DifferentialParser
 import Markup
+import MicroLaTeX.Parser.Primitive as PrimitiveTransform
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
-import Parser.PrimitiveTransform as PrimitiveTransform
 
 
 
@@ -28,8 +28,8 @@ bib =
 
 
 bib2 =
-    """\\bibitem{foo}
-[link New York Times https://nytimes.com]
+    """\\bibitem{NB}
+Niels Bohr, Memoirs
 """
 
 

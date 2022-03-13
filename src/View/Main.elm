@@ -362,7 +362,7 @@ viewDocument windowWidth counter selectedId editRecord =
         title_ : Element FrontendMsg
         title_ =
             Compiler.ASTTools.title editRecord.parsed
-                |> (\s -> E.paragraph [ Font.size Config.titleSize ] [ E.text s ])
+                |> (\s -> E.paragraph [ E.htmlAttribute (HtmlAttr.id "title"), Font.size Config.titleSize ] [ E.text s ])
 
         toc : Element FrontendMsg
         toc =
