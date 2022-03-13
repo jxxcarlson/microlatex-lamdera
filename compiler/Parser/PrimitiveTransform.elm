@@ -18,7 +18,7 @@ transform lang block =
 
 
 pseudoBlockNames =
-    [ "item", "numbered" ]
+    [ "item", "numbered", "bibitem" ]
 
 
 pseudoBlockNamesWithArgs =
@@ -58,48 +58,73 @@ transformMiniLaTeX block =
                         |> Debug.log "NAME"
             in
             if List.member name pseudoBlockNames then
-                { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary } |> Debug.log "PSEUDO"
+                handlePseudoblock block name rest_
 
             else if List.member name pseudoBlockNamesWithContent then
-                let
-                    _ =
-                        Debug.log "VALID pseudoBlockNameWithContent" name
-                in
-                case Parser.MathMacro.parseOne name_ of
-                    Nothing ->
-                        block
-
-                    Just ((Macro macroName args) as macro) ->
-                        let
-                            _ =
-                                Debug.log "MACRO" macro
-
-                            mainContent =
-                                List.map Parser.MathMacro.getArgs args |> List.concat
-                        in
-                        case Dict.get macroName sectionDict of
-                            Nothing ->
-                                { block | content = ("| " ++ macroName) :: mainContent, name = Just name, blockType = PBOrdinary }
-
-                            Just val ->
-                                { block | content = ("| section " ++ val) :: mainContent, args = val :: [], name = Just "section", blockType = PBOrdinary }
-
-                    _ ->
-                        block
+                handlePseudoBlockWithContent block name name_ rest_
 
             else if List.member name pseudoBlockNamesWithArgs then
-                case Parser.MathMacro.parseOne name_ of
-                    Nothing ->
-                        block
-
-                    Just ((Macro macroName args) as macro) ->
-                        { block | content = ("| " ++ macroName) :: [], name = Just name, args = List.map Parser.MathMacro.getArgs args |> List.concat, blockType = PBOrdinary }
-
-                    _ ->
-                        block
+                handlePseudoblockWithArgs block name name_ rest_
 
             else
                 block
+
+        _ ->
+            block
+
+
+handlePseudoblock block name rest_ =
+    { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary } |> Debug.log "PSEUDO"
+
+
+handlePseudoBlockWithContent block name name_ rest_ =
+    let
+        _ =
+            Debug.log "function" "handlePseudoBlockWithContent"
+
+        _ =
+            Debug.log "name_" name_
+
+        _ =
+            Debug.log "MACRO (2)" (Parser.MathMacro.parseOne name_)
+    in
+    case Parser.MathMacro.parseOne name_ of
+        Nothing ->
+            block
+
+        Just ((Macro macroName args) as macro) ->
+            let
+                _ =
+                    Debug.log "MACRO" macro
+
+                realArgs =
+                    List.map Parser.MathMacro.getArgs args |> List.concat
+
+                mainContent =
+                    List.map Parser.MathMacro.getArgs args |> List.concat
+            in
+            case Dict.get macroName sectionDict of
+                Nothing ->
+                    { block | content = ("| " ++ macroName) :: mainContent, name = Just name, args = realArgs, blockType = PBOrdinary }
+
+                Just val ->
+                    { block | content = ("| section " ++ val) :: mainContent, args = val :: [], name = Just "section", blockType = PBOrdinary }
+
+        _ ->
+            block
+
+
+handlePseudoblockWithArgs block name name_ rest_ =
+    let
+        _ =
+            Debug.log "function" "handlePseudoblockWithArgs, 1"
+    in
+    case Parser.MathMacro.parseOne name_ of
+        Nothing ->
+            block
+
+        Just ((Macro macroName args) as macro) ->
+            { block | content = ("| " ++ macroName) :: rest_, name = Just name, args = List.map Parser.MathMacro.getArgs args |> List.concat, blockType = PBOrdinary }
 
         _ ->
             block

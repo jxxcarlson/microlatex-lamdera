@@ -1,4 +1,4 @@
-module Compiler.Test exposing (bll, blm, blmt, dpl, dpm, ibl, ibm, ilist, pl, plt, pm, pmt, txt)
+module Compiler.Test exposing (bib, bib2, bib3, bll, blm, blmt, dpl, dpm, ibl, ibm, pl, plt, pm, pmt, txt)
 
 import Compiler.Acc
 import Compiler.DifferentialParser
@@ -21,12 +21,21 @@ txt =
 """
 
 
-ilist =
-    """\\item
-Two
-  
-  \\item
-  Alpha"""
+bib =
+    """| bibitem foo
+[link New York Times https://nytimes.com]
+"""
+
+
+bib2 =
+    """\\bibitem{foo}
+[link New York Times https://nytimes.com]
+"""
+
+
+bib3 =
+    """\\bibitem{NB}
+Niels Bohr, memoirs"""
 
 
 

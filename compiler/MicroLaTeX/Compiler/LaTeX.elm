@@ -49,7 +49,5 @@ transform ((ExpressionBlock data) as block) =
             in
             ordinaryBlock (Just "bibitem") args content data m2
 
-        --Right [ Expr "contents" [] m2 ] ->
-        --    ordinaryBlock (Just "contents") data.args [] data m2
         _ ->
             block |> Debug.log "ESCAPE (2)"

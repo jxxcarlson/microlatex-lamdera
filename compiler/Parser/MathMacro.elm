@@ -214,7 +214,7 @@ parse str =
 
 parseOne : String -> Maybe MathExpression
 parseOne str =
-    case run mathExpression str of
+    case run mathExpressionBare str of
         Ok expr ->
             Just expr
 
@@ -297,6 +297,15 @@ mathExpression =
         ]
 
 
+mathExpressionBare : MXParser MathExpression
+mathExpressionBare =
+    oneOf
+        [ backtrackable newCommand
+        , bareMacro
+        , mathStuff
+        ]
+
+
 {-|
 
     run mathStuff "x + y = \\foo"
@@ -345,6 +354,15 @@ macro : MXParser MathExpression
 macro =
     succeed Macro
         |= macroName
+        -- |= itemList (oneOf [ lazy (\_ -> many mathExpression |> map MathList), arg ])
+        |= itemList arg
+        |. ws
+
+
+bareMacro : MXParser MathExpression
+bareMacro =
+    succeed Macro
+        |= macroNameBare
         -- |= itemList (oneOf [ lazy (\_ -> many mathExpression |> map MathList), arg ])
         |= itemList arg
         |. ws
@@ -418,6 +436,17 @@ macroName =
         { start = \c -> c == '\\'
         , inner = \c -> Char.isAlphaNum c || c == '*'
         , reserved = Set.fromList [ "\\item", "\\bibitem" ]
+        , expecting = ExpectingMacroReservedWord
+        }
+        |> map (String.dropLeft 1)
+
+
+macroNameBare : MXParser String
+macroNameBare =
+    variable
+        { start = \c -> c == '\\'
+        , inner = \c -> Char.isAlphaNum c || c == '*'
+        , reserved = Set.fromList []
         , expecting = ExpectingMacroReservedWord
         }
         |> map (String.dropLeft 1)

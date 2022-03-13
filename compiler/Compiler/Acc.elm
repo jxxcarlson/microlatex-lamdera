@@ -86,16 +86,8 @@ transformAccumulateTree lang tree acc =
     let
         transformAccumulate : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
         transformAccumulate =
-            \acc_ block__ ->
+            \acc_ block_ ->
                 let
-                    block_ =
-                        case lang of
-                            MicroLaTeXLang ->
-                                MicroLaTeX.Compiler.LaTeX.transform block__
-
-                            L0Lang ->
-                                L0.Transform.transform block__
-
                     newAcc =
                         updateAccumulator lang block_ acc_
                 in
