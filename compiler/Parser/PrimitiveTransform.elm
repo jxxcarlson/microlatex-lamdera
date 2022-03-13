@@ -43,19 +43,17 @@ transformMiniLaTeX : PrimitiveBlock -> PrimitiveBlock
 transformMiniLaTeX block =
     let
         normalizedContent =
-            block.content |> List.map (String.dropLeft block.indent) |> normalize |> Debug.log "NORMALIZED"
+            block.content |> List.map (String.dropLeft block.indent) |> normalize
     in
     case normalizedContent of
         name_ :: rest_ ->
             let
                 name =
-                    (if String.left 1 name_ == "\\" then
+                    if String.left 1 name_ == "\\" then
                         String.dropLeft 1 name_ |> String.split "{" |> List.head |> Maybe.withDefault "---"
 
-                     else
+                    else
                         name_
-                    )
-                        |> Debug.log "NAME"
 
                 macroExpr =
                     Parser.MathMacro.parseOne name_
@@ -94,25 +92,12 @@ handlePseudoblock block name rest_ macroExpr =
 
 
 handlePseudoBlockWithContent block name name_ macroExpr =
-    let
-        _ =
-            Debug.log "function" "handlePseudoBlockWithContent"
-
-        _ =
-            Debug.log "name_" name_
-
-        _ =
-            Debug.log "MACRO (2)" (Parser.MathMacro.parseOne name_)
-    in
     case macroExpr of
         Nothing ->
             block
 
         Just ((Macro macroName args) as macro) ->
             let
-                _ =
-                    Debug.log "MACRO" macro
-
                 realArgs =
                     List.map Parser.MathMacro.getArgs args |> List.concat
 
@@ -131,10 +116,6 @@ handlePseudoBlockWithContent block name name_ macroExpr =
 
 
 handlePseudoblockWithArgs block name rest_ macroExpr =
-    let
-        _ =
-            Debug.log "function" "handlePseudoblockWithArgs, 1"
-    in
     case macroExpr of
         Nothing ->
             block
