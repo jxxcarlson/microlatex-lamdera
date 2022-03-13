@@ -133,7 +133,7 @@ init lang isVerbatimLine lines =
 
 
 blockFromLine : Language -> Line -> PrimitiveBlock
-blockFromLine lang { indent, lineNumber, position, prefix, content } =
+blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
     { indent = indent
     , lineNumber = lineNumber
     , position = position
@@ -144,6 +144,7 @@ blockFromLine lang { indent, lineNumber, position, prefix, content } =
     , sourceText = ""
     , blockType = PBParagraph
     }
+        |> elaborate lang line
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
@@ -227,20 +228,6 @@ addCurrentLine_ lang ({ prefix, content, indent } as line) block =
                 block.indent
     in
     { block | indent = newIndent, content = (prefix ++ content) :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
-
-
-
---if block.named then
---    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
---
---else if content == "$$" then
---    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
---
---else if content == "```" then
---    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
---
---else
---    { block | indent = newIndent, content = (prefix ++ content) :: block.content }
 
 
 handleGT : Line -> State -> State
@@ -407,19 +394,6 @@ toString2 blocks =
 
 
 -- TOOLS
-
-
-good =
-    """[{ args = [], blockType = PBParagraph, content = [""], indent = 0, lineNumber = 0, name = Nothing, named = False, position = 0, sourceText = "" },{ args = [], blockType = PBOrdinary, content = ["","| title","L0 BAD!!!!!"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 1, sourceText = "
-| title
-L0 BAD!!!!!" },{ args = [], blockType = PBParagraph, content = ["","AAA"], indent = 0, lineNumber = 4, name = Nothing, named = True, position = 22, sourceText = "
-AAA" }]"""
-
-
-bad =
-    """[{ args = [], blockType = PBOrdinary, content = ["| title","L0 BAD!!!!!"], indent = 0, lineNumber = 0, name = Just "title", named = True, position = 0, sourceText = "| title
-L0 BAD!!!!!" },{ args = [], blockType = PBParagraph, content = ["","AAA"], indent = 0, lineNumber = 2, name = Nothing, named = True, position = 20, sourceText = "
-AAA" }]"""
 
 
 greatestCommonPrefix : String -> String -> String

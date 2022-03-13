@@ -62,10 +62,16 @@ getNameAndArgs lang line =
             ( bt, name, Compiler.Util.getBracketedItems line.content )
 
         L0Lang ->
-            if String.left 2 line.content == "||" then
+            let
+                normalizedLine =
+                    String.trimLeft line.content
+
+                -- account for possible indentation
+            in
+            if String.left 2 normalizedLine == "||" then
                 let
                     words =
-                        String.words (String.dropLeft 3 line.content)
+                        String.words (String.dropLeft 3 normalizedLine)
 
                     name =
                         List.head words |> Maybe.withDefault "anon"
@@ -75,10 +81,10 @@ getNameAndArgs lang line =
                 in
                 ( PBVerbatim, Just name, args )
 
-            else if String.left 1 line.content == "|" then
+            else if String.left 1 normalizedLine == "|" then
                 let
                     words =
-                        String.words (String.dropLeft 2 line.content)
+                        String.words (String.dropLeft 2 normalizedLine)
 
                     name =
                         List.head words |> Maybe.withDefault "anon"

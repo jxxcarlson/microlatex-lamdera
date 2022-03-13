@@ -13,11 +13,11 @@ import Parser.PrimitiveBlock as PrimitiveBlock
 
 
 txt =
-    """\\title{New Document (1)}
+    """| item
+One
 
-\\section{FOO}
-
-\\subsection{BAR}
+  | item
+  Alpha
 """
 
 

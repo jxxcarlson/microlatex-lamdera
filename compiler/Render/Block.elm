@@ -407,7 +407,7 @@ item count acc settings args id exprs =
                 _ ->
                     "◊"
     in
-    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+    Element.row [ Element.moveRight (indentationScale * level |> toFloat), Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop
@@ -472,7 +472,7 @@ numbered count acc settings args id exprs =
                 _ ->
                     String.fromInt index_
     in
-    Element.row [ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
+    Element.row [ Element.moveRight (indentationScale * level |> toFloat), Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 Render.Settings.topMarginForChildren ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop
@@ -484,6 +484,10 @@ numbered count acc settings args id exprs =
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
             (renderWithDefault "| numbered" count acc settings exprs)
         ]
+
+
+indentationScale =
+    15
 
 
 index _ acc _ _ _ _ =
