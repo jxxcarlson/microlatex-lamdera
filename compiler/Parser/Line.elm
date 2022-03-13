@@ -37,13 +37,16 @@ getNameAndArgs lang line =
     case lang of
         MicroLaTeXLang ->
             let
+                normalizedLine =
+                    String.trim line.content |> Debug.log "NORMALIZED"
+
                 name =
-                    case Compiler.Util.getMicroLaTeXItem "begin" line.content of
+                    case Compiler.Util.getMicroLaTeXItem "begin" normalizedLine of
                         Just str ->
                             Just str
 
                         Nothing ->
-                            if line.content == "$$" then
+                            if normalizedLine == "$$" then
                                 Just "math"
 
                             else
@@ -53,18 +56,18 @@ getNameAndArgs lang line =
                     if name == Nothing then
                         PBParagraph
 
-                    else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || line.content == "$$" then
+                    else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || normalizedLine == "$$" then
                         PBVerbatim
 
                     else
                         PBOrdinary
             in
-            ( bt, name, Compiler.Util.getBracketedItems line.content )
+            ( bt, name, Compiler.Util.getBracketedItems normalizedLine )
 
         L0Lang ->
             let
                 normalizedLine =
-                    String.trimLeft line.content
+                    String.trim line.content
 
                 -- account for possible indentation
             in
