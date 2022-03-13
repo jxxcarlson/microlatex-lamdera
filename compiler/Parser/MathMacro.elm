@@ -1,7 +1,8 @@
-module Parser.MathMacro exposing (MathMacroDict, evalList, evalMacro, evalStr, makeMacroDict, newCommand2, parse, parseMany)
+module Parser.MathMacro exposing (MathExpression(..), MathMacroDict, evalList, evalMacro, evalStr, getArgs, makeMacroDict, newCommand2, parse, parseMany, parseOne)
 
 import Dict exposing (Dict)
 import List.Extra
+import Maybe.Extra
 import Parser.Advanced exposing (..)
 import Result.Extra
 import Set
@@ -20,6 +21,26 @@ type MathExpression
     | Macro MacroName (List MathExpression)
     | NewCommand MacroName NumberOfArguments (List MathExpression)
     | MathList (List MathExpression)
+
+
+getArgs : MathExpression -> List String
+getArgs expr =
+    case expr of
+        MathList exprs ->
+            List.map getText exprs |> Maybe.Extra.values
+
+        _ ->
+            []
+
+
+getText : MathExpression -> Maybe String
+getText expr =
+    case expr of
+        MathText str ->
+            Just str
+
+        _ ->
+            Nothing
 
 
 type alias MacroName =
@@ -189,6 +210,16 @@ getArg k list =
 parse : String -> Result (List (DeadEnd Context Problem)) (List MathExpression)
 parse str =
     run (many mathExpression) str
+
+
+parseOne : String -> Maybe MathExpression
+parseOne str =
+    case run mathExpression str of
+        Ok expr ->
+            Just expr
+
+        Err _ ->
+            Nothing
 
 
 type alias MXParser a =

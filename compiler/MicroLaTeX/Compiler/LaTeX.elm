@@ -17,6 +17,10 @@ ordinaryBlock name args exprs data m1 =
         }
 
 
+transform1 =
+    identity
+
+
 {-| The role of function transform is to map a paragraph block
 containing a single expression of designated name to
 an ordinary block with designated arguments
@@ -29,9 +33,6 @@ transform ((ExpressionBlock data) as block) =
             Compiler.ASTTools.normalize data.content
     in
     case normalized of
-        Right [ Expr "title" exprs m2 ] ->
-            ordinaryBlock (Just "title") data.args exprs data m2
-
         Right ((Expr "bibitem" exprs m2) :: _) ->
             let
                 content : List Expr
@@ -48,31 +49,7 @@ transform ((ExpressionBlock data) as block) =
             in
             ordinaryBlock (Just "bibitem") args content data m2
 
-        Right [ Expr "setcounter" exprs m2 ] ->
-            ordinaryBlock (Just "setcounter") data.args exprs data m2
-
-        Right [ Expr "section" exprs m2 ] ->
-            ordinaryBlock (Just "section") [ "1" ] exprs data m2
-
-        Right [ Expr "subsection" exprs m2 ] ->
-            ordinaryBlock (Just "section") [ "2" ] exprs data m2
-
-        Right [ Expr "subsubsection" exprs m2 ] ->
-            ordinaryBlock (Just "section") [ "3" ] exprs data m2
-
-        Right [ Expr "subheading" exprs m2 ] ->
-            ordinaryBlock (Just "section") [ "4" ] exprs data m2
-
-        Right [ Expr "contents" [] m2 ] ->
-            ordinaryBlock (Just "contents") data.args [] data m2
-
-        --Right [ Expr txt exprs m2 ] ->
-        --    --if String.left 5 txt == "item\n" then
-        --    --    ordinaryBlock (Just "item") data.args [ Text (String.dropLeft 5 txt) m2 ] data m2
-        --    if String.left 9 txt == "numbered\n" then
-        --        ordinaryBlock (Just "numbered") data.args [ Text (String.dropLeft 9 txt) m2 ] data m2
-        --
-        --    else
-        --        block |> Debug.log "ESCAPE (1)"
+        --Right [ Expr "contents" [] m2 ] ->
+        --    ordinaryBlock (Just "contents") data.args [] data m2
         _ ->
             block |> Debug.log "ESCAPE (2)"

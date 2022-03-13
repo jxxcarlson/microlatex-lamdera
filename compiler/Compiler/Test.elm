@@ -1,4 +1,4 @@
-module Compiler.Test exposing (bll, blm, blmt, dpl, dpm, ibl, ibm, ilist, pl, plt, pm, pmt)
+module Compiler.Test exposing (bll, blm, blmt, dpl, dpm, ibl, ibm, ilist, pl, plt, pm, pmt, txt)
 
 import Compiler.Acc
 import Compiler.DifferentialParser
@@ -10,6 +10,15 @@ import Parser.PrimitiveTransform as PrimitiveTransform
 
 
 -- DATA
+
+
+txt =
+    """\\title{New Document (1)}
+
+\\section{FOO}
+
+\\subsection{BAR}
+"""
 
 
 ilist =
