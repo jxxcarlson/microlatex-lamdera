@@ -49,11 +49,13 @@ transformMiniLaTeX block =
         name_ :: rest_ ->
             let
                 name =
-                    if String.left 1 name_ == "\\" then
+                    (if String.left 1 name_ == "\\" then
                         String.dropLeft 1 name_ |> String.split "{" |> List.head |> Maybe.withDefault "---"
 
-                    else
+                     else
                         name_
+                    )
+                        |> String.trimRight
 
                 macroExpr =
                     Parser.MathMacro.parseOne name_
