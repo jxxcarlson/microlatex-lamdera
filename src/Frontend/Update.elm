@@ -235,6 +235,9 @@ cycleLanguage model =
                     L0Lang
 
                 L0Lang ->
+                    XMarkdownLang
+
+                XMarkdownLang ->
                     MicroLaTeXLang
     in
     ( { model | language = mewLang }, Cmd.none )
@@ -530,6 +533,9 @@ newDocument model =
 
                 MicroLaTeXLang ->
                     "\\title{" ++ title ++ "}\n\n"
+
+                XMarkdownLang ->
+                    "# " ++ title ++ "\\n"
 
         doc =
             { emptyDoc

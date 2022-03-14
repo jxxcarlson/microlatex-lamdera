@@ -103,6 +103,9 @@ cycleLanguage lang =
 
                 L0Lang ->
                     "lang: L0"
+
+                XMarkdownLang ->
+                    "lang: XMarkdown"
     in
     buttonTemplate [] CycleLanguage langString
 

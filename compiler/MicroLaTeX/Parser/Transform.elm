@@ -1,20 +1,10 @@
-module MicroLaTeX.Parser.Primitive exposing (transform)
+module MicroLaTeX.Parser.Transform exposing (transform)
 
 import Dict exposing (Dict)
 import Parser.Language exposing (Language(..))
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.MathMacro exposing (MathExpression(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
-
-
-transform : Language -> PrimitiveBlock -> PrimitiveBlock
-transform lang block =
-    case lang of
-        L0Lang ->
-            block
-
-        MicroLaTeXLang ->
-            transformMiniLaTeX block
 
 
 pseudoBlockNames =
@@ -39,8 +29,8 @@ sectionDict =
         ]
 
 
-transformMiniLaTeX : PrimitiveBlock -> PrimitiveBlock
-transformMiniLaTeX block =
+transform : PrimitiveBlock -> PrimitiveBlock
+transform block =
     let
         normalizedContent =
             block.content |> List.map (String.dropLeft block.indent) |> normalize

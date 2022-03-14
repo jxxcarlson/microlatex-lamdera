@@ -72,6 +72,10 @@ getItem language key str =
         MicroLaTeXLang ->
             runParser (macroValParser key) str ""
 
+        XMarkdownLang ->
+            -- TODO: implement this
+            "((unimplemented))"
+
 
 getMicroLaTeXItem : String -> String -> Maybe String
 getMicroLaTeXItem key str =
@@ -134,6 +138,10 @@ eraseItem language key value str =
                     "\\" ++ key ++ "{" ++ value ++ "}\n"
             in
             String.replace target "" str
+
+        XMarkdownLang ->
+            -- TODO: implement this
+            "((unimplemented))"
 
 
 runParser stringParser str default =

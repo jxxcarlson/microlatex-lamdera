@@ -7,6 +7,7 @@ module Compiler.Acc exposing
 
 import Compiler.ASTTools
 import Compiler.Lambda as Lambda exposing (Lambda)
+import Compiler.Transform
 import Compiler.Vector as Vector exposing (Vector)
 import Config
 import Dict exposing (Dict)
@@ -14,7 +15,6 @@ import Either exposing (Either(..))
 import L0.Transform
 import List.Extra
 import Maybe.Extra
-import MicroLaTeX.Parser.Primitive
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Language exposing (Language(..))

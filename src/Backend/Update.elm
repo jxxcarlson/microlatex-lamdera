@@ -54,6 +54,9 @@ applySpecial model clientId =
                         MicroLaTeXLang ->
                             "\\title{<<untitled>>}\n\n"
 
+                        XMarkdownLang ->
+                            "# <<untitled>>\n\n"
+
                 documentDict =
                     Dict.insert doc.id { doc | title = "<<untitled>>", content = content, modified = model.currentTime } mod.documentDict
             in

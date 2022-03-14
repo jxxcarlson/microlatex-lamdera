@@ -14,10 +14,10 @@ The documentation is skimpy.
 
 -}
 
+import Compiler.Transform
 import Compiler.Util
 import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
-import MicroLaTeX.Parser.Primitive
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
@@ -53,6 +53,10 @@ parse lang sourceText =
 
                 L0Lang ->
                     L0.Parser.Expression.parse
+
+                XMarkdownLang ->
+                    -- TODO: implement this
+                    L0.Parser.Expression.parse
     in
     sourceText
         |> parseToIntermediateBlocks lang
@@ -69,6 +73,10 @@ parseToIntermediateBlocks lang sourceText =
                     Parser.BlockUtil.toIntermediateBlock lang MicroLaTeX.Parser.Expression.parseToState MicroLaTeX.Parser.Expression.extractMessages
 
                 L0Lang ->
+                    Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
+
+                XMarkdownLang ->
+                    -- TODO: implement this
                     Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
     in
     sourceText
@@ -113,6 +121,6 @@ toRawBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
-        |> List.map (MicroLaTeX.Parser.Primitive.transform lang)
+        |> List.map (Compiler.Transform.transform lang)
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []

@@ -13,3 +13,7 @@ ordinaryBlock lang name args currentMessages lineNumber revisedContent =
 
         MicroLaTeXLang ->
             MicroLaTeX.Parser.Error.ordinaryBlock name args currentMessages lineNumber revisedContent
+
+        XMarkdownLang ->
+            -- TODO: implement this
+            ( "((unimplemented))", [] )

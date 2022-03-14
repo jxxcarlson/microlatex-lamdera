@@ -251,6 +251,10 @@ languageCodec =
 
                 MicroLaTeXLang ->
                     microlatexlang
+
+                XMarkdownLang ->
+                    -- TODO: ???
+                    microlatexlang
         )
         |> Codec.variant0 "L0Language" L0Lang
         |> Codec.variant0 "MicroLaTeXLang" MicroLaTeXLang

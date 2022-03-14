@@ -2,8 +2,8 @@ module Compiler.Test exposing (bib, bib2, bib3, bll, blm, blmt, dpl, dpm, ibl, i
 
 import Compiler.Acc
 import Compiler.DifferentialParser
+import Compiler.Transform
 import Markup
-import MicroLaTeX.Parser.Primitive as PrimitiveTransform
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
 
@@ -55,7 +55,7 @@ blm str =
 
 
 blmt str =
-    blm str |> List.map (PrimitiveTransform.transform MicroLaTeXLang)
+    blm str |> List.map (Transform.transform MicroLaTeXLang)
 
 
 

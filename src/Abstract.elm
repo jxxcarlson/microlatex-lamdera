@@ -50,11 +50,15 @@ runParser stringParser str default =
 getItem : Language -> String -> String -> String
 getItem language key str =
     case language of
+        -- TODO: deal with the XX's
         L0Lang ->
             "XX:" ++ key
 
         MicroLaTeXLang ->
             runParser (macroValParser key) str ("XX:" ++ key)
+
+        XMarkdownLang ->
+            "XX:" ++ key
 
 
 get : Language -> String -> Abstract
@@ -65,6 +69,19 @@ get lang source =
 
         MicroLaTeXLang ->
             getForMiniLaTeX source
+
+        XMarkdownLang ->
+            getforXMardown source
+
+
+getforXMardown source =
+    -- TODO: implement this
+    { title = "--"
+    , author = "" --"
+    , abstract = "" --"
+    , tags = "--"
+    , digest = [] |> String.join " " |> String.toLower
+    }
 
 
 getForL0 : String -> Abstract

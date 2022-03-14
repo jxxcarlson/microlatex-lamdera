@@ -110,6 +110,10 @@ classify lang block =
         L0Lang ->
             L0.Parser.Classify.classify block
 
+        XMarkdownLang ->
+            -- TODO: implement this
+            L0.Parser.Classify.classify block
+
 
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType } as block) =
@@ -155,6 +159,10 @@ handleLastLine lang content =
 
         MicroLaTeXLang ->
             handleLastLineMicroLaTeX content
+
+        XMarkdownLang ->
+            --TODO: implement this
+            []
 
 
 handleLastLineL0 : List String -> List String
@@ -290,6 +298,10 @@ fixupVerbatimContent lang rawContent name =
 
                 _ ->
                     rawContent
+
+        XMarkdownLang ->
+            -- implement this
+            rawContent
 
 
 addEnd name str =
