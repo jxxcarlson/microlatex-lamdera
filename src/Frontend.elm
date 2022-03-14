@@ -305,7 +305,7 @@ update msg model =
             Frontend.Update.render model msg_
 
         Fetch id ->
-            ( model, sendToBackend (FetchDocumentById id) )
+            ( model, sendToBackend (FetchDocumentById id (Maybe.map .id model.currentUser)) )
 
         DebounceMsg msg_ ->
             Frontend.Update.debounceMsg model msg_
