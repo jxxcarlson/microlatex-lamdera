@@ -385,8 +385,8 @@ viewRenderedSmall model doc width_ deltaH =
         , View.Utility.elementAttribute "id" "__RENDERED_TEXT__"
         ]
         [ View.Utility.katexCSS
-        , E.column [ E.spacing 4, E.width (E.px (width_ - 60)) ]
-            (viewDocumentSmall (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter currentDocId editRecord)
+        , E.column [ E.spacing 4, E.width (E.px (indexWidth model.windowWidth - 20)) ]
+            (viewDocumentSmall (affine 1.75 -650 (indexWidth model.windowWidth)) model.counter currentDocId editRecord)
         ]
 
 
