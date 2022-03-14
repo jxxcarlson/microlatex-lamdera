@@ -221,18 +221,18 @@ update msg model =
         ToggleActiveDocList ->
             case model.currentMasterDocument of
                 Nothing ->
-                    ( { model | activeDocList = Both |> Debug.log "ACTIVE (1)" }, Cmd.none )
+                    ( { model | activeDocList = Both }, Cmd.none )
 
                 Just _ ->
                     case model.activeDocList of
                         PublicDocsList ->
-                            ( { model | activeDocList = PrivateDocsList |> Debug.log "ACTIVE" }, Cmd.none )
+                            ( { model | activeDocList = PrivateDocsList }, Cmd.none )
 
                         PrivateDocsList ->
-                            ( { model | activeDocList = PublicDocsList |> Debug.log "ACTIVE" }, Cmd.none )
+                            ( { model | activeDocList = PublicDocsList }, Cmd.none )
 
                         Both ->
-                            ( { model | activeDocList = PrivateDocsList |> Debug.log "ACTIVE (2)" }, Cmd.none )
+                            ( { model | activeDocList = PrivateDocsList }, Cmd.none )
 
         Home ->
             ( model, sendToBackend (GetDocumentById Config.welcomeDocId) )
