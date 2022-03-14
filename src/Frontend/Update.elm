@@ -224,7 +224,7 @@ render model msg_ =
             ( { model | selectedId = id }, View.Utility.setViewportForElement id )
 
         GetPublicDocument id ->
-            ( model, sendToBackend (FetchDocumentById id) )
+            ( model, sendToBackend (FetchDocumentById id (Maybe.map .id model.currentUser)) )
 
 
 cycleLanguage model =

@@ -119,8 +119,8 @@ updateFromFrontend _ clientId msg model =
         SaveDocument currentUser document ->
             Backend.Update.saveDocument model currentUser document
 
-        FetchDocumentById docId ->
-            Backend.Update.fetchDocumentById model clientId docId
+        FetchDocumentById docId maybeCurrentUserId ->
+            Backend.Update.fetchDocumentById model clientId docId maybeCurrentUserId
 
         GetDocumentByPublicId publicId ->
             Backend.Update.getDocumentByPublicId model clientId publicId

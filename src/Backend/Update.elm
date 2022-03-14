@@ -148,13 +148,13 @@ getDocumentByPublicId model clientId publicId =
                     )
 
 
-fetchDocumentById model clientId docId =
+fetchDocumentById model clientId docId maybeCurrentUserId =
     case Dict.get docId model.documentDict of
         Nothing ->
             ( model, sendToFrontend clientId (SendMessage "Couldn't find that document") )
 
         Just document ->
-            if document.public then
+            if document.public || document.author == maybeCurrentUserId then
                 ( model
                 , Cmd.batch
                     [ -- sendToFrontend clientId (SendDocument ReadOnly document)
@@ -168,7 +168,7 @@ fetchDocumentById model clientId docId =
             else
                 ( model
                 , Cmd.batch
-                    [ sendToFrontend clientId (SendMessage "Sorry, that document is not public")
+                    [ sendToFrontend clientId (SendMessage "Sorry, that document is not accessible")
                     ]
                 )
 

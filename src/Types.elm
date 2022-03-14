@@ -293,7 +293,7 @@ type ToBackend
     | SignInOrSignUp String String
       -- DOCUMENT
     | GetHomePage String
-    | FetchDocumentById String
+    | FetchDocumentById String (Maybe String)
     | GetPublicDocuments
     | SaveDocument (Maybe User) Document
     | GetDocumentByAuthorId String
