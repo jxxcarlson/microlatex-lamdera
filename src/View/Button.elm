@@ -29,6 +29,7 @@ module View.Button exposing
     , startupHelp
     , syncButton
     , syncLR
+    , toggleActiveDocList
     , toggleAppMode
     , toggleEditor
     , togglePublic
@@ -58,6 +59,16 @@ buttonTemplate attrList msg label_ =
         [ Input.button View.Style.buttonStyle
             { onPress = Just msg
             , label = E.el [ E.centerX, E.centerY, Font.size 14 ] (E.text label_)
+            }
+        ]
+
+
+buttonTemplate2 : List (E.Attribute msg) -> msg -> String -> Element msg
+buttonTemplate2 attrList msg label_ =
+    E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
+        [ Input.button View.Style.buttonStyle2
+            { onPress = Just msg
+            , label = E.el [ E.centerY, Font.size 16 ] (E.text label_)
             }
         ]
 
@@ -311,6 +322,11 @@ importJson =
 
 
 -- USER
+
+
+toggleActiveDocList : String -> Element FrontendMsg
+toggleActiveDocList name =
+    buttonTemplate2 [] ToggleActiveDocList name
 
 
 home : Element FrontendMsg

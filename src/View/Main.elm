@@ -18,7 +18,7 @@ import Render.Settings
 import Render.TOC
 import String.Extra
 import Time
-import Types exposing (AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), SortMode(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), SortMode(..))
 import View.Button as Button
 import View.Color as Color
 import View.Input
@@ -184,7 +184,15 @@ viewIndex model width_ deltaH =
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
                 , viewRenderedSmall model doc width_ deltaH
-                , viewPublicDocs model deltaH
+                , case model.activeDocList of
+                    PublicDocsList ->
+                        viewPublicDocs model deltaH
+
+                    PrivateDocsList ->
+                        viewMydocs model deltaH
+
+                    Both ->
+                        viewPublicDocs model deltaH
                 ]
 
 
@@ -207,6 +215,12 @@ viewMydocs model deltaH =
 
         docs =
             sort model.documents
+
+        buttonText =
+            "My docs (" ++ String.fromInt (List.length docs) ++ ")"
+
+        titleButton =
+            Button.toggleActiveDocList buttonText
     in
     E.column
         [ E.width (E.px <| indexWidth model.windowWidth)
@@ -218,7 +232,7 @@ viewMydocs model deltaH =
         , Font.color (E.rgb 0.1 0.1 1.0)
         , E.spacing 8
         ]
-        (E.el [ Font.size 16, Font.color (E.rgb 0.1 0.1 0.1) ] (E.text <| "My Docs (" ++ String.fromInt (List.length docs) ++ ")")
+        (titleButton
             :: viewDocumentsInIndex CanEdit
                 model.currentDocument
                 docs
@@ -231,6 +245,13 @@ viewDocumentsInIndex docPermissions currentDocument docs =
 
 
 viewPublicDocs model deltaH =
+    let
+        buttonText =
+            "Published docs (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
+
+        titleButton =
+            Button.toggleActiveDocList buttonText
+    in
     E.column
         [ E.width (E.px <| indexWidth model.windowWidth)
         , E.height (E.px (appHeight_ model - deltaH))
@@ -241,7 +262,7 @@ viewPublicDocs model deltaH =
         , Font.color (E.rgb 0.1 0.1 1.0)
         , E.spacing 8
         ]
-        (E.el [ Font.size 16, Font.color (E.rgb 0.1 0.1 0.1) ] (E.text <| "Published docs (" ++ String.fromInt (List.length model.publicDocuments) ++ ")") :: viewPublicDocuments model)
+        (titleButton :: viewPublicDocuments model)
 
 
 footer model _ =

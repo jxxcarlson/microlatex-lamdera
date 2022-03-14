@@ -25,7 +25,7 @@ import Markup
 import Parser.Language exposing (Language(..))
 import Process
 import Task
-import Types exposing (AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -79,6 +79,7 @@ init url key =
       , showEditor = False
       , phoneMode = PMShowDocumentList
       , pressedKeys = []
+      , activeDocList = Both
 
       -- SYNC
       , doSync = False
@@ -217,6 +218,22 @@ update msg model =
             ( { model | inputPassword = str }, Cmd.none )
 
         -- UI
+        ToggleActiveDocList ->
+            case model.currentMasterDocument of
+                Nothing ->
+                    ( { model | activeDocList = Both |> Debug.log "ACTIVE (1)" }, Cmd.none )
+
+                Just _ ->
+                    case model.activeDocList of
+                        PublicDocsList ->
+                            ( { model | activeDocList = PrivateDocsList |> Debug.log "ACTIVE" }, Cmd.none )
+
+                        PrivateDocsList ->
+                            ( { model | activeDocList = PublicDocsList |> Debug.log "ACTIVE" }, Cmd.none )
+
+                        Both ->
+                            ( { model | activeDocList = PrivateDocsList |> Debug.log "ACTIVE (2)" }, Cmd.none )
+
         Home ->
             ( model, sendToBackend (GetDocumentById Config.welcomeDocId) )
 

@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -44,6 +44,7 @@ type alias FrontendModel =
     , authorId : String
     , phoneMode : PhoneMode
     , pressedKeys : List Keyboard.Key
+    , activeDocList : ActiveDocList
 
     -- SYNC
     , foundIds : List String
@@ -80,6 +81,12 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+
+type ActiveDocList
+    = PublicDocsList
+    | PrivateDocsList
+    | Both
 
 
 type SortMode
@@ -222,6 +229,8 @@ type FrontendMsg
     | NextSync
     | SendSyncLR
     | GetSelection String
+      -- UI
+    | ToggleActiveDocList
       -- DOC
     | CycleLanguage
     | Fetch String
