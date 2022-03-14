@@ -99,7 +99,7 @@ cycleLanguage lang =
         langString =
             case lang of
                 MicroLaTeXLang ->
-                    "MicroLaTeX"
+                    "µLaTeX"
 
                 L0Lang ->
                     "L0"
