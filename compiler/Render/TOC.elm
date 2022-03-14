@@ -140,7 +140,7 @@ getHeadings : Markup.SyntaxTree -> { title : Maybe (List Expr), subtitle : Maybe
 getHeadings ast =
     let
         data =
-            ast |> Compiler.ASTTools.titleOLD |> Compiler.ASTTools.toExprRecord
+            ast |> Compiler.ASTTools.titleTOC |> Compiler.ASTTools.toExprRecord
 
         title : Maybe (List Expr)
         title =

@@ -8,6 +8,7 @@ import Element exposing (Element)
 import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
+import Element.Input
 import Html.Attributes
 import List.Extra
 import Maybe.Extra
@@ -107,6 +108,8 @@ blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String
 blockDict =
     Dict.fromList
         [ ( "indent", indented )
+        , ( "document", document )
+        , ( "collection", collection )
         , ( "bibitem", bibitem )
         , ( "heading", heading )
         , ( "section", heading )
@@ -220,6 +223,47 @@ bibitem count acc settings args id exprs =
         , Element.paragraph ([ Element.paddingEach { left = 25, right = 0, top = 0, bottom = 0 }, Events.onClick (SendId id) ] ++ highlightAttrs id settings)
             (renderWithDefault "bibitem" count acc settings exprs)
         ]
+
+
+collection count acc settings args id exprs =
+    Element.el [ Font.bold ] (Element.text "Contents")
+
+
+document count acc settings args id exprs =
+    let
+        docId =
+            List.Extra.getAt 0 args |> Maybe.withDefault "(12)"
+
+        level =
+            List.Extra.getAt 1 args |> Maybe.withDefault "1" |> String.toInt |> Maybe.withDefault 1
+
+        title =
+            List.map ASTTools.getText exprs |> Maybe.Extra.values |> String.join " "
+    in
+    Element.row
+        ([ Element.alignTop
+         , Render.Utility.elementAttribute "id" id
+         , vspace 0 Render.Settings.topMarginForChildren
+         , Element.moveRight (15 * (level - 1) |> toFloat)
+         ]
+            ++ highlightAttrs id settings
+        )
+        [ Element.el
+            [ Font.size 14
+            , Element.alignTop
+            , Font.bold
+            , Element.width (Element.px 0)
+            ]
+            (Element.text "")
+        , ilink title docId
+        ]
+
+
+ilink docTitle id =
+    Element.Input.button []
+        { onPress = Just (GetPublicDocument id)
+        , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text docTitle)
+        }
 
 
 env_ : Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element MarkupMsg

@@ -69,6 +69,7 @@ type alias FrontendModel =
     , permissions : DocPermissions
     , debounce : Debounce String
     , currentDocument : Maybe Document
+    , currentMasterDocument : Maybe Document
     , documents : List Document
     , inputSearchKey : String
     , printingState : PrintingState

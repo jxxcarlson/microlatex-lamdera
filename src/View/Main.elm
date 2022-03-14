@@ -1,6 +1,7 @@
 module View.Main exposing (view)
 
 import Compiler.ASTTools
+import Compiler.DifferentialParser
 import Config
 import Document exposing (Document)
 import Element as E exposing (Element)
@@ -83,11 +84,7 @@ viewEditorAndRenderedText model =
             , E.row [ E.spacing 12 ]
                 [ editor_ model
                 , viewRenderedForEditor model (panelWidth_ model.windowWidth)
-                , E.column [ E.spacing 8 ]
-                    [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                    , viewMydocs model deltaH
-                    , viewPublicDocs model deltaH
-                    ]
+                , viewIndex model (appWidth model.windowWidth) deltaH
                 ]
             , footer model (appWidth model.windowWidth)
             ]
@@ -167,15 +164,28 @@ viewRenderedTextOnly model =
             [ header model (E.px <| smallHeaderWidth model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ viewRenderedContainer model
-                , E.column [ E.spacing 8 ]
-                    [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                    , viewMydocs model deltaH
-                    , viewPublicDocs model deltaH
-                    ]
+                , viewIndex model (smallAppWidth model.windowWidth) deltaH
                 ]
             , footer model (smallHeaderWidth model.windowWidth)
             ]
         ]
+
+
+viewIndex model width_ deltaH =
+    case model.currentMasterDocument of
+        Nothing ->
+            E.column [ E.spacing 8 ]
+                [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
+                , viewMydocs model deltaH
+                , viewPublicDocs model deltaH
+                ]
+
+        Just doc ->
+            E.column [ E.spacing 8 ]
+                [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
+                , viewRenderedSmall model doc width_ deltaH
+                , viewPublicDocs model deltaH
+                ]
 
 
 viewRenderedContainer model =
@@ -332,6 +342,28 @@ wordCount model =
 
         Just doc ->
             E.el [ Font.size 14, Font.color Color.lightGray ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
+
+
+viewRenderedSmall : Model -> Document -> Int -> Int -> Element FrontendMsg
+viewRenderedSmall model doc width_ deltaH =
+    let
+        editRecord =
+            Compiler.DifferentialParser.init doc.language doc.content
+    in
+    E.column
+        [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
+        , View.Style.bgGray 1.0
+        , E.width (E.px <| indexWidth model.windowWidth)
+        , E.height (E.px (appHeight_ model - deltaH))
+        , Font.size 14
+        , E.alignTop
+        , E.scrollbarY
+        , View.Utility.elementAttribute "id" "__RENDERED_TEXT__"
+        ]
+        [ View.Utility.katexCSS
+        , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
+            (viewDocument (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId editRecord)
+        ]
 
 
 viewRendered : Model -> Int -> Element FrontendMsg

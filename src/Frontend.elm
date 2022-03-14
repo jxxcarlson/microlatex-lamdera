@@ -106,6 +106,7 @@ init url key =
       , authorId = ""
       , documents = []
       , currentDocument = Just Docs.notSignedIn
+      , currentMasterDocument = Nothing
       , printingState = PrintWaiting
       , documentDeleteState = WaitingForDeleteAction
       , publicDocuments = []
@@ -487,7 +488,8 @@ updateFromBackend msg model =
                 | editRecord = editRecord
                 , title = Compiler.ASTTools.title editRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , showEditor = showEditor
+
+                -- , showEditor = showEditor
                 , currentDocument = Just doc
                 , sourceText = doc.content
                 , documents = documents

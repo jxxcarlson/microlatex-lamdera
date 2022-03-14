@@ -159,7 +159,8 @@ fetchDocumentById model clientId docId =
                 , Cmd.batch
                     [ -- sendToFrontend clientId (SendDocument ReadOnly document)
                       sendToFrontend clientId (SendDocument CanEdit document)
-                    , sendToFrontend clientId (SetShowEditor True)
+
+                    --, sendToFrontend clientId (SetShowEditor True)
                     , sendToFrontend clientId (SendMessage "Public document received")
                     ]
                 )

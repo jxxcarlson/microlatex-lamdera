@@ -1,6 +1,8 @@
 module Compiler.ASTTools exposing
-    ( exprListToStringList
+    ( existsBlockWithName
+    , exprListToStringList
     , extractTextFromSyntaxTreeByKey
+    , filterASTOnName
     , filterBlocksByArgs
     , filterBlocksOnName
     , filterExpressionsOnName
@@ -10,7 +12,7 @@ module Compiler.ASTTools exposing
     , stringValueOfList
     , tableOfContents
     , title
-    , titleOLD
+    , titleTOC
     , toExprRecord
     )
 
@@ -75,9 +77,52 @@ idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
         Nothing
 
 
-titleOLD : SyntaxTree -> List ExpressionBlock
-titleOLD ast =
+titleTOC : SyntaxTree -> List ExpressionBlock
+titleTOC ast =
     filterBlocksByArgs "title" ast
+
+
+existsBlockWithName : List (Tree.Tree ExpressionBlock) -> String -> Bool
+existsBlockWithName ast name =
+    let
+        mBlock =
+            ast
+                |> List.map Tree.flatten
+                |> List.concat
+                |> filterBlocksOnName name
+                |> List.head
+    in
+    case mBlock of
+        Nothing ->
+            False
+
+        Just _ ->
+            True
+
+
+{-| Return the text content of the first element with the given name
+-}
+filterASTOnName : List (Tree.Tree ExpressionBlock) -> String -> List String
+filterASTOnName ast name =
+    let
+        mBlock =
+            ast
+                |> List.map Tree.flatten
+                |> List.concat
+                |> filterBlocksOnName name
+                |> List.head
+    in
+    case mBlock of
+        Nothing ->
+            []
+
+        Just (ExpressionBlock { content }) ->
+            case content of
+                Left str ->
+                    [ str ]
+
+                Right exprList ->
+                    List.map getText exprList |> Maybe.Extra.values
 
 
 title_ ast =

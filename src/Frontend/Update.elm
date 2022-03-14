@@ -349,9 +349,20 @@ setDocumentAsCurrent model doc permissions =
     let
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
+
+        isMaster =
+            Compiler.ASTTools.existsBlockWithName newEditRecord.parsed "collection"
+
+        currentMasterDocument =
+            if isMaster then
+                Just doc
+
+            else
+                Nothing
     in
     ( { model
         | currentDocument = Just doc
+        , currentMasterDocument = currentMasterDocument
         , sourceText = doc.content
         , initialText = doc.content
         , editRecord = newEditRecord
