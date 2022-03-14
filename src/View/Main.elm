@@ -351,7 +351,7 @@ viewRenderedSmall model doc width_ deltaH =
             Compiler.DifferentialParser.init doc.language doc.content
     in
     E.column
-        [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
+        [ E.paddingEach { left = 12, right = 12, top = 18, bottom = 96 }
         , View.Style.bgGray 1.0
         , E.width (E.px <| indexWidth model.windowWidth)
         , E.height (E.px (appHeight_ model - deltaH))
@@ -361,8 +361,8 @@ viewRenderedSmall model doc width_ deltaH =
         , View.Utility.elementAttribute "id" "__RENDERED_TEXT__"
         ]
         [ View.Utility.katexCSS
-        , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-            (viewDocument (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId editRecord)
+        , E.column [ E.spacing 4, E.width (E.px (width_ - 60)) ]
+            (viewDocumentSmall (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId editRecord)
         ]
 
 
@@ -387,6 +387,27 @@ viewRendered model width_ =
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
                     (viewDocument (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
+
+
+viewDocumentSmall windowWidth counter selectedId editRecord =
+    let
+        title_ : Element FrontendMsg
+        title_ =
+            Compiler.ASTTools.title editRecord.parsed
+                |> (\s ->
+                        E.paragraph
+                            [ E.htmlAttribute (HtmlAttr.id "title")
+                            , Font.size 16
+                            , E.paddingEach { top = 0, bottom = 12, left = 0, right = 0 }
+                            ]
+                            [ E.text s ]
+                   )
+
+        body : List (Element FrontendMsg)
+        body =
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId windowWidth) editRecord.parsed |> List.map (E.map Render)
+    in
+    title_ :: body
 
 
 viewDocument windowWidth counter selectedId editRecord =

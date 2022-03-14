@@ -226,7 +226,8 @@ bibitem count acc settings args id exprs =
 
 
 collection count acc settings args id exprs =
-    Element.el [ Font.bold ] (Element.text "Contents")
+    --Element.el [ Font.bold ] (Element.text "Contents")
+    Element.none
 
 
 document count acc settings args id exprs =
