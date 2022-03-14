@@ -154,10 +154,6 @@ fetchDocumentById model clientId docId maybeUserName =
             ( model, sendToFrontend clientId (SendMessage "Couldn't find that document") )
 
         Just document ->
-            let
-                _ =
-                    Debug.log "(author, username)" ( document.author, maybeUserName )
-            in
             if document.public || document.author == maybeUserName then
                 ( model
                 , Cmd.batch
