@@ -135,7 +135,7 @@ updateFromFrontend _ clientId msg model =
             Backend.Update.getDocumentById model clientId id
 
         GetPublicDocuments ->
-            ( model, sendToFrontend clientId (GotPublicDocuments (Backend.Update.searchForPublicDocuments "collection" model)) )
+            ( model, sendToFrontend clientId (GotPublicDocuments (Backend.Update.searchForPublicDocuments "startup" model)) )
 
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
