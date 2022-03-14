@@ -111,8 +111,8 @@ blockDict =
         , ( "document", document )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
-        , ( "heading", heading )
-        , ( "section", heading )
+        , ( "heading", section )
+        , ( "section", section )
         , ( "title", \_ _ _ _ _ _ -> Element.none )
         , ( "subtitle", \_ _ _ _ _ _ -> Element.none )
         , ( "author", \_ _ _ _ _ _ -> Element.none )
@@ -157,7 +157,7 @@ equationLabelPadding =
     Element.paddingEach { left = 0, right = 18, top = 0, bottom = 0 }
 
 
-heading count acc settings args id exprs =
+section count acc settings args id exprs =
     -- level 1 is reserved for titles
     let
         headingLevel =
@@ -240,6 +240,17 @@ document count acc settings args selectedId exprs =
 
         title =
             List.map ASTTools.getText exprs |> Maybe.Extra.values |> String.join " "
+
+        sectionNumber =
+            case List.Extra.getAt 2 args of
+                Just "-" ->
+                    "- "
+
+                Just s ->
+                    s ++ ". "
+
+                Nothing ->
+                    "-- "
     in
     Element.row
         [ Element.alignTop
@@ -251,10 +262,9 @@ document count acc settings args selectedId exprs =
         [ Element.el
             [ Font.size 14
             , Element.alignTop
-            , Font.bold
-            , Element.width (Element.px 0)
+            , Element.width (Element.px 30)
             ]
-            (Element.text "")
+            (Element.text sectionNumber)
         , ilink title settings.selectedId docId
         ]
 

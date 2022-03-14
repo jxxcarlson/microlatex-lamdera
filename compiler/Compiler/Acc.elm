@@ -24,6 +24,7 @@ import Tree exposing (Tree)
 
 type alias Accumulator =
     { headingIndex : Vector
+    , documentIndex : Vector
     , counter : Dict String Int
     , itemVector : Vector
     , numberedItemDict : Dict String { level : Int, index : Int }
@@ -65,6 +66,7 @@ build lang ast =
 init : Int -> Accumulator
 init k =
     { headingIndex = Vector.init k
+    , documentIndex = Vector.init k
     , inList = False
     , counter = Dict.empty
     , itemVector = Vector.init 4
@@ -102,6 +104,10 @@ transformBlock lang acc (ExpressionBlock block) =
         ( Just "section", level :: rest ) ->
             ExpressionBlock
                 { block | args = [ level, Vector.toString acc.headingIndex ] }
+
+        ( Just "document", id :: level :: rest ) ->
+            ExpressionBlock
+                { block | args = [ id, level, Vector.toString acc.documentIndex ] }
 
         ( Just name_, args ) ->
             -- Insert the numerical counter, e.g,, equation number, in the arg list of the block
@@ -200,6 +206,13 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
             in
             updateWithOrdinarySectionBlock accumulator name content level id
 
+        ( Just "document", OrdinaryBlock _ ) ->
+            let
+                level =
+                    List.head args |> Maybe.withDefault "1"
+            in
+            updateWithOrdinaryDocumentBlock accumulator name content level id
+
         ( Just name_, OrdinaryBlock _ ) ->
             -- TODO: tighten up
             updateWitOrdinaryBlock lang accumulator (Just name_) content args tag id indent
@@ -247,6 +260,31 @@ updateWithOrdinarySectionBlock accumulator name content level id =
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
     { accumulator | inList = inList, headingIndex = headingIndex } |> updateReference sectionTag id (Vector.toString headingIndex)
+
+
+updateWithOrdinaryDocumentBlock : Accumulator -> Maybe String -> Either String (List Expr) -> String -> String -> Accumulator
+updateWithOrdinaryDocumentBlock accumulator name content level id =
+    let
+        ( inList, _ ) =
+            listData accumulator name
+
+        title =
+            case content of
+                Left str ->
+                    str
+
+                Right expr ->
+                    List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
+
+        sectionTag =
+            title |> String.toLower |> String.replace " " "-"
+
+        documentIndex =
+            --Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
+            Vector.increment (String.toInt level |> Maybe.withDefault 0) accumulator.documentIndex
+    in
+    -- TODO: take care of numberedItemIndex = 0 here and elsewhere
+    { accumulator | inList = inList, documentIndex = documentIndex } |> updateReference sectionTag id (Vector.toString documentIndex)
 
 
 updateWitOrdinaryBlock : a -> Accumulator -> Maybe String -> Either b (List Expr) -> e -> String -> String -> Int -> Accumulator
