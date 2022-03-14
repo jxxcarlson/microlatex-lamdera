@@ -99,10 +99,10 @@ cycleLanguage lang =
         langString =
             case lang of
                 MicroLaTeXLang ->
-                    "µLaTeX"
+                    "lang: µLaTeX"
 
                 L0Lang ->
-                    "L0"
+                    "lang: L0"
     in
     buttonTemplate [] CycleLanguage langString
 
