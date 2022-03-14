@@ -349,6 +349,9 @@ viewRenderedSmall model doc width_ deltaH =
     let
         editRecord =
             Compiler.DifferentialParser.init doc.language doc.content
+
+        currentDocId =
+            Maybe.map .id model.currentDocument |> Maybe.withDefault "???"
     in
     E.column
         [ E.paddingEach { left = 12, right = 12, top = 18, bottom = 96 }
@@ -362,7 +365,7 @@ viewRenderedSmall model doc width_ deltaH =
         ]
         [ View.Utility.katexCSS
         , E.column [ E.spacing 4, E.width (E.px (width_ - 60)) ]
-            (viewDocumentSmall (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId editRecord)
+            (viewDocumentSmall (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter currentDocId editRecord)
         ]
 
 
@@ -389,7 +392,7 @@ viewRendered model width_ =
                 ]
 
 
-viewDocumentSmall windowWidth counter selectedId editRecord =
+viewDocumentSmall windowWidth counter currentDocId editRecord =
     let
         title_ : Element FrontendMsg
         title_ =
@@ -405,7 +408,7 @@ viewDocumentSmall windowWidth counter selectedId editRecord =
 
         body : List (Element FrontendMsg)
         body =
-            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId windowWidth) editRecord.parsed |> List.map (E.map Render)
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
     title_ :: body
 

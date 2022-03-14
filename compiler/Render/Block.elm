@@ -230,7 +230,7 @@ collection count acc settings args id exprs =
     Element.none
 
 
-document count acc settings args id exprs =
+document count acc settings args selectedId exprs =
     let
         docId =
             List.Extra.getAt 0 args |> Maybe.withDefault "(12)"
@@ -242,13 +242,12 @@ document count acc settings args id exprs =
             List.map ASTTools.getText exprs |> Maybe.Extra.values |> String.join " "
     in
     Element.row
-        ([ Element.alignTop
-         , Render.Utility.elementAttribute "id" id
-         , vspace 0 Render.Settings.topMarginForChildren
-         , Element.moveRight (15 * (level - 1) |> toFloat)
-         ]
-            ++ highlightAttrs id settings
-        )
+        [ Element.alignTop
+        , Render.Utility.elementAttribute "id" selectedId
+        , vspace 0 Render.Settings.topMarginForChildren
+        , Element.moveRight (15 * (level - 1) |> toFloat)
+        , fontColor settings.selectedId docId
+        ]
         [ Element.el
             [ Font.size 14
             , Element.alignTop
@@ -256,14 +255,29 @@ document count acc settings args id exprs =
             , Element.width (Element.px 0)
             ]
             (Element.text "")
-        , ilink title docId
+        , ilink title settings.selectedId docId
         ]
 
 
-ilink docTitle id =
+fontColor selectedId docId =
+    if selectedId == docId then
+        Font.color (Element.rgb 0.8 0 0)
+
+    else
+        Font.color (Element.rgb 0 0 0.9)
+
+
+ilink docTitle selectedId docId =
     Element.Input.button []
-        { onPress = Just (GetPublicDocument id)
-        , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text docTitle)
+        { onPress = Just (GetPublicDocument docId)
+        , label =
+            Element.el
+                [ Element.centerX
+                , Element.centerY
+                , Font.size 14
+                , fontColor selectedId docId
+                ]
+                (Element.text docTitle)
         }
 
 
