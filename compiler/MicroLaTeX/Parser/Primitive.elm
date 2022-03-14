@@ -18,7 +18,7 @@ transform lang block =
 
 
 pseudoBlockNames =
-    [ "item", "numbered", "bibitem" ]
+    [ "item", "numbered", "bibitem", "abstract" ]
 
 
 pseudoBlockNamesWithArgs =
