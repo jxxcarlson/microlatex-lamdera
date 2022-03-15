@@ -131,7 +131,15 @@ init url key =
 
 getId : String -> String
 getId path =
-    String.dropLeft 3 path
+    let
+        id =
+            String.dropLeft 3 path
+    in
+    if id == "" then
+        Config.welcomeDocId
+
+    else
+        id
 
 
 urlAction : String -> Cmd FrontendMsg
