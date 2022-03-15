@@ -26,6 +26,7 @@ import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
 import Render.Settings
+import Render.XMarkdown
 import Task
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
@@ -394,7 +395,7 @@ update msg model =
                                     model.editRecord.parsed
 
                                 newText =
-                                    Render.MicroLaTeX.export ast
+                                    Render.XMarkdown.export ast
                             in
                             ( model, Download.string "out-xmarkdown.txt" "text/plain" newText )
 

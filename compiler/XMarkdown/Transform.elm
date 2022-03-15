@@ -46,6 +46,12 @@ transform block =
             else if String.left 3 firstLine == "```" then
                 handleVerbatim block rest_
 
+            else if String.left 2 firstLine == "- " then
+                handleItem block (String.dropLeft 2 firstLine) rest_
+
+            else if String.left 2 firstLine == ". " then
+                handleNumberedItem block (String.dropLeft 2 firstLine) rest_
+
             else if String.left 1 firstLine == "@" then
                 handleOrdinaryBlock block (String.dropLeft 1 firstLine) rest_
 
@@ -57,6 +63,14 @@ transform block =
 
         _ ->
             block
+
+
+handleItem block firstLine rest =
+    { block | name = Just "item", blockType = PBOrdinary, content = "| item" :: firstLine :: rest }
+
+
+handleNumberedItem block firstLine rest =
+    { block | name = Just "numbered", blockType = PBOrdinary, content = "| numbered" :: firstLine :: rest }
 
 
 handleImageBlock block firstLine rest =

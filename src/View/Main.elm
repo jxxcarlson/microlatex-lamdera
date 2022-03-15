@@ -277,7 +277,8 @@ footer model _ =
           Button.nextSyncButton model.foundIds
         , Button.exportToLaTeX
         , Button.printToPDF model
-        , Button.exporToMicroLaTeX
+        , Button.exportToMicroLaTeX
+        , Button.exportToXMarkdown
 
         -- , View.Utility.showIf (isAdmin model) Button.runSpecial
         , View.Utility.showIf (isAdmin model) (Button.toggleAppMode model)
