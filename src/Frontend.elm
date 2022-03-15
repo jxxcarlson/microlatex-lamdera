@@ -98,12 +98,12 @@ init url key =
       -- DOCUMENT
       , lineNumber = 0
       , permissions = ReadOnly
-      , initialText = ""
+      , initialText = Config.loadingText
       , documentsCreatedCounter = 0
-      , sourceText = View.Data.welcome
-      , editRecord = Compiler.DifferentialParser.init Config.initialLanguage ""
-      , title = "(title not yet defined)"
-      , tableOfContents = Compiler.ASTTools.tableOfContents (Markup.parse MicroLaTeXLang View.Data.welcome)
+      , sourceText = Config.loadingText
+      , editRecord = Compiler.DifferentialParser.init L0Lang Config.loadingText
+      , title = "Loading ..."
+      , tableOfContents = Compiler.ASTTools.tableOfContents (Markup.parse L0Lang Config.loadingText)
       , debounce = Debounce.init
       , counter = 0
       , inputSearchKey = ""

@@ -5,6 +5,8 @@ module Config exposing
     , helpDocumentId
     , indentationQuantum
     , initialLanguage
+    , loadingId
+    , loadingText
     , pdfServer
     , startupHelpDocumentId
     , titleSize
@@ -21,6 +23,15 @@ welcomeDocId =
 
 loadingId =
     "id-gv197-mh043"
+
+
+loadingText =
+    """
+| title
+Loading ...
+
+[image https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_2Dis9S-LNLx0xVNXKR9ox5Oj0Nv2-nqIGg&usqp=CAU]
+"""
 
 
 
