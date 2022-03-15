@@ -122,7 +122,7 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , sendToBackend GetPublicDocuments
-        , Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.welcomeDocId))
+        , Process.sleep 250 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.welcomeDocId))
         ]
     )
 
