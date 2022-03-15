@@ -159,7 +159,7 @@ urlAction path =
                 sendToBackend GetStatus
 
             _ ->
-                Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.loadingId))
+                Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
 
 
 urlIsForGuest : Url -> Bool
