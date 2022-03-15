@@ -199,9 +199,6 @@ exclusionList =
 makeIntermediateBlock : Language -> PrimitiveBlock -> List String -> IntermediateBlock
 makeIntermediateBlock lang block messages =
     let
-        _ =
-            Debug.log "INT, IN" block.content
-
         blockType =
             toBlockType block.blockType block.args
 
@@ -223,12 +220,9 @@ makeIntermediateBlock lang block messages =
                                 |> normalize
                                 |> List.filter
                                     (\line -> not (String.contains "label" line))
-                                |> Debug.log "INT, V"
                     in
                     List.drop 1 adjustedContent
-                        |> Debug.log "INT, (2)"
                         |> handleLastLine lang
-                        |> Debug.log "INT, (3)"
     in
     IntermediateBlock
         { name = block.name

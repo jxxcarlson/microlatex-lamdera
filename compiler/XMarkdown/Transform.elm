@@ -1,5 +1,6 @@
 module XMarkdown.Transform exposing (transform)
 
+import Compiler.Util
 import Dict exposing (Dict)
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.MathMacro exposing (MathExpression(..))
@@ -32,7 +33,7 @@ transform : PrimitiveBlock -> PrimitiveBlock
 transform block =
     (let
         normalizedContent =
-            block.content |> Debug.log "IN" |> List.map (String.dropLeft block.indent) |> normalize |> Debug.log "normalize (OUT)"
+            block.content |> List.map (String.dropLeft block.indent) |> normalize
      in
      case normalizedContent of
         firstLine :: rest_ ->
@@ -63,14 +64,18 @@ transform block =
 handleImageBlock block firstLine rest =
     let
         args =
-            firstLine |> String.words |> List.map String.trim
+            Compiler.Util.getMarkdownImageArgs firstLine
     in
-    case List.head args of
+    case args of
         Nothing ->
             block
 
-        Just name ->
-            { block | name = Just name, args = List.drop 1 args, content = rest, blockType = PBOrdinary }
+        Just ( label, url ) ->
+            let
+                imageString =
+                    "[image " ++ url ++ "]"
+            in
+            { block | content = [ imageString ] }
 
 
 handleOrdinaryBlock block firstLine rest =

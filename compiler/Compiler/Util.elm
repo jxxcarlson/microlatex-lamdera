@@ -201,19 +201,6 @@ bracketedItemParser =
     itemParser "[" "]"
 
 
-
---(Parser.succeed String.slice
---    |. Parser.chompUntil "["
---    |. Parser.symbol "["
---    |. Parser.spaces
---    |= Parser.getOffset
---    |. Parser.chompUntil "]"
---    |= Parser.getOffset
---    |= Parser.getSource
---)
---    |> Parser.map String.trim
-
-
 parenthesizedItemParser : Parser String
 parenthesizedItemParser =
     itemParser "(" ")"
