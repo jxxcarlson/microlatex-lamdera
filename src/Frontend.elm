@@ -543,6 +543,13 @@ updateFromBackend msg model =
 
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
+
+                currentMasterDocument =
+                    if Frontend.Update.isMaster editRecord then
+                        Just doc
+
+                    else
+                        model.currentMasterDocument
             in
             ( { model
                 | editRecord = editRecord
@@ -552,6 +559,7 @@ updateFromBackend msg model =
                 -- , showEditor = showEditor
                 , currentDocument = Just doc
                 , sourceText = doc.content
+                , currentMasterDocument = currentMasterDocument
                 , documents = documents
                 , counter = model.counter + 1
               }

@@ -125,7 +125,7 @@ getHomePage model clientId username =
             , Cmd.batch
                 [ sendToFrontend clientId (SendMessage "Public document received")
                 , sendToFrontend clientId (SendDocument CanEdit doc)
-                , sendToFrontend clientId (SetShowEditor True)
+                , sendToFrontend clientId (SetShowEditor False)
                 ]
             )
 

@@ -10,6 +10,7 @@ module Frontend.Update exposing
     , handleSignOut
     , handleUrlRequest
     , inputText
+    , isMaster
     , newDocument
     , nextSyncLR
     , render
@@ -348,16 +349,17 @@ setViewportForElement model result =
             ( model, Cmd.none )
 
 
+isMaster editRecord =
+    Compiler.ASTTools.existsBlockWithName editRecord.parsed "collection"
+
+
 setDocumentAsCurrent model doc permissions =
     let
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
-        isMaster =
-            Compiler.ASTTools.existsBlockWithName newEditRecord.parsed "collection"
-
         currentMasterDocument =
-            if isMaster then
+            if isMaster newEditRecord then
                 Just doc
 
             else
