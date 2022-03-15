@@ -123,10 +123,13 @@ init url key =
         , urlAction url.path
         , sendToBackend GetPublicDocuments
         , Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.welcomeDocId))
+
+        -- , Process.sleep 500 |> Task.perform (always (urlAction url.path))
         ]
     )
 
 
+urlAction : String -> Cmd FrontendMsg
 urlAction path =
     let
         prefix =
