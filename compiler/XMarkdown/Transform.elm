@@ -31,11 +31,11 @@ sectionDict =
 
 transform : PrimitiveBlock -> PrimitiveBlock
 transform block =
-    (let
+    let
         normalizedContent =
             block.content |> List.map (String.dropLeft block.indent) |> normalize
-     in
-     case normalizedContent of
+    in
+    case normalizedContent of
         firstLine :: rest_ ->
             if String.left 1 firstLine == "#" then
                 handleTitle block firstLine rest_
@@ -57,8 +57,6 @@ transform block =
 
         _ ->
             block
-    )
-        |> Debug.log "TRANSFORM"
 
 
 handleImageBlock block firstLine rest =
