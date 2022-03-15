@@ -3,6 +3,7 @@ module Compiler.Transform exposing (transform)
 import MicroLaTeX.Parser.Transform
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
+import XMarkdown.Transform
 
 
 transform : Language -> PrimitiveBlock -> PrimitiveBlock
@@ -16,4 +17,4 @@ transform lang block =
 
         XMarkdownLang ->
             -- TODO: implement this
-            block
+            XMarkdown.Transform.transform block

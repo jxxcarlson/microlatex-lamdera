@@ -1,4 +1,25 @@
-module Compiler.Test exposing (bib, bib2, bib3, bll, blm, blmt, dpl, dpm, ibl, ibm, pl, plt, pm, pmt, txt)
+module Compiler.Test exposing
+    ( bib
+    , bib2
+    , bib3
+    , bll
+    , blm
+    , blmt
+    , blx
+    , blxt
+    , dpl
+    , dpm
+    , ibl
+    , ibm
+    , ibx
+    , l0code
+    , pl
+    , plt
+    , pm
+    , pmt
+    , pxt
+    , txt
+    )
 
 import Compiler.Acc
 import Compiler.DifferentialParser
@@ -10,6 +31,15 @@ import Parser.PrimitiveBlock as PrimitiveBlock
 
 
 -- DATA
+
+
+l0code =
+    """
+|| code
+this is code
+   well, it really isn't,
+but you get the idea
+"""
 
 
 txt =
@@ -50,12 +80,20 @@ blm str =
     PrimitiveBlock.blockListOfStringList MicroLaTeXLang (\_ -> False) (String.lines str)
 
 
+blx str =
+    PrimitiveBlock.blockListOfStringList XMarkdownLang (\_ -> False) (String.lines str)
+
+
 
 -- TEST formation of primitive blocks with transform
 
 
 blmt str =
-    blm str |> List.map (Transform.transform MicroLaTeXLang)
+    blm str |> List.map (Compiler.Transform.transform MicroLaTeXLang)
+
+
+blxt str =
+    blx str |> List.map (Compiler.Transform.transform XMarkdownLang)
 
 
 
@@ -70,6 +108,10 @@ ibm str =
     Markup.parseToIntermediateBlocks MicroLaTeXLang str
 
 
+ibx str =
+    Markup.parseToIntermediateBlocks XMarkdownLang str
+
+
 
 -- TEST parser with transform
 
@@ -80,6 +122,10 @@ plt str =
 
 pmt str =
     Markup.parse MicroLaTeXLang str |> Compiler.Acc.transformST MicroLaTeXLang
+
+
+pxt str =
+    Markup.parse XMarkdownLang str |> Compiler.Acc.transformST XMarkdownLang
 
 
 

@@ -234,7 +234,7 @@ handleGT : Line -> State -> State
 handleGT currentLine state =
     case state.currentBlock of
         Nothing ->
-            { state | lines = List.drop 1 state.lines, indent = currentLine.indent }
+            { state | lines = List.drop 1 state.lines, indent = currentLine.indent } |> Debug.log "GT, 1"
 
         Just block ->
             if state.inVerbatim then
@@ -248,6 +248,7 @@ handleGT currentLine state =
                     , currentBlock =
                         Just (addCurrentLine state.lang currentLine block)
                 }
+                    |> Debug.log "GT, 2"
 
             else
                 -- make new block
@@ -258,6 +259,7 @@ handleGT currentLine state =
                     , blocks = block :: state.blocks
                     , currentBlock = Just (blockFromLine state.lang currentLine)
                 }
+                    |> Debug.log "GT, 3"
 
 
 handleEQ : Line -> State -> State
@@ -277,6 +279,7 @@ handleEQ currentLine state =
                     , inVerbatim = state.isVerbatimLine currentLine.content
                     , currentBlock = Just (blockFromLine state.lang currentLine)
                 }
+                    |> Debug.log "EQ, 1"
 
             else if state.isVerbatimLine currentLine.content then
                 -- add the current line to the block and keep the indentation level
@@ -287,6 +290,7 @@ handleEQ currentLine state =
                         Just
                             (addCurrentLine state.lang currentLine block)
                 }
+                    |> Debug.log "EQ, 2"
 
             else
                 -- add the current line to the block
@@ -297,6 +301,7 @@ handleEQ currentLine state =
                         Just
                             (addCurrentLine state.lang currentLine block)
                 }
+                    |> Debug.log "EQ, 3"
 
 
 handleLT : Line -> State -> State
@@ -307,6 +312,7 @@ handleLT currentLine state =
                 | lines = List.drop 1 state.lines
                 , indent = currentLine.indent
             }
+                |> Debug.log "LT, 1"
 
         Just block ->
             -- TODO: explain and examine currentBlock = ..
@@ -325,6 +331,7 @@ handleLT currentLine state =
                 , inVerbatim = state.isVerbatimLine currentLine.content
                 , currentBlock = Just (blockFromLine state.lang currentLine)
             }
+                |> Debug.log "LT, 2"
 
 
 type Step state a
