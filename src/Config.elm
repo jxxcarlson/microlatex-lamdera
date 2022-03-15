@@ -25,12 +25,51 @@ loadingId =
     "id-gv197-mh043"
 
 
-loadingText =
+loadingText1 =
     """
 | title
 Loading ...
 
 [image https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_2Dis9S-LNLx0xVNXKR9ox5Oj0Nv2-nqIGg&usqp=CAU]
+"""
+
+
+loadingText =
+    """
+| title
+Welcome to Scripta!
+
+[tags startup]
+
+[i Scripta is an interactive editing and publishing environment for a small set of markup languages:]
+
+| item
+MicroLaTeX, a small variant of LaTeX
+[ilink  — learn more id-to974-lt782]
+
+| item
+L0, a markup language with a Lisp-like syntax 
+[ilink — learn more id-xe170-zc087]
+
+| item
+XMarkdown, a variant of Markdown, that can render math — coming March 30.
+
+[image https://news.wttw.com/sites/default/files/styles/full/public/field/image/CardinalSnowtlparadisPixabayCrop.jpg?itok=iyp0zGMz]
+
+[b [large Features]]
+
+| item 
+No setup.  Just click [b New] and start typing.
+
+| item
+Text is rendered as you type
+
+| item
+Make pages that link to other pages — good for class notes, a home page, etc.
+
+| item
+Export to standard LaTeX and PDF
+
 """
 
 
