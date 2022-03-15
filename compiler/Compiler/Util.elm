@@ -1,4 +1,13 @@
-module Compiler.Util exposing (depth, eraseItem, getBracketedItem, getBracketedItems, getItem, getMicroLaTeXItem, size)
+module Compiler.Util exposing
+    ( depth
+    , eraseItem
+    , getBracketedItem
+    , getBracketedItems
+    , getItem
+    , getMarkdownImageArgs
+    , getMicroLaTeXItem
+    , size
+    )
 
 import Parser exposing ((|.), (|=), Parser, Step(..), loop, map, oneOf, spaces, succeed)
 import Parser.Language exposing (Language(..))
@@ -173,14 +182,51 @@ macroValParser macroName =
         |> Parser.map String.trim
 
 
+getMarkdownImageArgs str =
+    case Parser.run markdownImageParser str of
+        Ok result ->
+            Just result
+
+        Err _ ->
+            Nothing
+
+
+markdownImageParser : Parser ( String, String )
+markdownImageParser =
+    bracketedItemParser |> Parser.andThen (\a -> parenthesizedItemParser |> Parser.map (\b -> ( a, b )))
+
+
 bracketedItemParser : Parser String
 bracketedItemParser =
+    itemParser "[" "]"
+
+
+
+--(Parser.succeed String.slice
+--    |. Parser.chompUntil "["
+--    |. Parser.symbol "["
+--    |. Parser.spaces
+--    |= Parser.getOffset
+--    |. Parser.chompUntil "]"
+--    |= Parser.getOffset
+--    |= Parser.getSource
+--)
+--    |> Parser.map String.trim
+
+
+parenthesizedItemParser : Parser String
+parenthesizedItemParser =
+    itemParser "(" ")"
+
+
+itemParser : String -> String -> Parser String
+itemParser leftDelimiter rightDelimiter =
     (Parser.succeed String.slice
-        |. Parser.chompUntil "["
-        |. Parser.symbol "["
+        |. Parser.chompUntil leftDelimiter
+        |. Parser.symbol leftDelimiter
         |. Parser.spaces
         |= Parser.getOffset
-        |. Parser.chompUntil "]"
+        |. Parser.chompUntil rightDelimiter
         |= Parser.getOffset
         |= Parser.getSource
     )

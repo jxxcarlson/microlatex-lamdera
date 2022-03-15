@@ -32,6 +32,7 @@ considered the first line of a verbatim block.
 
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..))
+import Tools
 
 
 {-| -}
@@ -46,6 +47,16 @@ type alias PrimitiveBlock =
     , sourceText : String
     , blockType : PrimitiveBlockType
     }
+
+
+report1 : String -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String ) -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String )
+report1 label a =
+    Tools.debugLog2 label identity a
+
+
+report : String -> State -> State
+report label a =
+    Tools.debugLog2 label (\s -> ( s.lineNumber, s.inVerbatim, Maybe.map .content s.currentBlock )) a
 
 
 empty : PrimitiveBlock
@@ -160,6 +171,9 @@ nextStep state =
 
         Just rawLine ->
             let
+                _ =
+                    report1 "nextStep" ( ( state.lineNumber, state.isVerbatimLine rawLine, Maybe.map .blockType state.currentBlock ), rawLine )
+
                 newPosition =
                     if rawLine == "" then
                         state.position + 1
@@ -234,7 +248,7 @@ handleGT : Line -> State -> State
 handleGT currentLine state =
     case state.currentBlock of
         Nothing ->
-            { state | lines = List.drop 1 state.lines, indent = currentLine.indent } |> Debug.log "GT, 1"
+            { state | lines = List.drop 1 state.lines, indent = currentLine.indent } |> report "GT, 1"
 
         Just block ->
             if state.inVerbatim then
@@ -248,7 +262,7 @@ handleGT currentLine state =
                     , currentBlock =
                         Just (addCurrentLine state.lang currentLine block)
                 }
-                    |> Debug.log "GT, 2"
+                    |> report "GT, 2"
 
             else
                 -- make new block
@@ -259,7 +273,7 @@ handleGT currentLine state =
                     , blocks = block :: state.blocks
                     , currentBlock = Just (blockFromLine state.lang currentLine)
                 }
-                    |> Debug.log "GT, 3"
+                    |> report "GT, 3"
 
 
 handleEQ : Line -> State -> State
@@ -279,7 +293,7 @@ handleEQ currentLine state =
                     , inVerbatim = state.isVerbatimLine currentLine.content
                     , currentBlock = Just (blockFromLine state.lang currentLine)
                 }
-                    |> Debug.log "EQ, 1"
+                    |> report "EQ, 1"
 
             else if state.isVerbatimLine currentLine.content then
                 -- add the current line to the block and keep the indentation level
@@ -290,7 +304,7 @@ handleEQ currentLine state =
                         Just
                             (addCurrentLine state.lang currentLine block)
                 }
-                    |> Debug.log "EQ, 2"
+                    |> report "EQ, 2"
 
             else
                 -- add the current line to the block
@@ -301,7 +315,7 @@ handleEQ currentLine state =
                         Just
                             (addCurrentLine state.lang currentLine block)
                 }
-                    |> Debug.log "EQ, 3"
+                    |> report "EQ, 3"
 
 
 handleLT : Line -> State -> State
@@ -312,7 +326,7 @@ handleLT currentLine state =
                 | lines = List.drop 1 state.lines
                 , indent = currentLine.indent
             }
-                |> Debug.log "LT, 1"
+                |> report "LT, 1"
 
         Just block ->
             -- TODO: explain and examine currentBlock = ..
@@ -331,7 +345,7 @@ handleLT currentLine state =
                 , inVerbatim = state.isVerbatimLine currentLine.content
                 , currentBlock = Just (blockFromLine state.lang currentLine)
             }
-                |> Debug.log "LT, 2"
+                |> report "LT, 2"
 
 
 type Step state a

@@ -45,6 +45,12 @@ transform block =
             else if String.left 3 firstLine == "```" then
                 handleVerbatim block rest_
 
+            else if String.left 1 firstLine == "@" then
+                handleOrdinaryBlock block (String.dropLeft 1 firstLine) rest_
+
+            else if String.left 1 firstLine == "!" then
+                handleImageBlock block (String.dropLeft 1 firstLine) rest_
+
             else
                 block
 
@@ -52,6 +58,32 @@ transform block =
             block
     )
         |> Debug.log "TRANSFORM"
+
+
+handleImageBlock block firstLine rest =
+    let
+        args =
+            firstLine |> String.words |> List.map String.trim
+    in
+    case List.head args of
+        Nothing ->
+            block
+
+        Just name ->
+            { block | name = Just name, args = List.drop 1 args, content = rest, blockType = PBOrdinary }
+
+
+handleOrdinaryBlock block firstLine rest =
+    let
+        args =
+            firstLine |> String.words |> List.map String.trim
+    in
+    case List.head args of
+        Nothing ->
+            block
+
+        Just name ->
+            { block | name = Just name, args = List.drop 1 args, content = rest, blockType = PBOrdinary }
 
 
 handleVerbatim : PrimitiveBlock -> List String -> PrimitiveBlock
@@ -78,7 +110,7 @@ handleTitle block firstLine rest =
             block
 
         Just 1 ->
-            { block | args = [], blockType = PBOrdinary, name = Just "title", content = [ "| title", String.join " " (List.drop 1 words) ] }
+            { block | args = [ "1" ], blockType = PBOrdinary, name = Just "title", content = [ "| title", String.join " " (List.drop 1 words) ] }
 
         Just n ->
             let

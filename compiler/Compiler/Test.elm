@@ -19,6 +19,7 @@ module Compiler.Test exposing
     , pmt
     , pxt
     , txt
+    , xcode
     )
 
 import Compiler.Acc
@@ -36,9 +37,19 @@ import Parser.PrimitiveBlock as PrimitiveBlock
 l0code =
     """
 || code
-this is code
-   well, it really isn't,
-but you get the idea
+abc
+    def
+  qqq
+"""
+
+
+xcode =
+    """
+```
+abc
+    def
+  qqq
+```
 """
 
 
@@ -73,15 +84,15 @@ Niels Bohr, memoirs"""
 
 
 bll str =
-    PrimitiveBlock.blockListOfStringList L0Lang (\_ -> False) (String.lines str)
+    PrimitiveBlock.blockListOfStringList L0Lang Markup.isVerbatimLine (String.lines str)
 
 
 blm str =
-    PrimitiveBlock.blockListOfStringList MicroLaTeXLang (\_ -> False) (String.lines str)
+    PrimitiveBlock.blockListOfStringList MicroLaTeXLang Markup.isVerbatimLine (String.lines str)
 
 
 blx str =
-    PrimitiveBlock.blockListOfStringList XMarkdownLang (\_ -> False) (String.lines str)
+    PrimitiveBlock.blockListOfStringList XMarkdownLang Markup.isVerbatimLine (String.lines str)
 
 
 

@@ -1,6 +1,6 @@
 module Markup exposing
     ( SyntaxTree, parse, parseToIntermediateBlocks
-    , toRawBlockForest
+    , isVerbatimLine, toRawBlockForest
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.

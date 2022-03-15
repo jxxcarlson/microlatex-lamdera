@@ -105,7 +105,14 @@ getNameAndArgs lang line =
 
         XMarkdownLang ->
             -- TODO: implement this
-            ( PBParagraph, Nothing, [] )
+            if String.left 3 line.content == "```" then
+                ( PBVerbatim, Just "code", [] )
+
+            else if String.left 2 line.content == "$$" then
+                ( PBVerbatim, Just "math", [] )
+
+            else
+                ( PBParagraph, Nothing, [] )
 
 
 prefixLength : Int -> Int -> String -> Int
