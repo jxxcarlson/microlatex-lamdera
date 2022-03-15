@@ -176,23 +176,27 @@ viewIndex model width_ deltaH =
         Nothing ->
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                , viewMydocs model deltaH
-                , viewPublicDocs model deltaH
+                , viewMydocs model deltaH 0
+                , viewPublicDocs model deltaH 0
                 ]
 
         Just doc ->
+            let
+                indexShift =
+                    150
+            in
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                , viewRenderedSmall model doc width_ deltaH
+                , viewRenderedSmall model doc width_ deltaH indexShift
                 , case model.activeDocList of
                     PublicDocsList ->
-                        viewPublicDocs model deltaH
+                        viewPublicDocs model deltaH indexShift
 
                     PrivateDocsList ->
-                        viewMydocs model deltaH
+                        viewMydocs model deltaH indexShift
 
                     Both ->
-                        viewPublicDocs model deltaH
+                        viewPublicDocs model deltaH indexShift
                 ]
 
 
@@ -202,8 +206,8 @@ viewRenderedContainer model =
         ]
 
 
-viewMydocs : Model -> Int -> Element FrontendMsg
-viewMydocs model deltaH =
+viewMydocs : Model -> Int -> Int -> Element FrontendMsg
+viewMydocs model deltaH indexShift =
     let
         sort =
             case model.sortMode of
@@ -224,7 +228,7 @@ viewMydocs model deltaH =
     in
     E.column
         [ E.width (E.px <| indexWidth model.windowWidth)
-        , E.height (E.px (appHeight_ model - deltaH))
+        , E.height (E.px (appHeight_ model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
@@ -244,7 +248,7 @@ viewDocumentsInIndex docPermissions currentDocument docs =
     List.map (Button.setDocumentAsCurrent docPermissions currentDocument) docs
 
 
-viewPublicDocs model deltaH =
+viewPublicDocs model deltaH indexShift =
     let
         buttonText =
             "Published docs (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
@@ -254,7 +258,7 @@ viewPublicDocs model deltaH =
     in
     E.column
         [ E.width (E.px <| indexWidth model.windowWidth)
-        , E.height (E.px (appHeight_ model - deltaH))
+        , E.height (E.px (appHeight_ model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
@@ -367,8 +371,8 @@ wordCount model =
             E.el [ Font.size 14, Font.color Color.lightGray ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
-viewRenderedSmall : Model -> Document -> Int -> Int -> Element FrontendMsg
-viewRenderedSmall model doc width_ deltaH =
+viewRenderedSmall : Model -> Document -> Int -> Int -> Int -> Element FrontendMsg
+viewRenderedSmall model doc width_ deltaH indexShift =
     let
         editRecord =
             Compiler.DifferentialParser.init doc.language doc.content
@@ -380,7 +384,7 @@ viewRenderedSmall model doc width_ deltaH =
         [ E.paddingEach { left = 12, right = 12, top = 18, bottom = 96 }
         , View.Style.bgGray 1.0
         , E.width (E.px <| indexWidth model.windowWidth)
-        , E.height (E.px (appHeight_ model - deltaH))
+        , E.height (E.px (appHeight_ model - deltaH + indexShift))
         , Font.size 14
         , E.alignTop
         , E.scrollbarY
