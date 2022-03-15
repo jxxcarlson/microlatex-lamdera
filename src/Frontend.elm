@@ -24,6 +24,8 @@ import List.Extra
 import Markup
 import Parser.Language exposing (Language(..))
 import Process
+import Render.MicroLaTeX
+import Render.Settings
 import Task
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
@@ -358,11 +360,42 @@ update msg model =
         SetSortMode sortMode ->
             ( { model | sortMode = sortMode }, Cmd.none )
 
+        -- Export
         ExportToMarkdown ->
             Frontend.Update.exportToMarkdown model
 
         ExportToLaTeX ->
             Frontend.Update.exportToLaTeX model
+
+        ExportTo lang ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    case lang of
+                        MicroLaTeXLang ->
+                            let
+                                ast =
+                                    model.editRecord.parsed
+
+                                newText =
+                                    Render.MicroLaTeX.export ast
+                            in
+                            ( model, Download.string "out-microlatex.txt" "text/plain" newText )
+
+                        L0Lang ->
+                            ( model, Download.string "out-l0.txt" "text/plain" doc.content )
+
+                        XMarkdownLang ->
+                            let
+                                ast =
+                                    model.editRecord.parsed
+
+                                newText =
+                                    Render.MicroLaTeX.export ast
+                            in
+                            ( model, Download.string "out-xmarkdown.txt" "text/plain" newText )
 
         Export ->
             issueCommandIfDefined model.currentDocument model exportDoc

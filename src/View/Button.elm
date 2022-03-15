@@ -3,6 +3,7 @@ module View.Button exposing
     , closeEditor
     , cycleLanguage
     , deleteDocument
+    , exporToMicroLaTeX
     , export
     , exportJson
     , exportToLaTeX
@@ -91,6 +92,10 @@ linkStyle =
 
 
 -- UI
+
+
+exporToMicroLaTeX =
+    buttonTemplate [] (ExportTo MicroLaTeXLang) "Export to MicroLaTeX"
 
 
 cycleLanguage : Language -> Element FrontendMsg

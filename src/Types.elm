@@ -258,6 +258,7 @@ type FrontendMsg
       -- Export
     | ExportToMarkdown
     | ExportToLaTeX
+    | ExportTo Language
     | Export
       -- PDF
     | PrintToPDF
