@@ -1,7 +1,22 @@
 module Evergreen.Migrate.V102 exposing (..)
 
 {-| For future reference I describe a mostly mechanical procedure for constructing
-the migration defined below.
+the migration defined below. The main point for what is considered here is that
+one must construct certain "injectors" and "identitiy functions" which map
+one type to another but do not transform the data (so to speak).
+
+IGNORABLE COMMENT:
+Here is a mathematical example which illustrates the point. Suppose we have the
+type Z of integers and the type Q of fractions, aka rational numbers. Consider
+also the corresponding sets, Z' and Q'. If we have an element 5 of Z',
+it is also an element 5 of Q'. But if we have a term 5 : Z, it is not
+a term of the type Q. One can, however, construct a function i : Z -> Q,
+an "injection" of Z in Q. Then it makes sense to say i(5):Q.
+To say this more concretely, one construction of the rational numbers
+is as equivalence classes of pairs of numbers (a, b) where a is the
+numerator and b is the denominator of a fraction. Then i(n) = (n,1),
+aka i(n) = n/1, will do We humans seem to think naturally in terms of
+set rather than types.
 
 
 ## The first change: type Language
