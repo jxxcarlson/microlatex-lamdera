@@ -132,10 +132,16 @@ init url key =
 getId : String -> String
 getId path =
     let
+        prefix =
+            String.left 3 path
+
         id =
             String.dropLeft 3 path
+
+        allowedPrefixes =
+            [ "/a/", "/h/", "/i/", "/p/", "/s/" ]
     in
-    if id == "" then
+    if not (List.member prefix allowedPrefixes) then
         Config.welcomeDocId
 
     else
