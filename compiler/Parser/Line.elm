@@ -1,4 +1,4 @@
-module Parser.Line exposing (Line, PrimitiveBlockType(..), classify, getNameAndArgs, prefixLength, prefixLengths)
+module Parser.Line exposing (Line, PrimitiveBlockType(..), classify, getNameAndArgs, isEmpty, isNonEmptyBlank, prefixLength, prefixLengths)
 
 import Compiler.Util
 import Parser exposing ((|.), (|=), Parser)
@@ -8,8 +8,11 @@ import Parser.Language exposing (Language(..))
 
 {-|
 
+    - ident:      the number of blanks before the first non-blank
+    - prefix:     the string of blanks preceding the first non-blank
+    - content:    the original string with the prefix removed
     - lineNumber: the line number in the source text
-    - position: the position of the first character of the line in the source text
+    - position:   the position of the first character of the line in the source text
 
 -}
 type alias Line =
@@ -20,6 +23,16 @@ type PrimitiveBlockType
     = PBVerbatim
     | PBOrdinary
     | PBParagraph
+
+
+isEmpty : Line -> Bool
+isEmpty line =
+    line.indent == 0 && line.content == ""
+
+
+isNonEmptyBlank : Line -> Bool
+isNonEmptyBlank line =
+    line.indent > 0 && line.content == ""
 
 
 classify : Int -> Int -> String -> Line

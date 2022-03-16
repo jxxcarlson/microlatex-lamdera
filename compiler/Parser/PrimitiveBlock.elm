@@ -3,6 +3,7 @@ module Parser.PrimitiveBlock exposing
     , blockListOfStringList
     , empty
     , idem
+    , idem2
     , lidem
     , lidem2
     , lpb
@@ -31,7 +32,7 @@ considered the first line of a verbatim block.
 -}
 
 import Parser.Language exposing (Language(..))
-import Parser.Line as Line exposing (Line, PrimitiveBlockType(..))
+import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
 import Tools
 
 
@@ -77,6 +78,7 @@ type alias State =
     { blocks : List PrimitiveBlock
     , currentBlock : Maybe PrimitiveBlock
     , lines : List String
+    , inBlock : Bool
     , indent : Int
     , lineNumber : Int
     , position : Int
@@ -132,11 +134,12 @@ init lang isVerbatimLine lines =
             Maybe.map2 (elaborate lang) firstLine firstBlock_
     in
     { blocks = []
-    , currentBlock = firstBlock
-    , lines = List.drop 1 lines
+    , currentBlock = Nothing
+    , lines = lines
     , indent = 0
     , lineNumber = 0
-    , position = String.length (Maybe.map .content firstBlock |> Maybe.andThen List.head |> Maybe.withDefault "")
+    , inBlock = False
+    , position = 0
     , inVerbatim = False
     , isVerbatimLine = isVerbatimLine
     , lang = lang
@@ -182,29 +185,125 @@ nextStep state =
                     else
                         state.position + String.length rawLine + 1
 
-                newLineNumber =
-                    state.lineNumber + 1
-
+                currentLine : Line
                 currentLine =
                     -- TODO: the below is wrong
-                    Line.classify state.position newLineNumber rawLine
-
-                newState =
-                    { state | lineNumber = newLineNumber, position = newPosition, count = state.count + 1 }
+                    Line.classify state.position (state.lineNumber + 1) rawLine
             in
-            case compare currentLine.indent state.indent of
-                GT ->
-                    Loop <| handleGT currentLine newState
+            case ( state.inBlock, isEmpty currentLine, isNonEmptyBlank currentLine ) of
+                -- not in a block, pass over empty line
+                ( False, True, _ ) ->
+                    let
+                        _ =
+                            Debug.log "(1)" ( state.inBlock, state.lines )
+                    in
+                    Loop (advance newPosition state)
 
-                EQ ->
-                    Loop <| handleEQ currentLine newState
+                -- not in a block, pass over blank, non-empty line
+                ( False, False, True ) ->
+                    let
+                        _ =
+                            Debug.log "(2)" ( state.inBlock, state.lines )
+                    in
+                    Loop (advance newPosition state)
 
-                LT ->
-                    Loop <| handleLT currentLine newState
+                -- create a new block: we are not in a block, but
+                -- the current line is nonempty and nonblank
+                ( False, False, False ) ->
+                    let
+                        _ =
+                            Debug.log "(3)" ( state.inBlock, state.lines )
+                    in
+                    Loop (createBlock state currentLine)
+
+                -- A nonempty line was encountered inside a block, so add it
+                ( True, False, _ ) ->
+                    let
+                        _ =
+                            Debug.log "(4)" ( state.inBlock, state.lines )
+                    in
+                    Loop (addCurrentLineXX state currentLine)
+
+                -- commit the current block: we are in a block and the
+                -- current line is empty
+                ( True, True, _ ) ->
+                    let
+                        _ =
+                            Debug.log "(5)" ( state.inBlock, state.lines )
+                    in
+                    Loop (commitBlock state currentLine)
 
 
-indentationOf k =
-    String.repeat k " "
+advance : Int -> State -> State
+advance newPosition state =
+    { state
+        | lines = List.drop 1 state.lines
+        , lineNumber = state.lineNumber + 1
+        , position = newPosition
+        , count = state.count + 1
+    }
+
+
+addCurrentLineXX state currentLine =
+    case state.currentBlock of
+        Nothing ->
+            { state | lines = List.drop 1 state.lines }
+
+        Just block ->
+            { state
+                | lines = List.drop 1 state.lines
+                , lineNumber = state.lineNumber + 1
+                , position = state.position + String.length currentLine.content
+                , count = state.count + 1
+                , currentBlock =
+                    Just (addCurrentLine state.lang currentLine block)
+            }
+
+
+commitBlock state currentLine =
+    case state.currentBlock of
+        Nothing ->
+            { state
+                | lines = List.drop 1 state.lines
+                , indent = currentLine.indent
+            }
+
+        Just block ->
+            { state
+                | lines = List.drop 1 state.lines
+                , lineNumber = state.lineNumber + 1
+                , position = state.position + String.length currentLine.content
+                , count = state.count + 1
+                , blocks = block :: state.blocks
+                , inBlock = False
+                , inVerbatim = state.isVerbatimLine currentLine.content
+                , currentBlock = Just (blockFromLine state.lang currentLine)
+            }
+
+
+createBlock state currentLine =
+    let
+        blocks =
+            case state.currentBlock of
+                Nothing ->
+                    state.blocks
+
+                Just block ->
+                    block :: state.blocks
+
+        newBlock =
+            Just (blockFromLine state.lang currentLine)
+    in
+    { state
+        | lines = List.drop 1 state.lines
+        , lineNumber = state.lineNumber + 1
+        , position = state.position + String.length currentLine.content
+        , count = state.count + 1
+        , indent = currentLine.indent
+        , inBlock = True
+        , currentBlock = newBlock
+        , blocks = blocks
+    }
 
 
 addCurrentLine : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
@@ -234,119 +333,7 @@ elaborate lang line pb =
 
 addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine_ lang ({ prefix, content, indent } as line) block =
-    let
-        newIndent =
-            if block.indent == 0 && indent > 0 then
-                indent
-
-            else
-                block.indent
-    in
-    { block | indent = newIndent, content = (prefix ++ content) :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
-
-
-handleGT : Line -> State -> State
-handleGT currentLine state =
-    case state.currentBlock of
-        Nothing ->
-            { state | lines = List.drop 1 state.lines, indent = currentLine.indent } |> report "GT, 1"
-
-        Just block ->
-            if state.inVerbatim then
-                -- add line to current block
-                let
-                    leadingSpaces =
-                        indentationOf (currentLine.indent - state.indent)
-                in
-                { state
-                    | lines = List.drop 1 state.lines
-                    , currentBlock =
-                        Just (addCurrentLine state.lang currentLine block)
-                }
-                    |> report "GT, 2"
-
-            else
-                -- make new block
-                { state
-                    | lines = List.drop 1 state.lines
-                    , position = state.position + String.length currentLine.content
-                    , indent = currentLine.indent
-                    , blocks = block :: state.blocks
-                    , currentBlock = Just (blockFromLine state.lang currentLine)
-                }
-                    |> report "GT, 3"
-
-
-handleEQ : Line -> State -> State
-handleEQ currentLine state =
-    case state.currentBlock of
-        Nothing ->
-            { state | lines = List.drop 1 state.lines }
-
-        Just block ->
-            if currentLine.content == "" then
-                -- make new block and reset inVerbatim
-                { state
-                    | lines = List.drop 1 state.lines
-                    , position = state.position + String.length currentLine.content
-                    , indent = currentLine.indent
-                    , blocks = block :: state.blocks
-                    , inVerbatim = state.isVerbatimLine currentLine.content
-                    , currentBlock = Just (blockFromLine state.lang currentLine)
-                }
-                    |> report "EQ, 1"
-
-            else if state.isVerbatimLine currentLine.content then
-                -- add the current line to the block and keep the indentation level
-                { state
-                    | lines = List.drop 1 state.lines
-                    , inVerbatim = True
-                    , currentBlock =
-                        Just
-                            (addCurrentLine state.lang currentLine block)
-                }
-                    |> report "EQ, 2"
-
-            else
-                -- add the current line to the block
-                { state
-                    | lines = List.drop 1 state.lines
-                    , indent = currentLine.indent
-                    , currentBlock =
-                        Just
-                            (addCurrentLine state.lang currentLine block)
-                }
-                    |> report "EQ, 3"
-
-
-handleLT : Line -> State -> State
-handleLT currentLine state =
-    case state.currentBlock of
-        Nothing ->
-            { state
-                | lines = List.drop 1 state.lines
-                , indent = currentLine.indent
-            }
-                |> report "LT, 1"
-
-        Just block ->
-            -- TODO: explain and examine currentBlock = ..
-            --{ state
-            --    | lines = List.drop 1 state.lines
-            --    , indent = currentLine.indent
-            --    , blocks = block :: state.blocks
-            --    , currentBlock = Nothing -- TODO ??
-            --}
-            -- make new block and reset inVerbatim
-            { state
-                | lines = List.drop 1 state.lines
-                , position = state.position + String.length currentLine.content
-                , indent = currentLine.indent
-                , blocks = block :: state.blocks
-                , inVerbatim = state.isVerbatimLine currentLine.content
-                , currentBlock = Just (blockFromLine state.lang currentLine)
-            }
-                |> report "LT, 2"
+    { block | content = (prefix ++ content) :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
 
 
 type Step state a

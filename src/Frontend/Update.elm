@@ -218,7 +218,7 @@ render model msg_ =
 
         Render.Msg.SendId line ->
             -- TODO: the below (using id also for line number) is not a great idea.
-            ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 2) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
+            ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
         Render.Msg.SelectId id ->
             -- the element with this id will be highlighted

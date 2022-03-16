@@ -108,7 +108,7 @@ editor_ model =
         , E.html
             (Html.node "codemirror-editor"
                 [ HtmlAttr.attribute "text" model.initialText -- send info to codemirror
-                , HtmlAttr.attribute "linenumber" (String.fromInt model.linenumber) -- send info to codemirror
+                , HtmlAttr.attribute "linenumber" (String.fromInt (model.linenumber - 1)) -- send info to codemirror
                 , HtmlAttr.attribute "selection" (stringOfBool model.doSync) -- send info to codemirror
                 ]
                 []
