@@ -393,6 +393,8 @@ viewRenderedSmall model doc width_ deltaH indexShift =
         [ View.Utility.katexCSS
         , E.column [ E.spacing 4, E.width (E.px (indexWidth model.windowWidth - 20)) ]
             (viewDocumentSmall (affine 1.75 -650 (indexWidth model.windowWidth)) model.counter currentDocId editRecord)
+
+        -- (viewDocumentSmall (indexWidth model.windowWidth) model.counter currentDocId editRecord)
         ]
 
 
@@ -437,7 +439,7 @@ viewDocumentSmall windowWidth counter currentDocId editRecord =
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
-    E.row [ E.spacing 8, E.width (E.px 250) ] [ title_, E.el [ E.moveUp 6, E.alignRight ] Button.closeCollectionsIndex ] :: body
+    E.row [ E.spacing 16, E.width E.fill ] [ title_, E.el [ E.moveUp 6, E.alignRight, E.paddingEach { left = 0, right = 8, top = 0, bottom = 0 } ] Button.closeCollectionsIndex ] :: body
 
 
 viewDocument windowWidth counter selectedId editRecord =
