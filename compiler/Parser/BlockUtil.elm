@@ -218,6 +218,7 @@ makeIntermediateBlock lang block messages =
                             -- TODO: better way of filtering for LaTeX
                             block.content
                                 |> normalize
+                                |> List.map tranformVerbatimLine
                                 |> List.filter
                                     (\line -> not (String.contains "label" line))
                     in
@@ -237,6 +238,22 @@ makeIntermediateBlock lang block messages =
         , blockType = toBlockType block.blockType (List.drop 1 block.args)
         , sourceText = block.sourceText
         }
+
+
+tranformVerbatimLine : String -> String
+tranformVerbatimLine line =
+    case line of
+        "[vskip 10]" ->
+            ""
+
+        "\\vskip{10}" ->
+            ""
+
+        "@vskip[10]" ->
+            ""
+
+        _ ->
+            line
 
 
 normalize : List String -> List String
