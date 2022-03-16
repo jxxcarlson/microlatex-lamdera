@@ -290,6 +290,7 @@ footer model _ =
         -- , View.Utility.showIf (isAdmin model) Button.exportJson
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
+        , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
         , E.el [ E.width E.fill, rightPaddingFooter model.showEditor ] (messageRow model)
         ]
 

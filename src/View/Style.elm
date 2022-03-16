@@ -1,13 +1,33 @@
 module View.Style exposing
-    ( bgGray
+    ( bgBlack
+    , bgGray
+    , bgWhite
     , buttonStyle
     , buttonStyle2
+    , fgBlack
     , fgGray
+    , fgWhite
     )
 
 import Element
 import Element.Background as Background
 import Element.Font as Font
+
+
+fgBlack =
+    fgGray 0
+
+
+fgWhite =
+    fgGray 1
+
+
+bgBlack =
+    bgGray 0
+
+
+bgWhite =
+    bgGray 1
 
 
 fgGray : Float -> Element.Attr decorative msg
