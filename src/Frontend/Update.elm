@@ -364,6 +364,13 @@ setDocumentAsCurrent model doc permissions =
 
             else
                 Nothing
+
+        cmd =
+            if isMaster newEditRecord then
+                sendToBackend (GetDocumentById Config.masterDocLoadedPageId)
+
+            else
+                Cmd.none
     in
     ( { model
         | currentDocument = Just doc
@@ -379,7 +386,7 @@ setDocumentAsCurrent model doc permissions =
         , counter = model.counter + 1
         , language = doc.language
       }
-    , Cmd.batch [ View.Utility.setViewPortToTop ]
+    , Cmd.batch [ View.Utility.setViewPortToTop, cmd ]
     )
 
 

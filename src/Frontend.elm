@@ -552,14 +552,6 @@ updateFromBackend msg model =
                 documents =
                     Util.insertInListViaTitle doc model.documents
 
-                showEditor =
-                    case access of
-                        ReadOnly ->
-                            False
-
-                        CanEdit ->
-                            True
-
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
 
@@ -569,13 +561,6 @@ updateFromBackend msg model =
 
                     else
                         model.currentMasterDocument
-
-                cmd =
-                    if Frontend.Update.isMaster editRecord then
-                        sendToBackend (GetDocumentById Config.masterDocLoadedPageId)
-
-                    else
-                        Cmd.none
             in
             ( { model
                 | editRecord = editRecord
@@ -589,7 +574,7 @@ updateFromBackend msg model =
                 , documents = documents
                 , counter = model.counter + 1
               }
-            , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, cmd ]
+            , Frontend.Cmd.setInitialEditorContent 20
             )
 
         GotPublicDocuments publicDocuments ->
