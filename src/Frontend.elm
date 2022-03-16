@@ -35,6 +35,7 @@ import Util
 import View.Data
 import View.Main
 import View.Phone
+import View.Utility
 
 
 type alias Model =
@@ -504,6 +505,7 @@ updateDoc model str =
                 )
 
 
+changePrintingState : PrintingState -> { a | id : String } -> Cmd FrontendMsg
 changePrintingState printingState doc =
     if printingState == PrintWaiting then
         Process.sleep 1000 |> Task.perform (always (FinallyDoCleanPrintArtefacts doc.id))
@@ -574,7 +576,7 @@ updateFromBackend msg model =
                 , documents = documents
                 , counter = model.counter + 1
               }
-            , Frontend.Cmd.setInitialEditorContent 20
+            , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
             )
 
         GotPublicDocuments publicDocuments ->
