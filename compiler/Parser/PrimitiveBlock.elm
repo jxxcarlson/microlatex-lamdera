@@ -193,44 +193,24 @@ nextStep state =
             case ( state.inBlock, isEmpty currentLine, isNonEmptyBlank currentLine ) of
                 -- not in a block, pass over empty line
                 ( False, True, _ ) ->
-                    let
-                        _ =
-                            Debug.log "(1)" ( state.inBlock, state.lines )
-                    in
                     Loop (advance newPosition state)
 
                 -- not in a block, pass over blank, non-empty line
                 ( False, False, True ) ->
-                    let
-                        _ =
-                            Debug.log "(2)" ( state.inBlock, state.lines )
-                    in
                     Loop (advance newPosition state)
 
                 -- create a new block: we are not in a block, but
                 -- the current line is nonempty and nonblank
                 ( False, False, False ) ->
-                    let
-                        _ =
-                            Debug.log "(3)" ( state.inBlock, state.lines )
-                    in
                     Loop (createBlock state currentLine)
 
                 -- A nonempty line was encountered inside a block, so add it
                 ( True, False, _ ) ->
-                    let
-                        _ =
-                            Debug.log "(4)" ( state.inBlock, state.lines )
-                    in
                     Loop (addCurrentLineXX state currentLine)
 
                 -- commit the current block: we are in a block and the
                 -- current line is empty
                 ( True, True, _ ) ->
-                    let
-                        _ =
-                            Debug.log "(5)" ( state.inBlock, state.lines )
-                    in
                     Loop (commitBlock state currentLine)
 
 
