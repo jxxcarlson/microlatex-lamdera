@@ -1,5 +1,6 @@
 module View.Button exposing
     ( cancelDeleteDocument
+    , closeCollectionsIndex
     , closeEditor
     , cycleLanguage
     , deleteDocument
@@ -340,6 +341,11 @@ importJson =
 toggleActiveDocList : String -> Element FrontendMsg
 toggleActiveDocList name =
     buttonTemplate2 [] ToggleActiveDocList name
+
+
+closeCollectionsIndex : Element FrontendMsg
+closeCollectionsIndex =
+    buttonTemplate2 [] CloseCollectionIndex "x"
 
 
 home : Element FrontendMsg

@@ -437,7 +437,7 @@ viewDocumentSmall windowWidth counter currentDocId editRecord =
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
-    title_ :: body
+    E.row [ E.spacing 8, E.width (E.px 250) ] [ title_, E.el [ E.moveUp 6, E.alignRight ] Button.closeCollectionsIndex ] :: body
 
 
 viewDocument windowWidth counter selectedId editRecord =

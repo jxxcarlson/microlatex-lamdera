@@ -244,6 +244,11 @@ update msg model =
             ( { model | inputPassword = str }, Cmd.none )
 
         -- UI
+        CloseCollectionIndex ->
+            ( { model | currentMasterDocument = Nothing }
+            , Cmd.none
+            )
+
         ToggleActiveDocList ->
             case model.currentMasterDocument of
                 Nothing ->

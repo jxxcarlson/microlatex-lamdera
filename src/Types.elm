@@ -231,6 +231,7 @@ type FrontendMsg
     | GetSelection String
       -- UI
     | ToggleActiveDocList
+    | CloseCollectionIndex
       -- DOC
     | CycleLanguage
     | Fetch String
