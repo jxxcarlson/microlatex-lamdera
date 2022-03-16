@@ -27,7 +27,7 @@ loadingId =
 
 
 masterDocLoadedPageId =
-    "id-vt202-ux358\n"
+    "id-vt202-ux358"
 
 
 loadingText1 =
