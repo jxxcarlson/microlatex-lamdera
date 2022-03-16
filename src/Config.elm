@@ -83,7 +83,7 @@ documentDeletedNotice =
 
 
 appName =
-    "MicroLaTeX"
+    "Scripta.io"
 
 
 appUrl =
