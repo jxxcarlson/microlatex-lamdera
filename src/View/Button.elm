@@ -378,12 +378,17 @@ setDocumentAsCurrent docPermissions currentDocument document =
 
             else
                 Font.unitalicized
+
+        titleString =
+            document.title
+                -- TODO: Find out why we need to compress blank spaces in the first place
+                |> String.replace "   " " "
+                |> String.replace "  " " "
+                |> View.Utility.truncateString 45
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docPermissions document)
-
-        -- TODO: Find out why we need to compress blank spaces in the first place
-        , label = E.el [ Font.size 14, fg, style ] (E.text (document.title |> String.replace "   " " " |> String.replace "  " " "))
+        , label = E.el [ Font.size 14, fg, style ] (E.text titleString)
         }
 
 

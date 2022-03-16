@@ -10,6 +10,7 @@ module View.Utility exposing
     , setViewPortToTop
     , setViewportForElement
     , showIf
+    , truncateString
     )
 
 import Browser.Dom as Dom
@@ -20,6 +21,38 @@ import Html.Events exposing (keyCode, on)
 import Json.Decode as D
 import Task exposing (Task)
 import Types exposing (FrontendMsg)
+
+
+truncateString : Int -> String -> String
+truncateString k str =
+    let
+        str2 =
+            truncateString_ k str
+    in
+    if str == str2 then
+        str
+
+    else
+        str2 ++ " ..."
+
+
+truncateString_ : Int -> String -> String
+truncateString_ k str =
+    if String.length str < k then
+        str
+
+    else
+        let
+            words =
+                String.words str
+
+            n =
+                List.length words
+        in
+        words
+            |> List.take (n - 1)
+            |> String.join " "
+            |> truncateString_ k
 
 
 onEnter : FrontendMsg -> Html.Attribute FrontendMsg
