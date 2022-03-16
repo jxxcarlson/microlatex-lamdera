@@ -7,6 +7,7 @@ module Config exposing
     , initialLanguage
     , loadingId
     , loadingText
+    , masterDocLoadedPageId
     , pdfServer
     , startupHelpDocumentId
     , titleSize
@@ -23,6 +24,10 @@ welcomeDocId =
 
 loadingId =
     "id-gv197-mh043"
+
+
+masterDocLoadedPageId =
+    "id-vt202-ux358\n"
 
 
 loadingText1 =
