@@ -95,7 +95,7 @@ blockListOfStringList : Language -> (String -> Bool) -> List String -> List Prim
 blockListOfStringList lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
-        |> List.filter (\block -> block.content /= [])
+        |> List.filter (\block -> block.content /= [ "" ])
 
 
 finalize : PrimitiveBlock -> PrimitiveBlock
