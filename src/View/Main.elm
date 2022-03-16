@@ -329,8 +329,7 @@ header model _ =
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument))
         , View.Utility.showIf model.showEditor (wordCount model)
-        , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9) ] (E.text (currentAuthor model.currentDocument))
-        , View.Input.searchDocsInput model
+        , View.Utility.hideIf (model.currentUser == Nothing) (E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9) ] (E.text (currentAuthor model.currentDocument)))
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.iLink Config.welcomeDocId "Home")
         , View.Utility.showIf (model.currentUser == Nothing) Button.signIn
         , View.Utility.showIf (model.currentUser == Nothing) (View.Input.usernameInput model)
