@@ -381,7 +381,9 @@ setDocumentAsCurrent docPermissions currentDocument document =
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docPermissions document)
-        , label = E.el [ E.centerX, E.centerY, Font.size 14, fg, style ] (E.text document.title)
+
+        -- TODO: Find out why we need to compress blank spaces in the first place
+        , label = E.el [ Font.size 14, fg, style ] (E.text (document.title |> String.replace "   " " " |> String.replace "  " " "))
         }
 
 
