@@ -1,5 +1,6 @@
 module Compiler.Test exposing
-    ( bib
+    ( bad
+    , bib
     , bib2
     , bib3
     , bll
@@ -9,10 +10,10 @@ module Compiler.Test exposing
     , blxt
     , dpl
     , dpm
+    , good
     , ibl
     , ibm
     , ibx
-    , l0code
     , pl
     , plt
     , pm
@@ -34,12 +35,23 @@ import Parser.PrimitiveBlock as PrimitiveBlock
 -- DATA
 
 
-l0code =
+bad =
     """
-|| code
-abc
-    def
-  qqq
+| item
+One
+
+  | item
+  Alpha
+"""
+
+
+good =
+    """
+| item
+One
+
+| item
+Alpha
 """
 
 
