@@ -2,15 +2,6 @@ module Parser.PrimitiveBlock exposing
     ( PrimitiveBlock
     , blockListOfStringList
     , empty
-    , idem
-    , idem2
-    , lidem
-    , lidem2
-    , lpb
-    , midem
-    , midem2
-    , mpb
-    , toString
     )
 
 {-| This module is like Tree.Blocks, except that if the first line of a block
@@ -313,7 +304,24 @@ elaborate lang line pb =
 
 addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine_ lang ({ prefix, content, indent } as line) block =
-    { block | content = (prefix ++ content) :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+    { block | content = transformContent lang line :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+
+
+transformContent : Language -> Line -> String
+transformContent lang ({ indent, prefix, content } as line) =
+    if isNonEmptyBlank line then
+        case lang of
+            L0Lang ->
+                "[vskip 10]"
+
+            MicroLaTeXLang ->
+                "\\vskip{10}"
+
+            XMarkdownLang ->
+                "@vskip[10]"
+
+    else
+        prefix ++ content
 
 
 type Step state a
@@ -329,78 +337,3 @@ loop s f =
 
         Done b ->
             b
-
-
-
--- FOR TESTING
-
-
-mpb : String -> List PrimitiveBlock
-mpb str =
-    str |> String.lines |> blockListOfStringList MicroLaTeXLang (\_ -> True)
-
-
-lpb : String -> List PrimitiveBlock
-lpb str =
-    str |> String.lines |> blockListOfStringList L0Lang (\_ -> True)
-
-
-midem =
-    idem MicroLaTeXLang
-
-
-lidem =
-    idem L0Lang
-
-
-midem2 =
-    idem2 MicroLaTeXLang
-
-
-lidem2 =
-    idem2 L0Lang
-
-
-idem : Language -> String -> Bool
-idem lang str =
-    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString)
-
-
-idem2 : Language -> String -> Bool
-idem2 lang str =
-    str == (str |> String.lines |> blockListOfStringList lang (\_ -> True) |> toString2)
-
-
-toString : List { a | content : List String } -> String
-toString blocks =
-    blocks |> List.map (.content >> String.join "\n") |> String.join "\n"
-
-
-toString2 : List { a | sourceText : String } -> String
-toString2 blocks =
-    blocks |> List.map .sourceText |> String.join "\n"
-
-
-
--- TOOLS
-
-
-greatestCommonPrefix : String -> String -> String
-greatestCommonPrefix a b =
-    let
-        p =
-            greatestCommonPrefixAux a b (String.length a)
-    in
-    String.left p a
-
-
-greatestCommonPrefixAux : String -> String -> Int -> Int
-greatestCommonPrefixAux a b n =
-    if String.left n a == String.left n b then
-        n
-
-    else if n == 0 then
-        0
-
-    else
-        greatestCommonPrefixAux (String.left (n - 1) a) (String.left (n - 1) b) (n - 1)
