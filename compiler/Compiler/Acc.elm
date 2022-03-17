@@ -1,7 +1,7 @@
 module Compiler.Acc exposing
     ( Accumulator
-    , build
     , init
+    , transformAcccumulate
     , transformST
     )
 
@@ -54,11 +54,11 @@ incrementCounter name dict =
 
 transformST : Language -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
 transformST lang ast =
-    ast |> build lang |> Tuple.second
+    ast |> transformAcccumulate lang |> Tuple.second
 
 
-build : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
-build lang ast =
+transformAcccumulate : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
+transformAcccumulate lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
 
@@ -86,8 +86,8 @@ mapper ast_ ( acc_, tree_ ) =
 transformAccumulateTree : Language -> Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
 transformAccumulateTree lang tree acc =
     let
-        transformAccumulate : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
-        transformAccumulate =
+        transformAccumulateBlock : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
+        transformAccumulateBlock =
             \acc_ block_ ->
                 let
                     newAcc =
@@ -95,7 +95,7 @@ transformAccumulateTree lang tree acc =
                 in
                 ( newAcc, transformBlock lang newAcc block_ )
     in
-    Tree.mapAccumulate transformAccumulate acc tree
+    Tree.mapAccumulate transformAccumulateBlock acc tree
 
 
 transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
