@@ -1,16 +1,12 @@
 module Compiler.Test exposing
-    ( bad
-    , bib
-    , bib2
-    , bib3
-    , bll
+    ( bll
     , blm
     , blmt
     , blx
     , blxt
     , dpl
     , dpm
-    , good
+    , ex
     , ibl
     , ibm
     , ibx
@@ -19,8 +15,6 @@ module Compiler.Test exposing
     , pm
     , pmt
     , pxt
-    , txt
-    , xcode
     )
 
 import Compiler.Acc
@@ -31,64 +25,15 @@ import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
 
 
-
--- DATA
-
-
-bad =
+ex =
     """
-| item
-One
-
-  | item
-  Alpha
-"""
-
-
-good =
-    """
-| item
-One
-
-| item
-Alpha
-"""
-
-
-xcode =
-    """
-```
-abc
-    def
-  qqq
-```
-"""
-
-
-txt =
-    """| item
-One
-
-  | item
-  Alpha
-"""
-
-
-bib =
-    """| bibitem foo
-[link New York Times https://nytimes.com]
-"""
-
-
-bib2 =
-    """\\bibitem{NB}
-Niels Bohr, Memoirs
-"""
-
-
-bib3 =
-    """\\bibitem{NB}
-Niels Bohr, memoirs"""
+\\begin{A}
+    XXX
+    
+    YYY
+    
+    ZZZ
+\\end{A}"""
 
 
 
