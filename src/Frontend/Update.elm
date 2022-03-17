@@ -365,6 +365,7 @@ setDocumentAsCurrent model doc permissions =
             else
                 Nothing
 
+        -- Disabled: this makes it impossible to edit master documents
         cmd =
             if isMaster newEditRecord then
                 sendToBackend (GetDocumentById Config.masterDocLoadedPageId)
@@ -386,7 +387,7 @@ setDocumentAsCurrent model doc permissions =
         , counter = model.counter + 1
         , language = doc.language
       }
-    , Cmd.batch [ View.Utility.setViewPortToTop, cmd ]
+    , Cmd.batch [ View.Utility.setViewPortToTop ]
     )
 
 
