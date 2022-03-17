@@ -6,7 +6,9 @@ module Compiler.Test exposing
     , blxt
     , dpl
     , dpm
-    , ex
+    , ex1
+    , ex2
+    , ex3
     , ibl
     , ibm
     , ibx
@@ -25,7 +27,7 @@ import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
 
 
-ex =
+ex1 =
     """
 \\begin{A}
     XXX
@@ -34,6 +36,32 @@ ex =
     
     ZZZ
 \\end{A}"""
+
+
+ex2 =
+    """
+\\begin{theorem}
+  There are infinitely many primmes.
+  
+  $$
+  p \\equiv 1\\ mod\\ 4
+  $$
+  
+  Isn't that nice?
+\\end{theorem}
+"""
+
+
+ex3 =
+    """
+\\begin{theorem}
+  There are infinitely many primmes.
+  
+  AAA
+  
+  Isn't that nice?
+\\end{theorem}
+"""
 
 
 
