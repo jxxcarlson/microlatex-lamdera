@@ -243,13 +243,13 @@ makeIntermediateBlock lang block messages =
 tranformVerbatimLine : String -> String
 tranformVerbatimLine line =
     case line of
-        "[vskip 10]" ->
+        "[syspar]" ->
             ""
 
-        "\\vskip{10}" ->
+        "\\syspar" ->
             ""
 
-        "@vskip[10]" ->
+        "@syspar" ->
             ""
 
         _ ->
