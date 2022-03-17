@@ -239,7 +239,7 @@ document count acc settings args selectedId exprs =
             List.Extra.getAt 1 args |> Maybe.withDefault "1" |> String.toInt |> Maybe.withDefault 1
 
         title =
-            List.map ASTTools.getText exprs |> Maybe.Extra.values |> String.join " "
+            List.map ASTTools.getText exprs |> Maybe.Extra.values |> String.join " " |> truncateString 35
 
         sectionNumber =
             case List.Extra.getAt 2 args of
@@ -267,6 +267,38 @@ document count acc settings args selectedId exprs =
             (Element.text sectionNumber)
         , ilink title settings.selectedId docId
         ]
+
+
+truncateString : Int -> String -> String
+truncateString k str =
+    let
+        str2 =
+            truncateString_ k str
+    in
+    if str == str2 then
+        str
+
+    else
+        str2 ++ " ..."
+
+
+truncateString_ : Int -> String -> String
+truncateString_ k str =
+    if String.length str < k then
+        str
+
+    else
+        let
+            words =
+                String.words str
+
+            n =
+                List.length words
+        in
+        words
+            |> List.take (n - 1)
+            |> String.join " "
+            |> truncateString_ k
 
 
 fontColor selectedId docId =
