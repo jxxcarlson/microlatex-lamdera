@@ -352,7 +352,7 @@ loop s f =
 
 isMathBlock : PrimitiveBlock -> Bool
 isMathBlock block =
-    List.member (List.head block.content) [ Just "\\begin{equation}", Just "\\begin{aligned}", Just "\\begin{code}" ]
+    List.member (List.head block.content) [ Just "\\begin{equation}", Just "\\begin{aligned}", Just "\\begin{code}", Just "$$" ]
 
 
 transform : Language -> (String -> Bool) -> PrimitiveBlock -> List PrimitiveBlock
