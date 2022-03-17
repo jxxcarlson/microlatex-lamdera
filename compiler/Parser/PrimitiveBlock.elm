@@ -24,6 +24,7 @@ considered the first line of a verbatim block.
 
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
+import Parser.MathMacro exposing (MathExpression(..))
 import Tools
 
 
@@ -337,3 +338,112 @@ loop s f =
 
         Done b ->
             b
+
+
+
+-- TRANSFORMS
+
+
+transform : Language -> (String -> Bool) -> PrimitiveBlock -> List PrimitiveBlock
+transform lang isVerbatim block =
+    case lang of
+        MicroLaTeXLang ->
+            case Maybe.map isBegin (List.head block.content) of
+                Just True ->
+                    extractMicroLaTeXEnvironment block |> blockListOfStringList L0Lang isVerbatim
+
+                _ ->
+                    [ block ]
+
+        _ ->
+            [ block ]
+
+
+extractMicroLaTeXEnvironment : PrimitiveBlock -> List String
+extractMicroLaTeXEnvironment { content } =
+    transformToL0 content
+
+
+type alias IndentationData =
+    { indent : Int, input : List String, output : List String }
+
+
+transformToL0 : List String -> List String
+transformToL0 strings =
+    strings |> indentStrings |> transformToL0Aux
+
+
+indentStrings : List String -> List String
+indentStrings strings =
+    indentAux { indent = -1, input = strings, output = [] } |> .output |> List.reverse
+
+
+indentAux : IndentationData -> IndentationData
+indentAux ({ indent, input, output } as data) =
+    case input of
+        [] ->
+            data
+
+        first :: rest ->
+            let
+                newIndent =
+                    if isBegin first then
+                        indent + 1
+
+                    else if isEnd first then
+                        indent - 1
+
+                    else
+                        indent
+
+                newOutput =
+                    if isEnd first then
+                        indentString indent first :: output
+
+                    else
+                        indentString newIndent first :: output
+            in
+            indentAux { data | output = newOutput, input = rest, indent = newIndent }
+
+
+indentString : Int -> String -> String
+indentString k str =
+    String.repeat (2 * k) " " ++ str
+
+
+transformToL0Aux : List String -> List String
+transformToL0Aux strings =
+    let
+        mapper str =
+            let
+                bareString =
+                    String.trimLeft str
+
+                prefix =
+                    String.replace bareString "" str
+            in
+            if isBegin bareString then
+                case Parser.MathMacro.parseOne str of
+                    Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
+                        [ "", prefix ++ "| " ++ blockName ]
+
+                    _ ->
+                        [ "", prefix ++ "| theorem" ]
+
+            else if isEnd bareString then
+                [ "" ]
+
+            else
+                [ str ]
+    in
+    strings |> List.map mapper |> List.concat
+
+
+isBegin : String -> Bool
+isBegin str =
+    String.left 6 (String.trimLeft str) == "\\begin"
+
+
+isEnd : String -> Bool
+isEnd str =
+    String.left 4 (String.trimLeft str) == "\\end"
