@@ -116,6 +116,7 @@ markupDict =
         , ( "image", \g acc s exprList -> image g acc s exprList )
         , ( "tags", invisible )
         , ( "vskip", vskip )
+        , ( "syspar", syspar )
 
         -- MiniLaTeX stuff
         , ( "term", \g acc s exprList -> term g acc s exprList )
@@ -380,6 +381,10 @@ vskip _ _ _ exprList =
     in
     -- Element.column [ Element.paddingXY 0 100 ] (Element.text "-")
     Element.column [ Element.height (Element.px h) ] [ Element.text "" ]
+
+
+syspar _ _ _ _ =
+    Element.column [ Element.height (Element.px 10) ] [ Element.text "" ]
 
 
 strong g acc s exprList =
