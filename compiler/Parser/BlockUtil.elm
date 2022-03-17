@@ -193,7 +193,7 @@ handleLastLineMicroLaTeX content =
 
 
 exclusionList =
-    List.map Just [ "item", "numbered", "title", "section", "bibitem" ]
+    List.map Just [ "item", "numbered", "title", "section", "bibitem", "theorem" ]
 
 
 makeIntermediateBlock : Language -> PrimitiveBlock -> List String -> IntermediateBlock

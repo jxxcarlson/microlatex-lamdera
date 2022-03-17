@@ -347,16 +347,25 @@ loop s f =
 -- TRANSFORMS
 
 
+isMathBlock : PrimitiveBlock -> Bool
+isMathBlock block =
+    List.member (List.head block.content) [ Just "\\begin{equation}", Just "\\begin{aligned}" ]
+
+
 transform : Language -> (String -> Bool) -> PrimitiveBlock -> List PrimitiveBlock
 transform lang isVerbatim block =
     case lang of
         MicroLaTeXLang ->
-            case Maybe.map isBegin (List.head block.content) of
-                Just True ->
-                    extractMicroLaTeXEnvironment block |> blockListOfStringList L0Lang isVerbatim
+            if isMathBlock block then
+                [ block ]
 
-                _ ->
-                    [ block ]
+            else
+                case Maybe.map isBegin (List.head block.content) of
+                    Just True ->
+                        extractMicroLaTeXEnvironment block |> blockListOfStringList L0Lang isVerbatim
+
+                    _ ->
+                        [ block ]
 
         _ ->
             [ block ]
