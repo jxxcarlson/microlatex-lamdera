@@ -87,7 +87,10 @@ parseToIntermediateBlocks lang sourceText =
     in
     sourceText
         |> toRawBlockForest lang
-        |> List.map (Tree.map toIntermediateBlock >> fixup)
+        -- TODO: for the moment, function fixup has been replace by function identity
+        -- TODO: fixup was messing up nested lists
+        -- TODO: this needs to be revisited
+        |> List.map (Tree.map toIntermediateBlock >> identity)
 
 
 {-| The purpose of this function is to supress error messages in the case
