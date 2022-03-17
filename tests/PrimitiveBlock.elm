@@ -4,7 +4,7 @@ import Expect exposing (..)
 import Markup
 import Parser.Language exposing (Language(..))
 import Parser.Line
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList, idem, idem2)
+import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList)
 import Test exposing (..)
 
 
