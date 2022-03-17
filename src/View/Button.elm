@@ -384,7 +384,7 @@ setDocumentAsCurrent docPermissions currentDocument document =
                 -- TODO: Find out why we need to compress blank spaces in the first place
                 |> String.replace "   " " "
                 |> String.replace "  " " "
-                |> View.Utility.truncateString 45
+                |> View.Utility.truncateString 40
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docPermissions document)
