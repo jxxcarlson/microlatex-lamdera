@@ -91,8 +91,11 @@ blockListOfStringList lang isVerbatimLine lines =
         |> List.map (\block -> finalize block)
         |> List.map (transform lang isVerbatimLine)
         |> List.concat
-        -- TODO: think about the below
-        |> List.filter (\block -> block.content /= [ "" ])
+
+
+
+-- TODO: think about the below
+-- |> List.filter (\block -> block.content /= [ "" ])
 
 
 finalize : PrimitiveBlock -> PrimitiveBlock
