@@ -440,7 +440,7 @@ transformToL0Aux strings =
                         [ "", prefix ++ "| " ++ blockName ]
 
                     _ ->
-                        [ "", prefix ++ "| theorem" ]
+                        [ "", prefix ++ "| par" ]
 
             else if isEnd bareString then
                 [ "" ]
