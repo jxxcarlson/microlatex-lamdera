@@ -316,13 +316,13 @@ transformContent lang ({ indent, prefix, content } as line) =
     if isNonEmptyBlank line then
         case lang of
             L0Lang ->
-                "[vskip 10]"
+                "[syspar]"
 
             MicroLaTeXLang ->
-                "\\vskip{10}"
+                "\\syspar"
 
             XMarkdownLang ->
-                "@vskip[10]"
+                "@syspar"
 
     else
         prefix ++ content
