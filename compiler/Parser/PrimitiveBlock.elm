@@ -362,7 +362,18 @@ transform lang isVerbatim block =
             else
                 case Maybe.map isBegin (List.head block.content) of
                     Just True ->
-                        extractMicroLaTeXEnvironment block |> blockListOfStringList L0Lang isVerbatim
+                        extractMicroLaTeXEnvironment block
+                            |> Debug.log "EXTRACTED"
+                            |> List.map
+                                (\s ->
+                                    if s == "\\syspar" then
+                                        ""
+
+                                    else
+                                        s
+                                )
+                            |> Debug.log "MAPPED"
+                            |> blockListOfStringList L0Lang isVerbatim
 
                     _ ->
                         [ block ]
