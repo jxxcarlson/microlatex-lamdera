@@ -89,6 +89,9 @@ blockListOfStringList : Language -> (String -> Bool) -> List String -> List Prim
 blockListOfStringList lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
+        |> List.map (transform lang isVerbatimLine)
+        |> List.concat
+        -- TODO: think about the below
         |> List.filter (\block -> block.content /= [ "" ])
 
 
