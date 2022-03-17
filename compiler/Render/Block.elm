@@ -368,11 +368,16 @@ renderDisplayMath_ count acc settings _ id str =
                 |> List.filter (\line -> not (String.left 6 line == "[label"))
                 |> List.filter (\line -> line /= "")
 
+        adjustedLines =
+            List.map (Parser.MathMacro.evalStr acc.mathMacroDict) filteredLines
+                |> List.filter (\line -> line /= "")
+                |> List.map (\line -> line ++ "\\\\")
+
         leftPadding =
             Element.paddingEach { left = 45, right = 0, top = 0, bottom = 0 }
     in
     Element.column [ leftPadding ]
-        [ Render.Math.mathText count w id DisplayMathMode (filteredLines |> String.join "\n") ]
+        [ Render.Math.mathText count w id DisplayMathMode (adjustedLines |> String.join "\n") ]
 
 
 renderEquation : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
@@ -386,8 +391,13 @@ renderEquation count acc settings args id str =
             String.lines str
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
 
+        adjustedLines1 =
+            List.map (Parser.MathMacro.evalStr acc.mathMacroDict) filteredLines
+                |> List.filter (\line -> line /= "")
+                |> List.map (\line -> line ++ "\\\\")
+
         adjustedLines =
-            "\\begin{equation}" :: "\\nonumber" :: filteredLines ++ [ "\\end{equation}" ]
+            "\\begin{equation}" :: "\\nonumber" :: adjustedLines1 ++ [ "\\end{equation}" ]
 
         content =
             String.join "\n" adjustedLines
