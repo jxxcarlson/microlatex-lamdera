@@ -29,8 +29,26 @@ import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
 
 
+m1 =
+    """
+abc
+def
+
+\\begin{A}
+pqr
+stu
+\\end{A}
+
+ghi
+jkl
+"""
+
+
 l1 =
     """
+abc
+def
+
 | AA
 pqr
 

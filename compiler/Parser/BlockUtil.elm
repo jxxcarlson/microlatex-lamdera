@@ -118,10 +118,13 @@ classify lang block =
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType } as block) =
     let
+        _ =
+            Debug.log "INTERMEDIATE (IN)" block
+
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
-    makeIntermediateBlock lang block messages
+    makeIntermediateBlock lang block messages |> Debug.log "INTERMEDIATE (OUT)"
 
 
 dropLast : List a -> List a

@@ -90,11 +90,11 @@ blockListOfStringList : Language -> (String -> Bool) -> List String -> List Prim
 blockListOfStringList lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
-        |> List.map (transform lang isVerbatimLine)
-        |> List.concat
 
 
 
+--|> List.map (transform lang isVerbatimLine)
+--|> List.concat
 -- TODO: think about the below
 -- |> List.filter (\block -> block.content /= [ "" ])
 
@@ -172,13 +172,14 @@ nextStep state =
 
                 Just block ->
                     let
-                        _ =
-                            report state
+                        blocks =
+                            if block.content == [ "" ] then
+                                Debug.log (Tools.cyan "****, DONE" 13) (List.reverse state.blocks)
 
-                        _ =
-                            Debug.log (Tools.cyan "****, DONE" 13) (List.reverse (block :: state.blocks) |> List.map .content)
+                            else
+                                Debug.log (Tools.cyan "****, DONE" 13) (List.reverse (block :: state.blocks))
                     in
-                    Done (List.reverse (block :: state.blocks))
+                    Done blocks
 
         Just rawLine ->
             let
@@ -263,6 +264,13 @@ addCurrentLineXX state currentLine =
 
 
 commitBlock state currentLine =
+    let
+        _ =
+            Debug.log "commit, currentLine" currentLine
+
+        _ =
+            Debug.log "commit, STATE" state
+    in
     case state.currentBlock of
         Nothing ->
             { state
@@ -272,12 +280,12 @@ commitBlock state currentLine =
 
         Just block ->
             let
-                newBlocks =
+                ( currentBlock, newBlocks ) =
                     if block.content == [ "" ] then
-                        state.blocks
+                        ( Nothing, state.blocks )
 
                     else
-                        block :: state.blocks
+                        ( Just (blockFromLine state.lang currentLine), block :: state.blocks )
             in
             { state
                 | lines = List.drop 1 state.lines
@@ -287,7 +295,7 @@ commitBlock state currentLine =
                 , blocks = newBlocks
                 , inBlock = False
                 , inVerbatim = state.isVerbatimLine currentLine.content
-                , currentBlock = Just (blockFromLine state.lang currentLine)
+                , currentBlock = currentBlock
             }
 
 

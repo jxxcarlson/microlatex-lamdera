@@ -39,4 +39,15 @@ suite =
         , test_ "two paragraphs, indented content, first line, first paragraph"
             (bll "  abc\ndef\n\nghi\njkl" |> List.map .indent)
             [ 2, 0 ]
+        , test_ "s1" (bllc s1) [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
         ]
+
+
+s1 =
+    """
+abc
+def
+
+ghi
+jkl
+"""
