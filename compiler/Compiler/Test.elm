@@ -34,7 +34,25 @@ m1 =
 \\begin{A}[x][y]
 abc
 def
+\\end{A}
+"""
+
+
+m1b =
+    """
+\\begin{A}[x][y]
+abc
+def
 \\end{B}
+"""
+
+
+m2 =
+    """
+\\begin{A}
+abc
+def
+
 """
 
 
