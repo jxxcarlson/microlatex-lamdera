@@ -3,7 +3,8 @@ module PrimitiveBlock exposing (..)
 import Expect exposing (..)
 import Markup
 import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList, indentStrings, transformToL0Aux)
+import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList)
+import Parser.TransformLaTeX exposing (indentStrings, transformToL0Aux)
 import Test exposing (..)
 
 
