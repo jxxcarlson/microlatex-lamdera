@@ -1,23 +1,25 @@
-module Compiler.Test exposing
-    ( bll
-    , blm
-    , blmt
-    , blx
-    , blxt
-    , dpl
-    , dpm
-    , ex1
-    , ex2
-    , ex3
-    , ibl
-    , ibm
-    , ibx
-    , pl
-    , plt
-    , pm
-    , pmt
-    , pxt
-    )
+module Compiler.Test exposing (..)
+
+--( bll
+--, blm
+--, blmt
+--, blx
+--, blxt
+--, dpl
+--, dpm
+--, ex1
+--, ex2
+--, ex3
+--, ibl
+--, ibm
+--, ibx
+--, l1
+--, pl
+--, plt
+--, pm
+--, pmt
+--, pxt
+--)
 
 import Compiler.Acc
 import Compiler.DifferentialParser
@@ -25,6 +27,16 @@ import Compiler.Transform
 import Markup
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
+
+
+l1 =
+    """
+| AA
+pqr
+
+  | BB
+  stu
+"""
 
 
 ex1 =
@@ -61,6 +73,27 @@ ex3 =
   
   Isn't that nice?
 \\end{theorem}
+"""
+
+
+s1 =
+    """
+abc
+def
+
+ghi
+jkl
+"""
+
+
+s2 =
+    """
+abc
+def
+
+
+ghi
+jkl
 """
 
 

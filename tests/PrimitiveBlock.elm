@@ -8,6 +8,10 @@ import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList)
 import Test exposing (..)
 
 
+bll str =
+    blockListOfStringList L0Lang Markup.isVerbatimLine (String.lines str)
+
+
 bllc str =
     blockListOfStringList L0Lang Markup.isVerbatimLine (String.lines str) |> List.map .content
 
@@ -19,7 +23,7 @@ test_ label expr expectedOutput =
 
 {-
    FOR THE MOMENT: sequences of two or more newlines parse to [""].
-   That way there is an effient representation of the end-of-block marker.
+   That way there is an efficient representation of the end-of-block marker.
    Not sure if this is a good idea.
 
 
@@ -29,8 +33,10 @@ test_ label expr expectedOutput =
 suite : Test
 suite =
     describe "The primitive block parser"
-        [ test_ "two paragraphs" (bllc "abc\ndef\n\nghi\njkl") [ [ "abc", "def" ], [ "" ], [ "ghi", "jkl" ] ]
-        , test_ "two paragraphs (2)" (bllc "abc\n  def\n\nghi\njkl") [ [ "abc", "  def" ], [ "" ], [ "ghi", "jkl" ] ]
-        , test_ "two paragraphs (3)" (bllc "abc\ndef\n\n\nghi\njkl") [ [ "abc", "def" ], [ "" ], [ "ghi", "jkl" ] ]
-        , test_ "two paragraphs (4)" (bllc "abc\ndef\n\n\n\nghi\njkl") [ [ "abc", "def" ], [ "" ], [ "ghi", "jkl" ] ]
+        [ test_ "two paragraphs, no indentation" (bllc "abc\ndef\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+        , test_ "two paragraphs, a run of newlines" (bllc "abc\ndef\n\n\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+        , test_ "two paragraphs indented content, second line" (bllc "abc\n  def\n\nghi\n    jkl") [ [ "abc", "  def" ], [ "ghi", "    jkl" ] ]
+        , test_ "two paragraphs, indented content, first line, first paragraph"
+            (bll "  abc\ndef\n\nghi\njkl" |> List.map .indent)
+            [ 2, 0 ]
         ]
