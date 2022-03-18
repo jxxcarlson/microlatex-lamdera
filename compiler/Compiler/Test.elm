@@ -31,87 +31,10 @@ import Parser.PrimitiveBlock as PrimitiveBlock
 
 m1 =
     """
+\\begin{A}[x][y]
 abc
 def
-
-\\begin{A}
-pqr
-stu
-\\end{A}
-
-ghi
-jkl
-"""
-
-
-l1 =
-    """
-abc
-def
-
-| AA
-pqr
-
-  | BB
-  stu
-"""
-
-
-ex1 =
-    """
-\\begin{A}
-    XXX
-    
-    YYY
-    
-    ZZZ
-\\end{A}"""
-
-
-ex2 =
-    """
-\\begin{theorem}
-  There are infinitely many primmes.
-  
-  $$
-  p \\equiv 1\\ mod\\ 4
-  $$
-  
-  Isn't that nice?
-\\end{theorem}
-"""
-
-
-ex3 =
-    """
-\\begin{theorem}
-  There are infinitely many primmes.
-  
-  AAA
-  
-  Isn't that nice?
-\\end{theorem}
-"""
-
-
-s1 =
-    """
-abc
-def
-
-ghi
-jkl
-"""
-
-
-s2 =
-    """
-abc
-def
-
-
-ghi
-jkl
+\\end{B}
 """
 
 

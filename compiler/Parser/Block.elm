@@ -1,6 +1,6 @@
 module Parser.Block exposing
     ( BlockType(..), ExpressionBlock(..), IntermediateBlock(..)
-    , RawBlock
+    , RawBlock, getArgs, getBlockType, getContent, getName
     )
 
 {-| Source text is parsed into a tree of IntermediateBlocks, where the tree
@@ -44,6 +44,26 @@ type IntermediateBlock
         , messages : List String
         , sourceText : String
         }
+
+
+getName : IntermediateBlock -> Maybe String
+getName (IntermediateBlock { name }) =
+    name
+
+
+getArgs : IntermediateBlock -> List String
+getArgs (IntermediateBlock { args }) =
+    args
+
+
+getContent : IntermediateBlock -> List String
+getContent (IntermediateBlock { content }) =
+    content
+
+
+getBlockType : IntermediateBlock -> BlockType
+getBlockType (IntermediateBlock { blockType }) =
+    blockType
 
 
 {-| -}

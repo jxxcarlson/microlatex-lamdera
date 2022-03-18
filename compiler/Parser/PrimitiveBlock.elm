@@ -2,6 +2,8 @@ module Parser.PrimitiveBlock exposing
     ( PrimitiveBlock
     , blockListOfStringList
     , empty
+    , indentStrings
+    , transformToL0Aux
     )
 
 {-| This module is like Tree.Blocks, except that if the first line of a block
@@ -88,6 +90,15 @@ type alias State =
 
 blockListOfStringList : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 blockListOfStringList lang isVerbatimLine lines =
+    if lang == MicroLaTeXLang then
+        lines |> transformToL0 |> blockListOfStringList_ lang isVerbatimLine
+
+    else
+        lines |> blockListOfStringList_ lang isVerbatimLine
+
+
+blockListOfStringList_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
+blockListOfStringList_ lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 
@@ -363,15 +374,7 @@ addCurrentLine_ lang ({ prefix, content, indent } as line) block =
 transformContent : Language -> Line -> String
 transformContent lang ({ indent, prefix, content } as line) =
     if isNonEmptyBlank line then
-        case lang of
-            L0Lang ->
-                "[syspar]"
-
-            MicroLaTeXLang ->
-                "\\syspar"
-
-            XMarkdownLang ->
-                "@syspar"
+        "[syspar]"
 
     else
         prefix ++ content
@@ -415,7 +418,7 @@ transform lang isVerbatim block =
                             |> Debug.log "EXTRACTED"
                             |> List.map
                                 (\s ->
-                                    if s == "\\syspar" then
+                                    if s == "[syspar]" then
                                         ""
 
                                     else
@@ -490,25 +493,22 @@ transformToL0Aux strings =
             let
                 bareString =
                     String.trimLeft str
-
-                prefix =
-                    String.replace bareString "" str
             in
             if isBegin bareString then
-                case Parser.MathMacro.parseOne str of
+                case Parser.MathMacro.parseOne bareString of
                     Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
-                        [ "", prefix ++ "| " ++ blockName ]
+                        String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
 
                     _ ->
-                        [ "", prefix ++ "| par" ]
+                        ""
 
             else if isEnd bareString then
-                [ "" ]
+                "(delete)"
 
             else
-                [ str ]
+                str
     in
-    strings |> List.map mapper |> List.concat
+    strings |> List.map mapper |> List.filter (\s -> s /= "(delete)")
 
 
 isBegin : String -> Bool

@@ -3,8 +3,7 @@ module PrimitiveBlock exposing (..)
 import Expect exposing (..)
 import Markup
 import Parser.Language exposing (Language(..))
-import Parser.Line
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList)
+import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList, indentStrings, transformToL0Aux)
 import Test exposing (..)
 
 
@@ -41,6 +40,63 @@ suite =
             [ 2, 0 ]
         , test_ "s1" (bllc s1) [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
         ]
+
+
+suite2 : Test
+suite2 =
+    describe "indenter and trasnformer"
+        [ test_ "simplest case" (indentStrings (String.lines i1IN)) (String.lines i1OUT)
+        , test_ "simplest case, transformed" (indentStrings (String.lines i1IN) |> transformToL0Aux) (String.lines i1TRANS)
+        ]
+
+
+i1IN =
+    """
+\\begin{A}
+abc
+def
+
+\\begin{B}
+ghi
+jkl
+\\end{B}
+
+mno
+pqr
+\\end{A}
+"""
+
+
+i1OUT =
+    """
+\\begin{A}
+abc
+def
+
+  \\begin{B}
+  ghi
+  jkl
+  \\end{B}
+
+mno
+pqr
+\\end{A}
+"""
+
+
+i1TRANS =
+    """
+| A
+abc
+def
+
+  | B
+  ghi
+  jkl
+
+mno
+pqr
+"""
 
 
 s1 =
