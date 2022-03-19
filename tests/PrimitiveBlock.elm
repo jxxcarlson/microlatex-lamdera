@@ -80,6 +80,7 @@ aTRANS =
 | A
 abc
 def
+
 """
 
 
@@ -100,6 +101,7 @@ bTRANS =
 | A
 abc
 def
+
 
 ghi
 jkl
@@ -150,8 +152,10 @@ def
   ghi
   jkl
 
+
 mno
 pqr
+
 """
 
 
@@ -198,6 +202,7 @@ def
   ghi
   jkl
 
+
 mno
 pqr
 
@@ -218,6 +223,7 @@ eTRANS =
 || code
 abc
 def
+
 """
 
 

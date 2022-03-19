@@ -168,10 +168,6 @@ transformToL0Aux strings =
     strings |> List.map mapper
 
 
-
--- |> List.filter (\s -> s /= "(delete)")
-
-
 blockBegin : String -> Maybe String
 blockBegin str =
     case Parser.MathMacro.parseOne str of

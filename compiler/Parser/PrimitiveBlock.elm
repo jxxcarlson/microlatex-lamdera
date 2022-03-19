@@ -44,12 +44,14 @@ type alias PrimitiveBlock =
 
 report1 : String -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String ) -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String )
 report1 label a =
-    Tools.debugLog2 label identity a
+    -- Tools.debugLog2 label identity a
+    identity a
 
 
 report2 : String -> State -> State
 report2 label a =
-    Tools.debugLog2 label (\s -> ( s.lineNumber, s.inVerbatim, Maybe.map .content s.currentBlock )) a
+    -- Tools.debugLog2 label (\s -> ( s.lineNumber, s.inVerbatim, Maybe.map .content s.currentBlock )) a
+    identity a
 
 
 empty : PrimitiveBlock
@@ -183,18 +185,19 @@ nextStep state =
                     let
                         blocks =
                             if block.content == [ "" ] then
-                                Debug.log (Tools.cyan "****, DONE" 13) (List.reverse state.blocks)
+                                -- Debug.log (Tools.cyan "****, DONE" 13)
+                                List.reverse state.blocks
 
                             else
-                                Debug.log (Tools.cyan "****, DONE" 13) (List.reverse (block :: state.blocks))
+                                -- Debug.log (Tools.cyan "****, DONE" 13)
+                                List.reverse (block :: state.blocks)
                     in
                     Done blocks
 
         Just rawLine ->
             let
-                _ =
-                    report state
-
+                --_ =
+                --    report state
                 newPosition =
                     if rawLine == "" then
                         state.position + 1
@@ -231,19 +234,21 @@ nextStep state =
                     Loop (commitBlock { state | label = "5, COMMIT" } currentLine)
 
 
-report state =
-    let
-        prefix =
-            String.fromInt state.lineNumber ++ ". " ++ state.label
 
-        contentOfCurrentBlock : Maybe (List String)
-        contentOfCurrentBlock =
-            Maybe.map .content state.currentBlock
-
-        _ =
-            Debug.log (Tools.cyan prefix 13) { curr = contentOfCurrentBlock, theBlocks = List.map .content state.blocks }
-    in
-    1
+--
+--report state =
+--    let
+--        prefix =
+--            String.fromInt state.lineNumber ++ ". " ++ state.label
+--
+--        contentOfCurrentBlock : Maybe (List String)
+--        contentOfCurrentBlock =
+--            Maybe.map .content state.currentBlock
+--
+--        _ =
+--            Debug.log (Tools.cyan prefix 13) { curr = contentOfCurrentBlock, theBlocks = List.map .content state.blocks }
+--    in
+--    1
 
 
 advance : Int -> State -> State
