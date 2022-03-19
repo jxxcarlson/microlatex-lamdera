@@ -118,13 +118,10 @@ classify lang block =
 toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
 toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType } as block) =
     let
-        _ =
-            Debug.log "INTERMEDIATE (IN)" block
-
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
-    makeIntermediateBlock L0Lang block messages |> Debug.log "INTERMEDIATE (OUT)"
+    makeIntermediateBlock lang block messages
 
 
 dropLast : List a -> List a
@@ -213,8 +210,9 @@ makeIntermediateBlock lang block messages =
 
                 OrdinaryBlock _ ->
                     List.drop 1 (normalize block.content)
-                        |> dropLastIf (lang == MicroLaTeXLang && not (List.member block.name exclusionList))
 
+                -- TODO: examine the below
+                --  |> dropLastIf (lang == MicroLaTeXLang && not (List.member block.name exclusionList))
                 VerbatimBlock _ ->
                     let
                         adjustedContent =
