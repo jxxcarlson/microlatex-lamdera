@@ -138,6 +138,9 @@ transformToL0Aux strings =
                 case Parser.MathMacro.parseOne bareString of
                     Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
                         String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
+                            -- TODO: Better code here
+                            |> String.replace "[" " "
+                            |> String.replace "]" " "
 
                     _ ->
                         ""
