@@ -46,6 +46,9 @@ reportError error =
         NoError ->
             ""
 
+        MapToEmpty ->
+            ""
+
         MissingEndBlock blockName ->
             "missing block " ++ blockName
 
@@ -66,6 +69,18 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
                         -- \begin{blockName} found -- start a new block
                         ( Just blockName, Nothing ) ->
                             ( indent + 1, blockName :: blockNameStack, NoError ) |> reportState "(1)" lineNumber first
+
+                        ( Just "$$", Just "$$" ) ->
+                            case List.head blockNameStack of
+                                Nothing ->
+                                    ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(1b)" lineNumber first
+
+                                Just "$$" ->
+                                    -- the current "$$" matches the one on top of the stack
+                                    ( indent - 1, List.drop 1 blockNameStack, MapToEmpty ) |> reportState "(1c)" lineNumber first
+
+                                Just _ ->
+                                    ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(1d)" lineNumber first
 
                         ( Nothing, Just blockName ) ->
                             -- \end{blockName} found -- end the block
@@ -104,6 +119,9 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
                 NoError ->
                     indentAux { data | lineNumber = lineNumber + 1, output = newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
+                MapToEmpty ->
+                    indentAux { data | lineNumber = lineNumber + 1, output = "" :: output, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+
                 MissingEndBlock blockName ->
                     indentAux { data | lineNumber = lineNumber + 1, output = ("missing end block: " ++ blockName) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
@@ -112,12 +130,12 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
 
 
 reportState label lineNumber_ first_ =
-    --Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
-    identity
+    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
 
 
-type LaTeXError
+type Status
     = NoError
+    | MapToEmpty
     | MissingEndBlock String
     | MisMatchedEndBlock String String
 
@@ -170,22 +188,34 @@ transformToL0Aux strings =
 
 blockBegin : String -> Maybe String
 blockBegin str =
-    case Parser.MathMacro.parseOne str of
-        Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
-            Just blockName
+    (if str == "$$" then
+        Just "$$"
 
-        _ ->
-            Nothing
+     else
+        case Parser.MathMacro.parseOne str of
+            Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
+                Just blockName
+
+            _ ->
+                Nothing
+    )
+        |> Debug.log "blockBegin"
 
 
 blockEnd : String -> Maybe String
 blockEnd str =
-    case Parser.MathMacro.parseOne str of
-        Just (Macro "end" [ MathList [ MathText blockName ] ]) ->
-            Just blockName
+    (if str == "$$" then
+        Just "$$"
 
-        _ ->
-            Nothing
+     else
+        case Parser.MathMacro.parseOne str of
+            Just (Macro "end" [ MathList [ MathText blockName ] ]) ->
+                Just blockName
+
+            _ ->
+                Nothing
+    )
+        |> Debug.log "blockEnd"
 
 
 isBegin : String -> Bool
