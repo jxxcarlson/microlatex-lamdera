@@ -130,7 +130,8 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
 
 
 reportState label lineNumber_ first_ =
-    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    --Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    identity
 
 
 type Status
@@ -188,34 +189,30 @@ transformToL0Aux strings =
 
 blockBegin : String -> Maybe String
 blockBegin str =
-    (if str == "$$" then
+    if str == "$$" then
         Just "$$"
 
-     else
+    else
         case Parser.MathMacro.parseOne str of
             Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
                 Just blockName
 
             _ ->
                 Nothing
-    )
-        |> Debug.log "blockBegin"
 
 
 blockEnd : String -> Maybe String
 blockEnd str =
-    (if str == "$$" then
+    if str == "$$" then
         Just "$$"
 
-     else
+    else
         case Parser.MathMacro.parseOne str of
             Just (Macro "end" [ MathList [ MathText blockName ] ]) ->
                 Just blockName
 
             _ ->
                 Nothing
-    )
-        |> Debug.log "blockEnd"
 
 
 isBegin : String -> Bool
