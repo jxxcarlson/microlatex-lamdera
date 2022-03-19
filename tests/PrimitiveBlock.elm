@@ -30,28 +30,90 @@ test_ label expr expectedOutput =
 -}
 
 
-suite : Test
-suite =
-    describe "The primitive block parser"
-        [ test_ "two paragraphs, no indentation" (bllc "abc\ndef\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
-        , test_ "two paragraphs, a run of newlines" (bllc "abc\ndef\n\n\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
-        , test_ "two paragraphs indented content, second line" (bllc "abc\n  def\n\nghi\n    jkl") [ [ "abc", "  def" ], [ "ghi", "    jkl" ] ]
-        , test_ "two paragraphs, indented content, first line, first paragraph"
-            (bll "  abc\ndef\n\nghi\njkl" |> List.map .indent)
-            [ 2, 0 ]
-        , test_ "s1" (bllc s1) [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
-        ]
+suite1 : Test
+suite1 =
+    test_ "foo" 1 1
 
 
-suite2 : Test
-suite2 =
-    describe "indenter and trasnformer"
-        [ test_ "simplest case" (indentStrings (String.lines i1IN)) (String.lines i1OUT)
-        , test_ "simplest case, transformed" (indentStrings (String.lines i1IN) |> transformToL0Aux) (String.lines i1TRANS)
-        ]
+
+--
+--suite : Test
+--suite =
+--    describe "The primitive block parser"
+--        [ test_ "two paragraphs, no indentation" (bllc "abc\ndef\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+--        , test_ "two paragraphs, a run of newlines" (bllc "abc\ndef\n\n\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+--        , test_ "two paragraphs indented content, second line" (bllc "abc\n  def\n\nghi\n    jkl") [ [ "abc", "  def" ], [ "ghi", "    jkl" ] ]
+--        , test_ "two paragraphs, indented content, first line, first paragraph"
+--            (bll "  abc\ndef\n\nghi\njkl" |> List.map .indent)
+--            [ 2, 0 ]
+--        , test_ "s1" (bllc s1) [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+--        ]
 
 
-i1IN =
+indent_ str =
+    indentStrings (String.lines str)
+
+
+transform str =
+    indentStrings (String.lines str) |> transformToL0Aux
+
+
+
+--suite2 : Test
+--suite2 =
+--    describe "indenter and transformer"
+--        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
+--        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
+--        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
+--        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
+--        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cOUT)
+--        , test_ "nested microLaTeX blocks, transform" (transform cIN) (String.lines cTRANS)
+--        , test_ "nested microLaTeX blocks, missing end" (indent_ dIN) (String.lines dOut)
+--        , test_ "snested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
+--        ]
+
+
+aIN =
+    """
+\\begin{A}
+abc
+def
+\\end{A}
+"""
+
+
+aTRANS =
+    """
+| A
+abc
+def
+"""
+
+
+bIN =
+    """
+\\begin{A}
+abc
+def
+\\end{A}
+
+ghi
+jkl
+"""
+
+
+bTRANS =
+    """
+| A
+abc
+def
+
+ghi
+jkl
+"""
+
+
+cIN =
     """
 \\begin{A}
 abc
@@ -68,7 +130,7 @@ pqr
 """
 
 
-i1OUT =
+cOUT =
     """
 \\begin{A}
 abc
@@ -85,7 +147,7 @@ pqr
 """
 
 
-i1TRANS =
+cTRANS =
     """
 | A
 abc
@@ -98,6 +160,55 @@ def
 mno
 pqr
 """
+
+
+dIN =
+    """
+\\begin{A}
+abc
+def
+
+\\begin{B}
+ghi
+jkl
+\\end{B}
+
+mno
+pqr
+"""
+
+
+dOut =
+    """
+\\begin{A}
+abc
+def
+
+  \\begin{B}
+  ghi
+  jkl
+  \\end{B}
+
+mno
+pqr
+
+unmatched block A"""
+
+
+dTRANS =
+    """
+| A
+abc
+def
+
+  | B
+  ghi
+  jkl
+
+mno
+pqr
+
+unmatched block A"""
 
 
 s1 =

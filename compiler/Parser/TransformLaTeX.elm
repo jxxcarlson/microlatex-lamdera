@@ -5,6 +5,7 @@ module Parser.TransformLaTeX exposing
     )
 
 import Parser.MathMacro exposing (MathExpression(..))
+import Tools
 
 
 
@@ -12,7 +13,7 @@ import Parser.MathMacro exposing (MathExpression(..))
 
 
 type alias IndentationData =
-    { indent : Int, input : List String, output : List String, blockNameStack : List String }
+    { lineNumber : Int, indent : Int, input : List String, output : List String, blockNameStack : List String }
 
 
 transformToL0 : List String -> List String
@@ -22,11 +23,38 @@ transformToL0 strings =
 
 indentStrings : List String -> List String
 indentStrings strings =
-    indentAux { indent = -1, input = strings, output = [], blockNameStack = [] } |> .output |> List.reverse
+    let
+        finalState =
+            indentAux { lineNumber = -1, indent = -1, input = strings, output = [], blockNameStack = [] }
+
+        errorList =
+            List.map (\s -> "unmatched block " ++ s) finalState.blockNameStack
+
+        output =
+            if List.isEmpty errorList then
+                finalState.output |> List.reverse
+
+            else
+                errorList ++ finalState.output |> List.reverse
+    in
+    --indentAux { lineNumber = -1, indent = -1, input = strings, output = [], blockNameStack = [] } |> .output |> List.reverse
+    output
+
+
+reportError error =
+    case error of
+        NoError ->
+            ""
+
+        MissingEndBlock blockName ->
+            "missing block " ++ blockName
+
+        MisMatchedEndBlock b1 b2 ->
+            "mismatched blocks " ++ b1 ++ ", " ++ b2
 
 
 indentAux : IndentationData -> IndentationData
-indentAux ({ indent, input, output, blockNameStack } as data) =
+indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
     case input of
         [] ->
             data
@@ -35,28 +63,35 @@ indentAux ({ indent, input, output, blockNameStack } as data) =
             let
                 ( newIndent, blockNameStack_, error ) =
                     case ( blockBegin first, blockEnd first ) of
+                        -- \begin{blockName} found -- start a new block
                         ( Just blockName, Nothing ) ->
-                            ( indent + 1, blockName :: blockNameStack, NoError )
+                            ( indent + 1, blockName :: blockNameStack, NoError ) |> reportState "(1)" lineNumber first
 
                         ( Nothing, Just blockName ) ->
+                            -- \end{blockName} found -- end the block
                             case List.head blockNameStack of
+                                -- the blockName stack is empty, so there is no mach for blockName,
+                                -- and so there is an error
                                 Nothing ->
-                                    ( indent - 1, List.drop 1 blockNameStack, MissingEndBlock blockName )
+                                    ( indent - 1, [], MissingEndBlock blockName ) |> reportState "(2)" lineNumber first
 
                                 Just blockNameTop ->
+                                    -- blockName matches the top of the blockNameStack, so pop the stack
                                     if blockName == blockNameTop then
-                                        ( indent - 1, List.drop 1 blockNameStack, NoError )
+                                        ( indent - 1, List.drop 1 blockNameStack, NoError ) |> reportState "(3)" lineNumber first
+                                        -- no match of blockName at top of stack: error
 
                                     else
-                                        ( indent - 1, blockNameStack, MisMatchedEndBlock blockName blockNameTop )
+                                        ( indent - 1, blockNameStack, MisMatchedEndBlock blockName blockNameTop ) |> reportState "(4)" lineNumber first
 
                         _ ->
                             case ( first, blockNameStack ) of
                                 ( "", blockName :: rest_ ) ->
-                                    ( indent, rest_, MissingEndBlock blockName )
+                                    -- ( indent, rest_, MissingEndBlock blockName )
+                                    ( indent, blockNameStack, NoError ) |> reportState "(5)" lineNumber first
 
                                 _ ->
-                                    ( indent, blockNameStack, NoError )
+                                    ( indent, blockNameStack, NoError ) |> reportState "(6)" lineNumber first
 
                 newOutput =
                     if isEnd first then
@@ -67,13 +102,17 @@ indentAux ({ indent, input, output, blockNameStack } as data) =
             in
             case error of
                 NoError ->
-                    indentAux { data | output = newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | lineNumber = lineNumber + 1, output = newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
                 MissingEndBlock blockName ->
-                    indentAux { data | output = ("missing end block: " ++ blockName) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | lineNumber = lineNumber + 1, output = ("missing end block: " ++ blockName) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
                 MisMatchedEndBlock b1 b2 ->
-                    indentAux { data | output = ("mismatched end blocks: " ++ b1 ++ ", " ++ b2) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | lineNumber = lineNumber + 1, output = ("mismatched end blocks: " ++ b1 ++ ", " ++ b2) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+
+
+reportState label lineNumber_ first_ =
+    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
 
 
 type LaTeXError

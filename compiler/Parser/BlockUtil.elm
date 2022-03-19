@@ -124,7 +124,7 @@ toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType }
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
-    makeIntermediateBlock lang block messages |> Debug.log "INTERMEDIATE (OUT)"
+    makeIntermediateBlock L0Lang block messages |> Debug.log "INTERMEDIATE (OUT)"
 
 
 dropLast : List a -> List a
