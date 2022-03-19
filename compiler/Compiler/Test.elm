@@ -29,6 +29,18 @@ import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock
 
 
+x1 =
+    """
+\\begin{theorem}
+There are infinitely many primes 
+
+$$
+p \\equiv 1\\ mod\\ 4
+$$
+\\end{theorem}
+"""
+
+
 m1 =
     """
 \\begin{A}[x][y]

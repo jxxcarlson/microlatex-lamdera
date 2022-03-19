@@ -62,8 +62,48 @@ suite2 =
         , test_ "nested microLaTeX blocks, transform" (transform cIN) (String.lines cTRANS)
         , test_ "nested microLaTeX blocks, missing end" (indent_ dIN) (String.lines dOut)
         , test_ "nested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
-        , test_ "code block,, transform" (transform eIN) (String.lines eTRANS)
+        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
+        , test_ "x1, indented" (indent_ x1) (String.lines x1Indent)
+
+        --, test_ "x1, transformed" (transform x1) (String.lines x1TRANS)
         ]
+
+
+x1 =
+    """
+\\begin{theorem}
+There are infinitely many primes
+
+$$
+p \\equiv 1\\ mod\\ 4
+$$
+\\end{theorem}
+"""
+
+
+x1Indent =
+    """
+\\begin{theorem}
+There are infinitely many primes
+
+  $$
+  p \\equiv 1\\ mod\\ 4
+  $$
+\\end{theorem}
+"""
+
+
+x1TRANS =
+    """
+| theorem
+There are infinitely many primes
+
+
+    $$
+    p \\equiv 1\\ mod\\ 4
+
+
+"""
 
 
 aIN =

@@ -57,6 +57,20 @@ unroll =
     List.map Tree.flatten >> List.concat
 
 
+x1 =
+    """
+\\begin{theorem}
+There are infinitely many primes 
+
+$$
+p \\equiv 1\\ mod\\ 4
+$$
+
+Isn't that nice?
+\\end{theorem}
+"""
+
+
 m1 =
     """
 \\begin{A}
