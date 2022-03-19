@@ -273,13 +273,6 @@ addCurrentLineXX state currentLine =
 
 
 commitBlock state currentLine =
-    let
-        _ =
-            Debug.log "commit, currentLine" currentLine
-
-        _ =
-            Debug.log "commit, STATE" state
-    in
     case state.currentBlock of
         Nothing ->
             { state
@@ -359,7 +352,8 @@ elaborate lang line pb =
     else
         let
             ( blockType, name, args ) =
-                Line.getNameAndArgs lang line
+                -- TODO: note this change: it needs to be verified
+                Line.getNameAndArgs L0Lang line
         in
         { pb | blockType = blockType, name = name, args = args, named = True }
 
