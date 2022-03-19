@@ -42,12 +42,12 @@ suite2 =
         , test_ "two L0 blocks first at indent 0, second at indent 4, getNames" (ibl s4 |> unroll |> List.map getName) [ Just "A", Just "B" ]
         , test_ "two L0 blocks first at indent 0, second at indent 4, depth is 1" (ibl s4 |> List.map depth) [ 1 ]
         , test_ "two L0 blocks first at indent 0, second at indent 4, depth is 1, getNames" (ibl s4 |> unroll |> List.map getName) [ Just "A", Just "B" ]
+        , test_ "one microLaTeX Block, depth" (ibm m1 |> List.map depth) [ 0 ]
+        , test_ "one microLaTeX Block, name" (ibm m1 |> unroll |> List.map getName) [ Just "A" ]
+        , test_ "one microLaTeX Block, args" (ibm m1 |> unroll |> List.map getArgs) [ [] ]
+        , test_ "one microLaTeX Block, nontrivial args" (ibm m2 |> unroll |> List.map getArgs) [ [ "X", "Y" ] ]
+        , test_ "one microLaTeX Block, content" (ibm m2 |> unroll |> List.map getContent) [ [ "abc", "def" ] ]
 
-        --, test_ "one microLaTeX Block, depth" (ibm m1 |> List.map depth) [ 0 ]
-        --, test_ "one microLaTeX Block, name" (ibm m1 |> unroll |> List.map getName |> Debug.log "NAMES") [ Just "A" ]
-        --, test_ "one microLaTeX Block, args" (ibm m1 |> unroll |> List.map getArgs) [ [] ]
-        --, test_ "one microLaTeX Block, nontrivial args" (ibm m2 |> unroll |> List.map getArgs) [ [ "X", "Y" ] ]
-        --, test_ "one microLaTeX Block, content" (ibm m2 |> unroll |> List.map getContent) [ [ "abc", "def" ] ]
         --, Test.skip <| test_ "one microLaTeX Block, content with blank line" (ibm m3 |> unroll |> List.map getContent) [ [ "abc", "def", "ghi" ] ]
         ]
 
@@ -62,7 +62,7 @@ m1 =
 \\begin{A}
 abc
 def
-\\end{B}
+\\end{A}
 """
 
 
@@ -71,7 +71,7 @@ m2 =
 \\begin{A}[X][Y]
 abc
 def
-\\end{B}
+\\end{A}
 """
 
 
@@ -82,7 +82,7 @@ abc
 def
 
 ghi
-\\end{B}
+\\end{A}
 """
 
 
