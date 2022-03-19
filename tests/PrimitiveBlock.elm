@@ -61,7 +61,8 @@ suite2 =
         , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cOUT)
         , test_ "nested microLaTeX blocks, transform" (transform cIN) (String.lines cTRANS)
         , test_ "nested microLaTeX blocks, missing end" (indent_ dIN) (String.lines dOut)
-        , test_ "snested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
+        , test_ "nested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
+        , test_ "code block,, transform" (transform eIN) (String.lines eTRANS)
         ]
 
 
@@ -201,6 +202,23 @@ mno
 pqr
 
 unmatched block A"""
+
+
+eIN =
+    """
+\\begin{code}
+abc
+def
+\\end{code}
+"""
+
+
+eTRANS =
+    """
+|| code
+abc
+def
+"""
 
 
 s1 =

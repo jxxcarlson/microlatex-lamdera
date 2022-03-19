@@ -126,6 +126,19 @@ indentString k str =
     String.repeat (2 * k) " " ++ str
 
 
+verbatimBlockNames =
+    [ "math", "equation", "aligned", "code" ]
+
+
+transformBlockHeader : String -> String -> String
+transformBlockHeader blockName str =
+    if List.member blockName verbatimBlockNames then
+        String.replace ("\\begin{" ++ blockName ++ "}") ("|| " ++ blockName) str
+
+    else
+        String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
+
+
 transformToL0Aux : List String -> List String
 transformToL0Aux strings =
     let
@@ -137,7 +150,7 @@ transformToL0Aux strings =
             if isBegin bareString then
                 case Parser.MathMacro.parseOne bareString of
                     Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
-                        String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
+                        transformBlockHeader blockName str
                             -- TODO: Better code here
                             |> String.replace "[" " "
                             |> String.replace "]" " "
