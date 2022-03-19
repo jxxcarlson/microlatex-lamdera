@@ -112,7 +112,8 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
 
 
 reportState label lineNumber_ first_ =
-    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    --Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    identity
 
 
 type LaTeXError
@@ -159,12 +160,16 @@ transformToL0Aux strings =
                         ""
 
             else if isEnd bareString then
-                "(delete)"
+                ""
 
             else
                 str
     in
-    strings |> List.map mapper |> List.filter (\s -> s /= "(delete)")
+    strings |> List.map mapper
+
+
+
+-- |> List.filter (\s -> s /= "(delete)")
 
 
 blockBegin : String -> Maybe String
