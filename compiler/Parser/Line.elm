@@ -80,7 +80,7 @@ getNameAndArgs lang line =
         L0Lang ->
             let
                 normalizedLine =
-                    String.trim line.content |
+                    String.trim line.content
 
                 -- account for possible indentation
             in
