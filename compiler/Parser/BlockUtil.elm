@@ -189,7 +189,11 @@ handleLastLineMicroLaTeX content =
         dropLast content
 
     else
-        content ++ [ "\\red{end??}" ]
+        content
+
+
+
+-- ++ [ "\\red{end??}" ]
 
 
 exclusionList =
