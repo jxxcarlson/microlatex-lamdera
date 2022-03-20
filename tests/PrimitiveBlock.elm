@@ -51,27 +51,83 @@ transform str =
     indentStrings (String.lines str) |> transformToL0Aux
 
 
-suite2 : Test
-suite2 =
-    describe "indenter and transformer 2"
-        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
-        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
-        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
-        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
-        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cOUT)
-        , test_ "nested microLaTeX blocks, transform" (transform cIN) (String.lines cTRANS)
-        , test_ "nested microLaTeX blocks, missing end" (indent_ dIN) (String.lines dOut)
-        , test_ "nested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
-        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
-        , test_ "x1, indented" (indent_ x1) (String.lines x1Indent)
-        ]
+
+--
+--suite2 : Test
+--suite2 =
+--    describe "indenter and transformer 2"
+--        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
+--        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
+--        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
+--        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
+--        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cOUT)
+--        , test_ "nested microLaTeX blocks, transform" (transform cIN) (String.lines cTRANS)
+--        , test_ "nested microLaTeX blocks, missing end" (indent_ dIN) (String.lines dOut)
+--        , test_ "nested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
+--        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
+--        , test_ "x1, indented" (indent_ x1) (String.lines x1Indent)
+--        , test_ "p1, indented" (indent_ p1) (String.lines p1)
+--        , test_ "p2, indented" (indent_ p2) (String.lines p2Indented)
+--        ]
 
 
 suite3 : Test
 suite3 =
     describe "indenter and transformer"
-        [ test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
+        [ test_ "p3, indented" (indent_ p3) (String.lines p3Indented)
         ]
+
+
+p3 =
+    """abc
+def
+
+\\begin{A}
+PQR
+STU
+\\end{A}
+
+ghi
+jkl
+"""
+
+
+p3Indented =
+    """abc
+def
+
+  \\begin{A}
+  PQR
+  STU
+  \\end{A}
+
+ghi!!
+jkl
+"""
+
+
+p2 =
+    """abc
+def
+
+ghi
+jkl
+"""
+
+
+p2Indented =
+    """abc
+def
+
+ghi
+/jkl
+"""
+
+
+p1 =
+    """abc
+def
+"""
 
 
 x2 =
