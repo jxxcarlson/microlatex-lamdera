@@ -70,8 +70,7 @@ suite2 =
 suite3 : Test
 suite3 =
     describe "indenter and transformer"
-        [ test_ "x1, indented" (indent_ x1) (String.lines x1Indent)
-        , test_ "x1, transform" (transform x1) (String.lines x1TRANS)
+        [ test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
         ]
 
 

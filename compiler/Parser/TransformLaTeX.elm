@@ -1,9 +1,11 @@
 module Parser.TransformLaTeX exposing
-    ( indentStrings
+    ( classify
+    , indentStrings
     , transformToL0
     , transformToL0Aux
     )
 
+import Parser exposing ((|.), (|=), Parser)
 import Parser.MathMacro exposing (MathExpression(..))
 import Tools
 
@@ -41,21 +43,6 @@ indentStrings strings =
     output
 
 
-reportError error =
-    case error of
-        NoError ->
-            ""
-
-        MapToEmpty ->
-            ""
-
-        MissingEndBlock blockName ->
-            "missing block " ++ blockName
-
-        MisMatchedEndBlock b1 b2 ->
-            "mismatched blocks " ++ b1 ++ ", " ++ b2
-
-
 indentAux : IndentationData -> IndentationData
 indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
     case input of
@@ -65,12 +52,12 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
         first :: rest ->
             let
                 ( newIndent, blockNameStack_, error ) =
-                    case ( blockBegin first, blockEnd first ) of
+                    case classify first of
                         -- \begin{blockName} found -- start a new block
-                        ( Just blockName, Nothing ) ->
+                        CBeginBlock blockName ->
                             ( indent + 1, blockName :: blockNameStack, NoError ) |> reportState "(1)" lineNumber first
 
-                        ( Just "$$", Just "$$" ) ->
+                        CMathBlockDelim ->
                             case List.head blockNameStack of
                                 Nothing ->
                                     ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(1b)" lineNumber first
@@ -82,7 +69,19 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
                                 Just _ ->
                                     ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(1d)" lineNumber first
 
-                        ( Nothing, Just blockName ) ->
+                        CVerbatimBlockDelim ->
+                            case List.head blockNameStack of
+                                Nothing ->
+                                    ( indent + 1, "```" :: blockNameStack, NoError ) |> reportState "(1b)" lineNumber first
+
+                                Just "```" ->
+                                    -- the current "```" matches the one on top of the stack
+                                    ( indent - 1, List.drop 1 blockNameStack, MapToEmpty ) |> reportState "(1c)" lineNumber first
+
+                                Just _ ->
+                                    ( indent + 1, "```" :: blockNameStack, NoError ) |> reportState "(1d)" lineNumber first
+
+                        CEndBlock blockName ->
                             -- \end{blockName} found -- end the block
                             case List.head blockNameStack of
                                 -- the blockName stack is empty, so there is no mach for blockName,
@@ -99,7 +98,7 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
                                     else
                                         ( indent - 1, blockNameStack, MisMatchedEndBlock blockName blockNameTop ) |> reportState "(4)" lineNumber first
 
-                        _ ->
+                        CPlainText ->
                             case ( first, blockNameStack ) of
                                 ( "", blockName :: rest_ ) ->
                                     -- ( indent, rest_, MissingEndBlock blockName )
@@ -107,6 +106,9 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
 
                                 _ ->
                                     ( indent, blockNameStack, NoError ) |> reportState "(6)" lineNumber first
+
+                        CEmpty ->
+                            ( indent, blockNameStack, NoError ) |> reportState "(7)" lineNumber first
 
                 newOutput =
                     if isEnd first then
@@ -130,8 +132,7 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack } as data) =
 
 
 reportState label lineNumber_ first_ =
-    --Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
-    identity
+    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
 
 
 type Status
@@ -185,6 +186,76 @@ transformToL0Aux strings =
                 str
     in
     strings |> List.map mapper
+
+
+type Classification
+    = CBeginBlock String
+    | CEndBlock String
+    | CMathBlockDelim
+    | CVerbatimBlockDelim
+    | CPlainText
+    | CEmpty
+
+
+classifierParser : Parser Classification
+classifierParser =
+    Parser.oneOf [ beginBlockParser, endBlockParser, mathBlockDelimParser, verbatimBlockDelimParser ]
+
+
+classify : String -> Classification
+classify str =
+    let
+        str_ =
+            String.trimLeft str
+    in
+    case Parser.run classifierParser str_ of
+        Ok classif ->
+            classif
+
+        Err _ ->
+            if str == "" then
+                CEmpty
+
+            else
+                CPlainText
+
+
+mathBlockDelimParser : Parser Classification
+mathBlockDelimParser =
+    (Parser.succeed ()
+        |. Parser.symbol "$$"
+    )
+        |> Parser.map (\_ -> CMathBlockDelim)
+
+
+verbatimBlockDelimParser : Parser Classification
+verbatimBlockDelimParser =
+    (Parser.succeed ()
+        |. Parser.symbol "```"
+    )
+        |> Parser.map (\_ -> CVerbatimBlockDelim)
+
+
+beginBlockParser =
+    (Parser.succeed String.slice
+        |. Parser.symbol "\\begin{"
+        |= Parser.getOffset
+        |. Parser.chompUntil "}"
+        |= Parser.getOffset
+        |= Parser.getSource
+    )
+        |> Parser.map CBeginBlock
+
+
+endBlockParser =
+    (Parser.succeed String.slice
+        |. Parser.symbol "\\end{"
+        |= Parser.getOffset
+        |. Parser.chompUntil "}"
+        |= Parser.getOffset
+        |= Parser.getSource
+    )
+        |> Parser.map CEndBlock
 
 
 blockBegin : String -> Maybe String
