@@ -31,8 +31,6 @@ suite =
 
 
 
---
---
 --suite2 : Test
 --suite2 =
 --    describe "The intermediate block parser"
@@ -53,6 +51,8 @@ suite =
 --
 --        --, Test.skip <| test_ "one microLaTeX Block, content with blank line" (ibm m3 |> unroll |> List.map getContent) [ [ "abc", "def", "ghi" ] ]
 --        ]
+--
+--
 --
 --
 --suite3 : Test

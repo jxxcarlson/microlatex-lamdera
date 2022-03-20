@@ -23,7 +23,43 @@ type alias IndentationData =
     , blockNameStack : List String
     , previousLineIsEmpty : Bool
     , hasError : Bool
+    , blockStatus : BlockStatus
     }
+
+
+type BlockStatus
+    = BlockStarted String
+    | PassThroughBlock
+    | NormalBlock
+    | OutsideBlock
+
+
+err9 =
+    """
+\\begin{theorem}
+abc
+\\end{theorem}
+
+\\begin{theorem}
+  abc
+  
+  def
+\\end{theorem}
+
+\\begin{theorem}
+  HIJ
+
+  \\begin{foo}
+  HO HO HO
+  \\end{foo}
+
+  KLM
+\\end{theorem}
+
+\\begin{theorem}
+RA RA RA!
+\\end{theorem}
+"""
 
 
 err =
@@ -61,7 +97,7 @@ indentStrings : List String -> List String
 indentStrings strings =
     let
         finalState =
-            indentAux { hasError = False, lineNumber = -1, previousLineIsEmpty = True, indent = -1, input = strings, output = [], blockNameStack = [] }
+            indentAux { blockStatus = OutsideBlock, hasError = False, lineNumber = -1, previousLineIsEmpty = True, indent = -1, input = strings, output = [], blockNameStack = [] }
 
         errorList =
             List.map (\s -> missingEndBlockMessge s) finalState.blockNameStack
@@ -101,35 +137,35 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
 
         first :: rest ->
             let
-                ( newIndent, blockNameStack_, status ) =
+                { xIndent, xBlockStack, xStatus } =
                     case classify first of
                         -- \begin{blockName} found -- start a new block
                         CBeginBlock blockName ->
-                            ( indent + 1, blockName :: blockNameStack, NoError ) |> reportState "(1)" lineNumber first
+                            { xIndent = indent + 1, xBlockStack = blockName :: blockNameStack, xStatus = NoError } |> reportState "(1)" lineNumber first
 
                         CMathBlockDelim ->
                             case List.head blockNameStack of
                                 Nothing ->
-                                    ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(2a)" lineNumber first
+                                    { xIndent = indent + 1, xBlockStack = "$$" :: blockNameStack, xStatus = NoError } |> reportState "(2a)" lineNumber first
 
                                 Just "$$" ->
                                     -- the current "$$" matches the one on top of the stack
-                                    ( indent - 1, List.drop 1 blockNameStack, NoError ) |> reportState "(2b)" lineNumber first
+                                    { xIndent = indent - 1, xBlockStack = List.drop 1 blockNameStack, xStatus = NoError } |> reportState "(2b)" lineNumber first
 
                                 Just _ ->
-                                    ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(2c)" lineNumber first
+                                    { xIndent = indent + 1, xBlockStack = "$$" :: blockNameStack, xStatus = NoError } |> reportState "(2c)" lineNumber first
 
                         CVerbatimBlockDelim ->
                             case List.head blockNameStack of
                                 Nothing ->
-                                    ( indent + 1, "```" :: blockNameStack, NoError ) |> reportState "(3a)" lineNumber first
+                                    { xIndent = indent + 1, xBlockStack = "```" :: blockNameStack, xStatus = NoError } |> reportState "(3a)" lineNumber first
 
                                 Just "```" ->
                                     -- the current "```" matches the one on top of the stack
-                                    ( indent - 1, List.drop 1 blockNameStack, NoError ) |> reportState "(3b)" lineNumber first
+                                    { xIndent = indent - 1, xBlockStack = List.drop 1 blockNameStack, xStatus = NoError } |> reportState "(3b)" lineNumber first
 
                                 Just _ ->
-                                    ( indent + 1, "```" :: blockNameStack, NoError ) |> reportState "(3c)" lineNumber first
+                                    { xIndent = indent + 1, xBlockStack = "```" :: blockNameStack, xStatus = NoError } |> reportState "(3c)" lineNumber first
 
                         CEndBlock blockName ->
                             -- \end{blockName} found -- end the block
@@ -137,39 +173,39 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
                                 -- the blockName stack is empty, so there is no mach for blockName,
                                 -- and so there is an error
                                 Nothing ->
-                                    ( indent - 1, [], MissingEndBlock blockName ) |> reportState "(4a)" lineNumber first
+                                    { xIndent = indent - 1, xBlockStack = [], xStatus = MissingEndBlock blockName } |> reportState "(4a)" lineNumber first
 
                                 Just blockNameTop ->
                                     -- blockName matches the top of the blockNameStack, so pop the stack
                                     if blockName == blockNameTop then
-                                        ( indent - 1, List.drop 1 (popIf "para" blockNameStack), NoError ) |> reportState "(4b)" lineNumber first
-                                        -- no match of blockName at top of stack: error
+                                        -- TODO: was messed up
+                                        { xIndent = indent - 1, xBlockStack = List.drop 1 blockNameStack, xStatus = NoError } |> reportState "(4b)" lineNumber first
 
                                     else
-                                        ( indent - 1, blockNameStack, MisMatchedEndBlock blockName blockNameTop ) |> reportState "(4c)" lineNumber first
+                                        { xIndent = indent - 1, xBlockStack = blockNameStack, xStatus = MisMatchedEndBlock blockName blockNameTop } |> reportState "(4c)" lineNumber first
 
                         CPlainText ->
                             if previousLineIsEmpty then
-                                ( indent + 1, "para" :: blockNameStack, NoError ) |> reportState "(5a)" lineNumber first
+                                { xIndent = indent + 1, xBlockStack = "para" :: blockNameStack, xStatus = NoError } |> reportState "(5a)" lineNumber first
 
                             else
                                 case List.head blockNameStack of
                                     Just "para" ->
                                         -- inside existing paragraph
-                                        ( indent, blockNameStack, NoError ) |> reportState "(5b)" lineNumber first
+                                        { xIndent = indent, xBlockStack = blockNameStack, xStatus = NoError } |> reportState "(5b)" lineNumber first
 
                                     Just _ ->
                                         -- inside existing block, so do nothing
-                                        ( indent, blockNameStack, NoError ) |> reportState "(5c)" lineNumber first
+                                        { xIndent = indent, xBlockStack = blockNameStack, xStatus = NoError } |> reportState "(5c)" lineNumber first
 
                                     Nothing ->
                                         -- no blocks on stack, so create one
-                                        ( indent, "para" :: blockNameStack, NoError ) |> reportState "(5d)" lineNumber first
+                                        { xIndent = indent, xBlockStack = "para" :: blockNameStack, xStatus = NoError } |> reportState "(5d)" lineNumber first
 
                         CEmpty ->
                             case List.head blockNameStack of
                                 Nothing ->
-                                    ( indent, blockNameStack, NoError ) |> reportState "(6a)" lineNumber first
+                                    { xIndent = indent, xBlockStack = blockNameStack, xStatus = NoError } |> reportState "(6a)" lineNumber first
 
                                 Just "para" ->
                                     let
@@ -180,30 +216,23 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
                                             else
                                                 indent - 1
                                     in
-                                    ( newIdent, List.drop 1 blockNameStack, NoError ) |> reportState "(6b)" lineNumber first
+                                    { xIndent = newIdent, xBlockStack = List.drop 1 blockNameStack, xStatus = NoError } |> reportState "(6b)" lineNumber first
 
                                 Just blockName ->
-                                    ( indent, blockName :: blockNameStack, MissingEndBlock blockName ) |> reportState "(6c)" lineNumber first
-
-                --newOutput =
-                --    if isEnd first then
-                --        indentString indent first :: output
-                --
-                --    else
-                --        indentString newIndent first :: output
+                                    { xIndent = indent, xBlockStack = blockNameStack, xStatus = MissingEndBlock blockName } |> reportState "(6c)" lineNumber first
             in
-            case status of
+            case xStatus of
                 NoError ->
-                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, input = rest, indent = newIndent, blockNameStack = blockNameStack_, output = first :: output }
+                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, input = rest, indent = xIndent, blockNameStack = xBlockStack, output = first :: output }
 
                 PreviousLineEmpty ->
-                    indentAux { data | previousLineIsEmpty = True, lineNumber = lineNumber + 1, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | previousLineIsEmpty = True, lineNumber = lineNumber + 1, input = rest, indent = xIndent, blockNameStack = xBlockStack }
 
                 MissingEndBlock blockName ->
-                    indentAux { data | hasError = True, blockNameStack = List.drop 1 blockNameStack, previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = endBlockWithName blockName :: missingEndBlockMessge blockName :: output, input = rest, indent = newIndent }
+                    indentAux { data | hasError = True, blockNameStack = List.drop 1 blockNameStack, previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = endBlockWithName blockName :: missingEndBlockMessge blockName :: output, input = rest, indent = xIndent }
 
                 MisMatchedEndBlock b1 b2 ->
-                    indentAux { data | hasError = True, previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = endBlockWithName b1 :: mismatchedEndBlockMessge b1 b2 :: List.drop 1 output, input = rest, indent = newIndent, blockNameStack = List.drop 1 blockNameStack_ }
+                    indentAux { data | hasError = True, previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = endBlockWithName b1 :: mismatchedEndBlockMessge b1 b2 :: List.drop 1 output, input = rest, indent = xIndent, blockNameStack = List.drop 1 xBlockStack }
 
 
 endBlockWithName name =
