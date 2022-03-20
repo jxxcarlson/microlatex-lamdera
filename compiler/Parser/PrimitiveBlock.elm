@@ -90,17 +90,11 @@ type alias State =
 
 blockListOfStringList : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 blockListOfStringList lang isVerbatimLine lines =
-    (let
-        _ =
-            Debug.log "PRIMITIVE, IN" lines
-     in
-     if lang == MicroLaTeXLang then
-        lines |> transformToL0 |> Debug.log "PRIMITIVE, TRANSF" |> blockListOfStringList_ L0Lang isVerbatimLine
+    if lang == MicroLaTeXLang then
+        lines |> transformToL0 |> blockListOfStringList_ L0Lang isVerbatimLine
 
-     else
+    else
         lines |> blockListOfStringList_ lang isVerbatimLine
-    )
-        |> Debug.log "PRIMITIVE, OUT"
 
 
 blockListOfStringList_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock

@@ -243,7 +243,6 @@ makeIntermediateBlock lang block messages =
         , blockType = toBlockType block.blockType (List.drop 1 block.args)
         , sourceText = block.sourceText
         }
-        |> Debug.log "INTERMEDIATE (1)"
 
 
 tranformVerbatimLine : String -> String

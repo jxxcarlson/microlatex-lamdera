@@ -90,7 +90,7 @@ This is a test
 
 transformToL0 : List String -> List String
 transformToL0 strings =
-    strings |> Debug.log "RAW" |> indentStrings |> Debug.log "INDENTED" |> transformToL0Aux |> Debug.log "TRANSFORMED"
+    strings |> indentStrings |> transformToL0Aux
 
 
 missingEndBlockMessge : String -> String
@@ -286,7 +286,8 @@ endBlockWithName name =
 
 
 reportState label lineNumber_ first_ =
-    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    --Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    identity
 
 
 type Status

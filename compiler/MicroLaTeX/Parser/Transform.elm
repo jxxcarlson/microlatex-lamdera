@@ -33,7 +33,9 @@ transform : PrimitiveBlock -> PrimitiveBlock
 transform block =
     let
         normalizedContent =
-            block.content |> List.map (String.dropLeft block.indent) |> normalize
+            block.content
+                |> List.map String.trimLeft
+                |> normalize
     in
     case normalizedContent of
         name_ :: rest_ ->
