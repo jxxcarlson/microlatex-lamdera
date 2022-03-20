@@ -1,12 +1,11 @@
 module Parser.TransformLaTeX exposing
-    ( classify
-    , err
+    ( err
     , indentStrings
     , transformToL0
     , transformToL0Aux
     )
 
-import Parser exposing ((|.), (|=), Parser)
+import Parser.Classify exposing (Classification(..), classify)
 import Parser.MathMacro exposing (MathExpression(..))
 import Tools
 
@@ -66,7 +65,7 @@ err =
     """
 \\begin{theorem}
 There are infinitely many primes.
-\\end{foo}
+\\end{theorem}
 """
 
 
@@ -294,76 +293,6 @@ transformToL0Aux strings =
                 str
     in
     strings |> List.map mapper
-
-
-type Classification
-    = CBeginBlock String
-    | CEndBlock String
-    | CMathBlockDelim
-    | CVerbatimBlockDelim
-    | CPlainText
-    | CEmpty
-
-
-classifierParser : Parser Classification
-classifierParser =
-    Parser.oneOf [ beginBlockParser, endBlockParser, mathBlockDelimParser, verbatimBlockDelimParser ]
-
-
-classify : String -> Classification
-classify str =
-    let
-        str_ =
-            String.trimLeft str
-    in
-    case Parser.run classifierParser str_ of
-        Ok classif ->
-            classif
-
-        Err _ ->
-            if str == "" then
-                CEmpty
-
-            else
-                CPlainText
-
-
-mathBlockDelimParser : Parser Classification
-mathBlockDelimParser =
-    (Parser.succeed ()
-        |. Parser.symbol "$$"
-    )
-        |> Parser.map (\_ -> CMathBlockDelim)
-
-
-verbatimBlockDelimParser : Parser Classification
-verbatimBlockDelimParser =
-    (Parser.succeed ()
-        |. Parser.symbol "```"
-    )
-        |> Parser.map (\_ -> CVerbatimBlockDelim)
-
-
-beginBlockParser =
-    (Parser.succeed String.slice
-        |. Parser.symbol "\\begin{"
-        |= Parser.getOffset
-        |. Parser.chompUntil "}"
-        |= Parser.getOffset
-        |= Parser.getSource
-    )
-        |> Parser.map CBeginBlock
-
-
-endBlockParser =
-    (Parser.succeed String.slice
-        |. Parser.symbol "\\end{"
-        |= Parser.getOffset
-        |. Parser.chompUntil "}"
-        |= Parser.getOffset
-        |= Parser.getSource
-    )
-        |> Parser.map CEndBlock
 
 
 blockBegin : String -> Maybe String
