@@ -84,7 +84,7 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
 
                                 Just "$$" ->
                                     -- the current "$$" matches the one on top of the stack
-                                    ( indent - 1, List.drop 1 blockNameStack, MapToEmpty ) |> reportState "(2b)" lineNumber first
+                                    ( indent - 1, List.drop 1 blockNameStack, NoError ) |> reportState "(2b)" lineNumber first
 
                                 Just _ ->
                                     ( indent + 1, "$$" :: blockNameStack, NoError ) |> reportState "(2c)" lineNumber first
@@ -96,7 +96,7 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
 
                                 Just "```" ->
                                     -- the current "```" matches the one on top of the stack
-                                    ( indent - 1, List.drop 1 blockNameStack, MapToEmpty ) |> reportState "(3b)" lineNumber first
+                                    ( indent - 1, List.drop 1 blockNameStack, NoError ) |> reportState "(3b)" lineNumber first
 
                                 Just _ ->
                                     ( indent + 1, "```" :: blockNameStack, NoError ) |> reportState "(3c)" lineNumber first
@@ -153,7 +153,7 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
                                     ( newIdent, List.drop 1 blockNameStack, NoError ) |> reportState "(6b)" lineNumber first
 
                                 Just _ ->
-                                    ( indent - 1, List.drop 1 blockNameStack, NoError ) |> reportState "(6b)" lineNumber first
+                                    ( indent, blockNameStack, NoError ) |> reportState "(6c)" lineNumber first
 
                 newOutput =
                     if isEnd first then
@@ -169,9 +169,6 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
                 PreviousLineEmpty ->
                     indentAux { data | previousLineIsEmpty = True, lineNumber = lineNumber + 1, output = newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
-                MapToEmpty ->
-                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = "" :: output, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
-
                 MissingEndBlock blockName ->
                     indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = ("missing end block: " ++ blockName) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
@@ -185,7 +182,6 @@ reportState label lineNumber_ first_ =
 
 type Status
     = NoError
-    | MapToEmpty
     | PreviousLineEmpty
     | MissingEndBlock String
     | MisMatchedEndBlock String String

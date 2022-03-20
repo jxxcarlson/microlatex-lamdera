@@ -74,8 +74,38 @@ transform str =
 suite3 : Test
 suite3 =
     describe "indenter and transformer"
-        [ test_ "p3, indented" (indent_ p3) (String.lines p3Indented)
+        [ test_ "p4, indented" (indent_ p4) (String.lines p4Indented)
         ]
+
+
+p4 =
+    """\\begin{A}
+PQR
+STU
+
+$$
+x^2
+$$
+
+ABC
+DEF
+\\end{A}
+"""
+
+
+p4Indented =
+    """\\begin{A}
+PQR
+STU
+
+  $$
+  x^2
+  $$
+
+ABC
+DEF
+\\end{A}
+"""
 
 
 p3 =
