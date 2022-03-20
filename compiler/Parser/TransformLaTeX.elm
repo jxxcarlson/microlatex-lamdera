@@ -1,5 +1,6 @@
 module Parser.TransformLaTeX exposing
     ( classify
+    , err
     , indentStrings
     , transformToL0
     , transformToL0Aux
@@ -21,31 +22,60 @@ type alias IndentationData =
     , output : List String
     , blockNameStack : List String
     , previousLineIsEmpty : Bool
+    , hasError : Bool
     }
+
+
+err =
+    """
+\\begin{theorem}
+There are infinitely many primes.
+\\end{foo}
+"""
+
+
+err1 =
+    """\\begin{theorem}
+There are infinitely many primes.
+
+This is a test
+"""
 
 
 transformToL0 : List String -> List String
 transformToL0 strings =
-    strings |> indentStrings |> transformToL0Aux
+    strings |> Debug.log "RAW" |> indentStrings |> Debug.log "INDENTED" |> transformToL0Aux |> Debug.log "TRANSFORMED"
+
+
+missingEndBlockMessge : String -> String
+missingEndBlockMessge blockName =
+    "\\vskip{11}\\red{^^^^^^ missing end tag: " ++ blockName ++ "}\\vskip{11}"
+
+
+mismatchedEndBlockMessge : String -> String -> String
+mismatchedEndBlockMessge blockName1 blockName2 =
+    "\\vskip{11}\\red{^^^^^^ mismatched end tags: " ++ blockName1 ++ " -> " ++ blockName2 ++ "}\\vskip{11}"
 
 
 indentStrings : List String -> List String
 indentStrings strings =
     let
         finalState =
-            indentAux { lineNumber = -1, previousLineIsEmpty = True, indent = -1, input = strings, output = [], blockNameStack = [] }
+            indentAux { hasError = False, lineNumber = -1, previousLineIsEmpty = True, indent = -1, input = strings, output = [], blockNameStack = [] }
 
         errorList =
-            List.map (\s -> "unmatched block " ++ s) finalState.blockNameStack
+            List.map (\s -> missingEndBlockMessge s) finalState.blockNameStack
 
         output =
             if List.isEmpty errorList then
                 finalState.output |> List.reverse
 
+            else if finalState.hasError then
+                finalState.output |> List.reverse
+
             else
                 errorList ++ finalState.output |> List.reverse
     in
-    --indentAux { lineNumber = -1, indent = -1, input = strings, output = [], blockNameStack = [] } |> .output |> List.reverse
     output
 
 
@@ -152,28 +182,32 @@ indentAux ({ lineNumber, indent, input, output, blockNameStack, previousLineIsEm
                                     in
                                     ( newIdent, List.drop 1 blockNameStack, NoError ) |> reportState "(6b)" lineNumber first
 
-                                Just _ ->
-                                    ( indent, blockNameStack, NoError ) |> reportState "(6c)" lineNumber first
+                                Just blockName ->
+                                    ( indent, blockName :: blockNameStack, MissingEndBlock blockName ) |> reportState "(6c)" lineNumber first
 
-                newOutput =
-                    if isEnd first then
-                        indentString indent first :: output
-
-                    else
-                        indentString newIndent first :: output
+                --newOutput =
+                --    if isEnd first then
+                --        indentString indent first :: output
+                --
+                --    else
+                --        indentString newIndent first :: output
             in
             case status of
                 NoError ->
-                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, input = rest, indent = newIndent, blockNameStack = blockNameStack_, output = first :: output }
 
                 PreviousLineEmpty ->
-                    indentAux { data | previousLineIsEmpty = True, lineNumber = lineNumber + 1, output = newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | previousLineIsEmpty = True, lineNumber = lineNumber + 1, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
 
                 MissingEndBlock blockName ->
-                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = ("missing end block: " ++ blockName) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | hasError = True, blockNameStack = List.drop 1 blockNameStack, previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = endBlockWithName blockName :: missingEndBlockMessge blockName :: output, input = rest, indent = newIndent }
 
                 MisMatchedEndBlock b1 b2 ->
-                    indentAux { data | previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = ("mismatched end blocks: " ++ b1 ++ ", " ++ b2) :: newOutput, input = rest, indent = newIndent, blockNameStack = blockNameStack_ }
+                    indentAux { data | hasError = True, previousLineIsEmpty = False, lineNumber = lineNumber + 1, output = endBlockWithName b1 :: mismatchedEndBlockMessge b1 b2 :: List.drop 1 output, input = rest, indent = newIndent, blockNameStack = List.drop 1 blockNameStack_ }
+
+
+endBlockWithName name =
+    "\\end{" ++ name ++ "}"
 
 
 reportState label lineNumber_ first_ =

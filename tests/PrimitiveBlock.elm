@@ -78,6 +78,14 @@ suite3 =
         ]
 
 
+err1 =
+    """\\begin{theorem}
+There are infinitely many primes.
+
+This is a test
+"""
+
+
 p4 =
     """\\begin{A}
 PQR

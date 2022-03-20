@@ -370,11 +370,13 @@ addCurrentLine_ lang ({ prefix, content, indent } as line) block =
 
 transformContent : Language -> Line -> String
 transformContent lang ({ indent, prefix, content } as line) =
-    if isNonEmptyBlank line then
-        "[syspar]"
-
-    else
-        prefix ++ content
+    --if isNonEmptyBlank line then
+    --    "[syspar]"
+    --
+    --else
+    --    prefix ++ content
+    -- TODO: temporarily disabled
+    content
 
 
 type Step state a
