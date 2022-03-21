@@ -6,6 +6,7 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
     )
 
 import Parser.Classify exposing (Classification(..), classify)
+import Parser.FirstLine exposing (FirstLineClassification(..))
 import Parser.MathMacro exposing (MathExpression(..))
 import Tools
 
@@ -90,7 +91,7 @@ This is a test
 
 toL0 : List String -> List String
 toL0 strings =
-    strings |> indentStrings |> Debug.log "INDENT (toL0)" |> toL0Aux |> Debug.log "toL0"
+    strings |> indentStrings |> toL0Aux
 
 
 missingEndBlockMessge : String -> String
@@ -286,7 +287,8 @@ endBlockWithName name =
 
 
 reportState label lineNumber_ first_ =
-    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    -- Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    identity
 
 
 type Status
