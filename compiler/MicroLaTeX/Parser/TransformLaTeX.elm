@@ -90,7 +90,7 @@ This is a test
 
 toL0 : List String -> List String
 toL0 strings =
-    strings |> indentStrings |> toL0Aux
+    strings |> indentStrings |> Debug.log "INDENT (toL0)" |> toL0Aux |> Debug.log "toL0"
 
 
 missingEndBlockMessge : String -> String
@@ -286,8 +286,7 @@ endBlockWithName name =
 
 
 reportState label lineNumber_ first_ =
-    --Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
-    identity
+    Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
 
 
 type Status

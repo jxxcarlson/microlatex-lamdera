@@ -87,38 +87,7 @@ parseToIntermediateBlocks lang sourceText =
     in
     sourceText
         |> toPrimitiveBlockForest lang
-        -- TODO: for the moment, function fixup has been replace by function identity
-        -- TODO: fixup was messing up nested lists
-        -- TODO: this needs to be revisited
-        |> List.map (Tree.map toIntermediateBlock >> identity)
-
-
-{-| The purpose of this function is to supress error messages in the case
-of ordinary blocks that are the root of a nontrivial tree. Not a great
-solution -- need to find something better.
--}
-fixup : Tree IntermediateBlock -> Tree IntermediateBlock
-fixup tree =
-    let
-        numberOfChildren =
-            List.length (Tree.children tree)
-
-        fixContent : IntermediateBlock -> IntermediateBlock
-        fixContent (Parser.Block.IntermediateBlock data) =
-            let
-                badString =
-                    "\n•••\\vskip{1}\n\\red{\\bs{end} •••}"
-
-                newSource =
-                    String.replace badString " " data.sourceText
-            in
-            IntermediateBlock { data | content = String.lines newSource }
-    in
-    if numberOfChildren == 0 then
-        tree
-
-    else
-        Tree.mapLabel fixContent tree
+        |> List.map (Tree.map toIntermediateBlock)
 
 
 emptyBlock =
