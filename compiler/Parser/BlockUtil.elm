@@ -2,7 +2,7 @@ module Parser.BlockUtil exposing
     ( empty
     , getMessages
     , l0Empty
-    , toExpressionBlockFromIntermediateBlock
+    , toEBfromIB
     , toIntermediateBlock
     )
 
@@ -63,8 +63,19 @@ getMessages ((ExpressionBlock { messages }) as block) =
     messages
 
 
-toExpressionBlockFromIntermediateBlock : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
-toExpressionBlockFromIntermediateBlock parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
+{-|
+
+    This function transforms an intermediate block (IB) to an expression block (EB),
+    carrying forward all fields except for the content field, which is transformed.
+
+    The content of an IB is a string, while the content of an EB is `Either String (List Expr).
+    Recall that both IBs and EBs have a field blockType: Paragraph, OrdinaryBlock args, VerbatimBlock args.
+    In the case of a verbatim block, the content is of type Left String, while for the other blocks it
+    is of type List Expr.
+
+-}
+toEBfromIB : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
+toEBfromIB parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
     ExpressionBlock
         { name = name
         , args = args

@@ -1,8 +1,8 @@
 module Parser.TransformLaTeX exposing
     ( err
     , indentStrings
-    , transformToL0
-    , transformToL0Aux
+    , toL0
+    , toL0Aux
     )
 
 import Parser.Classify exposing (Classification(..), classify)
@@ -88,9 +88,9 @@ This is a test
 """
 
 
-transformToL0 : List String -> List String
-transformToL0 strings =
-    strings |> indentStrings |> transformToL0Aux
+toL0 : List String -> List String
+toL0 strings =
+    strings |> indentStrings |> toL0Aux
 
 
 missingEndBlockMessge : String -> String
@@ -315,8 +315,8 @@ transformBlockHeader blockName str =
         String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
 
 
-transformToL0Aux : List String -> List String
-transformToL0Aux strings =
+toL0Aux : List String -> List String
+toL0Aux strings =
     let
         mapper str =
             let

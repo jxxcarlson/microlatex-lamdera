@@ -73,15 +73,15 @@ def
 
 
 bll str =
-    PrimitiveBlock.blockListOfStringList L0Lang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str)
 
 
 blm str =
-    PrimitiveBlock.blockListOfStringList MicroLaTeXLang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.toPrimitiveBlocks MicroLaTeXLang Markup.isVerbatimLine (String.lines str)
 
 
 blx str =
-    PrimitiveBlock.blockListOfStringList XMarkdownLang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.toPrimitiveBlocks XMarkdownLang Markup.isVerbatimLine (String.lines str)
 
 
 

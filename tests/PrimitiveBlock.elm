@@ -3,17 +3,17 @@ module PrimitiveBlock exposing (..)
 import Expect exposing (..)
 import Markup
 import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, blockListOfStringList)
-import Parser.TransformLaTeX exposing (indentStrings, transformToL0Aux)
+import Parser.PrimitiveBlock exposing (PrimitiveBlock, toPrimitiveBlocks)
+import Parser.TransformLaTeX exposing (indentStrings, toL0Aux)
 import Test exposing (..)
 
 
 bll str =
-    blockListOfStringList L0Lang Markup.isVerbatimLine (String.lines str)
+    toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str)
 
 
 bllc str =
-    blockListOfStringList L0Lang Markup.isVerbatimLine (String.lines str) |> List.map .content
+    toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str) |> List.map .content
 
 
 test_ label expr expectedOutput =
@@ -44,7 +44,7 @@ indent_ str =
 
 
 transform str =
-    indentStrings (String.lines str) |> transformToL0Aux
+    indentStrings (String.lines str) |> toL0Aux
 
 
 

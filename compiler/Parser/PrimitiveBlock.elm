@@ -1,7 +1,7 @@
 module Parser.PrimitiveBlock exposing
     ( PrimitiveBlock
-    , blockListOfStringList
     , empty
+    , toPrimitiveBlocks
     )
 
 {-| This module is like Tree.Blocks, except that if the first line of a block
@@ -24,7 +24,7 @@ considered the first line of a verbatim block.
 
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
-import Parser.TransformLaTeX exposing (transformToL0)
+import Parser.TransformLaTeX exposing (toL0)
 import Tools exposing (..)
 
 
@@ -88,17 +88,17 @@ type alias State =
 -- |> String.join "\n"
 
 
-blockListOfStringList : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-blockListOfStringList lang isVerbatimLine lines =
+toPrimitiveBlocks : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
+toPrimitiveBlocks lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
-        lines |> transformToL0 |> blockListOfStringList_ L0Lang isVerbatimLine
+        lines |> toL0 |> toPrimitiveBlocks_ L0Lang isVerbatimLine
 
     else
-        lines |> blockListOfStringList_ lang isVerbatimLine
+        lines |> toPrimitiveBlocks_ lang isVerbatimLine
 
 
-blockListOfStringList_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-blockListOfStringList_ lang isVerbatimLine lines =
+toPrimitiveBlocks_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
+toPrimitiveBlocks_ lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 

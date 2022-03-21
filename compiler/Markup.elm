@@ -66,7 +66,7 @@ parse lang sourceText =
     in
     sourceText
         |> parseToIntermediateBlocks lang
-        |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock parser))
+        |> List.map (Tree.map (Parser.BlockUtil.toEBfromIB parser))
 
 
 parseToIntermediateBlocks : Language -> String -> List (Tree IntermediateBlock)
@@ -129,7 +129,7 @@ toRawBlockForest : Language -> String -> List (Tree PrimitiveBlock)
 toRawBlockForest lang str =
     str
         |> String.lines
-        |> Parser.PrimitiveBlock.blockListOfStringList lang isVerbatimLine
+        |> Parser.PrimitiveBlock.toPrimitiveBlocks lang isVerbatimLine
         |> List.map (Compiler.Transform.transform lang)
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []

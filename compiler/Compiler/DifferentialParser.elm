@@ -42,11 +42,11 @@ parser : Language -> Tree IntermediateBlock -> Tree ExpressionBlock
 parser lang =
     case lang of
         MicroLaTeXLang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock MicroLaTeX.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toEBfromIB MicroLaTeX.Parser.Expression.parse)
 
         L0Lang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock L0.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toEBfromIB L0.Parser.Expression.parse)
 
         XMarkdownLang ->
             -- TODO: implement this
-            Tree.map (Parser.BlockUtil.toExpressionBlockFromIntermediateBlock L0.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toEBfromIB L0.Parser.Expression.parse)
