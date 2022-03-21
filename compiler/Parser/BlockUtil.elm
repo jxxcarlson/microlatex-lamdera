@@ -124,17 +124,17 @@ classify lang block =
             L0.Parser.Classify.classify block
 
 
-toIntermediateBlock : Language -> (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
-toIntermediateBlock lang parseToState extractMessages ({ name, args, blockType } as block) =
+toIntermediateBlock : (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
+toIntermediateBlock parseToState extractMessages ({ name, args, blockType } as block) =
     let
         messages =
             parseToState block.lineNumber block.sourceText |> extractMessages
     in
-    makeIntermediateBlock lang block messages
+    makeIntermediateBlock block messages
 
 
-makeIntermediateBlock : Language -> PrimitiveBlock -> List String -> IntermediateBlock
-makeIntermediateBlock lang block messages =
+makeIntermediateBlock : PrimitiveBlock -> List String -> IntermediateBlock
+makeIntermediateBlock block messages =
     let
         blockType =
             toBlockType block.blockType (List.drop 1 block.args)
