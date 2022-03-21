@@ -1,4 +1,4 @@
-module Parser.TransformLaTeX exposing
+module MicroLaTeX.Parser.TransformLaTeX exposing
     ( err
     , indentStrings
     , toL0

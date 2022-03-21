@@ -1,6 +1,6 @@
 module Markup exposing
     ( SyntaxTree, parse, parseToIntermediateBlocks
-    , isVerbatimLine, toRawBlockForest
+    , isVerbatimLine, toPrimitiveBlockForest
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -86,7 +86,7 @@ parseToIntermediateBlocks lang sourceText =
                     Parser.BlockUtil.toIntermediateBlock lang L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
     in
     sourceText
-        |> toRawBlockForest lang
+        |> toPrimitiveBlockForest lang
         -- TODO: for the moment, function fixup has been replace by function identity
         -- TODO: fixup was messing up nested lists
         -- TODO: this needs to be revisited
@@ -125,8 +125,8 @@ emptyBlock =
     Parser.PrimitiveBlock.empty
 
 
-toRawBlockForest : Language -> String -> List (Tree PrimitiveBlock)
-toRawBlockForest lang str =
+toPrimitiveBlockForest : Language -> String -> List (Tree PrimitiveBlock)
+toPrimitiveBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.toPrimitiveBlocks lang isVerbatimLine

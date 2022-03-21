@@ -22,9 +22,9 @@ considered the first line of a verbatim block.
 
 -}
 
+import MicroLaTeX.Parser.TransformLaTeX exposing (toL0)
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
-import Parser.TransformLaTeX exposing (toL0)
 import Tools exposing (..)
 
 
