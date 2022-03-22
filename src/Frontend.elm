@@ -25,14 +25,12 @@ import Markup
 import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
-import Render.Settings
 import Render.XMarkdown
 import Task
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
-import View.Data
 import View.Main
 import View.Phone
 import View.Utility

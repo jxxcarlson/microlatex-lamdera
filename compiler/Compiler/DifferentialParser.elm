@@ -4,6 +4,7 @@ import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
 import L0.Parser.Expression
 import Markup
+import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
@@ -23,14 +24,14 @@ init lang str =
             chunker lang str
 
         ( newAccumulator, parsed ) =
-            (List.map parser >> Compiler.Acc.transformAcccumulate lang) chunks
+            (List.map (parser lang) >> Compiler.Acc.transformAcccumulate lang) chunks
     in
     { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
 
 
 update : EditRecord -> String -> EditRecord
 update editRecord text =
-    Abstract.update (chunker editRecord.lang) parser Compiler.Acc.transformAcccumulate editRecord text
+    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Compiler.Acc.transformAcccumulate editRecord text
 
 
 chunker : Language -> String -> List (Tree PrimitiveBlock)
@@ -38,6 +39,14 @@ chunker lang =
     Markup.toPrimitiveBlockForest lang
 
 
-parser : Tree PrimitiveBlock -> Tree ExpressionBlock
-parser =
-    Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)
+parser : Language -> Tree PrimitiveBlock -> Tree ExpressionBlock
+parser lang =
+    case lang of
+        MicroLaTeXLang ->
+            Tree.map (Parser.BlockUtil.toExpressionBlock MicroLaTeX.Parser.Expression.parse)
+
+        L0Lang ->
+            Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)
+
+        XMarkdownLang ->
+            Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)

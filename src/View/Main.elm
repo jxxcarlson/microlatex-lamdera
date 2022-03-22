@@ -12,7 +12,6 @@ import Html exposing (Html)
 import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
-import Render.Block
 import Render.Markup
 import Render.Settings
 import Render.TOC
