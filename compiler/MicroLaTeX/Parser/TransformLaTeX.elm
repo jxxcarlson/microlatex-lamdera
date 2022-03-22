@@ -5,6 +5,7 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
     , toL0Aux
     )
 
+import Dict exposing (Dict)
 import Parser.Classify exposing (Classification(..), classify)
 import Parser.FirstLine exposing (FirstLineClassification(..))
 import Parser.MathMacro exposing (MathExpression(..))
@@ -339,9 +340,28 @@ toL0Aux strings =
                 ""
 
             else
-                str
+                let
+                    key =
+                        String.trim str
+                in
+                case Dict.get key substitutions of
+                    Just val ->
+                        String.replace key val str
+
+                    Nothing ->
+                        str
     in
     strings |> List.map (mapper >> makeBlanksEmpty)
+
+
+substitutions : Dict String String
+substitutions =
+    Dict.fromList
+        [ ( "\\item", "| item" )
+        , ( "\\numbered", "| numbered" )
+        , ( "\\bibitem", "| abstract" )
+        , ( "\\abstract", "| abstract" )
+        ]
 
 
 makeBlanksEmpty : String -> String

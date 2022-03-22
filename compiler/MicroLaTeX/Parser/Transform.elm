@@ -8,7 +8,7 @@ import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
 pseudoBlockNames =
-    [ "item", "numbered", "bibitem", "abstract" ]
+    [ "bibitem" ]
 
 
 pseudoBlockNamesWithArgs =
