@@ -1,10 +1,7 @@
 module Parser.BlockUtil exposing
-    ( empty
-    , getMessages
+    ( getMessages
     , l0Empty
-    , toEBfromIB
     , toExpressionBlock
-    , toIntermediateBlock
     )
 
 -- import Parser.Expression
@@ -14,7 +11,7 @@ import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
 import MicroLaTeX.Parser.Expression
-import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
+import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Common
 import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
@@ -24,22 +21,6 @@ import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 type alias Classification =
     { blockType : BlockType, args : List String, name : Maybe String }
-
-
-empty =
-    IntermediateBlock
-        { name = Nothing
-        , args = []
-        , indent = 0
-        , lineNumber = 0
-        , id = "0"
-        , tag = ""
-        , numberOfLines = 0
-        , blockType = Paragraph
-        , content = []
-        , messages = []
-        , sourceText = "YYY"
-        }
 
 
 l0Empty =
@@ -61,34 +42,6 @@ l0Empty =
 getMessages : ExpressionBlock -> List String
 getMessages ((ExpressionBlock { messages }) as block) =
     messages
-
-
-{-|
-
-    This function transforms an intermediate block (IB) to an expression block (EB),
-    carrying forward all fields except for the content field, which is transformed.
-
-    The content of an IB is a string, while the content of an EB is `Either String (List Expr).
-    Recall that both IBs and EBs have a field blockType: Paragraph, OrdinaryBlock args, VerbatimBlock args.
-    In the case of a verbatim block, the content is of type Left String, while for the other blocks it
-    is of type List Expr.
-
--}
-toEBfromIB : (Int -> String -> List Expr) -> IntermediateBlock -> ExpressionBlock
-toEBfromIB parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, blockType, content, messages, sourceText }) =
-    ExpressionBlock
-        { name = name
-        , args = args
-        , indent = indent
-        , lineNumber = lineNumber
-        , numberOfLines = List.length content
-        , id = id
-        , tag = tag
-        , blockType = blockType
-        , content = mapContent parse lineNumber blockType (String.join "\n" content)
-        , messages = messages
-        , sourceText = sourceText
-        }
 
 
 toExpressionBlock : (Int -> String -> List Expr) -> PrimitiveBlock -> ExpressionBlock
@@ -153,44 +106,6 @@ classify lang block =
         XMarkdownLang ->
             -- TODO: implement this
             L0.Parser.Classify.classify block
-
-
-toIntermediateBlock : (Int -> String -> state) -> (state -> List String) -> PrimitiveBlock -> IntermediateBlock
-toIntermediateBlock parseToState extractMessages ({ name, args, blockType } as block) =
-    let
-        messages =
-            parseToState block.lineNumber block.sourceText |> extractMessages
-    in
-    makeIntermediateBlock block messages
-
-
-makeIntermediateBlock : PrimitiveBlock -> List String -> IntermediateBlock
-makeIntermediateBlock block messages =
-    let
-        blockType =
-            toBlockType block.blockType (List.drop 1 block.args)
-
-        content =
-            case blockType of
-                Paragraph ->
-                    block.content
-
-                _ ->
-                    List.drop 1 block.content
-    in
-    IntermediateBlock
-        { name = block.name
-        , args = block.args
-        , indent = block.indent
-        , lineNumber = block.lineNumber
-        , id = String.fromInt block.lineNumber
-        , tag = Compiler.Util.getItem MicroLaTeXLang "label" block.sourceText
-        , numberOfLines = List.length block.content
-        , content = content
-        , messages = messages
-        , blockType = blockType
-        , sourceText = block.sourceText
-        }
 
 
 toBlockType : PrimitiveBlockType -> List String -> BlockType
