@@ -126,9 +126,8 @@ handleTitle block firstLine rest =
         Just 0 ->
             block
 
-        Just 1 ->
-            { block | args = [ "1" ], blockType = PBOrdinary, name = Just "title", content = [ "| title", String.join " " (List.drop 1 words) ] }
-
+        --Just 1 ->
+        --    { block | args = [ "1" ], blockType = PBOrdinary, name = Just "title", content = [ "| title", String.join " " (List.drop 1 words) ] }
         Just n ->
             let
                 first =

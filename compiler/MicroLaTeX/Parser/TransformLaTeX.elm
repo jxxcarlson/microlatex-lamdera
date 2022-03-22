@@ -1,15 +1,13 @@
 module MicroLaTeX.Parser.TransformLaTeX exposing
     ( indentStrings
-    , macro
     , toL0
     , toL0Aux
     )
 
 import Dict exposing (Dict)
-import Parser exposing ((|.), (|=), Parser)
 import Parser.Classify exposing (Classification(..), classify)
 import Parser.MathMacro exposing (MathExpression(..))
-import Set
+import Parser.TextMacro
 
 
 
@@ -289,16 +287,16 @@ toL0Aux strings =
                         String.repeat numberOfLeadingBlanks " "
 
                     ( name, args ) =
-                        case Parser.run macro (String.trim trimmed) of
-                            Ok (MyMacro name_ args_) ->
-                                ( name_, args_ ) |> Debug.log "(name, args)"
+                        case Parser.TextMacro.getMacro (String.trim trimmed) of
+                            Ok (Parser.TextMacro.MyMacro name_ args_) ->
+                                ( name_, args_ )
 
                             Err _ ->
                                 ( "(no-name)", [] )
                 in
                 case Dict.get name substitutions of
                     Just { prefix, arity } ->
-                        leadingBlanks ++ prefix ++ " " ++ name ++ " " ++ String.join " " args |> Debug.log "OUT"
+                        leadingBlanks ++ prefix ++ " " ++ name ++ " " ++ String.join " " args
 
                     Nothing ->
                         str
@@ -318,82 +316,6 @@ substitutions =
 
         --, ( "section", { prefix = "|", arity = 1 } )
         ]
-
-
-type MyMacro
-    = MyMacro String (List String)
-
-
-
--- macro : MXParser MathExpression
-
-
-macro =
-    Parser.succeed MyMacro
-        |= macroName
-        |= itemList arg
-
-
-arg : Parser String
-arg =
-    Parser.succeed identity
-        |. Parser.symbol "{"
-        |. Parser.spaces
-        |= word (\c -> c /= ' ' && c /= '}')
-        |. Parser.symbol "}"
-
-
-{-| Use `inWord` to parse a word.
-
-import Parser
-
-inWord : Char -> Bool
-inWord c = not (c == ' ')
-
-MXParser.run word "this is a test"
---> Ok "this"
-
--}
-word : (Char -> Bool) -> Parser String
-word inWord =
-    Parser.succeed String.slice
-        |. Parser.spaces
-        |= Parser.getOffset
-        |. Parser.chompIf inWord
-        |. Parser.chompWhile inWord
-        |. Parser.spaces
-        |= Parser.getOffset
-        |= Parser.getSource
-
-
-itemList : Parser a -> Parser (List a)
-itemList itemParser =
-    itemList_ [] itemParser
-
-
-itemList_ : List a -> Parser a -> Parser (List a)
-itemList_ initialList itemParser =
-    Parser.loop initialList (itemListHelper itemParser)
-
-
-itemListHelper : Parser a -> List a -> Parser (Parser.Step (List a) (List a))
-itemListHelper itemParser revItems =
-    Parser.oneOf
-        [ Parser.succeed (\item_ -> Parser.Loop (item_ :: revItems))
-            |= itemParser
-        , Parser.succeed ()
-            |> Parser.map (\_ -> Parser.Done (List.reverse revItems))
-        ]
-
-
-macroName : Parser String
-macroName =
-    Parser.variable
-        { start = \c -> c == '\\'
-        , inner = \c -> Char.isAlphaNum c
-        , reserved = Set.fromList []
-        }
-        |> Parser.map (String.dropLeft 1)
 
 
 makeBlanksEmpty : String -> String

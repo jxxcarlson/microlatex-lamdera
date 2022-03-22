@@ -5,6 +5,7 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
+import Parser.TextMacro
 
 
 type DisplayMode
@@ -24,10 +25,13 @@ mathText generation width id displayMode content =
         , HA.id id
         , HA.style "width" width
         ]
-        [ -- ( String.fromInt generation, mathText_ displayMode "ID" (content |> String.replace "\\ \\" "\\\\") )
-          ( String.fromInt generation, mathText_ displayMode id content )
+        [ ( String.fromInt generation, mathText_ displayMode id (eraseLabeMacro content) )
         ]
         |> Element.html
+
+
+eraseLabeMacro content =
+    content |> String.lines |> List.map (Parser.TextMacro.eraseLeadingMacro "label") |> String.join "\n"
 
 
 mathText_ : DisplayMode -> String -> String -> Html msg
