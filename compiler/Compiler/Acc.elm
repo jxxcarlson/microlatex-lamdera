@@ -17,6 +17,7 @@ import List.Extra
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
+import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
 import Parser.MathMacro
 import Tree exposing (Tree)
@@ -52,12 +53,12 @@ incrementCounter name dict =
     Dict.insert name (getCounter name dict + 1) dict
 
 
-transformST : Language -> List (Tree ExpressionBlock) -> List (Tree ExpressionBlock)
+transformST : Language -> Forest ExpressionBlock -> Forest ExpressionBlock
 transformST lang ast =
     ast |> transformAcccumulate lang |> Tuple.second
 
 
-transformAcccumulate : Language -> List (Tree ExpressionBlock) -> ( Accumulator, List (Tree ExpressionBlock) )
+transformAcccumulate : Language -> Forest ExpressionBlock -> ( Accumulator, Forest ExpressionBlock )
 transformAcccumulate lang ast =
     List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))

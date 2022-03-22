@@ -42,6 +42,7 @@ has the correct type. Here we use the representation of rose trees found in
 
 -- import Tree.Blocks as Blocks exposing (Block)
 
+import Parser.Forest exposing (Forest)
 import Tree exposing (Tree)
 import Tree.Zipper as Zipper exposing (Zipper)
 
@@ -102,7 +103,7 @@ fromBlocks defaultNode makeNode blocks =
       Ok (Tree "1" [Tree "2" [],Tree "3" []])
 
 -}
-forestFromBlocks : data -> (Block data -> data) -> (data -> Block data) -> List (Block data) -> Result Error (List (Tree data))
+forestFromBlocks : data -> (Block data -> data) -> (data -> Block data) -> List (Block data) -> Result Error (Forest data)
 forestFromBlocks defaultNode makeNode renderNode blocks =
     let
         blocks2 : List (Block data)

@@ -2,8 +2,10 @@ module Render.Markup exposing (getMessages, renderFromAST, renderFromString, ren
 
 import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
-import Markup exposing (SyntaxTree)
+import Markup
+import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil as BlockUtil
+import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language)
 import Render.Block
 import Render.Msg exposing (MarkupMsg)
@@ -16,19 +18,19 @@ renderFromString lang count acc settings str =
     str |> Markup.parse lang |> renderFromAST count acc settings
 
 
-render_ : Accumulator -> SyntaxTree -> List (Element MarkupMsg)
+render_ : Accumulator -> Forest ExpressionBlock -> List (Element MarkupMsg)
 render_ acc ast =
     renderFromAST 0 acc Render.Settings.defaultSettings ast
 
 
-renderFromAST : Int -> Accumulator -> Settings -> SyntaxTree -> List (Element MarkupMsg)
+renderFromAST : Int -> Accumulator -> Settings -> Forest ExpressionBlock -> List (Element MarkupMsg)
 renderFromAST count accumulator settings ast =
     ast
         |> List.map (Tree.map (Render.Block.render count accumulator settings))
         |> List.map unravel
 
 
-getMessages : SyntaxTree -> List String
+getMessages : Forest ExpressionBlock -> List String
 getMessages syntaxTree =
     syntaxTree
         |> List.map Tree.flatten

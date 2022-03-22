@@ -4,16 +4,14 @@ import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import Markup exposing (SyntaxTree)
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
-import Parser.Helpers exposing (Step(..), loop)
-import Render.Settings exposing (Settings)
+import Parser.Forest exposing (Forest)
 import Render.Utility as Utility
 import Tree
 
 
-export : SyntaxTree -> String
+export : Forest ExpressionBlock -> String
 export ast =
     ast
         |> List.map Tree.flatten

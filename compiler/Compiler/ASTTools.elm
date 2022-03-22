@@ -20,6 +20,7 @@ import Either exposing (Either(..))
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
+import Parser.Forest exposing (Forest)
 import Tree exposing (Tree)
 
 
@@ -61,7 +62,7 @@ matchExprOnName name expr =
             False
 
 
-matchingIdsInAST : String -> List (Tree ExpressionBlock) -> List String
+matchingIdsInAST : String -> Forest ExpressionBlock -> List String
 matchingIdsInAST key ast =
     ast |> List.map Tree.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
 
@@ -75,7 +76,7 @@ idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
         Nothing
 
 
-titleTOC : List (Tree ExpressionBlock) -> List ExpressionBlock
+titleTOC : Forest ExpressionBlock -> List ExpressionBlock
 titleTOC ast =
     filterBlocksByArgs "title" ast
 
@@ -145,7 +146,7 @@ title_ ast =
                     List.map getText exprList |> Maybe.Extra.values |> String.join ""
 
 
-title : List (Tree ExpressionBlock) -> String
+title : Forest ExpressionBlock -> String
 title ast =
     title_ ast
 
@@ -154,12 +155,12 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
 
-tableOfContents : List (Tree ExpressionBlock) -> List ExpressionBlock
+tableOfContents : Forest ExpressionBlock -> List ExpressionBlock
 tableOfContents ast =
     filterBlocksOnName "section" (List.map Tree.flatten ast |> List.concat)
 
 
-filterBlocksByArgs : String -> List (Tree ExpressionBlock) -> List ExpressionBlock
+filterBlocksByArgs : String -> Forest ExpressionBlock -> List ExpressionBlock
 filterBlocksByArgs key ast =
     ast
         |> List.map Tree.flatten

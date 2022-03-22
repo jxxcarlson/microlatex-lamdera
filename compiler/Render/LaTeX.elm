@@ -4,16 +4,16 @@ import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import Markup exposing (SyntaxTree)
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
+import Parser.Forest exposing (Forest)
 import Parser.Helpers exposing (Step(..), loop)
 import Render.Settings exposing (Settings)
 import Render.Utility as Utility
 import Tree
 
 
-export : Settings -> SyntaxTree -> String
+export : Settings -> Forest ExpressionBlock -> String
 export settings ast =
     preamble (ASTTools.extractTextFromSyntaxTreeByKey "title" ast)
         (ASTTools.extractTextFromSyntaxTreeByKey "author" ast)
@@ -23,7 +23,7 @@ export settings ast =
         ++ "\n\n\\end{document}\n"
 
 
-rawExport : Settings -> SyntaxTree -> String
+rawExport : Settings -> Forest ExpressionBlock -> String
 rawExport settings ast =
     ast
         |> List.map Tree.flatten

@@ -10,6 +10,7 @@ import List.Extra
 import Markup
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
+import Parser.Forest exposing (Forest)
 import Render.Elm
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings
@@ -17,7 +18,7 @@ import Render.Utility
 import Tree
 
 
-view : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> Element Render.Msg.MarkupMsg
+view : Int -> Accumulator -> Render.Settings.Settings -> Forest ExpressionBlock -> Element Render.Msg.MarkupMsg
 view counter acc _ ast =
     case ast |> List.map Tree.flatten |> List.concat |> Compiler.ASTTools.filterBlocksOnName "contents" of
         [] ->
@@ -53,7 +54,7 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
                 (Element.link [ Font.color (Element.rgb 0 0 0.8) ] { url = Render.Utility.internalLink id, label = label })
 
 
-prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element MarkupMsg)
+prepareTOC : Int -> Accumulator -> Render.Settings.Settings -> Forest ExpressionBlock -> List (Element MarkupMsg)
 prepareTOC count acc settings ast =
     let
         rawToc =
@@ -95,7 +96,7 @@ prepareTOC count acc settings ast =
         title :: subtitle :: spaceBelow 8 :: toc
 
 
-prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> Markup.SyntaxTree -> List (Element MarkupMsg)
+prepareFrontMatter : Int -> Accumulator -> Render.Settings.Settings -> Forest ExpressionBlock -> List (Element MarkupMsg)
 prepareFrontMatter count acc settings ast =
     let
         headings =
@@ -136,7 +137,7 @@ tocIndentAux args =
             String.toInt str |> Maybe.withDefault 0 |> (\x -> 12 * x)
 
 
-getHeadings : Markup.SyntaxTree -> { title : Maybe (List Expr), subtitle : Maybe (List Expr) }
+getHeadings : Forest ExpressionBlock -> { title : Maybe (List Expr), subtitle : Maybe (List Expr) }
 getHeadings ast =
     let
         data =

@@ -1,15 +1,15 @@
 module MicroLaTeX.Parser.TransformLaTeX exposing
-    ( err
-    , indentStrings
+    ( indentStrings
+    , macro
     , toL0
     , toL0Aux
     )
 
 import Dict exposing (Dict)
+import Parser exposing ((|.), (|=), Parser)
 import Parser.Classify exposing (Classification(..), classify)
-import Parser.FirstLine exposing (FirstLineClassification(..))
 import Parser.MathMacro exposing (MathExpression(..))
-import Tools
+import Set
 
 
 
@@ -26,68 +26,6 @@ type alias IndentationData =
     , hasError : Bool
     , blockStatus : BlockStatus
     }
-
-
-err =
-    """\\begin{theorem}
-  There are infinitely many primes.
-  
-  \\begin{equation}
-  \\int_0^1 x^n dx = \\frac{1}{n+1}
-  \\end{equation}
-  
-  Isn't that nice??
-  Yes?
-  No?
-\\end{theorem}
-"""
-
-
-err9 =
-    """
-\\begin{theorem}
-abc
-\\end{theorem}
-
-\\begin{theorem}
-  abc
-  
-  def
-\\end{theorem}
-
-\\begin{theorem}
-  HIJ
-
-  \\begin{foo}
-  HO HO HO
-  \\end{foo}
-
-  KLM
-\\end{theorem}
-
-\\begin{theorem}
-RA RA RA!
-\\end{theorem}
-"""
-
-
-err2 =
-    """
-\\begin{theorem}
-  abc
-
-  def
-\\end{theorem}
-
-"""
-
-
-err1 =
-    """\\begin{theorem}
-There are infinitely many primes.
-
-This is a test
-"""
 
 
 toL0 : List String -> List String
@@ -341,12 +279,26 @@ toL0Aux strings =
 
             else
                 let
-                    key =
+                    trimmed =
                         String.trim str
+
+                    numberOfLeadingBlanks =
+                        String.length str - String.length trimmed
+
+                    leadingBlanks =
+                        String.repeat numberOfLeadingBlanks " "
+
+                    ( name, args ) =
+                        case Parser.run macro (String.trim trimmed) of
+                            Ok (MyMacro name_ args_) ->
+                                ( name_, args_ ) |> Debug.log "(name, args)"
+
+                            Err _ ->
+                                ( "(no-name)", [] )
                 in
-                case Dict.get key substitutions of
-                    Just val ->
-                        String.replace key val str
+                case Dict.get name substitutions of
+                    Just { prefix, arity } ->
+                        leadingBlanks ++ prefix ++ " " ++ name ++ " " ++ String.join " " args |> Debug.log "OUT"
 
                     Nothing ->
                         str
@@ -354,14 +306,94 @@ toL0Aux strings =
     strings |> List.map (mapper >> makeBlanksEmpty)
 
 
-substitutions : Dict String String
+substitutions : Dict String { prefix : String, arity : Int }
 substitutions =
     Dict.fromList
-        [ ( "\\item", "| item" )
-        , ( "\\numbered", "| numbered" )
-        , ( "\\bibitem", "| abstract" )
-        , ( "\\abstract", "| abstract" )
+        [ ( "item", { prefix = "|", arity = 0 } )
+        , ( "numbered", { prefix = "|", arity = 0 } )
+        , ( "abstract", { prefix = "|", arity = 0 } )
+        , ( "bibitem", { prefix = "|", arity = 1 } )
+        , ( "setcounter", { prefix = "|", arity = 1 } )
+        , ( "contents", { prefix = "|", arity = 0 } )
+
+        --, ( "section", { prefix = "|", arity = 1 } )
         ]
+
+
+type MyMacro
+    = MyMacro String (List String)
+
+
+
+-- macro : MXParser MathExpression
+
+
+macro =
+    Parser.succeed MyMacro
+        |= macroName
+        |= itemList arg
+
+
+arg : Parser String
+arg =
+    Parser.succeed identity
+        |. Parser.symbol "{"
+        |. Parser.spaces
+        |= word (\c -> c /= ' ' && c /= '}')
+        |. Parser.symbol "}"
+
+
+{-| Use `inWord` to parse a word.
+
+import Parser
+
+inWord : Char -> Bool
+inWord c = not (c == ' ')
+
+MXParser.run word "this is a test"
+--> Ok "this"
+
+-}
+word : (Char -> Bool) -> Parser String
+word inWord =
+    Parser.succeed String.slice
+        |. Parser.spaces
+        |= Parser.getOffset
+        |. Parser.chompIf inWord
+        |. Parser.chompWhile inWord
+        |. Parser.spaces
+        |= Parser.getOffset
+        |= Parser.getSource
+
+
+itemList : Parser a -> Parser (List a)
+itemList itemParser =
+    itemList_ [] itemParser
+
+
+itemList_ : List a -> Parser a -> Parser (List a)
+itemList_ initialList itemParser =
+    Parser.loop initialList (itemListHelper itemParser)
+
+
+itemListHelper : Parser a -> List a -> Parser (Parser.Step (List a) (List a))
+itemListHelper itemParser revItems =
+    Parser.oneOf
+        [ Parser.succeed (\item_ -> Parser.Loop (item_ :: revItems))
+            |= itemParser
+        , Parser.succeed ()
+            |> Parser.map (\_ -> Parser.Done (List.reverse revItems))
+        ]
+
+
+macroName : Parser String
+macroName =
+    Parser.variable
+        { start = \c -> c == '\\'
+        , inner = \c -> Char.isAlphaNum c
+        , reserved = Set.fromList []
+        }
+        |> Parser.map (String.dropLeft 1)
 
 
 makeBlanksEmpty : String -> String

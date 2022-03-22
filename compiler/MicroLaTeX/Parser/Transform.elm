@@ -7,14 +7,6 @@ import Parser.MathMacro exposing (MathExpression(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
 
-pseudoBlockNames =
-    [ "bibitem" ]
-
-
-pseudoBlockNamesWithArgs =
-    [ "setcounter", "contents" ]
-
-
 pseudoBlockNamesWithContent =
     [ "title", "section", "subsection", "subsubsection", "subheading" ]
 
@@ -52,37 +44,14 @@ transform block =
                 macroExpr =
                     Parser.MathMacro.parseOne name_
             in
-            if List.member name pseudoBlockNames then
-                handlePseudoblock block name rest_ macroExpr
-
-            else if List.member name pseudoBlockNamesWithContent then
+            if List.member name pseudoBlockNamesWithContent then
                 handlePseudoBlockWithContent block name name_ macroExpr
-
-            else if List.member name pseudoBlockNamesWithArgs then
-                handlePseudoblockWithArgs block name rest_ macroExpr
 
             else
                 block
 
         _ ->
             block
-
-
-handlePseudoblock block name rest_ macroExpr =
-    case macroExpr of
-        Nothing ->
-            { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary }
-
-        Just ((Macro macroName args) as macro) ->
-            { block
-                | content = ("| " ++ macroName) :: rest_
-                , name = Just name
-                , args = List.map Parser.MathMacro.getArgs args |> List.concat
-                , blockType = PBOrdinary
-            }
-
-        _ ->
-            { block | content = ("| " ++ name) :: rest_, name = Just name, blockType = PBOrdinary }
 
 
 handlePseudoBlockWithContent block name name_ macroExpr =
@@ -104,18 +73,6 @@ handlePseudoBlockWithContent block name name_ macroExpr =
 
                 Just val ->
                     { block | content = ("| section " ++ val) :: mainContent, args = val :: [], name = Just "section", blockType = PBOrdinary }
-
-        _ ->
-            block
-
-
-handlePseudoblockWithArgs block name rest_ macroExpr =
-    case macroExpr of
-        Nothing ->
-            block
-
-        Just ((Macro macroName args) as macro) ->
-            { block | content = ("| " ++ macroName) :: rest_, name = Just name, args = List.map Parser.MathMacro.getArgs args |> List.concat, blockType = PBOrdinary }
 
         _ ->
             block

@@ -1,5 +1,5 @@
 module Markup exposing
-    ( SyntaxTree, parse
+    ( parse
     , isVerbatimLine, toPrimitiveBlockForest
     )
 
@@ -10,25 +10,20 @@ users are free to design their own renderer.
 Since this package is still experimental (but needed in various test projects).
 The documentation is skimpy.
 
-@docs SyntaxTree, parse, parseToIntermediateBlocks
+@docs parse, parseToIntermediateBlocks
 
 -}
 
 import Compiler.Transform
-import Compiler.Util
 import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock, IntermediateBlock(..), RawBlock)
 import Parser.BlockUtil
+import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 import Parser.Tree
 import Tree exposing (Tree)
-
-
-{-| -}
-type alias SyntaxTree =
-    List (Tree ExpressionBlock)
 
 
 isVerbatimLine : String -> Bool
@@ -44,7 +39,7 @@ isVerbatimLine str =
 
 
 {-| -}
-parse : Language -> String -> List (Tree ExpressionBlock)
+parse : Language -> String -> Forest ExpressionBlock
 parse lang sourceText =
     let
         parser =
@@ -68,7 +63,7 @@ emptyBlock =
     Parser.PrimitiveBlock.empty
 
 
-toPrimitiveBlockForest : Language -> String -> List (Tree PrimitiveBlock)
+toPrimitiveBlockForest : Language -> String -> Forest PrimitiveBlock
 toPrimitiveBlockForest lang str =
     str
         |> String.lines

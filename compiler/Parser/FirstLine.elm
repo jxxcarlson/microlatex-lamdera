@@ -6,7 +6,7 @@ import Set
 
 type FirstLineClassification
     = FBareMacro String
-    | FMacro (List String)
+    | FMacro String (List String)
     | FMathBlock
     | FVerbatimBlock
     | FNothing
@@ -47,17 +47,16 @@ verbatimBlockDelimParser =
         |> Parser.map (\_ -> FVerbatimBlock)
 
 
-
---macroParser =
---    (Parser.succeed String.slice
---        |. Parser.spaces
---        |. Parser.symbol "\\"
---        |= Parser.getOffset
---        |. Parser.chompUntilEndOr "\n"
---        |= Parser.getOffset
---        |= Parser.getSource
---    )
---        |> Parser.map FBareMacro
+macroParser =
+    (Parser.succeed String.slice
+        |. Parser.spaces
+        |. Parser.symbol "\\"
+        |= Parser.getOffset
+        |. Parser.chompUntil "{"
+        |= Parser.getOffset
+        |= Parser.getSource
+    )
+        |> Parser.map FBareMacro
 
 
 bareMacroParser =
