@@ -8,6 +8,7 @@ import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
 import Debounce
+import Dict
 import Docs
 import Document
 import Element
@@ -72,6 +73,7 @@ init url key =
       , currentUser = Nothing
       , inputUsername = ""
       , inputPassword = ""
+      , tagDict = Dict.empty
 
       -- UI
       , appMode = UserMode
@@ -337,6 +339,9 @@ update msg model =
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
 
         -- DOCUMENT
+        GetUserTags author ->
+            ( model, sendToBackend (GetUserTagsFromBE author) )
+
         CycleLanguage ->
             Frontend.Update.cycleLanguage model
 
@@ -368,7 +373,7 @@ update msg model =
             ( { model | authorId = str }, Cmd.none )
 
         AskFoDocumentById id ->
-            ( model, sendToBackend (GetDocumentByAuthorId id) )
+            ( model, sendToBackend (GetDocumentById id) )
 
         AskForDocumentByAuthorId ->
             ( model, sendToBackend (GetDocumentByAuthorId model.authorId) )
@@ -556,6 +561,9 @@ updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     case msg of
         -- DOCUMENT
+        AcceptUserTags tagDict ->
+            ( { model | tagDict = tagDict }, Cmd.none )
+
         SendDocument access doc ->
             let
                 documents =

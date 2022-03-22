@@ -113,6 +113,9 @@ updateFromFrontend _ clientId msg model =
             Backend.Update.signInOrSignUp model clientId username encryptedPassword
 
         -- DOCUMENTS
+        GetUserTagsFromBE author ->
+            ( model, sendToFrontend clientId (AcceptUserTags (Abstract.authorTagDict author model.abstractDict)) )
+
         CreateDocument maybeCurrentUser doc_ ->
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
@@ -250,7 +253,7 @@ getAbstract documentDict id =
             Abstract.empty
 
         Just doc ->
-            Abstract.get doc.language doc.content
+            Abstract.get doc.author doc.language doc.content
 
 
 searchInAbstract : String -> Abstract -> Bool

@@ -34,6 +34,7 @@ type alias FrontendModel =
     , currentUser : Maybe User
     , inputUsername : String
     , inputPassword : String
+    , tagDict : Dict String (List { id : String, title : String })
 
     -- UI
     , appMode : AppMode
@@ -263,6 +264,7 @@ type FrontendMsg
     | SetDeleteDocumentState DocumentDeleteState
     | Render Render.Msg.MarkupMsg
     | SetSortMode SortMode
+    | GetUserTags String
       -- Export
     | ExportToMarkdown
     | ExportToLaTeX
@@ -312,6 +314,7 @@ type ToBackend
     | ApplySpecial User String
     | SearchForDocuments (Maybe String) String
     | DeleteDocumentBE Document
+    | GetUserTagsFromBE String
 
 
 type BackendMsg
@@ -325,6 +328,7 @@ type ToFrontend
       -- USEr
     | SendUser User
       -- DOCUMENT
+    | AcceptUserTags (Dict String (List { id : String, title : String }))
     | SendDocument DocPermissions Document
     | SendDocuments (List Document)
     | SendMessage String

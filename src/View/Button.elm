@@ -12,6 +12,7 @@ module View.Button exposing
     , exportToXMarkdown
     , getDocument
     , getDocumentByPrivateId
+    , getUserTags
     , help
     , home
     , iLink
@@ -49,6 +50,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
 import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SortMode(..))
+import User exposing (User)
 import View.Color as Color
 import View.Style
 import View.Utility
@@ -74,6 +76,16 @@ buttonTemplate2 attrList msg label_ =
         [ Input.button View.Style.buttonStyle2
             { onPress = Just msg
             , label = E.el [ E.centerY, Font.size 16 ] (E.text label_)
+            }
+        ]
+
+
+buttonTemplate3 : List (E.Attribute msg) -> msg -> String -> Element msg
+buttonTemplate3 attrList msg label_ =
+    E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
+        [ Input.button View.Style.buttonStyle2
+            { onPress = Just msg
+            , label = E.el [ E.centerY, Font.size 14, Font.color Color.blue ] (E.text label_)
             }
         ]
 
@@ -350,6 +362,16 @@ closeCollectionsIndex =
     buttonTemplate2 [] CloseCollectionIndex "x"
 
 
+getUserTags : Maybe User -> Element FrontendMsg
+getUserTags user =
+    case user of
+        Nothing ->
+            E.none
+
+        Just user_ ->
+            buttonTemplate [] (GetUserTags user_.username) "Tags"
+
+
 maximizeMyDocs : MaximizedIndex -> Element FrontendMsg
 maximizeMyDocs maximizedIndex =
     case maximizedIndex of
@@ -379,9 +401,9 @@ iLink id label =
     buttonTemplate [] (Fetch id) label
 
 
-getDocument : Element FrontendMsg
-getDocument =
-    buttonTemplate [] (AskFoDocumentById "aboutCYT") "Get document"
+getDocument : String -> String -> Element FrontendMsg
+getDocument id title =
+    buttonTemplate3 [ Font.size 12, Font.color Color.blue ] (AskFoDocumentById id) title
 
 
 setDocumentAsCurrent : DocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg

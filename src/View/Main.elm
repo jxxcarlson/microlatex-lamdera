@@ -1,8 +1,9 @@
-module View.Main exposing (view)
+module View.Main exposing (view, viewTagDict)
 
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
+import Dict exposing (Dict)
 import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
@@ -84,6 +85,7 @@ viewEditorAndRenderedText model =
                 [ editor_ model
                 , viewRenderedForEditor model (panelWidth_ model.windowWidth)
                 , viewIndex model (appWidth model.windowWidth) deltaH
+                , viewTools model
                 ]
             , footer model (appWidth model.windowWidth)
             ]
@@ -164,10 +166,31 @@ viewRenderedTextOnly model =
             , E.row [ E.spacing 12 ]
                 [ viewRenderedContainer model
                 , viewIndex model (smallAppWidth model.windowWidth) deltaH
+                , viewTools model
                 ]
             , footer model (smallHeaderWidth model.windowWidth)
             ]
         ]
+
+
+viewTools : Model -> Element FrontendMsg
+viewTools model =
+    E.column [ E.width (E.px 300), E.spacing 4, E.height (E.px (appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
+        (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
+
+
+viewTagDict : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
+viewTagDict dict =
+    dict
+        |> Dict.toList
+        |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
+        |> List.concat
+        |> List.map viewTagDictItem
+
+
+viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg
+viewTagDictItem data =
+    E.row [ Font.size 14, E.spacing 8 ] [ E.el [ E.width (E.px 70) ] (E.text data.tag), E.el [ E.width (E.px 100) ] (Button.getDocument data.id (softTruncate 30 data.title)) ]
 
 
 viewIndex model width_ deltaH =

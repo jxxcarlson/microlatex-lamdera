@@ -1,8 +1,10 @@
 module Abstract exposing
     ( Abstract
     , AbstractOLD
+    , authorTagDict
     , empty
     , get
+    , getAuthorTags
     , getBlockContents
     , getElement
     , getItem
@@ -12,6 +14,7 @@ module Abstract exposing
     , toString
     )
 
+import Dict exposing (Dict)
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
 
@@ -22,6 +25,50 @@ type alias Abstract =
 
 type alias AbstractOLD =
     { title : String, author : String, abstract : String, tags : String }
+
+
+getAuthorTags : String -> Dict String Abstract -> List { id : String, title : String, tags : List String }
+getAuthorTags author dict =
+    dict
+        |> Dict.toList
+        |> List.filter (\( _, ab ) -> ab.author == author)
+        |> List.map (\( id2, ab2 ) -> { id = id2, title = ab2.title, tags = String.words ab2.tags |> List.map (String.trim >> String.replace "," "") })
+
+
+makeTagDict : List { id : String, title : String, tags : List String } -> Dict String (List { id : String, title : String })
+makeTagDict tagData =
+    tagData
+        |> unroll
+        |> List.foldl insertIf Dict.empty
+
+
+authorTagDict : String -> Dict String Abstract -> Dict String (List { id : String, title : String })
+authorTagDict author abstractDict =
+    getAuthorTags author abstractDict |> makeTagDict
+
+
+insertIf : { a | id : b, title : c, tag : String } -> Dict String (List { id : b, title : c }) -> Dict String (List { id : b, title : c })
+insertIf { id, title, tag } dict =
+    if tag == "" then
+        dict
+
+    else
+        case Dict.get tag dict of
+            Nothing ->
+                Dict.insert tag [ { id = id, title = title } ] dict
+
+            Just ids ->
+                Dict.insert tag ({ id = id, title = title } :: ids) dict
+
+
+unroll_ : { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
+unroll_ { id, title, tags } =
+    List.map (\tag -> { id = id, title = title, tag = tag }) tags
+
+
+unroll : List { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
+unroll list =
+    List.map unroll_ list |> List.concat
 
 
 toString : Abstract -> String
@@ -61,40 +108,46 @@ getItem language key str =
             "XX:" ++ key
 
 
-get : Language -> String -> Abstract
-get lang source =
+get : Maybe String -> Language -> String -> Abstract
+get author_ lang source =
+    let
+        author =
+            case author_ of
+                Nothing ->
+                    "((no-author))"
+
+                Just realAuthor ->
+                    realAuthor
+    in
     case lang of
         L0Lang ->
-            getForL0 source
+            getForL0 author source
 
         MicroLaTeXLang ->
-            getForMiniLaTeX source
+            getForMiniLaTeX author source
 
         XMarkdownLang ->
-            getforXMardown source
+            getforXMardown author source
 
 
-getforXMardown source =
+getforXMardown author source =
     -- TODO: implement this
     { title = "--"
-    , author = "" --"
+    , author = author
     , abstract = "" --"
     , tags = "--"
     , digest = [] |> String.join " " |> String.toLower
     }
 
 
-getForL0 : String -> Abstract
-getForL0 source =
+getForL0 : String -> String -> Abstract
+getForL0 author source =
     let
         title =
             getBlockContents "title" source
 
         subtitle =
             getBlockContents "subtitle" source
-
-        author =
-            getBlockContents "author" source
 
         abstract =
             getBlockContents "abstract" source
@@ -110,8 +163,8 @@ getForL0 source =
     }
 
 
-getForMiniLaTeX : String -> Abstract
-getForMiniLaTeX source =
+getForMiniLaTeX : String -> String -> Abstract
+getForMiniLaTeX author source =
     let
         title =
             --getBlockContents "title" source
@@ -120,10 +173,6 @@ getForMiniLaTeX source =
         subtitle =
             --getBlockContents "subtitle" source
             runParser (macroValParser "subtitle") source "subtitle"
-
-        author =
-            --getBlockContents "author" source
-            runParser (macroValParser "author") source "author"
 
         abstract =
             --getBlockContents "abstract" source
