@@ -175,7 +175,7 @@ viewRenderedTextOnly model =
 
 viewTools : Model -> Element FrontendMsg
 viewTools model =
-    E.column [ E.width (E.px 300), E.spacing 4, E.height (E.px (appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
+    E.column [ E.scrollbarY, E.width (E.px 300), E.spacing 4, E.height (E.px (appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
         (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
 
 
@@ -185,6 +185,7 @@ viewTagDict dict =
         |> Dict.toList
         |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
         |> List.concat
+        |> List.filter (\data -> data.tag /= "abstract")
         |> List.map viewTagDictItem
 
 
