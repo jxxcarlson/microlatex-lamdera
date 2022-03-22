@@ -1,5 +1,5 @@
 module Markup exposing
-    ( SyntaxTree, parse, parseToIntermediateBlocks
+    ( SyntaxTree, parse
     , isVerbatimLine, toPrimitiveBlockForest
     )
 
@@ -31,11 +31,6 @@ type alias SyntaxTree =
     List (Tree ExpressionBlock)
 
 
-
---isVerbatim : Language -> String -> Bool
---is
-
-
 isVerbatimLine : String -> Bool
 isVerbatimLine str =
     (String.left 2 str == "||")
@@ -65,29 +60,8 @@ parse lang sourceText =
                     L0.Parser.Expression.parse
     in
     sourceText
-        |> parseToIntermediateBlocks lang
-        |> List.map (Tree.map (Parser.BlockUtil.toEBfromIB parser))
-
-
-parseToIntermediateBlocks : Language -> String -> List (Tree IntermediateBlock)
-parseToIntermediateBlocks lang sourceText =
-    let
-        toIntermediateBlock : PrimitiveBlock -> IntermediateBlock
-        toIntermediateBlock =
-            case lang of
-                MicroLaTeXLang ->
-                    Parser.BlockUtil.toIntermediateBlock MicroLaTeX.Parser.Expression.parseToState MicroLaTeX.Parser.Expression.extractMessages
-
-                L0Lang ->
-                    Parser.BlockUtil.toIntermediateBlock L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
-
-                XMarkdownLang ->
-                    -- TODO: implement this
-                    Parser.BlockUtil.toIntermediateBlock L0.Parser.Expression.parseToState L0.Parser.Expression.extractMessages
-    in
-    sourceText
         |> toPrimitiveBlockForest lang
-        |> List.map (Tree.map toIntermediateBlock)
+        |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlock parser))
 
 
 emptyBlock =
