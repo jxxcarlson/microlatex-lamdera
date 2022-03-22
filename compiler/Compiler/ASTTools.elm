@@ -17,12 +17,10 @@ module Compiler.ASTTools exposing
     )
 
 import Either exposing (Either(..))
-import Markup exposing (SyntaxTree)
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
-import Parser.Language exposing (Language)
-import Tree
+import Tree exposing (Tree)
 
 
 normalize : Either String (List Expr) -> Either String (List Expr)
@@ -63,7 +61,7 @@ matchExprOnName name expr =
             False
 
 
-matchingIdsInAST : String -> SyntaxTree -> List String
+matchingIdsInAST : String -> List (Tree ExpressionBlock) -> List String
 matchingIdsInAST key ast =
     ast |> List.map Tree.flatten |> List.concat |> List.filterMap (idOfMatchingBlockContent key)
 
@@ -77,7 +75,7 @@ idOfMatchingBlockContent key (ExpressionBlock { sourceText, id }) =
         Nothing
 
 
-titleTOC : SyntaxTree -> List ExpressionBlock
+titleTOC : List (Tree ExpressionBlock) -> List ExpressionBlock
 titleTOC ast =
     filterBlocksByArgs "title" ast
 
@@ -147,7 +145,7 @@ title_ ast =
                     List.map getText exprList |> Maybe.Extra.values |> String.join ""
 
 
-title : Markup.SyntaxTree -> String
+title : List (Tree ExpressionBlock) -> String
 title ast =
     title_ ast
 
@@ -156,12 +154,12 @@ extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
 
-tableOfContents : Markup.SyntaxTree -> List ExpressionBlock
+tableOfContents : List (Tree ExpressionBlock) -> List ExpressionBlock
 tableOfContents ast =
     filterBlocksOnName "section" (List.map Tree.flatten ast |> List.concat)
 
 
-filterBlocksByArgs : String -> Markup.SyntaxTree -> List ExpressionBlock
+filterBlocksByArgs : String -> List (Tree ExpressionBlock) -> List ExpressionBlock
 filterBlocksByArgs key ast =
     ast
         |> List.map Tree.flatten
