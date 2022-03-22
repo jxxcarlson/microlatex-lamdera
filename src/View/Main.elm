@@ -179,8 +179,8 @@ viewTools model =
         (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
 
 
-viewTagDict : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
-viewTagDict dict =
+viewTagDict1 : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
+viewTagDict1 dict =
     dict
         |> Dict.toList
         |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
@@ -189,9 +189,31 @@ viewTagDict dict =
         |> List.map viewTagDictItem
 
 
+viewTagDict : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
+viewTagDict dict =
+    dict
+        |> Dict.toList
+        |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
+        |> List.map viewTagGroup
+
+
+viewTagGroup : List { tag : String, id : String, title : String } -> Element FrontendMsg
+viewTagGroup list =
+    case List.head list of
+        Nothing ->
+            E.none
+
+        Just headItem ->
+            E.column [ E.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ] (E.el [ Font.size 16 ] (E.text headItem.tag) :: List.map viewTagDictItem list)
+
+
+
+-- E.paddingEach {top = 8, bottom = 0, left = 0, right = 0}
+
+
 viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg
 viewTagDictItem data =
-    E.row [ Font.size 14, E.spacing 8 ] [ E.el [ E.width (E.px 70) ] (E.text data.tag), E.el [ E.width (E.px 100) ] (Button.getDocument data.id (softTruncate 30 data.title)) ]
+    E.row [ Font.size 14, E.spacing 4 ] [ E.el [ E.width (E.px 100) ] (Button.getDocument data.id (softTruncate 50 data.title)) ]
 
 
 viewIndex model width_ deltaH =
@@ -218,7 +240,7 @@ viewIndex model width_ deltaH =
                     150
             in
             E.column [ E.spacing 8 ]
-                [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
+                [ E.row [ E.spacing 8 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
                 , viewRenderedSmall model doc width_ deltaH indexShift
                 , case model.activeDocList of
                     PublicDocsList ->
