@@ -3,6 +3,7 @@ module Parser.BlockUtil exposing
     , getMessages
     , l0Empty
     , toEBfromIB
+    , toExpressionBlock
     , toIntermediateBlock
     )
 
