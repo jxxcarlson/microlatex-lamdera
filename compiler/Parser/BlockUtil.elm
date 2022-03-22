@@ -12,6 +12,7 @@ import Compiler.Util
 import Either exposing (Either(..))
 import L0.Parser.Classify
 import MicroLaTeX.Parser.Classify
+import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..), IntermediateBlock(..))
 import Parser.Common
 import Parser.Expr exposing (Expr)
@@ -85,6 +86,35 @@ toEBfromIB parse (IntermediateBlock { name, args, indent, lineNumber, id, tag, b
         , blockType = blockType
         , content = mapContent parse lineNumber blockType (String.join "\n" content)
         , messages = messages
+        , sourceText = sourceText
+        }
+
+
+toExpressionBlock : (Int -> String -> List Expr) -> PrimitiveBlock -> ExpressionBlock
+toExpressionBlock parse { name, args, indent, lineNumber, blockType, content, sourceText } =
+    let
+        blockType_ =
+            toBlockType blockType (List.drop 1 args)
+
+        content_ =
+            case blockType_ of
+                Paragraph ->
+                    content
+
+                _ ->
+                    List.drop 1 content
+    in
+    ExpressionBlock
+        { name = name
+        , args = args
+        , indent = indent
+        , lineNumber = lineNumber
+        , numberOfLines = List.length content
+        , id = String.fromInt lineNumber
+        , tag = Compiler.Util.getItem MicroLaTeXLang "label" sourceText
+        , blockType = blockType_
+        , content = mapContent parse lineNumber blockType_ (String.join "\n" content_)
+        , messages = MicroLaTeX.Parser.Expression.parseToState lineNumber sourceText |> MicroLaTeX.Parser.Expression.extractMessages
         , sourceText = sourceText
         }
 
