@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -45,6 +45,7 @@ type alias FrontendModel =
     , phoneMode : PhoneMode
     , pressedKeys : List Keyboard.Key
     , activeDocList : ActiveDocList
+    , maximizedIndex : MaximizedIndex
 
     -- SYNC
     , foundIds : List String
@@ -81,6 +82,11 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+
+type MaximizedIndex
+    = MMyDocs
+    | MPublicDocs
 
 
 type ActiveDocList
@@ -232,6 +238,7 @@ type FrontendMsg
       -- UI
     | ToggleActiveDocList
     | CloseCollectionIndex
+    | ToggleIndexSize
       -- DOC
     | CycleLanguage
     | Fetch String

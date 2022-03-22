@@ -27,7 +27,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -82,6 +82,7 @@ init url key =
       , phoneMode = PMShowDocumentList
       , pressedKeys = []
       , activeDocList = Both
+      , maximizedIndex = MPublicDocs
 
       -- SYNC
       , doSync = False
@@ -243,6 +244,14 @@ update msg model =
             ( { model | inputPassword = str }, Cmd.none )
 
         -- UI
+        ToggleIndexSize ->
+            case model.maximizedIndex of
+                MMyDocs ->
+                    ( { model | maximizedIndex = MPublicDocs }, Cmd.none )
+
+                MPublicDocs ->
+                    ( { model | maximizedIndex = MMyDocs }, Cmd.none )
+
         CloseCollectionIndex ->
             ( { model | currentMasterDocument = Nothing }
             , Cmd.none
@@ -595,7 +604,7 @@ updateFromBackend msg model =
 
         -- USER
         SendUser user ->
-            ( { model | currentUser = Just user }, Cmd.none )
+            ( { model | currentUser = Just user, maximizedIndex = MMyDocs }, Cmd.none )
 
         SendDocuments documents ->
             ( { model | documents = documents }, Cmd.none )

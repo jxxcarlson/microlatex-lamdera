@@ -17,7 +17,7 @@ import Render.Settings
 import Render.TOC
 import String.Extra
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), SortMode(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SortMode(..))
 import View.Button as Button
 import View.Color as Color
 import View.Input
@@ -173,10 +173,19 @@ viewRenderedTextOnly model =
 viewIndex model width_ deltaH =
     case model.currentMasterDocument of
         Nothing ->
+            let
+                indexShift =
+                    case model.maximizedIndex of
+                        MMyDocs ->
+                            150
+
+                        MPublicDocs ->
+                            -150
+            in
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                , viewMydocs model deltaH 0
-                , viewPublicDocs model deltaH 0
+                , viewMydocs model deltaH -indexShift
+                , viewPublicDocs model deltaH indexShift
                 ]
 
         Just doc ->
@@ -235,10 +244,8 @@ viewMydocs model deltaH indexShift =
         , Font.color (E.rgb 0.1 0.1 1.0)
         , E.spacing 8
         ]
-        (titleButton
-            :: viewDocumentsInIndex CanEdit
-                model.currentDocument
-                docs
+        (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
+            :: viewDocumentsInIndex CanEdit model.currentDocument docs
         )
 
 
@@ -265,7 +272,9 @@ viewPublicDocs model deltaH indexShift =
         , Font.color (E.rgb 0.1 0.1 1.0)
         , E.spacing 8
         ]
-        (titleButton :: viewPublicDocuments model)
+        (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizePublicDocs model.maximizedIndex)) ]
+            :: viewPublicDocuments model
+        )
 
 
 footer model _ =

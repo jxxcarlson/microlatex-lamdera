@@ -17,6 +17,8 @@ module View.Button exposing
     , iLink
     , importJson
     , linkTemplate
+    , maximizeMyDocs
+    , maximizePublicDocs
     , newDocument
     , nextSyncButton
     , openEditor
@@ -46,7 +48,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PrintingState(..), SortMode(..))
+import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SortMode(..))
 import View.Color as Color
 import View.Style
 import View.Utility
@@ -346,6 +348,26 @@ toggleActiveDocList name =
 closeCollectionsIndex : Element FrontendMsg
 closeCollectionsIndex =
     buttonTemplate2 [] CloseCollectionIndex "x"
+
+
+maximizeMyDocs : MaximizedIndex -> Element FrontendMsg
+maximizeMyDocs maximizedIndex =
+    case maximizedIndex of
+        MMyDocs ->
+            buttonTemplate2 [] ToggleIndexSize "-"
+
+        MPublicDocs ->
+            buttonTemplate2 [] ToggleIndexSize "+"
+
+
+maximizePublicDocs : MaximizedIndex -> Element FrontendMsg
+maximizePublicDocs maximizedIndex =
+    case maximizedIndex of
+        MPublicDocs ->
+            buttonTemplate2 [] ToggleIndexSize "-"
+
+        MMyDocs ->
+            buttonTemplate2 [] ToggleIndexSize "+"
 
 
 home : Element FrontendMsg
