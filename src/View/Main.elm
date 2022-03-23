@@ -621,7 +621,7 @@ indexWidth ww =
 
 
 sidebarWidth =
-    200
+    250
 
 
 appWidth sidebarState ww =
