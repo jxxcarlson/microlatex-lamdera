@@ -18,7 +18,7 @@ import Render.Settings
 import Render.TOC
 import String.Extra
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SortMode(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
 import View.Button as Button
 import View.Color as Color
 import View.Input
@@ -34,11 +34,11 @@ view : Model -> Html FrontendMsg
 view model =
     E.layoutWith { options = [ E.focusStyle View.Utility.noFocus ] }
         [ View.Style.bgGray 0.9, E.clipX, E.clipY ]
-        (mainColumn model)
+        (viewMainColumn model)
 
 
-mainColumn : Model -> Element FrontendMsg
-mainColumn model =
+viewMainColumn : Model -> Element FrontendMsg
+viewMainColumn model =
     case model.appMode of
         AdminMode ->
             viewAdmin model
@@ -58,8 +58,8 @@ mainColumn model =
 viewAdmin : Model -> Element FrontendMsg
 viewAdmin model =
     E.column (mainColumnStyle model)
-        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| appWidth model.windowWidth), E.height (E.px (appHeight_ model)) ]
-            [ header model (E.px <| appWidth model.windowWidth)
+        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| appWidth model.sidebarState model.windowWidth), E.height (E.px (appHeight_ model)) ]
+            [ header model (E.px <| appWidth model.sidebarState model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
                 , Button.runSpecial
@@ -67,7 +67,7 @@ viewAdmin model =
                 , Button.exportJson
                 , View.Utility.showIf (isAdmin model) Button.importJson
                 ]
-            , footer model (appWidth model.windowWidth)
+            , footer model (appWidth model.sidebarState model.windowWidth)
             ]
         ]
 
@@ -79,15 +79,15 @@ viewEditorAndRenderedText model =
             (appHeight_ model - 100) // 2 + 130
     in
     E.column (mainColumnStyle model)
-        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| appWidth model.windowWidth), E.height (E.px (appHeight_ model)) ]
-            [ header model (E.px <| appWidth model.windowWidth)
+        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| appWidth model.sidebarState model.windowWidth), E.height (E.px (appHeight_ model)) ]
+            [ header model (E.px <| appWidth model.sidebarState model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ editor_ model
-                , viewRenderedForEditor model (panelWidth_ model.windowWidth)
-                , viewIndex model (appWidth model.windowWidth) deltaH
-                , viewTools model
+                , viewRenderedForEditor model (panelWidth_ model.sidebarState model.windowWidth)
+                , viewIndex model (appWidth model.sidebarState model.windowWidth) deltaH
+                , viewSidebar model
                 ]
-            , footer model (appWidth model.windowWidth)
+            , footer model (appWidth model.sidebarState model.windowWidth)
             ]
         ]
 
@@ -100,7 +100,7 @@ editor_ model =
         , htmlId "editor-here"
         , E.width (E.px 550)
         , E.height (E.px (appHeight_ model - 110))
-        , E.width (E.px (panelWidth_ model.windowWidth))
+        , E.width (E.px (panelWidth_ model.sidebarState model.windowWidth))
         , Background.color (E.rgb255 0 68 85)
         , Font.color (E.rgb 0.85 0.85 0.85)
         , Font.size 12
@@ -166,27 +166,22 @@ viewRenderedTextOnly model =
             , E.row [ E.spacing 12 ]
                 [ viewRenderedContainer model
                 , viewIndex model (smallAppWidth model.windowWidth) deltaH
-                , viewTools model
+                , viewSidebar model
                 ]
             , footer model (smallHeaderWidth model.windowWidth)
             ]
         ]
 
 
-viewTools : Model -> Element FrontendMsg
-viewTools model =
-    E.column [ E.scrollbarY, E.width (E.px 300), E.spacing 4, E.height (E.px (appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
-        (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
+viewSidebar : Model -> Element FrontendMsg
+viewSidebar model =
+    case model.sidebarState of
+        SidebarIn ->
+            E.none
 
-
-viewTagDict1 : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
-viewTagDict1 dict =
-    dict
-        |> Dict.toList
-        |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
-        |> List.concat
-        |> List.filter (\data -> data.tag /= "abstract")
-        |> List.map viewTagDictItem
+        SidebarOut ->
+            E.column [ E.scrollbarY, E.width (E.px sidebarWidth), E.spacing 4, E.height (E.px (appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
+                (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
 
 
 viewTagDict : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
@@ -204,7 +199,7 @@ viewTagGroup list =
             E.none
 
         Just headItem ->
-            E.column [ E.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ] (E.el [ Font.size 16 ] (E.text headItem.tag) :: List.map viewTagDictItem list)
+            E.column [ E.spacing 2, E.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ] (E.el [ E.paddingXY 6 0, Font.size 14 ] (E.text headItem.tag) :: List.map viewTagDictItem list)
 
 
 
@@ -213,7 +208,7 @@ viewTagGroup list =
 
 viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg
 viewTagDictItem data =
-    E.row [ Font.size 14, E.spacing 4 ] [ E.el [ E.width (E.px 100) ] (Button.getDocument data.id (softTruncate 50 data.title)) ]
+    E.row [ Font.size 14, E.spacing 8 ] [ E.el [] (Button.getDocument data.id (softTruncate 30 data.title)) ]
 
 
 viewIndex model width_ deltaH =
@@ -394,7 +389,8 @@ header model _ =
         , Button.signOut model
 
         -- , Button.help
-        , E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (title Config.appName)
+        , E.el [ E.alignRight ] (title Config.appName)
+        , E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (Button.toggleSidebar model.sidebarState)
         ]
 
 
@@ -473,7 +469,7 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.75 -650 (panelWidth2_ model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.75 -650 (panelWidth2_ model.sidebarState model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -535,7 +531,7 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.8 0 (panelWidth_ model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.8 0 (panelWidth_ model.sidebarState model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -597,14 +593,14 @@ outerGutter =
     12
 
 
-panelWidth_ : Int -> Int
-panelWidth_ ww =
-    (appWidth ww - indexWidth ww) // 2 - innerGutter - outerGutter
+panelWidth_ : SidebarState -> Int -> Int
+panelWidth_ sidebarState ww =
+    (appWidth SidebarIn ww - indexWidth ww) // 2 - innerGutter - outerGutter
 
 
-panelWidth2_ : Int -> Int
-panelWidth2_ ww =
-    appWidth ww - indexWidth ww - innerGutter
+panelWidth2_ : SidebarState -> Int -> Int
+panelWidth2_ sidebarState ww =
+    appWidth SidebarIn ww - indexWidth ww - innerGutter
 
 
 
@@ -624,8 +620,17 @@ indexWidth ww =
     ramp 150 300 ww
 
 
-appWidth ww =
-    ramp 700 1400 ww
+sidebarWidth =
+    200
+
+
+appWidth sidebarState ww =
+    case sidebarState of
+        SidebarOut ->
+            ramp 700 (1400 + sidebarWidth) ww
+
+        SidebarIn ->
+            ramp 700 1400 ww
 
 
 smallAppWidth ww =

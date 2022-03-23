@@ -39,6 +39,7 @@ module View.Button exposing
     , toggleAppMode
     , toggleEditor
     , togglePublic
+    , toggleSidebar
     )
 
 import Config
@@ -49,7 +50,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SortMode(..))
+import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SortMode(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -83,7 +84,7 @@ buttonTemplate2 attrList msg label_ =
 buttonTemplate3 : List (E.Attribute msg) -> msg -> String -> Element msg
 buttonTemplate3 attrList msg label_ =
     E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
-        [ Input.button View.Style.buttonStyle2
+        [ Input.button View.Style.buttonStyle3
             { onPress = Just msg
             , label = E.el [ E.centerY, Font.size 14, Font.color Color.blue ] (E.text label_)
             }
@@ -370,6 +371,16 @@ getUserTags user =
 
         Just user_ ->
             buttonTemplate [] (GetUserTags user_.username) "Tags"
+
+
+toggleSidebar : SidebarState -> Element FrontendMsg
+toggleSidebar sidebarState =
+    case sidebarState of
+        SidebarOut ->
+            buttonTemplate [] ToggleSideBar (String.fromChar '⋮')
+
+        SidebarIn ->
+            buttonTemplate [] ToggleSideBar (String.fromChar '⋮')
 
 
 maximizeMyDocs : MaximizedIndex -> Element FrontendMsg

@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SortMode(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -47,6 +47,7 @@ type alias FrontendModel =
     , pressedKeys : List Keyboard.Key
     , activeDocList : ActiveDocList
     , maximizedIndex : MaximizedIndex
+    , sidebarState : SidebarState
 
     -- SYNC
     , foundIds : List String
@@ -240,6 +241,7 @@ type FrontendMsg
     | ToggleActiveDocList
     | CloseCollectionIndex
     | ToggleIndexSize
+    | ToggleSideBar
       -- DOC
     | CycleLanguage
     | Fetch String
@@ -277,6 +279,11 @@ type FrontendMsg
     | FinallyDoCleanPrintArtefacts String
       ---
     | Help String
+
+
+type SidebarState
+    = SidebarIn
+    | SidebarOut
 
 
 type PrintingState

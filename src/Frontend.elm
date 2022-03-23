@@ -28,7 +28,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SortMode(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SortMode(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -85,6 +85,7 @@ init url key =
       , pressedKeys = []
       , activeDocList = Both
       , maximizedIndex = MPublicDocs
+      , sidebarState = SidebarIn
 
       -- SYNC
       , doSync = False
@@ -246,6 +247,14 @@ update msg model =
             ( { model | inputPassword = str }, Cmd.none )
 
         -- UI
+        ToggleSideBar ->
+            case model.sidebarState of
+                SidebarIn ->
+                    ( { model | sidebarState = SidebarOut }, Cmd.none )
+
+                SidebarOut ->
+                    ( { model | sidebarState = SidebarIn }, Cmd.none )
+
         ToggleIndexSize ->
             case model.maximizedIndex of
                 MMyDocs ->
