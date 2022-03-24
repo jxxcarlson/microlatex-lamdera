@@ -21,6 +21,8 @@ import Time
 import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
 import View.Button as Button
 import View.Color as Color
+import View.Editor as Editor
+import View.Geometry as Geometry
 import View.Input
 import View.Style
 import View.Utility
@@ -58,8 +60,8 @@ viewMainColumn model =
 viewAdmin : Model -> Element FrontendMsg
 viewAdmin model =
     E.column (mainColumnStyle model)
-        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| appWidth model.sidebarState model.windowWidth), E.height (E.px (appHeight_ model)) ]
-            [ header model (E.px <| appWidth model.sidebarState model.windowWidth)
+        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+            [ header model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
                 , Button.runSpecial
@@ -67,7 +69,7 @@ viewAdmin model =
                 , Button.exportJson
                 , View.Utility.showIf (isAdmin model) Button.importJson
                 ]
-            , footer model (appWidth model.sidebarState model.windowWidth)
+            , footer model (Geometry.appWidth model.sidebarState model.windowWidth)
             ]
         ]
 
@@ -76,78 +78,20 @@ viewEditorAndRenderedText : Model -> Element FrontendMsg
 viewEditorAndRenderedText model =
     let
         deltaH =
-            (appHeight_ model - 100) // 2 + 130
+            (Geometry.appHeight_ model - 100) // 2 + 130
     in
     E.column (mainColumnStyle model)
-        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| appWidth model.sidebarState model.windowWidth), E.height (E.px (appHeight_ model)) ]
-            [ header model (E.px <| appWidth model.sidebarState model.windowWidth)
+        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+            [ header model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.row [ E.spacing 12 ]
-                [ editor_ model
-                , viewRenderedForEditor model (panelWidth_ model.sidebarState model.windowWidth)
-                , viewIndex model (appWidth model.sidebarState model.windowWidth) deltaH
+                [ Editor.view model
+                , viewRenderedForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
+                , viewIndex model (Geometry.appWidth model.sidebarState model.windowWidth) deltaH
                 , viewSidebar model
                 ]
-            , footer model (appWidth model.sidebarState model.windowWidth)
+            , footer model (Geometry.appWidth model.sidebarState model.windowWidth)
             ]
         ]
-
-
-editor_ : Model -> Element FrontendMsg
-editor_ model =
-    Element.Keyed.el
-        [ E.htmlAttribute onSelectionChange -- receive info from codemirror
-        , E.htmlAttribute onTextChange -- receive info from codemirror
-        , htmlId "editor-here"
-        , E.width (E.px 550)
-        , E.height (E.px (appHeight_ model - 110))
-        , E.width (E.px (panelWidth_ model.sidebarState model.windowWidth))
-        , Background.color (E.rgb255 0 68 85)
-        , Font.color (E.rgb 0.85 0.85 0.85)
-        , Font.size 12
-        ]
-        ( stringOfBool model.showEditor
-        , E.html
-            (Html.node "codemirror-editor"
-                [ HtmlAttr.attribute "text" model.initialText -- send info to codemirror
-                , HtmlAttr.attribute "linenumber" (String.fromInt (model.linenumber - 1)) -- send info to codemirror
-                , HtmlAttr.attribute "selection" (stringOfBool model.doSync) -- send info to codemirror
-                ]
-                []
-            )
-        )
-
-
-stringOfBool bool =
-    case bool of
-        False ->
-            "false"
-
-        True ->
-            "true"
-
-
-htmlId str =
-    E.htmlAttribute (HtmlAttr.id str)
-
-
-onTextChange : Html.Attribute FrontendMsg
-onTextChange =
-    textDecoder
-        |> Json.Decode.map InputText
-        |> Html.Events.on "text-change"
-
-
-onSelectionChange : Html.Attribute FrontendMsg
-onSelectionChange =
-    textDecoder
-        |> Json.Decode.map SelectedText
-        |> Html.Events.on "selected-text"
-
-
-textDecoder : Json.Decode.Decoder String
-textDecoder =
-    Json.Decode.string
-        |> Json.Decode.at [ "detail" ]
 
 
 
@@ -158,17 +102,17 @@ viewRenderedTextOnly : Model -> Element FrontendMsg
 viewRenderedTextOnly model =
     let
         deltaH =
-            (appHeight_ model - 100) // 2 + 130
+            (Geometry.appHeight_ model - 100) // 2 + 130
     in
     E.column (mainColumnStyle model)
-        [ E.column [ E.centerX, E.spacing 12, E.width (E.px <| smallAppWidth model.windowWidth), E.height (E.px (appHeight_ model)) ]
-            [ header model (E.px <| smallHeaderWidth model.windowWidth)
+        [ E.column [ E.centerX, E.spacing 12, E.width (E.px <| Geometry.smallAppWidth model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+            [ header model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ viewRenderedContainer model
-                , viewIndex model (smallAppWidth model.windowWidth) deltaH
+                , viewIndex model (Geometry.smallAppWidth model.windowWidth) deltaH
                 , viewSidebar model
                 ]
-            , footer model (smallHeaderWidth model.windowWidth)
+            , footer model (Geometry.smallHeaderWidth model.windowWidth)
             ]
         ]
 
@@ -180,7 +124,7 @@ viewSidebar model =
             E.none
 
         SidebarOut ->
-            E.column [ E.scrollbarY, E.width (E.px sidebarWidth), E.spacing 4, E.height (E.px (appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
+            E.column [ E.scrollbarY, E.width (E.px Geometry.sidebarWidth), E.spacing 4, E.height (E.px (Geometry.appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
                 (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
 
 
@@ -251,7 +195,7 @@ viewIndex model width_ deltaH =
 
 viewRenderedContainer model =
     E.column [ E.spacing 18 ]
-        [ viewRendered model (smallPanelWidth model.windowWidth)
+        [ viewRendered model (Geometry.smallPanelWidth model.windowWidth)
         ]
 
 
@@ -276,8 +220,8 @@ viewMydocs model deltaH indexShift =
             Button.toggleActiveDocList buttonText
     in
     E.column
-        [ E.width (E.px <| indexWidth model.windowWidth)
-        , E.height (E.px (appHeight_ model - deltaH - indexShift))
+        [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
+        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
@@ -304,8 +248,8 @@ viewPublicDocs model deltaH indexShift =
             Button.toggleActiveDocList buttonText
     in
     E.column
-        [ E.width (E.px <| indexWidth model.windowWidth)
-        , E.height (E.px (appHeight_ model - deltaH - indexShift))
+        [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
+        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
@@ -435,18 +379,18 @@ viewRenderedSmall model doc width_ deltaH indexShift =
     E.column
         [ E.paddingEach { left = 12, right = 12, top = 18, bottom = 96 }
         , View.Style.bgGray 1.0
-        , E.width (E.px <| indexWidth model.windowWidth)
-        , E.height (E.px (appHeight_ model - deltaH + indexShift))
+        , E.width (E.px <| Geometry.indexWidth model.windowWidth)
+        , E.height (E.px (Geometry.appHeight_ model - deltaH + indexShift))
         , Font.size 14
         , E.alignTop
         , E.scrollbarY
         , View.Utility.elementAttribute "id" "__RENDERED_TEXT__"
         ]
         [ View.Utility.katexCSS
-        , E.column [ E.spacing 4, E.width (E.px (indexWidth model.windowWidth - 20)) ]
-            (viewDocumentSmall (affine 1.75 -650 (indexWidth model.windowWidth)) model.counter currentDocId editRecord)
+        , E.column [ E.spacing 4, E.width (E.px (Geometry.indexWidth model.windowWidth - 20)) ]
+            (viewDocumentSmall (affine 1.75 -650 (Geometry.indexWidth model.windowWidth)) model.counter currentDocId editRecord)
 
-        -- (viewDocumentSmall (indexWidth model.windowWidth) model.counter currentDocId editRecord)
+        -- (viewDocumentSmall (Geometry.indexWidth model.windowWidth) model.counter currentDocId editRecord)
         ]
 
 
@@ -461,7 +405,7 @@ viewRendered model width_ =
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
                 , View.Style.bgGray 1.0
                 , E.width (E.px width_)
-                , E.height (E.px (panelHeight_ model))
+                , E.height (E.px (Geometry.panelHeight_ model))
                 , Font.size 14
                 , E.alignTop
                 , E.scrollbarY
@@ -469,7 +413,7 @@ viewRendered model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.75 -650 (panelWidth2_ model.sidebarState model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.75 -650 (Geometry.panelWidth2_ model.sidebarState model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -523,7 +467,7 @@ viewRenderedForEditor model width_ =
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
                 , View.Style.bgGray 1.0
                 , E.width (E.px width_)
-                , E.height (E.px (panelHeight_ model))
+                , E.height (E.px (Geometry.panelHeight_ model))
                 , Font.size 14
                 , E.alignTop
                 , E.scrollbarY
@@ -531,7 +475,7 @@ viewRenderedForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.8 0 (panelWidth_ model.sidebarState model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.8 0 (Geometry.panelWidth_ model.sidebarState model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -579,81 +523,6 @@ softTruncate k str =
 
         str2 :: _ ->
             str2 ++ " ..."
-
-
-
--- DIMENSIONS
-
-
-innerGutter =
-    12
-
-
-outerGutter =
-    12
-
-
-panelWidth_ : SidebarState -> Int -> Int
-panelWidth_ sidebarState ww =
-    (appWidth SidebarIn ww - indexWidth ww) // 2 - innerGutter - outerGutter
-
-
-panelWidth2_ : SidebarState -> Int -> Int
-panelWidth2_ sidebarState ww =
-    appWidth SidebarIn ww - indexWidth ww - innerGutter
-
-
-
--- BOTTOM
-
-
-smallPanelWidth ww =
-    smallAppWidth ww - indexWidth ww - innerGutter
-
-
-smallHeaderWidth ww =
-    smallAppWidth ww
-
-
-indexWidth : number -> number
-indexWidth ww =
-    ramp 150 300 ww
-
-
-sidebarWidth =
-    250
-
-
-appWidth sidebarState ww =
-    case sidebarState of
-        SidebarOut ->
-            ramp 700 (1400 + sidebarWidth) ww
-
-        SidebarIn ->
-            ramp 700 1400 ww
-
-
-smallAppWidth ww =
-    ramp 700 900 ww
-
-
-ramp a b x =
-    if x < a then
-        a
-
-    else if x > b then
-        b
-
-    else
-        x
-
-
-appHeight_ model =
-    model.windowHeight - 40
-
-
-panelHeight_ model =
-    appHeight_ model - 110
 
 
 mainColumnStyle model =
