@@ -10,6 +10,8 @@ module View.Utility exposing
     , setViewPortToTop
     , setViewportForElement
     , showIf
+    , softTruncate
+    , softTruncateLimit
     , truncateString
     )
 
@@ -19,8 +21,26 @@ import Html
 import Html.Attributes as HA
 import Html.Events exposing (keyCode, on)
 import Json.Decode as D
+import String.Extra
 import Task exposing (Task)
 import Types exposing (FrontendMsg)
+
+
+softTruncateLimit =
+    50
+
+
+softTruncate : Int -> String -> String
+softTruncate k str =
+    case String.Extra.softBreak k str of
+        [] ->
+            ""
+
+        str2 :: [] ->
+            str2
+
+        str2 :: _ ->
+            str2 ++ " ..."
 
 
 truncateString : Int -> String -> String
