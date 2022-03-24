@@ -294,7 +294,7 @@ mapper2 str =
                         ( name_, args_ )
 
                     Err error ->
-                        ( "(no-name)", [ Debug.toString error ] )
+                        ( "(no-name)", [] )
         in
         case Dict.get name substitutions of
             Just { prefix, arity } ->
