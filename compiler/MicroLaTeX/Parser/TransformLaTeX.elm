@@ -241,7 +241,7 @@ indentString k str =
 
 
 verbatimBlockNames =
-    [ "math", "equation", "aligned", "code" ]
+    [ "math", "equation", "aligned", "code", "mathmacros" ]
 
 
 transformBlockHeader : String -> String -> String
@@ -255,64 +255,75 @@ transformBlockHeader blockName str =
 
 toL0Aux : List String -> List String
 toL0Aux strings =
+    strings |> List.map (mapper2 >> makeBlanksEmpty)
+
+
+mapper2 str =
     let
-        mapper str =
-            let
-                bareString =
-                    String.trimLeft str
-            in
-            if isBegin bareString then
-                case Parser.MathMacro.parseOne bareString of
-                    Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
-                        transformBlockHeader blockName str
-                            -- TODO: Better code here
-                            |> String.replace "[" " "
-                            |> String.replace "]" " "
+        bareString =
+            String.trimLeft str
+    in
+    if isBegin bareString then
+        case Parser.MathMacro.parseOne bareString of
+            Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
+                transformBlockHeader blockName str
+                    -- TODO: Better code here
+                    |> String.replace "[" " "
+                    |> String.replace "]" " "
 
-                    _ ->
-                        ""
-
-            else if isEnd bareString then
+            _ ->
                 ""
 
-            else
-                let
-                    trimmed =
-                        String.trim str
+    else if isEnd bareString then
+        ""
 
-                    numberOfLeadingBlanks =
-                        String.length str - String.length trimmed
+    else
+        let
+            trimmed =
+                String.trim str
 
-                    leadingBlanks =
-                        String.repeat numberOfLeadingBlanks " "
+            numberOfLeadingBlanks =
+                String.length str - String.length trimmed
 
-                    ( name, args ) =
-                        case Parser.TextMacro.getMacro (String.trim trimmed) of
-                            Ok (Parser.TextMacro.MyMacro name_ args_) ->
-                                ( name_, args_ )
+            leadingBlanks =
+                String.repeat numberOfLeadingBlanks " "
 
-                            Err _ ->
-                                ( "(no-name)", [] )
-                in
-                case Dict.get name substitutions of
-                    Just { prefix, arity } ->
+            ( name, args ) =
+                case Parser.TextMacro.getMacro (String.trim trimmed) of
+                    Ok (Parser.TextMacro.MyMacro name_ args_) ->
+                        ( name_, args_ )
+
+                    Err error ->
+                        ( "(no-name)", [ Debug.toString error ] )
+        in
+        case Dict.get name substitutions of
+            Just { prefix, arity } ->
+                case arity of
+                    Arity _ ->
                         leadingBlanks ++ prefix ++ " " ++ name ++ " " ++ String.join " " args
 
-                    Nothing ->
-                        str
-    in
-    strings |> List.map (mapper >> makeBlanksEmpty)
+                    Grouped ->
+                        leadingBlanks ++ prefix ++ " " ++ name ++ " " ++ "grouped(" ++ String.join " " args ++ ")"
+
+            Nothing ->
+                str
 
 
-substitutions : Dict String { prefix : String, arity : Int }
+type Arity
+    = Arity Int
+    | Grouped
+
+
+substitutions : Dict String { prefix : String, arity : Arity }
 substitutions =
     Dict.fromList
-        [ ( "item", { prefix = "|", arity = 0 } )
-        , ( "numbered", { prefix = "|", arity = 0 } )
-        , ( "abstract", { prefix = "|", arity = 0 } )
-        , ( "bibitem", { prefix = "|", arity = 1 } )
-        , ( "setcounter", { prefix = "|", arity = 1 } )
-        , ( "contents", { prefix = "|", arity = 0 } )
+        [ ( "item", { prefix = "|", arity = Arity 0 } )
+        , ( "numbered", { prefix = "|", arity = Arity 0 } )
+        , ( "abstract", { prefix = "|", arity = Arity 0 } )
+        , ( "bibitem", { prefix = "|", arity = Arity 1 } )
+        , ( "desc", { prefix = "|", arity = Arity 1 } )
+        , ( "setcounter", { prefix = "|", arity = Arity 1 } )
+        , ( "contents", { prefix = "|", arity = Arity 0 } )
 
         --, ( "section", { prefix = "|", arity = 1 } )
         ]

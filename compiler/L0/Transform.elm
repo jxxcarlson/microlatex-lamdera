@@ -46,5 +46,8 @@ transform ((ExpressionBlock data) as block) =
         Right [ Expr "bibitem" exprs m2 ] ->
             ordinaryBlock [ "bibitem" ] (exprs |> split) data m2
 
+        Right [ Expr "desc" exprs m2 ] ->
+            ordinaryBlock [ "desc" ] (exprs |> split) data m2
+
         _ ->
             block

@@ -47,7 +47,8 @@ arg =
     Parser.succeed identity
         |. Parser.symbol "{"
         |. Parser.spaces
-        |= word (\c -> c /= ' ' && c /= '}')
+        -- = word (\c -> c /= ' ' && c /= '}')
+        |= word (\c -> c /= '}')
         |. Parser.symbol "}"
 
 
