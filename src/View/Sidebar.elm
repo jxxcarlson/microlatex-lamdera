@@ -25,7 +25,7 @@ view model =
                 , E.paddingXY 8 0
                 , Background.color Color.lightGray
                 ]
-                [ E.row [ E.spacing 12 ] [ Button.getUserTags model.currentUser, Button.getPublicTags ]
+                [ E.row [ E.spacing 12 ] [ Button.getUserTags model.tagSelection model.currentUser, Button.getPublicTags model.tagSelection ]
                 , E.column
                     [ E.scrollbarY
                     , E.width (E.px Geometry.sidebarWidth)

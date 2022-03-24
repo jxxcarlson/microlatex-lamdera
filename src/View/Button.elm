@@ -51,7 +51,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SortMode(..))
+import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -364,19 +364,35 @@ closeCollectionsIndex =
     buttonTemplate2 [] CloseCollectionIndex "x"
 
 
-getUserTags : Maybe User -> Element FrontendMsg
-getUserTags user =
+getUserTags : TagSelection -> Maybe User -> Element FrontendMsg
+getUserTags tagSelection user =
     case user of
         Nothing ->
             E.none
 
         Just user_ ->
-            buttonTemplate [] (GetUserTags user_.username) "Tags"
+            let
+                style =
+                    if tagSelection == TagUser then
+                        [ Background.color Color.darkRed ]
+
+                    else
+                        []
+            in
+            buttonTemplate style (GetUserTags user_.username) "Tags"
 
 
-getPublicTags : Element FrontendMsg
-getPublicTags =
-    buttonTemplate [] GetPublicTags "Public tags"
+getPublicTags : TagSelection -> Element FrontendMsg
+getPublicTags tagSelection =
+    let
+        style =
+            if tagSelection == TagPublic then
+                [ Background.color Color.darkRed ]
+
+            else
+                []
+    in
+    buttonTemplate style GetPublicTags "Public tags"
 
 
 toggleSidebar : SidebarState -> Element FrontendMsg

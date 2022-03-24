@@ -28,7 +28,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SortMode(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -86,6 +86,7 @@ init url key =
       , activeDocList = Both
       , maximizedIndex = MPublicDocs
       , sidebarState = SidebarIn
+      , tagSelection = TagNeither
 
       -- SYNC
       , doSync = False
@@ -248,12 +249,20 @@ update msg model =
 
         -- UI
         ToggleSideBar ->
+            let
+                tagSelection =
+                    if Dict.isEmpty model.tagDict then
+                        TagNeither
+
+                    else
+                        model.tagSelection
+            in
             case model.sidebarState of
                 SidebarIn ->
-                    ( { model | sidebarState = SidebarOut }, Cmd.none )
+                    ( { model | tagSelection = tagSelection, sidebarState = SidebarOut }, Cmd.none )
 
                 SidebarOut ->
-                    ( { model | sidebarState = SidebarIn }, Cmd.none )
+                    ( { model | tagSelection = tagSelection, sidebarState = SidebarIn }, Cmd.none )
 
         ToggleIndexSize ->
             case model.maximizedIndex of
@@ -349,10 +358,10 @@ update msg model =
 
         -- DOCUMENT
         GetUserTags author ->
-            ( model, sendToBackend (GetUserTagsFromBE author) )
+            ( { model | tagSelection = TagUser }, sendToBackend (GetUserTagsFromBE author) )
 
         GetPublicTags ->
-            ( model, sendToBackend GetPublicTagsFromBE )
+            ( { model | tagSelection = TagPublic }, sendToBackend GetPublicTagsFromBE )
 
         CycleLanguage ->
             Frontend.Update.cycleLanguage model
