@@ -267,6 +267,7 @@ type FrontendMsg
     | Render Render.Msg.MarkupMsg
     | SetSortMode SortMode
     | GetUserTags String
+    | GetPublicTags
       -- Export
     | ExportToMarkdown
     | ExportToLaTeX
@@ -322,6 +323,7 @@ type ToBackend
     | SearchForDocuments (Maybe String) String
     | DeleteDocumentBE Document
     | GetUserTagsFromBE String
+    | GetPublicTagsFromBE
 
 
 type BackendMsg
@@ -336,6 +338,7 @@ type ToFrontend
     | SendUser User
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))
+    | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | SendDocument DocPermissions Document
     | SendDocuments (List Document)
     | SendMessage String

@@ -3,7 +3,6 @@ module View.Main exposing (view)
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
-import Dict exposing (Dict)
 import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
@@ -13,7 +12,6 @@ import Html.Attributes as HtmlAttr
 import Render.Markup
 import Render.Settings
 import Render.TOC
-import String.Extra
 import Time
 import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
 import View.Button as Button

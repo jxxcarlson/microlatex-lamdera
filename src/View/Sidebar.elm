@@ -1,27 +1,13 @@
 module View.Sidebar exposing (view)
 
-import Compiler.ASTTools
-import Compiler.DifferentialParser
-import Config
 import Dict exposing (Dict)
-import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
-import Html exposing (Html)
-import Html.Attributes as HtmlAttr
-import Render.Markup
-import Render.Settings
-import Render.TOC
-import String.Extra
-import Time
 import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
 import View.Button as Button
 import View.Color as Color
-import View.Editor as Editor
 import View.Geometry as Geometry
-import View.Input
-import View.Style
 import View.Utility
 
 
@@ -32,8 +18,22 @@ view model =
             E.none
 
         SidebarOut ->
-            E.column [ E.scrollbarY, E.width (E.px Geometry.sidebarWidth), E.spacing 4, E.height (E.px (Geometry.appHeight_ model - 110)), E.paddingXY 8 0, Background.color Color.lightGray ]
-                (Button.getUserTags model.currentUser :: viewTagDict model.tagDict)
+            E.column
+                [ E.width (E.px Geometry.sidebarWidth)
+                , E.spacing 4
+                , E.height (E.px (Geometry.appHeight_ model - 110))
+                , E.paddingXY 8 0
+                , Background.color Color.lightGray
+                ]
+                [ E.row [ E.spacing 12 ] [ Button.getUserTags model.currentUser, Button.getPublicTags ]
+                , E.column
+                    [ E.scrollbarY
+                    , E.width (E.px Geometry.sidebarWidth)
+                    , E.spacing 4
+                    , E.height (E.px (Geometry.appHeight_ model - 130))
+                    ]
+                    (viewTagDict model.tagDict)
+                ]
 
 
 viewTagDict : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
@@ -52,10 +52,6 @@ viewTagGroup list =
 
         Just headItem ->
             E.column [ E.spacing 2, E.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ] (E.el [ E.paddingXY 6 0, Font.size 14 ] (E.text headItem.tag) :: List.map viewTagDictItem list)
-
-
-
--- E.paddingEach {top = 8, bottom = 0, left = 0, right = 0}
 
 
 viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg

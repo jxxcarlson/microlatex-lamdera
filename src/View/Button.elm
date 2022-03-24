@@ -12,6 +12,7 @@ module View.Button exposing
     , exportToXMarkdown
     , getDocument
     , getDocumentByPrivateId
+    , getPublicTags
     , getUserTags
     , help
     , home
@@ -371,6 +372,11 @@ getUserTags user =
 
         Just user_ ->
             buttonTemplate [] (GetUserTags user_.username) "Tags"
+
+
+getPublicTags : Element FrontendMsg
+getPublicTags =
+    buttonTemplate [] GetPublicTags "Public tags"
 
 
 toggleSidebar : SidebarState -> Element FrontendMsg

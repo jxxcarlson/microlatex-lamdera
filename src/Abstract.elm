@@ -8,6 +8,7 @@ module Abstract exposing
     , getBlockContents
     , getElement
     , getItem
+    , publicTagDict
     , str1
     , str2
     , str3
@@ -15,6 +16,7 @@ module Abstract exposing
     )
 
 import Dict exposing (Dict)
+import Document exposing (Document)
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
 
@@ -35,6 +37,13 @@ getAuthorTags author dict =
         |> List.map (\( id2, ab2 ) -> { id = id2, title = ab2.title, tags = String.words ab2.tags |> List.map (String.trim >> String.replace "," "") })
 
 
+getAllTags : Dict String Abstract -> List { id : String, title : String, tags : List String }
+getAllTags dict =
+    dict
+        |> Dict.toList
+        |> List.map (\( id2, ab2 ) -> { id = id2, title = ab2.title, tags = String.words ab2.tags |> List.map (String.trim >> String.replace "," "") })
+
+
 makeTagDict : List { id : String, title : String, tags : List String } -> Dict String (List { id : String, title : String })
 makeTagDict tagData =
     tagData
@@ -45,6 +54,13 @@ makeTagDict tagData =
 authorTagDict : String -> Dict String Abstract -> Dict String (List { id : String, title : String })
 authorTagDict author abstractDict =
     getAuthorTags author abstractDict |> makeTagDict
+
+
+publicTagDict : Dict String Document -> Dict String Abstract -> Dict String (List { id : String, title : String })
+publicTagDict documentDict abstractDict =
+    getAllTags abstractDict
+        |> List.filter (\{ id, title, tags } -> Maybe.map .public (Dict.get id documentDict) == Just True)
+        |> makeTagDict
 
 
 insertIf : { a | id : b, title : c, tag : String } -> Dict String (List { id : b, title : c }) -> Dict String (List { id : b, title : c })
@@ -127,15 +143,15 @@ get author_ lang source =
             getForMiniLaTeX author source
 
         XMarkdownLang ->
-            getforXMardown author source
+            getforXMarkdown author source
 
 
-getforXMardown author source =
+getforXMarkdown author source =
     -- TODO: implement this
-    { title = "--"
+    { title = "?? (1)"
     , author = author
-    , abstract = "" --"
-    , tags = "--"
+    , abstract = "?? (2)"
+    , tags = "no tags"
     , digest = [] |> String.join " " |> String.toLower
     }
 

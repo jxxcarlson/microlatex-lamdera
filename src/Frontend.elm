@@ -351,6 +351,9 @@ update msg model =
         GetUserTags author ->
             ( model, sendToBackend (GetUserTagsFromBE author) )
 
+        GetPublicTags ->
+            ( model, sendToBackend GetPublicTagsFromBE )
+
         CycleLanguage ->
             Frontend.Update.cycleLanguage model
 
@@ -571,6 +574,9 @@ updateFromBackend msg model =
     case msg of
         -- DOCUMENT
         AcceptUserTags tagDict ->
+            ( { model | tagDict = tagDict }, Cmd.none )
+
+        AcceptPublicTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
 
         SendDocument access doc ->
