@@ -32,7 +32,7 @@ view model =
                     [ E.scrollbarY
                     , E.width (E.px Geometry.sidebarWidth)
                     , E.spacing 4
-                    , E.height (E.px (Geometry.appHeight_ model - 150))
+                    , E.height (E.px (Geometry.appHeight_ model - 190))
                     ]
                     (viewTagDict model.inputSearchTagsKey model.tagDict)
                 ]
