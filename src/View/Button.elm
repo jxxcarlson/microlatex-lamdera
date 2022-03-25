@@ -1,9 +1,11 @@
 module View.Button exposing
     ( cancelDeleteDocument
+    , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
     , cycleLanguage
     , deleteDocument
+    , doSignUp
     , export
     , exportJson
     , exportToLaTeX
@@ -33,6 +35,7 @@ module View.Button exposing
     , showTOCInPhone
     , signIn
     , signOut
+    , signUp
     , startupHelp
     , syncButton
     , syncLR
@@ -51,7 +54,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -337,7 +340,22 @@ startupHelp =
 
 signIn : Element FrontendMsg
 signIn =
-    buttonTemplate [] SignIn "Sign in | Sign up"
+    buttonTemplate [] SignIn "Sign in"
+
+
+signUp : Element FrontendMsg
+signUp =
+    buttonTemplate [] (SetSignupState ShowSignUpForm) "Sign up"
+
+
+cancelSignUp : Element FrontendMsg
+cancelSignUp =
+    buttonTemplate [] (SetSignupState HideSignUpForm) "Cancel"
+
+
+doSignUp : Element FrontendMsg
+doSignUp =
+    buttonTemplate [] DoSignUp "Sign up"
 
 
 exportJson : Element FrontendMsg

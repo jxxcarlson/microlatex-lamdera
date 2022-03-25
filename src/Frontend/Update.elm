@@ -8,6 +8,7 @@ module Frontend.Update exposing
     , firstSyncLR
     , handleSignIn
     , handleSignOut
+    , handleSignUp
     , handleUrlRequest
     , inputText
     , isMaster
@@ -456,7 +457,17 @@ handleSignOut model =
 handleSignIn model =
     if String.length model.inputPassword >= 8 then
         ( model
-        , sendToBackend (SignInOrSignUp model.inputUsername (Authentication.encryptForTransit model.inputPassword))
+        , sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword))
+        )
+
+    else
+        ( { model | message = "Password must be at least 8 letters long." }, Cmd.none )
+
+
+handleSignUp model =
+    if String.length model.inputPassword >= 8 then
+        ( model
+        , sendToBackend (SignUpBE model.inputUsername (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
         )
 
     else

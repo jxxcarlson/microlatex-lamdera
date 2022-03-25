@@ -2,6 +2,7 @@ module View.Color exposing
     ( black
     , blue
     , darkBlue
+    , darkGray
     , darkRed
     , lightBlue
     , lightGray
@@ -80,6 +81,10 @@ transparentBlue =
 paleViolet : E.Color
 paleViolet =
     E.rgb255 230 230 255
+
+
+darkGray =
+    gray 0.6
 
 
 gray : Float -> E.Color

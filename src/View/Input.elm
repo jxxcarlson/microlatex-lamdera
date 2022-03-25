@@ -1,11 +1,16 @@
 module View.Input exposing
-    ( enterPrivateId
-    , passwordInput
+    ( email
+    , enterPrivateId
+    , password
+    , passwordAgain
+    , passwordLarge
+    , realName
     , searchDocsInput
     , searchSourceText
     , searchTagsInput
     , specialInput
-    , usernameInput
+    , username
+    , usernameLarge
     )
 
 import Element as E exposing (Element, px)
@@ -68,13 +73,37 @@ searchTagsInput model =
     inputFieldTemplate2 [] E.fill "Filter tags ..." InputSearchTagsKey model.inputSearchTagsKey
 
 
-usernameInput model =
+username model =
     inputFieldTemplate (E.px 120) "Username" InputUsername model.inputUsername
+
+
+signUpInputWidth =
+    220
+
+
+usernameLarge model =
+    inputFieldTemplate (E.px signUpInputWidth) "Username" InputUsername model.inputUsername
+
+
+realName model =
+    inputFieldTemplate (E.px signUpInputWidth) "Real name" InputRealname model.inputRealname
+
+
+email model =
+    inputFieldTemplate (E.px signUpInputWidth) "Email" InputEmail model.inputEmail
+
+
+passwordAgain model =
+    passwordTemplate (E.px signUpInputWidth) "Password again" InputPasswordAgain model.inputPasswordAgain
 
 
 specialInput model =
     inputFieldTemplate (E.px 120) "Special" InputSpecial model.inputSpecial
 
 
-passwordInput model =
+password model =
     passwordTemplate (E.px 120) "Password" InputPassword model.inputPassword
+
+
+passwordLarge model =
+    passwordTemplate (E.px signUpInputWidth) "Password" InputPassword model.inputPassword

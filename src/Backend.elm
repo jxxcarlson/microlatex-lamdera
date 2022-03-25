@@ -109,8 +109,11 @@ updateFromFrontend _ clientId msg model =
             ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
 
         -- USER
-        SignInOrSignUp username encryptedPassword ->
-            Backend.Update.signInOrSignUp model clientId username encryptedPassword
+        SignInBE username encryptedPassword ->
+            Backend.Update.signIn model clientId username encryptedPassword
+
+        SignUpBE username encryptedPassword realname email ->
+            Backend.Update.signUpUser model clientId username encryptedPassword realname email
 
         -- DOCUMENTS
         GetUserTagsFromBE author ->

@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -34,6 +34,9 @@ type alias FrontendModel =
     , currentUser : Maybe User
     , inputUsername : String
     , inputPassword : String
+    , inputPasswordAgain : String
+    , inputRealname : String
+    , inputEmail : String
     , tagDict : Dict String (List { id : String, title : String })
 
     -- UI
@@ -49,6 +52,7 @@ type alias FrontendModel =
     , maximizedIndex : MaximizedIndex
     , sidebarState : SidebarState
     , tagSelection : TagSelection
+    , signupState : SignupState
 
     -- SYNC
     , foundIds : List String
@@ -235,9 +239,14 @@ type FrontendMsg
     | JsonLoaded String
       -- USER
     | SignIn
+    | SetSignupState SignupState
+    | DoSignUp
     | SignOut
     | InputUsername String
     | InputPassword String
+    | InputPasswordAgain String
+    | InputRealname String
+    | InputEmail String
       -- SYNC
     | SelectedText String
     | SyncLR
@@ -318,7 +327,8 @@ type ToBackend
     | GetStatus
     | RestoreBackup BackupOLD
       -- USER
-    | SignInOrSignUp String String
+    | SignInBE String String
+    | SignUpBE String String String String
       -- DOCUMENT
     | GetHomePage String
     | FetchDocumentById String (Maybe String)
@@ -335,6 +345,11 @@ type ToBackend
     | GetPublicTagsFromBE
 
 
+type SignupState
+    = ShowSignUpForm
+    | HideSignUpForm
+
+
 type BackendMsg
     = GotAtomsphericRandomNumber (Result Http.Error String)
     | Tick Time.Posix
@@ -344,7 +359,7 @@ type ToFrontend
     = -- ADMIN
       SendBackupData String
       -- USEr
-    | SendUser User
+    | UserSignedUp User
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))

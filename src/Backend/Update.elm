@@ -13,8 +13,8 @@ module Backend.Update exposing
     , searchForDocuments
     , searchForDocuments_
     , searchForPublicDocuments
-    , setupUser
-    , signInOrSignUp
+    , signIn
+    , signUpUser
     , updateAbstracts
     )
 
@@ -254,14 +254,14 @@ createDocument model clientId maybeCurrentUser doc_ =
             ]
 
 
-signInOrSignUp model clientId username encryptedPassword =
+signIn model clientId username encryptedPassword =
     case Dict.get username model.authenticationDict of
         Just userData ->
             if Authentication.verify username encryptedPassword model.authenticationDict then
                 ( model
                 , Cmd.batch
                     [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
-                    , sendToFrontend clientId (SendUser userData.user)
+                    , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| "Success! your are signed in and your documents are now available")
                     ]
                 )
@@ -270,7 +270,7 @@ signInOrSignUp model clientId username encryptedPassword =
                 ( model, sendToFrontend clientId (SendMessage <| "Sorry, password and username don't match") )
 
         Nothing ->
-            setupUser model clientId username encryptedPassword
+            ( model, sendToFrontend clientId (SendMessage <| "Sorry, password and username don't match") )
 
 
 searchForDocuments model clientId maybeUsername key =
@@ -382,8 +382,8 @@ gotAtmosphericRandomNumber model result =
 -- USER
 
 
-setupUser : Model -> ClientId -> String -> String -> ( BackendModel, Cmd BackendMsg )
-setupUser model clientId username transitPassword =
+signUpUser : Model -> ClientId -> String -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
+signUpUser model clientId username transitPassword realname email =
     let
         ( randInt, seed ) =
             Random.step (Random.int (Random.minInt // 2) (Random.maxInt - 1000)) model.randomSeed
@@ -397,8 +397,8 @@ setupUser model clientId username transitPassword =
         user =
             { username = username
             , id = tokenData.token
-            , realname = "Undefined"
-            , email = "Undefined"
+            , realname = realname
+            , email = email
             , created = model.currentTime
             , modified = model.currentTime
             }
@@ -410,7 +410,7 @@ setupUser model clientId username transitPassword =
         Ok authDict ->
             ( { model | randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
             , Cmd.batch
-                [ sendToFrontend clientId (SendUser user)
+                [ sendToFrontend clientId (UserSignedUp user)
                 , sendToFrontend clientId (SendMessage "Success! You have set up your account")
                 ]
             )

@@ -28,7 +28,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -73,6 +73,9 @@ init url key =
       , currentUser = Nothing
       , inputUsername = ""
       , inputPassword = ""
+      , inputPasswordAgain = ""
+      , inputEmail = ""
+      , inputRealname = ""
       , tagDict = Dict.empty
 
       -- UI
@@ -87,6 +90,7 @@ init url key =
       , maximizedIndex = MPublicDocs
       , sidebarState = SidebarIn
       , tagSelection = TagNeither
+      , signupState = HideSignUpForm
 
       -- SYNC
       , doSync = False
@@ -212,6 +216,21 @@ update msg model =
             )
 
         -- USER
+        SetSignupState state ->
+            ( { model
+                | signupState = state
+                , inputUsername = ""
+                , inputPassword = ""
+                , inputPasswordAgain = ""
+                , inputEmail = ""
+                , inputRealname = ""
+              }
+            , Cmd.none
+            )
+
+        DoSignUp ->
+            Frontend.Update.handleSignUp model
+
         SignIn ->
             Frontend.Update.handleSignIn model
 
@@ -247,6 +266,15 @@ update msg model =
 
         InputPassword str ->
             ( { model | inputPassword = str }, Cmd.none )
+
+        InputPasswordAgain str ->
+            ( { model | inputPasswordAgain = str }, Cmd.none )
+
+        InputRealname str ->
+            ( { model | inputRealname = str }, Cmd.none )
+
+        InputEmail str ->
+            ( { model | inputEmail = str }, Cmd.none )
 
         -- UI
         ToggleSideBar ->
@@ -639,8 +667,19 @@ updateFromBackend msg model =
             ( { model | showEditor = flag }, Cmd.none )
 
         -- USER
-        SendUser user ->
-            ( { model | currentUser = Just user, maximizedIndex = MMyDocs }, Cmd.none )
+        UserSignedUp user ->
+            ( { model
+                | signupState = HideSignUpForm
+                , currentUser = Just user
+                , maximizedIndex = MMyDocs
+                , inputRealname = ""
+                , inputEmail = ""
+                , inputUsername = ""
+                , inputPassword = ""
+                , inputPasswordAgain = ""
+              }
+            , Cmd.none
+            )
 
         SendDocuments documents ->
             ( { model | documents = documents }, Cmd.none )

@@ -12,6 +12,7 @@ import View.Header as Header
 import View.Index as Index
 import View.Rendered as Rendered
 import View.Sidebar as Sidebar
+import View.SignUp as SignUp
 import View.Style as Style
 import View.Utility
 
@@ -70,7 +71,7 @@ viewRenderedTextOnly model =
     E.column (Style.mainColumn model)
         [ E.column [ E.centerX, E.spacing 12, E.width (E.px <| Geometry.smallAppWidth model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
             [ Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
-            , E.row [ E.spacing 12 ]
+            , E.row [ E.spacing 12, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
                 , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
                 , Sidebar.view model

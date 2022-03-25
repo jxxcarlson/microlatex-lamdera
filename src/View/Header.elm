@@ -27,8 +27,9 @@ view model _ =
         , View.Input.searchDocsInput model
         , Button.iLink Config.welcomeDocId "Home"
         , View.Utility.showIf (model.currentUser == Nothing) Button.signIn
-        , View.Utility.showIf (model.currentUser == Nothing) (View.Input.usernameInput model)
-        , View.Utility.showIf (model.currentUser == Nothing) (View.Input.passwordInput model)
+        , View.Utility.showIf (model.currentUser == Nothing) (View.Input.username model)
+        , View.Utility.showIf (model.currentUser == Nothing) (View.Input.password model)
+        , View.Utility.showIf (model.currentUser == Nothing) Button.signUp
         , Button.signOut model
 
         -- , Button.help
