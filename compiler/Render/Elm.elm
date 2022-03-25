@@ -454,7 +454,6 @@ ref g acc s exprList =
     Element.link
         [ Font.color (Element.rgb 0 0 0.7)
         , Font.bold
-        , Font.underline
         , Events.onClick (SelectId id)
         ]
         { url = Utility.internalLink id
