@@ -587,9 +587,8 @@ numbered count acc settings args id exprs =
         [ Element.el
             [ Font.size 14
             , Element.alignTop
-            , Element.moveRight 6
             , Element.width (Element.px 24)
-            , Render.Settings.leftIndentation
+            , Render.Settings.leftRightIndentation
             ]
             (Element.text (label ++ ". "))
         , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
