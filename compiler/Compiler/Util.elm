@@ -1,5 +1,6 @@
 module Compiler.Util exposing
-    ( depth
+    ( compressWhitespace
+    , depth
     , eraseItem
     , getBracketedItem
     , getBracketedItems
@@ -11,7 +12,23 @@ module Compiler.Util exposing
 
 import Parser exposing ((|.), (|=), Parser, Step(..), loop, map, oneOf, spaces, succeed)
 import Parser.Language exposing (Language(..))
+import Regex
 import Tree exposing (Tree)
+
+
+userReplace : String -> (Regex.Match -> String) -> String -> String
+userReplace userRegex replacer string =
+    case Regex.fromString userRegex of
+        Nothing ->
+            string
+
+        Just regex ->
+            Regex.replace regex replacer string
+
+
+compressWhitespace : String -> String
+compressWhitespace string =
+    userReplace "\\s\\s+" (\_ -> " ") string
 
 
 {-| Apply a parser zero or more times and return a list of the results.

@@ -7,12 +7,11 @@ module Compiler.Acc exposing
 
 import Compiler.ASTTools
 import Compiler.Lambda as Lambda exposing (Lambda)
-import Compiler.Transform
+import Compiler.Util
 import Compiler.Vector as Vector exposing (Vector)
 import Config
 import Dict exposing (Dict)
 import Either exposing (Either(..))
-import L0.Transform
 import List.Extra
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
@@ -244,19 +243,19 @@ updateWithOrdinarySectionBlock accumulator name content level id =
         ( inList, _ ) =
             listData accumulator name
 
-        title =
+        titleWords =
             case content of
                 Left str ->
-                    str
+                    [ Compiler.Util.compressWhitespace str ]
 
                 Right expr ->
-                    List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> String.join " "
+                    List.map Compiler.ASTTools.getText expr |> Maybe.Extra.values |> List.map Compiler.Util.compressWhitespace
 
         sectionTag =
-            title |> String.toLower |> String.replace " " "-"
+            -- TODO: the below is a bad solution
+            titleWords |> List.map (String.toLower >> String.replace " " "-") |> String.join ""
 
         headingIndex =
-            --Vector.increment (String.toInt level |> Maybe.withDefault 0 |> (\x -> x - 1)) accumulator.headingIndex
             Vector.increment (String.toInt level |> Maybe.withDefault 0) accumulator.headingIndex
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
