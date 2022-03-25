@@ -65,7 +65,7 @@ searchDocsInput model =
 
 searchTagsInput : FrontendModel -> Element FrontendMsg
 searchTagsInput model =
-    inputFieldTemplate2 [] E.fill "Search for tags ..." InputSearchTagsKey model.inputSearchTagsKey
+    inputFieldTemplate2 [] E.fill "Filter tags ..." InputSearchTagsKey model.inputSearchTagsKey
 
 
 usernameInput model =
