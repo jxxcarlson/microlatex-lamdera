@@ -24,6 +24,7 @@ view model =
                 , E.spacing 4
                 , E.height (E.px (Geometry.appHeight_ model - 110))
                 , E.paddingXY 8 0
+                , Background.color Color.lightGray
                 ]
                 [ E.row [ E.spacing 12 ] [ Button.getUserTags model.tagSelection model.currentUser, Button.getPublicTags model.tagSelection ]
                 , search model
