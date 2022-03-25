@@ -77,6 +77,7 @@ type alias FrontendModel =
     , currentMasterDocument : Maybe Document
     , documents : List Document
     , inputSearchKey : String
+    , inputSearchTagsKey : String
     , printingState : PrintingState
     , documentDeleteState : DocumentDeleteState
     , counter : Int
@@ -261,6 +262,7 @@ type FrontendMsg
     | DebounceMsg Debounce.Msg
     | Saved String
     | InputSearchKey String
+    | InputSearchTagsKey String
     | Search
     | SearchText
     | InputAuthorId String

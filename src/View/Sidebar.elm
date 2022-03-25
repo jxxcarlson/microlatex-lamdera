@@ -8,6 +8,7 @@ import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), Front
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry
+import View.Input
 import View.Utility
 
 
@@ -26,21 +27,32 @@ view model =
                 , Background.color Color.lightGray
                 ]
                 [ E.row [ E.spacing 12 ] [ Button.getUserTags model.tagSelection model.currentUser, Button.getPublicTags model.tagSelection ]
+                , View.Input.searchTagsInput model
                 , E.column
                     [ E.scrollbarY
                     , E.width (E.px Geometry.sidebarWidth)
                     , E.spacing 4
-                    , E.height (E.px (Geometry.appHeight_ model - 130))
+                    , E.height (E.px (Geometry.appHeight_ model - 150))
                     ]
-                    (viewTagDict model.tagDict)
+                    (viewTagDict model.inputSearchTagsKey model.tagDict)
                 ]
 
 
-viewTagDict : Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
-viewTagDict dict =
+searchTags : String -> List { tag : String, id : String, title : String } -> List { tag : String, id : String, title : String }
+searchTags key list =
+    if key == "" then
+        list
+
+    else
+        List.filter (\item -> String.contains key item.tag) list
+
+
+viewTagDict : String -> Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
+viewTagDict key dict =
     dict
         |> Dict.toList
         |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
+        |> List.map (searchTags key)
         |> List.map viewTagGroup
 
 

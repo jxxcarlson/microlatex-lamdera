@@ -3,6 +3,7 @@ module View.Input exposing
     , passwordInput
     , searchDocsInput
     , searchSourceText
+    , searchTagsInput
     , specialInput
     , usernameInput
     )
@@ -60,6 +61,11 @@ passwordTemplate width_ default msg text =
 searchDocsInput : FrontendModel -> Element FrontendMsg
 searchDocsInput model =
     inputFieldTemplate2 [ onEnter Search |> E.htmlAttribute ] E.fill "Search for documents ..." InputSearchKey model.inputSearchKey
+
+
+searchTagsInput : FrontendModel -> Element FrontendMsg
+searchTagsInput model =
+    inputFieldTemplate2 [] E.fill "Search for tags ..." InputSearchTagsKey model.inputSearchTagsKey
 
 
 usernameInput model =

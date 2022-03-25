@@ -111,6 +111,7 @@ init url key =
       , debounce = Debounce.init
       , counter = 0
       , inputSearchKey = ""
+      , inputSearchTagsKey = ""
       , authorId = ""
       , documents = []
       , currentDocument = Just Docs.notSignedIn
@@ -401,6 +402,9 @@ update msg model =
 
         InputSearchKey str ->
             ( { model | inputSearchKey = str }, Cmd.none )
+
+        InputSearchTagsKey str ->
+            ( { model | inputSearchTagsKey = str }, Cmd.none )
 
         NewDocument ->
             Frontend.Update.newDocument model
