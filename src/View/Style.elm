@@ -8,11 +8,20 @@ module View.Style exposing
     , fgBlack
     , fgGray
     , fgWhite
+    , mainColumn
     )
 
 import Element
 import Element.Background as Background
 import Element.Font as Font
+
+
+mainColumn model =
+    [ bgGray 0.5
+    , Element.paddingEach { top = 40, bottom = 20, left = 0, right = 0 }
+    , Element.width (Element.px model.windowWidth)
+    , Element.height (Element.px model.windowHeight)
+    ]
 
 
 fgBlack =

@@ -3,6 +3,7 @@ module View.Utility exposing
     , elementAttribute
     , getElementWithViewPort
     , hideIf
+    , isAdmin
     , katexCSS
     , noFocus
     , onEnter
@@ -23,7 +24,12 @@ import Html.Events exposing (keyCode, on)
 import Json.Decode as D
 import String.Extra
 import Task exposing (Task)
-import Types exposing (FrontendMsg)
+import Types exposing (FrontendModel, FrontendMsg)
+
+
+isAdmin : FrontendModel -> Bool
+isAdmin model =
+    Maybe.map .username model.currentUser == Just "jxxcarlson"
 
 
 softTruncateLimit =

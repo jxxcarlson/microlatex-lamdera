@@ -14,13 +14,16 @@ import Render.Settings
 import Render.TOC
 import Time
 import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import View.Admin as Admin
 import View.Button as Button
 import View.Color as Color
 import View.Editor as Editor
+import View.Footer as Footer
 import View.Geometry as Geometry
+import View.Header as Header
 import View.Input
 import View.Sidebar as Sidebar
-import View.Style
+import View.Style as Style
 import View.Utility
 
 
@@ -31,7 +34,7 @@ type alias Model =
 view : Model -> Html FrontendMsg
 view model =
     E.layoutWith { options = [ E.focusStyle View.Utility.noFocus ] }
-        [ View.Style.bgGray 0.9, E.clipX, E.clipY ]
+        [ Style.bgGray 0.9, E.clipX, E.clipY ]
         (viewMainColumn model)
 
 
@@ -39,7 +42,7 @@ viewMainColumn : Model -> Element FrontendMsg
 viewMainColumn model =
     case model.appMode of
         AdminMode ->
-            viewAdmin model
+            Admin.view model
 
         UserMode ->
             if model.showEditor then
@@ -53,39 +56,22 @@ viewMainColumn model =
 -- TOP
 
 
-viewAdmin : Model -> Element FrontendMsg
-viewAdmin model =
-    E.column (mainColumnStyle model)
-        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
-            [ header model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
-            , E.row [ E.spacing 12 ]
-                [ View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
-                , Button.runSpecial
-                , Button.toggleAppMode model
-                , Button.exportJson
-                , View.Utility.showIf (isAdmin model) Button.importJson
-                ]
-            , footer model (Geometry.appWidth model.sidebarState model.windowWidth)
-            ]
-        ]
-
-
 viewEditorAndRenderedText : Model -> Element FrontendMsg
 viewEditorAndRenderedText model =
     let
         deltaH =
             (Geometry.appHeight_ model - 100) // 2 + 130
     in
-    E.column (mainColumnStyle model)
+    E.column (Style.mainColumn model)
         [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
-            [ header model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+            [ Header.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
                 , viewRenderedForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
                 , viewIndex model (Geometry.appWidth model.sidebarState model.windowWidth) deltaH
                 , Sidebar.view model
                 ]
-            , footer model (Geometry.appWidth model.sidebarState model.windowWidth)
+            , Footer.view model (Geometry.appWidth model.sidebarState model.windowWidth)
             ]
         ]
 
@@ -100,15 +86,15 @@ viewRenderedTextOnly model =
         deltaH =
             (Geometry.appHeight_ model - 100) // 2 + 130
     in
-    E.column (mainColumnStyle model)
+    E.column (Style.mainColumn model)
         [ E.column [ E.centerX, E.spacing 12, E.width (E.px <| Geometry.smallAppWidth model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
-            [ header model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
+            [ Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
             , E.row [ E.spacing 12 ]
                 [ viewRenderedContainer model
                 , viewIndex model (Geometry.smallAppWidth model.windowWidth) deltaH
                 , Sidebar.view model
                 ]
-            , footer model (Geometry.smallHeaderWidth model.windowWidth)
+            , Footer.view model (Geometry.smallHeaderWidth model.windowWidth)
             ]
         ]
 
@@ -220,91 +206,6 @@ viewPublicDocs model deltaH indexShift =
         )
 
 
-footer model _ =
-    E.row
-        [ E.spacing 12
-        , E.paddingXY 0 8
-        , E.height (E.px 25)
-        , E.width E.fill -- (E.px width_)
-        , Font.size 14
-        ]
-        [ -- Button.syncButton
-          Button.nextSyncButton model.foundIds
-        , Button.exportToLaTeX
-        , Button.printToPDF model
-        , Button.exportToMicroLaTeX
-        , Button.exportToXMarkdown
-
-        -- , View.Utility.showIf (isAdmin model) Button.runSpecial
-        , View.Utility.showIf (isAdmin model) (Button.toggleAppMode model)
-
-        -- , View.Utility.showIf (isAdmin model) Button.exportJson
-        --, View.Utility.showIf (isAdmin model) Button.importJson
-        -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
-        , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
-        , E.el [ E.width E.fill, rightPaddingFooter model.showEditor ] (messageRow model)
-        ]
-
-
-rightPaddingFooter showEditor =
-    case showEditor of
-        True ->
-            E.paddingEach { left = 0, right = 22, top = 0, bottom = 0 }
-
-        False ->
-            E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
-
-
-isAdmin : Model -> Bool
-isAdmin model =
-    Maybe.map .username model.currentUser == Just "jxxcarlson"
-
-
-messageRow model =
-    E.row
-        [ E.width E.fill
-        , E.height (E.px 30)
-        , E.paddingXY 8 4
-        , View.Style.bgGray 0.1
-        , View.Style.fgGray 1.0
-        ]
-        [ E.text model.message ]
-
-
-header model _ =
-    E.row [ E.spacing 12, E.width E.fill ]
-        [ View.Utility.hideIf (model.currentUser == Nothing) (Button.cycleLanguage model.language)
-        , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor Button.closeEditor)
-        , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.hideIf model.showEditor Button.openEditor)
-        , View.Utility.hideIf (model.currentUser == Nothing) Button.newDocument
-        , View.Utility.hideIf (model.currentUser == Nothing) (Button.deleteDocument model)
-        , View.Utility.hideIf (model.currentUser == Nothing) (Button.cancelDeleteDocument model)
-        , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument))
-        , View.Utility.showIf model.showEditor (wordCount model)
-
-        --, E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9) ] (E.text (currentAuthor model.currentDocument))
-        , View.Input.searchDocsInput model
-        , Button.iLink Config.welcomeDocId "Home"
-        , View.Utility.showIf (model.currentUser == Nothing) Button.signIn
-        , View.Utility.showIf (model.currentUser == Nothing) (View.Input.usernameInput model)
-        , View.Utility.showIf (model.currentUser == Nothing) (View.Input.passwordInput model)
-        , Button.signOut model
-
-        -- , Button.help
-        , E.el [ E.alignRight ] (title Config.appName)
-        , E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (Button.toggleSidebar model.sidebarState)
-        ]
-
-
-rightPaddingHeader showEditor =
-    case showEditor of
-        True ->
-            E.paddingEach { left = 0, right = 30, top = 0, bottom = 0 }
-
-        False ->
-            E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
-
-
 currentAuthor : Maybe Document -> String
 currentAuthor maybeDoc =
     case maybeDoc of
@@ -313,16 +214,6 @@ currentAuthor maybeDoc =
 
         Just doc ->
             doc.author |> Maybe.withDefault ""
-
-
-wordCount : Model -> Element FrontendMsg
-wordCount model =
-    case model.currentDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            E.el [ Font.size 14, Font.color Color.lightGray ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
 viewRenderedSmall : Model -> Document -> Int -> Int -> Int -> Element FrontendMsg
@@ -336,7 +227,7 @@ viewRenderedSmall model doc width_ deltaH indexShift =
     in
     E.column
         [ E.paddingEach { left = 12, right = 12, top = 18, bottom = 96 }
-        , View.Style.bgGray 1.0
+        , Style.bgGray 1.0
         , E.width (E.px <| Geometry.indexWidth model.windowWidth)
         , E.height (E.px (Geometry.appHeight_ model - deltaH + indexShift))
         , Font.size 14
@@ -361,7 +252,7 @@ viewRendered model width_ =
         Just _ ->
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
-                , View.Style.bgGray 1.0
+                , Style.bgGray 1.0
                 , E.width (E.px width_)
                 , E.height (E.px (Geometry.panelHeight_ model))
                 , Font.size 14
@@ -423,7 +314,7 @@ viewRenderedForEditor model width_ =
         Just _ ->
             E.column
                 [ E.paddingEach { left = 24, right = 24, top = 32, bottom = 96 }
-                , View.Style.bgGray 1.0
+                , Style.bgGray 1.0
                 , E.width (E.px width_)
                 , E.height (E.px (Geometry.panelHeight_ model))
                 , Font.size 14
@@ -464,16 +355,3 @@ viewPublicDocuments model =
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
     in
     viewDocumentsInIndex ReadOnly model.currentDocument (sorter model.publicDocuments)
-
-
-mainColumnStyle model =
-    [ View.Style.bgGray 0.5
-    , E.paddingEach { top = 40, bottom = 20, left = 0, right = 0 }
-    , E.width (E.px model.windowWidth)
-    , E.height (E.px model.windowHeight)
-    ]
-
-
-title : String -> Element msg
-title str =
-    E.row [ E.centerX, View.Style.fgGray 0.9 ] [ E.text str ]
