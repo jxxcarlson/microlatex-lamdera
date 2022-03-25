@@ -27,7 +27,7 @@ view model =
                 , Background.color Color.lightGray
                 ]
                 [ E.row [ E.spacing 12 ] [ Button.getUserTags model.tagSelection model.currentUser, Button.getPublicTags model.tagSelection ]
-                , View.Input.searchTagsInput model
+                , search model
                 , E.column
                     [ E.scrollbarY
                     , E.width (E.px Geometry.sidebarWidth)
@@ -36,6 +36,14 @@ view model =
                     ]
                     (viewTagDict model.inputSearchTagsKey model.tagDict)
                 ]
+
+
+search model =
+    if Dict.isEmpty model.tagDict then
+        E.none
+
+    else
+        View.Input.searchTagsInput model
 
 
 searchTags : String -> List { tag : String, id : String, title : String } -> List { tag : String, id : String, title : String }
