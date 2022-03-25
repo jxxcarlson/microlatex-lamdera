@@ -197,6 +197,7 @@ updateReference tag_ id_ numRef_ acc =
 
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
 updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
+    -- Update the accumulator for expression blocks with selected name
     case ( name, blockType ) of
         -- provide numbering for sections
         ( Just "section", OrdinaryBlock _ ) ->
@@ -212,6 +213,9 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
                     List.head args |> Maybe.withDefault "1"
             in
             updateWithOrdinaryDocumentBlock accumulator name content level id
+
+        ( Just "bibitem", OrdinaryBlock _ ) ->
+            updateBibItemBlock accumulator args content id
 
         ( Just name_, OrdinaryBlock _ ) ->
             -- TODO: tighten up
@@ -285,6 +289,15 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
     in
     -- TODO: take care of numberedItemIndex = 0 here and elsewhere
     { accumulator | inList = inList, documentIndex = documentIndex } |> updateReference sectionTag id (Vector.toString documentIndex)
+
+
+updateBibItemBlock accumulator args content id =
+    case List.head args of
+        Nothing ->
+            accumulator
+
+        Just label ->
+            { accumulator | reference = Dict.insert label { id = id, numRef = "_irrelevant_" } accumulator.reference }
 
 
 updateWitOrdinaryBlock : a -> Accumulator -> Maybe String -> Either b (List Expr) -> e -> String -> String -> Int -> Accumulator
