@@ -39,12 +39,16 @@ view model =
 
 
 searchTags : String -> List { tag : String, id : String, title : String } -> List { tag : String, id : String, title : String }
-searchTags key list =
+searchTags key_ list =
+    let
+        key =
+            String.toLower key_
+    in
     if key == "" then
         list
 
     else
-        List.filter (\item -> String.contains key item.tag) list
+        List.filter (\item -> String.contains key item.tag || String.contains key (String.toLower item.title)) list
 
 
 viewTagDict : String -> Dict String (List { a | id : String, title : String }) -> List (Element FrontendMsg)
