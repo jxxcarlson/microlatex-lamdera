@@ -1,6 +1,7 @@
 module Compiler.Util exposing
     ( compressWhitespace
     , depth
+    , dropLast
     , eraseItem
     , getBracketedItem
     , getBracketedItems
@@ -14,6 +15,15 @@ import Parser exposing ((|.), (|=), Parser, Step(..), loop, map, oneOf, spaces, 
 import Parser.Language exposing (Language(..))
 import Regex
 import Tree exposing (Tree)
+
+
+dropLast : List a -> List a
+dropLast list =
+    let
+        n =
+            List.length list
+    in
+    List.take (n - 1) list
 
 
 userReplace : String -> (Regex.Match -> String) -> String -> String

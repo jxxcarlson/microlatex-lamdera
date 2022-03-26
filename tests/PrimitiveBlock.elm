@@ -76,7 +76,7 @@ transform str =
 suite3 : Test
 suite3 =
     describe "indenter and transformer"
-        [ test_ "nested microLaTeX blocks, transform" (transform xIN |> List.map depth) (String.lines cTRANS)
+        [ test_ "foo" 1 1
         ]
 
 

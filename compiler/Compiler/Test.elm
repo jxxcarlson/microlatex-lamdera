@@ -25,6 +25,7 @@ import Compiler.Acc
 import Compiler.DifferentialParser
 import Compiler.Transform
 import Markup
+import MicroLaTeX.Parser.TransformLaTeX
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
@@ -32,51 +33,13 @@ import Parser.PrimitiveBlock as PrimitiveBlock exposing (PrimitiveBlock)
 import Tree exposing (Tree)
 
 
-a2 =
-    """
-| indent
-abc
-
-  | indent
-  def
-
-    | indent
-    ghi
-
-"""
-
-
-a3 =
-    """
-| theorem
-This is a very good theorem
-
-  $$
-  x^2
-  $$
-
-  Isn't that nice?
-
-"""
-
-
-a4 =
-    """
-\\begin{theorem}
-This is a very good theorem
-
-  $$
-  x^2
-  $$
-
-  Isn't that nice?
-
-\\end{theorem}
-"""
-
-
 
 -- TEST formation of primitive blocks
+
+
+tol0 : String -> List String
+tol0 str =
+    str |> String.lines |> MicroLaTeX.Parser.TransformLaTeX.toL0
 
 
 bll : String -> List PrimitiveBlock
@@ -154,3 +117,50 @@ dpl str =
 dpm : String -> List (Tree ExpressionBlock)
 dpm str =
     Compiler.DifferentialParser.init MicroLaTeXLang str |> .parsed
+
+
+
+-- EXAMPLES
+
+
+a2 =
+    """
+| indent
+abc
+
+  | indent
+  def
+
+    | indent
+    ghi
+
+"""
+
+
+a3 =
+    """
+| theorem
+This is a very good theorem
+
+  $$
+  x^2
+  $$
+
+  Isn't that nice?
+
+"""
+
+
+a4 =
+    """
+\\begin{theorem}
+This is a very good theorem
+
+  $$
+  x^2
+  $$
+
+  Isn't that nice?
+
+\\end{theorem}
+"""

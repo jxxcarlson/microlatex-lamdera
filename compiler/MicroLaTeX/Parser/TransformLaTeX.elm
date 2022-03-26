@@ -289,7 +289,7 @@ mapper2 str =
                 String.repeat numberOfLeadingBlanks " "
 
             ( name, args ) =
-                case Parser.TextMacro.getMacro (String.trim trimmed) of
+                case Parser.TextMacro.get (String.trim trimmed) of
                     Ok (Parser.TextMacro.MyMacro name_ args_) ->
                         ( name_, args_ )
 

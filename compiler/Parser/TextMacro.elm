@@ -1,4 +1,4 @@
-module Parser.TextMacro exposing (MyMacro(..), eraseLeadingMacro, getMacro)
+module Parser.TextMacro exposing (MyMacro(..), eraseLeadingMacro, get)
 
 import Parser exposing ((|.), (|=), Parser)
 import Set exposing (Set)
@@ -23,8 +23,8 @@ eraseLeadingMacro name str =
             str
 
 
-getMacro : String -> Result (List Parser.DeadEnd) MyMacro
-getMacro str =
+get : String -> Result (List Parser.DeadEnd) MyMacro
+get str =
     Parser.run macro str
 
 

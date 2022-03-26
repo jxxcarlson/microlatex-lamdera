@@ -1,8 +1,4 @@
-module Parser.PrimitiveBlock exposing
-    ( PrimitiveBlock
-    , empty
-    , toPrimitiveBlocks
-    )
+module MicroLaTeX.Parser.PrimitiveBlock exposing (..)
 
 {-| This module is like Tree.Blocks, except that if the first line of a block
 is deemed to signal the beginning of a "verbatim block," all succeeding lines will be
@@ -22,9 +18,14 @@ considered the first line of a verbatim block.
 
 -}
 
+--- (PrimitiveBlock, empty, toPrimitiveBlocks)
+
+import Compiler.Util
+import List.Extra
+import MicroLaTeX.Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
 import MicroLaTeX.Parser.TransformLaTeX exposing (toL0)
 import Parser.Language exposing (Language(..))
-import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
+import Parser.TextMacro as TextMacro exposing (MyMacro(..))
 import Tools exposing (..)
 
 
@@ -78,7 +79,6 @@ type alias State =
     , position : Int
     , inVerbatim : Bool
     , isVerbatimLine : String -> Bool
-    , lang : Language
     , count : Int
     , label : String
     }
@@ -88,18 +88,14 @@ type alias State =
 -- |> String.join "\n"
 
 
-toPrimitiveBlocks : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-toPrimitiveBlocks lang isVerbatimLine lines =
-    if lang == MicroLaTeXLang then
-        lines |> toL0 |> toPrimitiveBlocks_ L0Lang isVerbatimLine
-
-    else
-        lines |> toPrimitiveBlocks_ lang isVerbatimLine
+toPrimitiveBlocks : (String -> Bool) -> List String -> List PrimitiveBlock
+toPrimitiveBlocks isVerbatimLine lines =
+    lines |> toPrimitiveBlocks_ isVerbatimLine
 
 
-toPrimitiveBlocks_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-toPrimitiveBlocks_ lang isVerbatimLine lines =
-    loop (init lang isVerbatimLine lines) nextStep
+toPrimitiveBlocks_ : (String -> Bool) -> List String -> List PrimitiveBlock
+toPrimitiveBlocks_ isVerbatimLine lines =
+    loop (init isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 
 
@@ -129,8 +125,8 @@ finalize block =
     and lineNumber is the index of the current line in the source
 
 -}
-init : Language -> (String -> Bool) -> List String -> State
-init lang isVerbatimLine lines =
+init : (String -> Bool) -> List String -> State
+init isVerbatimLine lines =
     let
         firstLine : Maybe Line
         firstLine =
@@ -138,10 +134,10 @@ init lang isVerbatimLine lines =
 
         firstBlock_ : Maybe PrimitiveBlock
         firstBlock_ =
-            Maybe.map (blockFromLine lang) firstLine
+            Maybe.map blockFromLine firstLine
 
         firstBlock =
-            Maybe.map2 (elaborate lang) firstLine firstBlock_
+            Maybe.map2 elaborate firstLine firstBlock_
     in
     { blocks = []
     , currentBlock = Nothing
@@ -152,31 +148,43 @@ init lang isVerbatimLine lines =
     , position = 0
     , inVerbatim = False
     , isVerbatimLine = isVerbatimLine
-    , lang = lang
     , count = 0
     , label = "0, START"
     }
 
 
-blockFromLine : Language -> Line -> PrimitiveBlock
-blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
+blockFromLine : Line -> PrimitiveBlock
+blockFromLine ({ indent, lineNumber, position, prefix, content } as line) =
+    let
+        ( blockType, name, newContent ) =
+            case TextMacro.get line.content of
+                Err _ ->
+                    ( PBParagraph, Nothing, content )
+
+                Ok (MyMacro "begin" (name_ :: rest)) ->
+                    ( PBOrdinary, Just name_, "| " ++ name_ )
+
+                _ ->
+                    ( PBParagraph, Nothing, content )
+    in
     { indent = indent
     , lineNumber = lineNumber
     , position = position
-    , content = [ prefix ++ content ]
-    , name = Nothing
+    , content = [ prefix ++ newContent ]
+    , name = name
     , args = []
-    , named = False
+    , named = not (name == Nothing)
     , sourceText = ""
-    , blockType = PBParagraph
+    , blockType = blockType
     }
-        |> elaborate lang line
+        |> elaborate line
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
 nextStep state =
     case List.head state.lines of
         Nothing ->
+            -- Nothing left to parse, finish up
             case state.currentBlock of
                 Nothing ->
                     Done (List.reverse state.blocks)
@@ -195,6 +203,7 @@ nextStep state =
                     Done blocks
 
         Just rawLine ->
+            -- process line
             let
                 --_ =
                 --    report state
@@ -274,12 +283,27 @@ addCurrentLineXX state currentLine =
                 , position = state.position + String.length currentLine.content
                 , count = state.count + 1
                 , currentBlock =
-                    Just (addCurrentLine state.lang currentLine block)
+                    Just (addCurrentLine currentLine block)
             }
 
 
 commitBlock : State -> Line -> State
 commitBlock state currentLine =
+    let
+        lastLine =
+            Maybe.map .content state.currentBlock |> Maybe.andThen List.head |> Maybe.withDefault "--"
+
+        name2 =
+            case TextMacro.get lastLine of
+                Err _ ->
+                    Nothing
+
+                Ok (MyMacro "end" (name_ :: rest)) ->
+                    Just name_
+
+                _ ->
+                    Nothing
+    in
     case state.currentBlock of
         Nothing ->
             { state
@@ -289,26 +313,65 @@ commitBlock state currentLine =
 
         Just block ->
             let
-                ( currentBlock, newBlocks ) =
+                foo =
+                    block
+
+                adjustedBlock =
                     if block.content == [ "" ] then
-                        ( Nothing, state.blocks )
+                        block
+
+                    else if block.name == Nothing then
+                        block
+
+                    else if block.name == name2 then
+                        { block | content = "" :: List.drop 1 block.content }
 
                     else
-                        ( Just (blockFromLine state.lang currentLine), block :: state.blocks )
+                        block
             in
             { state
                 | lines = List.drop 1 state.lines
                 , lineNumber = state.lineNumber + 1
                 , position = state.position + String.length currentLine.content
                 , count = state.count + 1
-                , blocks = newBlocks
+                , blocks = adjustedBlock :: state.blocks
                 , inBlock = False
                 , inVerbatim = state.isVerbatimLine currentLine.content
-                , currentBlock = currentBlock
+                , currentBlock = Just (blockFromLine currentLine) -- TODO: is this correct?
             }
 
 
-createBlock : State -> Line -> State
+
+--
+--commitBlockOLD state currentLine =
+--    case state.currentBlock of
+--        Nothing ->
+--            { state
+--                | lines = List.drop 1 state.lines
+--                , indent = currentLine.indent
+--            }
+--
+--        Just block ->
+--            let
+--                ( currentBlock, newBlocks ) =
+--                    if block.content == [ "" ] then
+--                        ( Nothing, state.blocks )
+--
+--                    else
+--                        ( Just (blockFromLine state.lang currentLine), block :: state.blocks )
+--            in
+--            { state
+--                | lines = List.drop 1 state.lines
+--                , lineNumber = state.lineNumber + 1
+--                , position = state.position + String.length currentLine.content
+--                , count = state.count + 1
+--                , blocks = newBlocks
+--                , inBlock = False
+--                , inVerbatim = state.isVerbatimLine currentLine.content
+--                , currentBlock = currentBlock
+--            }
+
+
 createBlock state currentLine =
     let
         blocks =
@@ -326,7 +389,7 @@ createBlock state currentLine =
                         block :: state.blocks
 
         newBlock =
-            Just (blockFromLine state.lang currentLine)
+            Just (blockFromLine currentLine)
     in
     { state
         | lines = List.drop 1 state.lines
@@ -340,17 +403,17 @@ createBlock state currentLine =
     }
 
 
-addCurrentLine : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine lang ({ prefix, content, indent } as line) block =
+addCurrentLine : Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine ({ prefix, content, indent } as line) block =
     let
         pb =
-            addCurrentLine_ lang line block
+            addCurrentLine_ line block
     in
-    elaborate lang line pb
+    elaborate line pb
 
 
-elaborate : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-elaborate lang line pb =
+elaborate : Line -> PrimitiveBlock -> PrimitiveBlock
+elaborate line pb =
     if pb.named then
         pb
 
@@ -366,9 +429,9 @@ elaborate lang line pb =
         { pb | blockType = blockType, name = name, args = args, named = True }
 
 
-addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine_ lang ({ prefix, content, indent } as line) block =
-    { block | content = transformContent lang line :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+addCurrentLine_ : Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine_ ({ prefix, content, indent } as line) block =
+    { block | content = content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
 
 
 transformContent : Language -> Line -> String
@@ -395,3 +458,51 @@ loop s f =
 
         Done b ->
             b
+
+
+
+-- EXAMPLES
+
+
+a1 =
+    """
+abc
+def
+
+ghi
+jkl
+"""
+
+
+a2 =
+    """
+abc
+def
+
+  ghi
+  jkl
+"""
+
+
+a3 =
+    """
+\\begin{theorem}
+abc
+def
+\\end{theorem}
+"""
+
+
+a4 =
+    """
+\\begin{theorem}
+This is a very good theorem
+
+  $$
+  x^2
+  $$
+
+  Isn't that nice?
+
+\\end{theorem}
+"""
