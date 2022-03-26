@@ -12,7 +12,7 @@ import Config
 import Credentials exposing (Credentials)
 import Crypto.HMAC exposing (sha256)
 import Dict exposing (Dict)
-import Config
+import PBKDF2 exposing (Error(..))
 import User exposing (User)
 
 
@@ -50,11 +50,21 @@ users authDict =
 insert : User -> String -> String -> AuthenticationDict -> Result String AuthenticationDict
 insert user salt transitPassword authDict =
     case Credentials.hashPw salt transitPassword of
-        Err _ ->
-            Err "Could not generate credentials"
+        Err err ->
+            case err of
+                DecodingError ->
+                    Err "Decoding error"
+
+                _ ->
+                    Err "Unknown error"
 
         Ok credentials ->
-            Ok (Dict.insert user.username { user = user, credentials = credentials } authDict)
+            case Dict.get user.username authDict of
+                Nothing ->
+                    Ok (Dict.insert user.username { user = user, credentials = credentials } authDict)
+
+                Just _ ->
+                    Err "that username is taken"
 
 
 encryptForTransit : String -> String

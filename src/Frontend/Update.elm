@@ -465,13 +465,33 @@ handleSignIn model =
 
 
 handleSignUp model =
-    if String.length model.inputPassword >= 8 then
+    let
+        errors =
+            []
+                |> reject (String.length model.inputUsername < 4) "username: at least three letters"
+                |> reject (String.toLower model.inputUsername /= model.inputUsername) "username: all lower case characters"
+                |> reject (model.inputPassword == "") "password: cannot be empty"
+                |> reject (String.length model.inputPassword < 8) "password: at least 8 letters long."
+                |> reject (model.inputPassword /= model.inputPasswordAgain) "passwords do not match"
+                |> reject (model.inputEmail == "") "missing email address"
+                |> reject (model.inputRealname == "") "missing real name"
+    in
+    if List.isEmpty errors then
         ( model
         , sendToBackend (SignUpBE model.inputUsername (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
         )
 
     else
-        ( { model | message = "Password must be at least 8 letters long." }, Cmd.none )
+        ( { model | message = String.join "; " errors }, Cmd.none )
+
+
+reject : Bool -> String -> List String -> List String
+reject condition message messages =
+    if condition then
+        message :: messages
+
+    else
+        messages
 
 
 handleUrlRequest model urlRequest =
