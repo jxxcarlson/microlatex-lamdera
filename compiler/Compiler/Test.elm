@@ -25,46 +25,53 @@ import Compiler.Acc
 import Compiler.DifferentialParser
 import Compiler.Transform
 import Markup
+import Parser.Block exposing (ExpressionBlock)
+import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock as PrimitiveBlock
+import Parser.PrimitiveBlock as PrimitiveBlock exposing (PrimitiveBlock)
+import Tree exposing (Tree)
 
 
-x1 =
+a2 =
+    """
+| indent
+abc
+
+  | indent
+  def
+
+    | indent
+    ghi
+
+"""
+
+
+a3 =
+    """
+| theorem
+This is a very good theorem
+
+  $$
+  x^2
+  $$
+
+  Isn't that nice?
+
+"""
+
+
+a4 =
     """
 \\begin{theorem}
-There are infinitely many primes 
+This is a very good theorem
 
-$$
-p \\equiv 1\\ mod\\ 4
-$$
+  $$
+  x^2
+  $$
+
+  Isn't that nice?
+
 \\end{theorem}
-"""
-
-
-m1 =
-    """
-\\begin{A}[x][y]
-abc
-def
-\\end{A}
-"""
-
-
-m1b =
-    """
-\\begin{A}[x][y]
-abc
-def
-\\end{B}
-"""
-
-
-m2 =
-    """
-\\begin{A}
-abc
-def
-
 """
 
 
@@ -72,14 +79,17 @@ def
 -- TEST formation of primitive blocks
 
 
+bll : String -> List PrimitiveBlock
 bll str =
     PrimitiveBlock.toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str)
 
 
+blm : String -> List PrimitiveBlock
 blm str =
     PrimitiveBlock.toPrimitiveBlocks MicroLaTeXLang Markup.isVerbatimLine (String.lines str)
 
 
+blx : String -> List PrimitiveBlock
 blx str =
     PrimitiveBlock.toPrimitiveBlocks XMarkdownLang Markup.isVerbatimLine (String.lines str)
 
@@ -88,42 +98,32 @@ blx str =
 -- TEST formation of primitive blocks with transform
 
 
+blmt : String -> List PrimitiveBlock
 blmt str =
     blm str |> List.map (Compiler.Transform.transform MicroLaTeXLang)
 
 
+blxt : String -> List PrimitiveBlock
 blxt str =
     blx str |> List.map (Compiler.Transform.transform XMarkdownLang)
 
 
 
 -- TEST formation of intermediate blocks
-
-
-ibl str =
-    Markup.parseToIntermediateBlocks L0Lang str
-
-
-ibm str =
-    Markup.parseToIntermediateBlocks MicroLaTeXLang str
-
-
-ibx str =
-    Markup.parseToIntermediateBlocks XMarkdownLang str
-
-
-
 -- TEST parser with transform
 
 
+plt : String -> Forest ExpressionBlock
 plt str =
     Markup.parse L0Lang str |> Compiler.Acc.transformST L0Lang
 
 
+pmt : String -> Forest ExpressionBlock
 pmt str =
     Markup.parse MicroLaTeXLang str |> Compiler.Acc.transformST MicroLaTeXLang
 
 
+pxt : String -> Forest ExpressionBlock
 pxt str =
     Markup.parse XMarkdownLang str |> Compiler.Acc.transformST XMarkdownLang
 
@@ -132,10 +132,12 @@ pxt str =
 -- TEST Parser
 
 
+pl : String -> Forest ExpressionBlock
 pl str =
     Markup.parse L0Lang str
 
 
+pm : String -> Forest ExpressionBlock
 pm str =
     Markup.parse MicroLaTeXLang str
 
@@ -144,9 +146,11 @@ pm str =
 -- TEST differential parser
 
 
+dpl : String -> List (Tree ExpressionBlock)
 dpl str =
     Compiler.DifferentialParser.init L0Lang str |> .parsed
 
 
+dpm : String -> List (Tree ExpressionBlock)
 dpm str =
     Compiler.DifferentialParser.init MicroLaTeXLang str |> .parsed
