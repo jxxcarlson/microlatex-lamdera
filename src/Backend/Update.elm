@@ -87,6 +87,19 @@ getDocumentById model clientId id =
             )
 
 
+getDocumentByCmdId model clientId id =
+    case Dict.get id model.documentDict of
+        Nothing ->
+            Cmd.none
+
+        Just doc ->
+            Cmd.batch
+                [ sendToFrontend clientId (SendDocument CanEdit doc)
+                , sendToFrontend clientId (SetShowEditor False)
+                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
+                ]
+
+
 getDocumentByAuthorId model clientId authorId =
     case Dict.get authorId model.authorIdDict of
         Nothing ->
@@ -317,8 +330,8 @@ searchForUserDocuments maybeUsername key model =
 -- SYSTEM
 
 
-deleteDocument : Document.Document -> Model -> ( Model, Cmd msg )
-deleteDocument doc model =
+deleteDocument : ClientId -> Document.Document -> Model -> ( Model, Cmd msg )
+deleteDocument clientId doc model =
     let
         documentDict =
             Dict.remove doc.id model.documentDict
@@ -350,7 +363,7 @@ deleteDocument doc model =
         , publicDocuments = publicDocuments
         , documents = documents
       }
-    , Cmd.none
+    , getDocumentByCmdId model clientId Config.documentDeletedNotice
     )
 
 

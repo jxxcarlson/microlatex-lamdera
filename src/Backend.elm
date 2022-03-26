@@ -151,7 +151,7 @@ updateFromFrontend _ clientId msg model =
             Backend.Update.applySpecial model clientId
 
         DeleteDocumentBE doc ->
-            Backend.Update.deleteDocument doc model
+            Backend.Update.deleteDocument clientId doc model
 
 
 makeLink : String -> DocumentDict -> AbstractDict -> Maybe DocumentLink
