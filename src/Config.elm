@@ -84,7 +84,7 @@ Export to standard LaTeX and PDF
 
 
 documentDeletedNotice =
-    "id-ux175-hv037"
+    "id-dj146-un326"
 
 
 appName =
