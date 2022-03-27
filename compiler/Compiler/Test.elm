@@ -44,17 +44,17 @@ tol0 str =
 
 bll : String -> List PrimitiveBlock
 bll str =
-    PrimitiveBlock.toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.parse L0Lang Markup.isVerbatimLine (String.lines str)
 
 
 blm : String -> List PrimitiveBlock
 blm str =
-    PrimitiveBlock.toPrimitiveBlocks MicroLaTeXLang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.parse MicroLaTeXLang Markup.isVerbatimLine (String.lines str)
 
 
 blx : String -> List PrimitiveBlock
 blx str =
-    PrimitiveBlock.toPrimitiveBlocks XMarkdownLang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.parse XMarkdownLang Markup.isVerbatimLine (String.lines str)
 
 
 

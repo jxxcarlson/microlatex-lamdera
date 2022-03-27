@@ -8,14 +8,14 @@ import Parser.Block exposing (ExpressionBlock)
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..))
-import Parser.PrimitiveBlock exposing (toPrimitiveBlocks)
+import Parser.PrimitiveBlock exposing (parse)
 import Parser.TextMacro exposing (MyMacro(..))
 import Test exposing (..)
 import Tree exposing (Tree)
 
 
 f str =
-    toPrimitiveBlocks L0Lang (\_ -> False) (String.lines str)
+    parse L0Lang (\_ -> False) (String.lines str)
 
 
 parse : String -> Forest ExpressionBlock

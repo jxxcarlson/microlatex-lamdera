@@ -1,24 +1,10 @@
-module Parser.PrimitiveBlock exposing
-    ( PrimitiveBlock
-    , empty
-    , toPrimitiveBlocks
-    )
+module Parser.PrimitiveBlock exposing (PrimitiveBlock, empty, parse)
 
-{-| This module is like Tree.Blocks, except that if the first line of a block
-is deemed to signal the beginning of a "verbatim block," all succeeding lines will be
-incorporated in it, so long as their indentation level is greater than or equal to the
-indentation level of the first line. To make this work, function fromStringAsParagraphs
-requires an additional argument:
+{-| The main function is
 
-    fromStringAsParagraphs :
-        (String -> Bool)
-        -> String
-        -> List Block
+    parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 
-The additional argument is a predicate which determines whether a line to be
-considered the first line of a verbatim block.
-
-@docs Block, fromStringAsLines, fromStringAsParagraphs, quantumOfBlocks
+@docs PrimitiveBlock, empty, parse
 
 -}
 
@@ -87,8 +73,8 @@ type alias State =
 language and a function for determining when a string is the first line
 of a verbatim block
 -}
-toPrimitiveBlocks : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-toPrimitiveBlocks lang isVerbatimLine lines =
+parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
+parse lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
         lines |> toL0 |> toPrimitiveBlocks_ L0Lang isVerbatimLine
 

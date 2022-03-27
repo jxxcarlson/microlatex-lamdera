@@ -67,7 +67,7 @@ toPrimitiveBlockForest : Language -> String -> Forest PrimitiveBlock
 toPrimitiveBlockForest lang str =
     str
         |> String.lines
-        |> Parser.PrimitiveBlock.toPrimitiveBlocks lang isVerbatimLine
+        |> Parser.PrimitiveBlock.parse lang isVerbatimLine
         |> List.map (Compiler.Transform.transform lang)
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []

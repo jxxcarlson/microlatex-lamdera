@@ -5,16 +5,16 @@ import Expect exposing (..)
 import Markup
 import MicroLaTeX.Parser.TransformLaTeX exposing (indentStrings, toL0Aux)
 import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, toPrimitiveBlocks)
+import Parser.PrimitiveBlock exposing (PrimitiveBlock, parse)
 import Test exposing (..)
 
 
 bll str =
-    toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str)
+    parse L0Lang Markup.isVerbatimLine (String.lines str)
 
 
 bllc str =
-    toPrimitiveBlocks L0Lang Markup.isVerbatimLine (String.lines str) |> List.map .content
+    parse L0Lang Markup.isVerbatimLine (String.lines str) |> List.map .content
 
 
 test_ label expr expectedOutput =
