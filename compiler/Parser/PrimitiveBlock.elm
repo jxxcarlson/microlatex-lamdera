@@ -76,14 +76,14 @@ of a verbatim block
 parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 parse lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
-        lines |> toL0 |> toPrimitiveBlocks_ L0Lang isVerbatimLine
+        lines |> toL0 |> runLoop L0Lang isVerbatimLine
 
     else
-        lines |> toPrimitiveBlocks_ lang isVerbatimLine
+        lines |> runLoop lang isVerbatimLine
 
 
-toPrimitiveBlocks_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-toPrimitiveBlocks_ lang isVerbatimLine lines =
+runLoop : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
+runLoop lang isVerbatimLine lines =
     loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 
