@@ -2,6 +2,7 @@ module Render.Markup exposing (getMessages, renderFromAST, renderFromString, ren
 
 import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
+import Element.Font as Font
 import Markup
 import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil as BlockUtil
@@ -26,6 +27,22 @@ render_ acc ast =
 renderFromAST : Int -> Accumulator -> Settings -> Forest ExpressionBlock -> List (Element MarkupMsg)
 renderFromAST count accumulator settings ast =
     ast
+        |> List.map (renderTree count accumulator settings)
+
+
+renderTree : Int -> Accumulator -> Settings -> Tree ExpressionBlock -> Element MarkupMsg
+renderTree count accumulator settings tree =
+    case Parser.Block.getName (Tree.label tree) of
+        Just "theorem" ->
+            Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelFlat) tree)
+
+        _ ->
+            (Tree.map (Render.Block.render count accumulator settings) >> unravel) tree
+
+
+renderFromAST1 : Int -> Accumulator -> Settings -> Forest ExpressionBlock -> List (Element MarkupMsg)
+renderFromAST1 count accumulator settings ast =
+    ast
         |> List.map (Tree.map (Render.Block.render count accumulator settings))
         |> List.map unravel
 
@@ -39,8 +56,23 @@ getMessages syntaxTree =
         |> List.concat
 
 
-{-| Comment on this!
+{-| Comment on this! Get better name.
 -}
+unravelFlat : Tree (Element MarkupMsg) -> Element MarkupMsg
+unravelFlat tree =
+    let
+        children =
+            Tree.children tree
+    in
+    if List.isEmpty children then
+        Tree.label tree
+
+    else
+        Element.column []
+            --  Render.Settings.leftIndentation,
+            (Tree.label tree :: List.map unravel children)
+
+
 unravel : Tree (Element MarkupMsg) -> Element MarkupMsg
 unravel tree =
     let

@@ -202,6 +202,11 @@ renderWithDefault default count acc settings exprs =
         List.map (Render.Elm.render count acc settings) exprs
 
 
+renderWithDefault2 : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element MarkupMsg)
+renderWithDefault2 default count acc settings exprs =
+    List.map (Render.Elm.render count acc settings) exprs
+
+
 indented count acc settings _ id exprs =
     Element.paragraph ([ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         (renderWithDefault "| indent" count acc settings exprs)
@@ -351,7 +356,7 @@ env name count acc settings args id exprs =
     Element.column ([ Element.spacing 8, Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         [ Element.el [ Font.bold, Events.onClick (SendId id) ] (Element.text envHeading)
         , Element.paragraph [ Font.italic, Events.onClick (SendId id) ]
-            (renderWithDefault ("| " ++ name) count acc settings exprs)
+            (renderWithDefault2 ("| " ++ name) count acc settings exprs)
         ]
 
 

@@ -71,11 +71,6 @@ blxt str =
     blx str |> List.map (Compiler.Transform.transform XMarkdownLang)
 
 
-
--- TEST formation of intermediate blocks
--- TEST parser with transform
-
-
 plt : String -> Forest ExpressionBlock
 plt str =
     Markup.parse L0Lang str |> Compiler.Acc.transformST L0Lang
@@ -121,6 +116,21 @@ dpm str =
 
 
 -- EXAMPLES
+
+
+e2 =
+    """
+| theorem
+
+  This is a very good theorem
+
+  $$
+  x^2
+  $$
+
+  Isn't that nice?
+
+"""
 
 
 a2 =
