@@ -14,10 +14,6 @@ import Test exposing (..)
 import Tree exposing (Tree)
 
 
-f str =
-    parse L0Lang (\_ -> False) (String.lines str)
-
-
 parse : String -> Forest ExpressionBlock
 parse str =
     Markup.parse L0Lang str |> Compiler.Acc.transformST L0Lang
@@ -29,16 +25,15 @@ test_ label expr expectedOutput =
 
 suite : Test
 suite =
-    Test.only <|
-        describe "toPrimitiveBlocks, experimental"
-            [ test_ "e1, depth" (parse e1 |> List.map depth) [ 2 ]
-            , test_ "e2, depth" (parse e2 |> List.map depth) [ 1 ]
-            , test_ "e2, size" (parse e2 |> List.map size) [ 3 ]
-            , test_ "e2, children" (parse e2 |> List.map Tree.children |> List.map List.length) [ 2 ]
-            , test_ "e3, depth" (parse e3 |> List.map depth) [ 1 ]
-            , test_ "e3, size" (parse e3 |> List.map size) [ 4 ]
-            , test_ "e3, children" (parse e3 |> List.map Tree.children |> List.map List.length) [ 3 ]
-            ]
+    describe "toPrimitiveBlocks, experimental"
+        [ test_ "e1, depth" (parse e1 |> List.map depth) [ 2 ]
+        , test_ "e2, depth" (parse e2 |> List.map depth) [ 1 ]
+        , test_ "e2, size" (parse e2 |> List.map size) [ 3 ]
+        , test_ "e2, children" (parse e2 |> List.map Tree.children |> List.map List.length) [ 2 ]
+        , test_ "e3, depth" (parse e3 |> List.map depth) [ 1 ]
+        , test_ "e3, size" (parse e3 |> List.map size) [ 4 ]
+        , test_ "e3, children" (parse e3 |> List.map Tree.children |> List.map List.length) [ 3 ]
+        ]
 
 
 e1 =

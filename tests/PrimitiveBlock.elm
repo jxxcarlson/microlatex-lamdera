@@ -29,17 +29,17 @@ test_ label expr expectedOutput =
 
 
 -}
---
---
---suite : Test
---suite =
---    describe "The primitive block parser"
---        [ test_ "two paragraphs, no indentation" (bllc "abc\ndef\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
---        , test_ "two paragraphs, a run of newlines" (bllc "abc\ndef\n\n\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
---        , test_ "two paragraphs indented content, second line" (bllc "abc\n  def\n\nghi\n    jkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
---        , test_ "two paragraphs, indented content, first line, first paragraph" (bll "  abc\ndef\n\nghi\njkl" |> List.map .indent) [ 2, 0 ]
---        , test_ "s1" (bllc s1) [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
---        ]
+
+
+suite : Test
+suite =
+    describe "The primitive block parser"
+        [ test_ "two paragraphs, no indentation" (bllc "abc\ndef\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+        , test_ "two paragraphs, a run of newlines" (bllc "abc\ndef\n\n\n\nghi\njkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+        , test_ "two paragraphs indented content, second line" (bllc "abc\n  def\n\nghi\n    jkl") [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+        , test_ "two paragraphs, indented content, first line, first paragraph" (bll "  abc\ndef\n\nghi\njkl" |> List.map .indent) [ 2, 0 ]
+        , test_ "s1" (bllc s1) [ [ "abc", "def" ], [ "ghi", "jkl" ] ]
+        ]
 
 
 indent_ str =
@@ -51,26 +51,19 @@ transform str =
     indentStrings (String.lines str) |> toL0Aux
 
 
-
---suite2 : Test
---suite2 =
---    describe "indenter and transformer 2"
---        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
---        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
---        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
---        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
---        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cOUT)
---
---        --???, test_ "nested microLaTeX blocks, transform" (transform cIN) (String.lines cTRANS)
---        --???, test_ "nested microLaTeX blocks, missing end" (indent_ dIN) (String.lines dOut)
---        --??? test_ "nested microLaTeX blocks, missing end, transform" (transform dIN) (String.lines dTRANS)
---        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
---
---        --??? test_ "x1, indented" (indent_ x1) (String.lines x1Indent)
---        , test_ "p1" (indent_ p1) (String.lines p1)
---        , test_ "p2" (indent_ p2) (String.lines p2Indented)
---        ,  test_ "p4, indented" (indent_ p4) (String.lines p4Indented)
---        ]
+suite2 : Test
+suite2 =
+    describe "indenter and transformer 2"
+        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
+        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
+        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
+        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
+        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cIN)
+        , test_ "nested microLaTeX blocks, transform" (transform cIN) [ "| theorem", "  abc", "", "  $$", "  x^2", "  $$", "", "  def", "" ]
+        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
+        , test_ "p1" (indent_ p1) (String.lines p1)
+        , test_ "p2" (indent_ p2) (String.lines p2Indented)
+        ]
 
 
 suite3 : Test
@@ -85,21 +78,6 @@ err1 =
 There are infinitely many primes.
 
 This is a test
-"""
-
-
-p4 =
-    """\\begin{A}
-PQR
-STU
-
-$$
-x^2
-$$
-
-ABC
-DEF
-\\end{A}
 """
 
 
@@ -202,42 +180,6 @@ many primes
 """
 
 
-x1 =
-    """
-\\begin{theorem}
-There are infinitely many primes
-
-$$
-p \\equiv 1\\ mod\\ 4
-$$
-\\end{theorem}
-"""
-
-
-x1Indent =
-    """
-\\begin{theorem}
-There are infinitely many primes
-
-  $$
-  p \\equiv 1\\ mod\\ 4
-
-\\end{theorem}
-"""
-
-
-x1TRANS =
-    """
-| theorem
-There are infinitely many primes
-
-  $$
-  p \\equiv 1\\ mod\\ 4
-
-
-"""
-
-
 aIN =
     """
 \\begin{A}
@@ -285,104 +227,7 @@ xIN =
 
 
 cIN =
-    """
-\\begin{A}
-abc
-def
-
-\\begin{B}
-ghi
-jkl
-\\end{B}
-
-mno
-pqr
-\\end{A}
-"""
-
-
-cOUT =
-    """
-\\begin{A}
-abc
-def
-
-  \\begin{B}
-  ghi
-  jkl
-  \\end{B}
-
-mno
-pqr
-\\end{A}
-"""
-
-
-cTRANS =
-    """
-| A
-abc
-def
-
-  | B
-  ghi
-  jkl
-
-
-mno
-pqr
-
-"""
-
-
-dIN =
-    """
-\\begin{A}
-abc
-def
-
-\\begin{B}
-ghi
-jkl
-\\end{B}
-
-mno
-pqr
-"""
-
-
-dOut =
-    """
-\\begin{A}
-abc
-def
-
-  \\begin{B}
-  ghi
-  jkl
-  \\end{B}
-
-mno
-pqr
-
-unmatched block A"""
-
-
-dTRANS =
-    """
-| A
-abc
-def
-
-  | B
-  ghi
-  jkl
-
-
-mno
-pqr
-
-unmatched block A"""
+    "\\begin{theorem}\n  abc\n  \n  $$\n  x^2\n  $$\n  \n  def\n\\end{theorem}"
 
 
 eIN =
