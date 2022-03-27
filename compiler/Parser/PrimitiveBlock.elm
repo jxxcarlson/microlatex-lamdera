@@ -104,10 +104,7 @@ toPrimitiveBlocks_ lang isVerbatimLine lines =
 
 
 
---|> List.map (transform lang isVerbatimLine)
---|> List.concat
 -- TODO: think about the below
--- |> List.filter (\block -> block.content /= [ "" ])
 
 
 finalize : PrimitiveBlock -> PrimitiveBlock
@@ -131,18 +128,6 @@ finalize block =
 -}
 init : Language -> (String -> Bool) -> List String -> State
 init lang isVerbatimLine lines =
-    let
-        firstLine : Maybe Line
-        firstLine =
-            List.head lines |> Maybe.map (Line.classify 0 0)
-
-        firstBlock_ : Maybe PrimitiveBlock
-        firstBlock_ =
-            Maybe.map (blockFromLine lang) firstLine
-
-        firstBlock =
-            Maybe.map2 (elaborate lang) firstLine firstBlock_
-    in
     { blocks = []
     , currentBlock = Nothing
     , lines = lines
@@ -226,29 +211,12 @@ nextStep state =
 
                 -- A nonempty line was encountered inside a block, so add it
                 ( True, False, _ ) ->
-                    Loop (addCurrentLineXX { state | label = "4, ADD" } currentLine)
+                    Loop (addCurrentLine2 { state | label = "4, ADD" } currentLine)
 
                 -- commit the current block: we are in a block and the
                 -- current line is empty
                 ( True, True, _ ) ->
                     Loop (commitBlock { state | label = "5, COMMIT" } currentLine)
-
-
-
---
---report state =
---    let
---        prefix =
---            String.fromInt state.lineNumber ++ ". " ++ state.label
---
---        contentOfCurrentBlock : Maybe (List String)
---        contentOfCurrentBlock =
---            Maybe.map .content state.currentBlock
---
---        _ =
---            Debug.log (Tools.cyan prefix 13) { curr = contentOfCurrentBlock, theBlocks = List.map .content state.blocks }
---    in
---    1
 
 
 advance : Int -> State -> State
@@ -261,8 +229,8 @@ advance newPosition state =
     }
 
 
-addCurrentLineXX : State -> Line -> State
-addCurrentLineXX state currentLine =
+addCurrentLine2 : State -> Line -> State
+addCurrentLine2 state currentLine =
     case state.currentBlock of
         Nothing ->
             { state | lines = List.drop 1 state.lines }
@@ -368,18 +336,19 @@ elaborate lang line pb =
 
 addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine_ lang ({ prefix, content, indent } as line) block =
-    { block | content = transformContent lang line :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+    { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
 
 
-transformContent : Language -> Line -> String
-transformContent lang ({ indent, prefix, content } as line) =
-    --if isNonEmptyBlank line then
-    --    "[syspar]"
-    --
-    --else
-    --    prefix ++ content
-    -- TODO: temporarily disabled
-    content
+
+--transformContent : Language -> Line -> String
+--transformContent lang ({ indent, prefix, content } as line) =
+--    --if isNonEmptyBlank line then
+--    --    "[syspar]"
+--    --
+--    --else
+--    --    prefix ++ content
+--    -- TODO: temporarily disabled
+--    content
 
 
 type Step state a
