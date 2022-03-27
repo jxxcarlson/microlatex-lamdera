@@ -63,7 +63,6 @@ type alias State =
     , position : Int
     , inVerbatim : Bool
     , isVerbatimLine : String -> Bool
-    , lang : Language
     , count : Int
     , label : String
     }
@@ -76,15 +75,15 @@ of a verbatim block
 parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 parse lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
-        lines |> toL0 |> runLoop L0Lang isVerbatimLine
+        lines |> toL0 |> runLoop isVerbatimLine
 
     else
-        lines |> runLoop lang isVerbatimLine
+        lines |> runLoop isVerbatimLine
 
 
-runLoop : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
-runLoop lang isVerbatimLine lines =
-    loop (init lang isVerbatimLine lines) nextStep
+runLoop : (String -> Bool) -> List String -> List PrimitiveBlock
+runLoop isVerbatimLine lines =
+    loop (init isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 
 
@@ -111,8 +110,8 @@ finalize block =
     and lineNumber is the index of the current line in the source
 
 -}
-init : Language -> (String -> Bool) -> List String -> State
-init lang isVerbatimLine lines =
+init : (String -> Bool) -> List String -> State
+init isVerbatimLine lines =
     { blocks = []
     , currentBlock = Nothing
     , lines = lines
@@ -122,14 +121,13 @@ init lang isVerbatimLine lines =
     , position = 0
     , inVerbatim = False
     , isVerbatimLine = isVerbatimLine
-    , lang = lang
     , count = 0
     , label = "0, START"
     }
 
 
-blockFromLine : Language -> Line -> PrimitiveBlock
-blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
+blockFromLine : Line -> PrimitiveBlock
+blockFromLine ({ indent, lineNumber, position, prefix, content } as line) =
     { indent = indent
     , lineNumber = lineNumber
     , position = position
@@ -140,7 +138,7 @@ blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
     , sourceText = ""
     , blockType = PBParagraph
     }
-        |> elaborate lang line
+        |> elaborate line
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
@@ -227,7 +225,7 @@ addCurrentLine2 state currentLine =
                 , position = state.position + String.length currentLine.content
                 , count = state.count + 1
                 , currentBlock =
-                    Just (addCurrentLine state.lang currentLine block)
+                    Just (addCurrentLine currentLine block)
             }
 
 
@@ -247,7 +245,7 @@ commitBlock state currentLine =
                         ( Nothing, state.blocks )
 
                     else
-                        ( Just (blockFromLine state.lang currentLine), block :: state.blocks )
+                        ( Just (blockFromLine currentLine), block :: state.blocks )
             in
             { state
                 | lines = List.drop 1 state.lines
@@ -279,7 +277,7 @@ createBlock state currentLine =
                         block :: state.blocks
 
         newBlock =
-            Just (blockFromLine state.lang currentLine)
+            Just (blockFromLine currentLine)
     in
     { state
         | lines = List.drop 1 state.lines
@@ -293,17 +291,17 @@ createBlock state currentLine =
     }
 
 
-addCurrentLine : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine lang ({ prefix, content, indent } as line) block =
+addCurrentLine : Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine ({ prefix, content, indent } as line) block =
     let
         pb =
-            addCurrentLine_ lang line block
+            addCurrentLine_ line block
     in
-    elaborate lang line pb
+    elaborate line pb
 
 
-elaborate : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-elaborate lang line pb =
+elaborate : Line -> PrimitiveBlock -> PrimitiveBlock
+elaborate line pb =
     if pb.named then
         pb
 
@@ -319,8 +317,8 @@ elaborate lang line pb =
         { pb | blockType = blockType, name = name, args = args, named = True }
 
 
-addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine_ lang ({ prefix, content, indent } as line) block =
+addCurrentLine_ : Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine_ ({ prefix, content, indent } as line) block =
     { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
 
 
