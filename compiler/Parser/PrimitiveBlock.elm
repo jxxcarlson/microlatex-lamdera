@@ -25,7 +25,6 @@ considered the first line of a verbatim block.
 import MicroLaTeX.Parser.TransformLaTeX exposing (toL0)
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
-import Tools exposing (..)
 
 
 {-| -}
@@ -84,10 +83,10 @@ type alias State =
     }
 
 
-
--- |> String.join "\n"
-
-
+{-| Parse a list of strings into a list of primitive blocks given a markup
+language and a function for determining when a string is the first line
+of a verbatim block
+-}
 toPrimitiveBlocks : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 toPrimitiveBlocks lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
@@ -337,18 +336,6 @@ elaborate lang line pb =
 addCurrentLine_ : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine_ lang ({ prefix, content, indent } as line) block =
     { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
-
-
-
---transformContent : Language -> Line -> String
---transformContent lang ({ indent, prefix, content } as line) =
---    --if isNonEmptyBlank line then
---    --    "[syspar]"
---    --
---    --else
---    --    prefix ++ content
---    -- TODO: temporarily disabled
---    content
 
 
 type Step state a
