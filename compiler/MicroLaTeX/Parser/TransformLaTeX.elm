@@ -26,9 +26,15 @@ type alias IndentationData =
     }
 
 
+{-| Map a list of strings to from microLaTeX block format to L0 block format.
+It seems that function 'indentStrings' is unnecessary.
+TODO: test the foregoing.
+TODO: at the moment, there is no error-handling. Think about this
+-}
 toL0 : List String -> List String
 toL0 strings =
-    strings |> indentStrings |> toL0Aux
+    -- strings |> indentStrings |> toL0Aux
+    strings |> toL0Aux
 
 
 missingEndBlockMessge : String -> String
@@ -84,6 +90,8 @@ popIf s1 list =
                 list
 
 
+{-| State machine to indent lines in preparation for transformation to L0
+-}
 indentAux : IndentationData -> IndentationData
 indentAux ({ blockStatus, lineNumber, indent, input, output, blockNameStack, previousLineIsEmpty } as data) =
     case input of
@@ -324,8 +332,6 @@ substitutions =
         , ( "desc", { prefix = "|", arity = Arity 1 } )
         , ( "setcounter", { prefix = "|", arity = Arity 1 } )
         , ( "contents", { prefix = "|", arity = Arity 0 } )
-
-        --, ( "section", { prefix = "|", arity = 1 } )
         ]
 
 
