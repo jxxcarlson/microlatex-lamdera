@@ -40,13 +40,6 @@ renderTree count accumulator settings tree =
             (Tree.map (Render.Block.render count accumulator settings) >> unravel) tree
 
 
-renderFromAST1 : Int -> Accumulator -> Settings -> Forest ExpressionBlock -> List (Element MarkupMsg)
-renderFromAST1 count accumulator settings ast =
-    ast
-        |> List.map (Tree.map (Render.Block.render count accumulator settings))
-        |> List.map unravel
-
-
 getMessages : Forest ExpressionBlock -> List String
 getMessages syntaxTree =
     syntaxTree
