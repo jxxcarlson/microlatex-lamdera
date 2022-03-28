@@ -45,11 +45,16 @@ aaa
 
 xx =
     """
-|| code
-# multiplication table
-for x in range(1, 11):
-    for y in range(1, 11):
-        print('%d * %d = %d' % (x, y, x*y))
+| theorem
+
+  There are infinitely many primes
+
+  $$
+  p \\equiv 1\\ mod\\ 4
+  $$
+
+  Isn't that nice?
+
 
 """
 

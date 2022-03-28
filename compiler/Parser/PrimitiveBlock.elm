@@ -167,8 +167,6 @@ nextStep state =
 
         Just rawLine ->
             let
-                --_ =
-                --    report state
                 newPosition =
                     if rawLine == "" then
                         state.position + 1
@@ -316,13 +314,28 @@ elaborate line pb =
             ( blockType, name, args ) =
                 -- TODO: note this change: it needs to be verified
                 Line.getNameAndArgs L0Lang line
+
+            content =
+                if blockType == PBVerbatim then
+                    List.map String.trimLeft pb.content
+
+                else
+                    pb.content
         in
-        { pb | blockType = blockType, name = name, args = args, named = True }
+        { pb | content = content, blockType = blockType, name = name, args = args, named = True }
 
 
 addCurrentLine_ : Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine_ ({ prefix, content, indent } as line) block =
-    { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+    if block.blockType == PBVerbatim then
+        if block.name == Just "math" then
+            { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+
+        else
+            { block | content = (line.prefix ++ line.content) :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
+
+    else
+        { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
 
 
 type Step state a
