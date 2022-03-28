@@ -1,4 +1,7 @@
-module Parser.PrimitiveBlock exposing (PrimitiveBlock, empty, parse)
+module Parser.PrimitiveBlock exposing
+    ( PrimitiveBlock, empty, parse
+    , parse_
+    )
 
 {-| The main function is
 
@@ -75,14 +78,14 @@ of a verbatim block
 parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 parse lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
-        lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> runLoop isVerbatimLine
+        lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> parse_ isVerbatimLine
 
     else
-        lines |> runLoop isVerbatimLine
+        lines |> parse_ isVerbatimLine
 
 
-runLoop : (String -> Bool) -> List String -> List PrimitiveBlock
-runLoop isVerbatimLine lines =
+parse_ : (String -> Bool) -> List String -> List PrimitiveBlock
+parse_ isVerbatimLine lines =
     loop (init isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 
