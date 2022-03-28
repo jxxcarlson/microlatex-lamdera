@@ -34,6 +34,7 @@ isVerbatimLine str =
         || (String.left 15 str == "\\begin{aligned}")
         || (String.left 15 str == "\\begin{comment}")
         || (String.left 12 str == "\\begin{code}")
+        || (String.left 12 str == "\\begin{verbatim}")
         || (String.left 18 str == "\\begin{mathmacros}")
         || (String.left 2 str == "$$")
 
