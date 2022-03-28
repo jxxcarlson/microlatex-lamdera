@@ -1,6 +1,7 @@
 module Render.Settings exposing
     ( Settings
     , blueColor
+    , codeColor
     , defaultSettings
     , leftIndent
     , leftIndentation
@@ -39,6 +40,10 @@ makeSettings id scale width =
     , showErrorMessages = False
     , selectedId = id
     }
+
+
+codeColor =
+    Element.rgb255 0 0 210
 
 
 windowWidthScale =

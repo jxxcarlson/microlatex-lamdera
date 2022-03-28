@@ -8,7 +8,7 @@ module Parser.PrimitiveBlock exposing (PrimitiveBlock, empty, parse)
 
 -}
 
-import MicroLaTeX.Parser.TransformLaTeX exposing (toL0)
+import MicroLaTeX.Parser.TransformLaTeX
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
 
@@ -75,7 +75,7 @@ of a verbatim block
 parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 parse lang isVerbatimLine lines =
     if lang == MicroLaTeXLang then
-        lines |> toL0 |> runLoop isVerbatimLine
+        lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> runLoop isVerbatimLine
 
     else
         lines |> runLoop isVerbatimLine

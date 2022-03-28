@@ -574,18 +574,13 @@ mathElement generation acc settings meta str =
 -- DEFINITIONS
 
 
-codeColor =
-    -- E.rgb 0.2 0.5 1.0
-    Element.rgb 0.4 0 0.8
-
-
 codeStyle =
     [ Font.family
         [ Font.typeface "Inconsolata"
         , Font.monospace
         ]
     , Font.unitalicized
-    , Font.color codeColor
+    , Font.color Render.Settings.codeColor
     , Element.paddingEach { left = 2, right = 2, top = 0, bottom = 0 }
     ]
 

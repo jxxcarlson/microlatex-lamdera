@@ -27,6 +27,10 @@ htmlId str =
     Element.htmlAttribute (Html.Attributes.id str)
 
 
+
+-- SETTINGS
+
+
 render : Int -> Accumulator -> Settings -> ExpressionBlock -> Element MarkupMsg
 render count acc settings (ExpressionBlock { name, args, blockType, content, id, sourceText }) =
     case blockType of
@@ -135,6 +139,7 @@ verbatimDict =
         , ( "equation", renderEquation )
         , ( "aligned", aligned )
         , ( "code", renderCode )
+        , ( "verbatim", renderVerbatim )
         , ( "comment", renderComment )
         , ( "mathmacros", renderComment )
         ]
@@ -486,8 +491,23 @@ highlightAttrs id settings =
 renderCode : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderCode _ _ _ _ id str =
     Element.column
-        [ Font.color (Element.rgb255 170 0 250)
+        [ Font.color Render.Settings.codeColor
         , Font.family
+            [ Font.typeface "Inconsolata"
+            , Font.monospace
+            ]
+        , Element.spacing 8
+        , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
+        , Events.onClick (SendId id)
+        , Render.Utility.elementAttribute "id" id
+        ]
+        (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
+
+
+renderVerbatim : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+renderVerbatim _ _ _ _ id str =
+    Element.column
+        [ Font.family
             [ Font.typeface "Inconsolata"
             , Font.monospace
             ]
