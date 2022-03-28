@@ -2,12 +2,63 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
     ( indentStrings
     , toL0
     , toL0Aux
+    , toL0Aux2
+    , xx
+    , xx2
+    , xx3
+    , xx4
+    , xx5
+    , xx6
     )
 
 import Dict exposing (Dict)
 import Parser.Classify exposing (Classification(..), classify)
 import Parser.MathMacro exposing (MathExpression(..))
-import Parser.TextMacro
+import Parser.TextMacro exposing (MyMacro(..))
+
+
+xx =
+    """
+\\title{MicroLaTeX Test}
+
+abc
+
+def
+"""
+
+
+xx2 =
+    """
+\\begin{equation}
+\\int_0^1 x^n dx = \\frac{1}{n+1}
+\\end{equation}
+"""
+
+
+xx3 =
+    """
+\\item
+Foo bar
+"""
+
+
+xx4 =
+    """
+\\bibitem{AA}
+Foo bar
+"""
+
+
+xx5 =
+    """
+$$
+x^2
+$$
+"""
+
+
+xx6 =
+    "\\begin{theorem}\n  AAA\n  \n  $$\n  x^2\n  $$\n  \n  BBB\n\\{theorem}"
 
 
 
@@ -34,7 +85,7 @@ TODO: at the moment, there is no error-handling. Think about this
 toL0 : List String -> List String
 toL0 strings =
     -- strings |> indentStrings |> toL0Aux
-    strings |> toL0Aux
+    strings |> toL0Aux2
 
 
 missingEndBlockMessge : String -> String
@@ -249,7 +300,175 @@ indentString k str =
 
 
 verbatimBlockNames =
-    [ "math", "equation", "aligned", "code", "mathmacros" ]
+    [ "math", "equation", "aligned", "code", "mathmacros", "verbatim", "$$" ]
+
+
+type alias State =
+    { status : LXStatus, input : List String, output : List String }
+
+
+type LXStatus
+    = InVerbatimBlock String
+    | LXNormal
+
+
+toL0Aux2 : List String -> List String
+toL0Aux2 list =
+    loop { input = list, output = [], status = LXNormal } nextState |> List.reverse
+
+
+type Step state a
+    = Loop state
+    | Done a
+
+
+loop : state -> (state -> Step state a) -> a
+loop s f =
+    case f s of
+        Loop s_ ->
+            loop s_ f
+
+        Done b ->
+            b
+
+
+nextState : State -> Step State (List String)
+nextState state =
+    case List.head state.input of
+        Nothing ->
+            Done state.output
+
+        Just line ->
+            let
+                trimmedLine =
+                    String.trimLeft line
+
+                numberOfLeadingBlanks =
+                    String.length line - String.length trimmedLine
+
+                prefix =
+                    String.left numberOfLeadingBlanks line
+            in
+            case Parser.TextMacro.get trimmedLine of
+                Err _ ->
+                    if trimmedLine == "$$" then
+                        Loop (nextState2 line (MyMacro "$$" []) { state | input = List.drop 1 state.input })
+
+                    else
+                        Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> Debug.log "(0)"
+
+                Ok myMacro ->
+                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input })
+
+
+nextState2 line (MyMacro name args) state =
+    if name == "begin" && args == [ "code" ] then
+        { state | output = "|| code" :: state.output, status = InVerbatimBlock "code" } |> Debug.log "(1)"
+
+    else if name == "end" && args == [ "code" ] then
+        { state | output = "" :: state.output, status = LXNormal } |> Debug.log "(2)"
+
+    else if name == "$$" && state.status == LXNormal then
+        { state | output = line :: state.output, status = InVerbatimBlock "$$" }
+
+    else if name == "$$" && state.status == InVerbatimBlock "$$" then
+        { state | output = "" :: state.output, status = LXNormal }
+
+    else if name == "begin" && state.status == LXNormal then
+        { state | output = transformHeader name args line :: state.output } |> Debug.log "(3)"
+
+    else if name == "end" && state.status == LXNormal then
+        { state | output = "" :: state.output } |> Debug.log "(4)"
+
+    else if state.status == LXNormal then
+        { state | output = transformHeader name args line :: state.output } |> Debug.log "(5)"
+
+    else
+        { state | output = line :: state.output } |> Debug.log "(6)"
+
+
+transformHeader : String -> List String -> String -> String
+transformHeader name args str =
+    let
+        _ =
+            Debug.log "args" args
+    in
+    if name == "begin" then
+        transformBegin args str
+
+    else
+        transformOther name args str
+
+
+transformOther name args str =
+    let
+        _ =
+            Debug.log "name" name
+
+        target =
+            if name == "$$" then
+                "$$"
+
+            else
+                "\\" ++ name
+
+        _ =
+            Debug.log "str" str
+
+        _ =
+            Debug.log "TARGET (1)" target
+    in
+    case Dict.get name substitutions of
+        Nothing ->
+            str |> Debug.log "NOTHING"
+
+        Just { prefix } ->
+            String.replace target ("| " ++ name) str |> String.replace "{" " " |> String.replace "}" " " |> Debug.log "Transformed!! (2)"
+
+
+transformBegin args str =
+    case List.head args of
+        Nothing ->
+            str
+
+        Just environmentName ->
+            let
+                _ =
+                    Debug.log "environmentName" environmentName
+
+                target =
+                    "\\begin{" ++ environmentName ++ "}"
+
+                _ =
+                    Debug.log "str" str
+
+                _ =
+                    Debug.log "TARGET (2)" target
+            in
+            case Dict.get environmentName substitutions of
+                Nothing ->
+                    str |> Debug.log "NOTHING"
+
+                Just { prefix } ->
+                    String.replace target (prefix ++ " " ++ environmentName) str |> Debug.log "Transformed!!"
+
+
+transformBlockHeader2 : String -> String -> String
+transformBlockHeader2 blockName str =
+    transformBlockHeader_ blockName str |> String.replace "[" " " |> String.replace "]" " "
+
+
+transformBlockHeader_ : String -> String -> String
+transformBlockHeader_ blockName str =
+    let
+        _ =
+            Debug.log "transformBlockHeader_, blockName" blockName
+    in
+    if List.member blockName verbatimBlockNames then
+        String.replace ("\\begin{" ++ blockName ++ "}") ("|| " ++ blockName) str
+
+    else
+        String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
 
 
 transformBlockHeader : String -> String -> String
@@ -326,6 +545,9 @@ substitutions : Dict String { prefix : String, arity : Arity }
 substitutions =
     Dict.fromList
         [ ( "item", { prefix = "|", arity = Arity 0 } )
+        , ( "equation", { prefix = "||", arity = Arity 0 } )
+        , ( "aligned", { prefix = "||", arity = Arity 0 } )
+        , ( "theorem", { prefix = "|", arity = Arity 0 } )
         , ( "numbered", { prefix = "|", arity = Arity 0 } )
         , ( "abstract", { prefix = "|", arity = Arity 0 } )
         , ( "bibitem", { prefix = "|", arity = Arity 1 } )
