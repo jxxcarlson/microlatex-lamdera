@@ -24,6 +24,7 @@ module Compiler.Test exposing (..)
 import Compiler.Acc
 import Compiler.DifferentialParser
 import Compiler.Transform
+import L0.Parser.Classify
 import Markup
 import MicroLaTeX.Parser.TransformLaTeX
 import Parser.Block exposing (ExpressionBlock)
@@ -31,6 +32,26 @@ import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock as PrimitiveBlock exposing (PrimitiveBlock)
 import Tree exposing (Tree)
+
+
+ww =
+    """
+|| code
+aaa
+  bbb
+    ccc
+"""
+
+
+xx =
+    """
+|| code
+# multiplication table
+for x in range(1, 11):
+    for y in range(1, 11):
+        print('%d * %d = %d' % (x, y, x*y))
+
+"""
 
 
 
@@ -44,7 +65,7 @@ tol0 str =
 
 bll : String -> List PrimitiveBlock
 bll str =
-    PrimitiveBlock.parse L0Lang Markup.isVerbatimLine (String.lines str)
+    PrimitiveBlock.parse_ L0.Parser.Classify.isVerbatimLine (String.lines str)
 
 
 blm : String -> List PrimitiveBlock
