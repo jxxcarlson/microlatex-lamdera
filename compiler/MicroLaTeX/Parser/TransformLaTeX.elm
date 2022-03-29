@@ -9,14 +9,13 @@ import Parser.MathMacro exposing (MathExpression(..))
 import Parser.TextMacro exposing (MyMacro(..))
 
 
+fakeDebugLog =
+    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
+
+
 
 --fakeDebugLog =
---    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
---
-
-
-fakeDebugLog =
-    \i label -> identity
+--    \i label -> identity
 
 
 xx1 =
@@ -41,19 +40,8 @@ xx2 =
 """
 
 
-xx2a =
-    """
-\\begin{theorem}
-Ho ho ho! 
-\\end{theorem}
- """
-
-
 xx3 =
-    """
-\\item
-Foo bar
-"""
+    "\n\\begin{theorem}\nHo ho ho\n"
 
 
 xx4 =
@@ -201,13 +189,11 @@ handleError line state =
         InOrdinaryBlock name ->
             let
                 endTag =
-                    "\\end{" ++ name ++ "}"
+                    "\\end{" ++ (name |> Debug.log "name") ++ "}" |> Debug.log "endTag"
 
-                -- |> Debug.log "endTag"
                 outputHead =
-                    List.head state.output
+                    List.head state.output |> Debug.log "outputHead"
 
-                -- |> Debug.log "outputHead"
                 n =
                     Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
             in
@@ -215,8 +201,12 @@ handleError line state =
                 if n > 0 then
                     { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
 
+                else if outputHead == Just endTag then
+                    --{ state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2)"
+                    { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
+
                 else
-                    { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (1)"
+                    { state | output = "" :: "\\red{^^^ missmatched end tag (2b)}" :: "" :: List.drop 1 state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2b)"
 
             else
                 case outputHead of
@@ -225,7 +215,7 @@ handleError line state =
 
                     Just "" ->
                         if List.isEmpty state.stack then
-                            { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (2)"
+                            { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (3)"
 
                         else
                             { state | output = line :: state.output }
