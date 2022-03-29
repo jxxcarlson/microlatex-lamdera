@@ -17,6 +17,15 @@ import Parser.MathMacro exposing (MathExpression(..))
 import Parser.TextMacro exposing (MyMacro(..))
 
 
+
+--fakeDebugLog =
+--    \str -> Debug.log str
+
+
+fakeDebugLog =
+    \str -> identity
+
+
 xx =
     """
 \\title{MicroLaTeX Test}
@@ -287,7 +296,7 @@ endBlockWithName name =
 
 
 reportState label lineNumber_ first_ =
-    -- Debug.log (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
+    -- fakeDebugLog (String.fromInt lineNumber_ ++ " " ++ label ++ " " ++ first_ |> (\s -> Tools.cyan s 16))
     identity
 
 
@@ -346,7 +355,7 @@ nextState state =
         Just line ->
             let
                 trimmedLine =
-                    String.trimLeft line |> Debug.log "TRIMMED"
+                    String.trimLeft line |> fakeDebugLog "TRIMMED"
 
                 numberOfLeadingBlanks =
                     String.length line - String.length trimmedLine
@@ -357,16 +366,16 @@ nextState state =
             case Parser.TextMacro.get trimmedLine of
                 Err _ ->
                     if trimmedLine == "$$" then
-                        Loop (nextState2 line (MyMacro "$$" []) { state | input = List.drop 1 state.input }) |> Debug.log "(0a)"
+                        Loop (nextState2 line (MyMacro "$$" []) { state | input = List.drop 1 state.input }) |> fakeDebugLog "(0a)"
 
                     else
                         -- Just add the line to output
-                        Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> Debug.log "(0b)"
+                        Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog "(0b)"
 
                 Ok myMacro ->
                     let
                         _ =
-                            Debug.log "(0!!)" myMacro
+                            fakeDebugLog "(0!!)" myMacro
                     in
                     Loop (nextState2 line myMacro { state | input = List.drop 1 state.input })
 
@@ -374,49 +383,53 @@ nextState state =
 nextState2 line (MyMacro name args) state =
     if name == "begin" && args == [ "code" ] then
         -- HANDLE CODE BLOCKS, BEGIN
-        { state | output = "|| code" :: state.output, status = InVerbatimBlock "code" } |> Debug.log "(1)"
+        { state | output = "|| code" :: state.output, status = InVerbatimBlock "code" } |> fakeDebugLog "(1)"
 
     else if name == "end" && args == [ "code" ] then
         -- HANDLE CODE BLOCKS, END
-        { state | output = "" :: state.output, status = LXNormal } |> Debug.log "(2)"
+        { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog "(2)"
 
     else if name == "$$" && state.status == LXNormal then
         -- HANDLE $$ BLOCK, BEGIN
-        { state | output = line :: state.output, status = InVerbatimBlock "$$" }
+        { state | output = "$$" :: state.output, status = InVerbatimBlock "$$" } |> fakeDebugLog "(3)"
 
-    else if name == "$$" && state.status == InVerbatimBlock "$$" then
+    else if List.member name [ "$$" ] && state.status == InVerbatimBlock name then
         -- HANDLE $$ BLOCK, END
-        { state | output = "" :: state.output, status = LXNormal }
+        { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog "(4)"
+
+    else if state.status == InVerbatimBlock "```" then
+        -- HANDLE ``` BLOCK, INTERIOR
+        { state | output = line :: state.output } |> fakeDebugLog "(3.1)"
 
     else if name == "begin" && state.status == LXNormal then
         -- HANDLE ENVIRONMENT, BEGIN
-        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock } |> Debug.log "(3)"
+        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock } |> fakeDebugLog "(5)"
 
     else if name == "end" && state.status == InOrdinaryBlock then
         -- HANDLE ENVIRONMENT, END
-        { state | output = "" :: state.output } |> Debug.log "(4)"
+        { state | output = "" :: state.output } |> fakeDebugLog "(6)"
 
-    else if state.status == LXNormal && not (List.member name [ "title", "section", "subsection", "subsubsection", "subheading", "bold" ]) then
+    else if state.status == LXNormal && List.member name [ "item", "numbered", "bibref", "desc", "contents" ] then
         -- HANDLE \item, \bibref, etc
-        { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> Debug.log "(5)"
+        { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> fakeDebugLog "(7)"
         -- ??
 
     else if state.status == InOrdinaryBlock then
         if String.trimLeft line == "" then
-            { state | output = "" :: state.output } |> Debug.log "(6)"
+            { state | output = "" :: state.output } |> fakeDebugLog "(8)"
 
         else
-            { state | output = transformHeader name args line :: state.output } |> Debug.log "(7)"
+            { state | output = transformHeader name args line :: state.output } |> fakeDebugLog "(9)"
 
     else
-        { state | output = line :: state.output } |> Debug.log "(8)"
+        { state | output = line :: state.output } |> fakeDebugLog "(10)"
 
 
 transformHeader : String -> List String -> String -> String
 transformHeader name args str =
     let
         _ =
-            Debug.log "args" args
+            fakeDebugLog "args" args
     in
     if name == "begin" then
         transformBegin args str
@@ -428,7 +441,7 @@ transformHeader name args str =
 transformOther name args str =
     let
         _ =
-            Debug.log "name" name
+            fakeDebugLog "name" name
 
         target =
             if name == "$$" then
@@ -438,17 +451,17 @@ transformOther name args str =
                 "\\" ++ name
 
         _ =
-            Debug.log "str" str
+            fakeDebugLog "str" str
 
         _ =
-            Debug.log "TARGET (1)" target
+            fakeDebugLog "TARGET (1)" target
     in
     case Dict.get name substitutions of
         Nothing ->
-            str |> Debug.log "NOTHING"
+            str |> fakeDebugLog "NOTHING"
 
         Just { prefix } ->
-            String.replace target ("| " ++ name) str |> fixArgs |> Debug.log "Transformed!! (2)"
+            String.replace target ("| " ++ name) str |> fixArgs |> fakeDebugLog "Transformed!! (2)"
 
 
 fixArgs str =
@@ -463,23 +476,23 @@ transformBegin args str =
         Just environmentName ->
             let
                 _ =
-                    Debug.log "environmentName" environmentName
+                    fakeDebugLog "environmentName" environmentName
 
                 target =
                     "\\begin{" ++ environmentName ++ "}"
 
                 _ =
-                    Debug.log "str" str
+                    fakeDebugLog "str" str
 
                 _ =
-                    Debug.log "TARGET (2)" target
+                    fakeDebugLog "TARGET (2)" target
             in
             case Dict.get environmentName substitutions of
                 Nothing ->
-                    str |> Debug.log "NOTHING"
+                    str |> fakeDebugLog "NOTHING"
 
                 Just { prefix } ->
-                    String.replace target (prefix ++ " " ++ environmentName) str |> Debug.log "Transformed!!"
+                    String.replace target (prefix ++ " " ++ environmentName) str |> fakeDebugLog "Transformed!!"
 
 
 transformBlockHeader2 : String -> String -> String
@@ -491,7 +504,7 @@ transformBlockHeader_ : String -> String -> String
 transformBlockHeader_ blockName str =
     let
         _ =
-            Debug.log "transformBlockHeader_, blockName" blockName
+            fakeDebugLog "transformBlockHeader_, blockName" blockName
     in
     if List.member blockName verbatimBlockNames then
         String.replace ("\\begin{" ++ blockName ++ "}") ("|| " ++ blockName) str
@@ -578,6 +591,7 @@ substitutions =
         , ( "aligned", { prefix = "||", arity = Arity 0 } )
         , ( "mathmacros", { prefix = "||", arity = Arity 0 } )
         , ( "theorem", { prefix = "|", arity = Arity 0 } )
+        , ( "indent", { prefix = "|", arity = Arity 0 } )
         , ( "numbered", { prefix = "|", arity = Arity 0 } )
         , ( "abstract", { prefix = "|", arity = Arity 0 } )
         , ( "bibitem", { prefix = "|", arity = Arity 1 } )
