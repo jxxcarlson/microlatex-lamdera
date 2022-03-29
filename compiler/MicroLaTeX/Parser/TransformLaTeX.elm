@@ -33,15 +33,11 @@ xx1 =
 
 
 xx2 =
-    """
-\\begin{equation}
-\\int_0^1 x^n dx = \\frac{1}{n+1}
-\\end{equation}
-"""
+    "\n\\begin{theorem}\nHo ho ho\n"
 
 
 xx3 =
-    "\n\\begin{theorem}\nHo ho ho\n"
+    "\n\\begin{theorem}\nHo ho ho\n\\end{th}"
 
 
 xx4 =
@@ -158,6 +154,10 @@ nextState state =
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0d)"
 
                         Just foo ->
+                            let
+                                _ =
+                                    Debug.log "foo" foo
+                            in
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
@@ -282,7 +282,21 @@ nextState2 line (MyMacro name args) state =
         { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(10)"
 
     else
-        { state | output = line :: state.output } |> fakeDebugLog state.i "(12)"
+        let
+            _ =
+                Debug.log "LINE (12)" line
+
+            _ =
+                Debug.log "(macro, args)" ( name, args )
+
+            newStack =
+                List.drop 1 state.stack
+        in
+        if name == "end" then
+            { state | output = "\\red{^^^ missmatched end tags}" :: "" :: state.output, stack = newStack } |> fakeDebugLog state.i "(12)"
+
+        else
+            { state | output = line :: state.output } |> fakeDebugLog state.i "(12)"
 
 
 leadingBlanks : String -> Int

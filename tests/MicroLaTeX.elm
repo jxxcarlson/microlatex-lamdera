@@ -21,7 +21,7 @@ suite =
         , test_ "section" (f section) [ "", "\\section{Intro}", "", "\\subsection{Foobar}", "" ]
         , test_ "item" (f item) [ "", "| item", "Foo bar", "" ]
         , test_ "theorem" (f "\n\\begin{theorem}\nHo ho ho\n\\end{theorem}\n") [ "", "| theorem", "Ho ho ho", "", "" ]
-        , test_ "theorem, missmatched" (f "\n\\begin{theorem}\nHo ho ho\n\\end{the}\n") [ "", "| theorem", "Ho ho ho", "", "\\red{^^^ missmatched end tag (2b)}", "" ]
+        , test_ "theorem, missmatched" (f "\n\\begin{theorem}\nHo ho ho\n\\end{the}\n") [ "", "| theorem", "Ho ho ho", "", "\\red{^^^ missmatched end tags}", "" ]
         , test_ "theorem, unterminated" (f "\n\\begin{theorem}\nHo ho ho\n") [ "", "| theorem", "Ho ho ho", "\\red{^^^ missing end tag (2)}", "" ]
         , test_ "equation, then aligned" (f "\n\\begin{equation}\nx^2\n\\end{equation}\n\n\\begin{aligned}\na &= x + y \\\\\n\\end{aligned}\n") [ "", "|| equation", "x^2", "", "", "|| aligned", "a &= x + y \\\\", "", "" ]
         ]
