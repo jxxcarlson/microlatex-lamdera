@@ -5,7 +5,6 @@ module MicroLaTeX.Parser.TransformLaTeX exposing (..)
 --)
 
 import Dict exposing (Dict)
-import Parser.MathMacro exposing (MathExpression(..))
 import Parser.TextMacro exposing (MyMacro(..))
 
 
@@ -14,6 +13,7 @@ fakeDebugLog =
 
 
 
+--
 --fakeDebugLog =
 --    \i label -> identity
 
@@ -45,18 +45,6 @@ xx4 =
 \\bibitem{AA}
 Foo bar
 """
-
-
-xx5 =
-    """
-$$
-x^2
-$$
-"""
-
-
-xx6 =
-    "\\begin{theorem}\n  AAA\n  \n  $$\n  x^2\n  $$\n  \n  BBB\n\\end{theorem}"
 
 
 
@@ -140,8 +128,7 @@ nextState state =
                         Loop { state | i = state.i + 1, output = line :: state.output, status = LXNormal, input = List.drop 1 state.input } |> fakeDebugLog state.i "(0b)"
 
                     else
-                        -- Just add the line to output
-                        --- Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog state.i  "(0b)"
+                        -- Add the line to output with possible error handling
                         state
                             |> handleError line
                             |> (\st -> { st | input = List.drop 1 state.input, i = state.i + 1 })
@@ -161,78 +148,6 @@ nextState state =
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
-handleError : String -> State -> State
-handleError line state =
-    case state.status of
-        InVerbatimBlock name ->
-            let
-                endTag =
-                    "\\end{" ++ name ++ "}"
-
-                outputHead =
-                    List.head state.output
-            in
-            case outputHead of
-                Nothing ->
-                    { state | output = line :: state.output }
-
-                Just "" ->
-                    { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
-
-                _ ->
-                    if outputHead == Just endTag then
-                        { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
-
-                    else
-                        { state | output = line :: state.output }
-
-        InOrdinaryBlock name ->
-            let
-                _ =
-                    Debug.log "LINE" line
-
-                endTag =
-                    "\\end{" ++ (name |> Debug.log "name") ++ "}" |> Debug.log "endTag"
-
-                outputHead =
-                    List.head state.output |> Debug.log "outputHead"
-
-                n =
-                    Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
-            in
-            if line == "" then
-                if n > 0 then
-                    { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
-                    --else if outputHead /= Just endTag then
-                    --    { state | output = "" :: "\\red{^^^ missmatched end tag (2b)}" :: "" :: List.drop 1 state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2b)"
-                    --    --{ state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2)"
-
-                else
-                    { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
-
-            else
-                case outputHead of
-                    Nothing ->
-                        { state | output = line :: state.output }
-
-                    Just "" ->
-                        if List.isEmpty state.stack then
-                            { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (3)"
-
-                        else
-                            { state | output = line :: state.output }
-
-                    _ ->
-                        if outputHead == Just endTag && List.isEmpty state.stack then
-                            { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
-
-                        else
-                            { state | output = line :: state.output }
-
-        LXNormal ->
-            { state | output = line :: state.output }
-
-
 nextState2 line (MyMacro name args) state =
     let
         firstArg =
@@ -248,7 +163,7 @@ nextState2 line (MyMacro name args) state =
 
     else if name == "$$" && state.status == LXNormal then
         -- HANDLE $$ BLOCK, BEGIN
-        { state | output = "$$" :: state.output, status = InVerbatimBlock "$$", stack = InVerbatimBlock "$$" :: state.stack } |> fakeDebugLog state.i "(3)"
+        { state | output = line :: state.output, status = InVerbatimBlock "$$", stack = InVerbatimBlock "$$" :: state.stack } |> fakeDebugLog state.i "(3)"
 
     else if List.member name [ "$$" ] && state.status == InVerbatimBlock name then
         -- HANDLE $$ BLOCK, END
@@ -297,6 +212,82 @@ nextState2 line (MyMacro name args) state =
 
         else
             { state | output = line :: state.output } |> fakeDebugLog state.i "(12)"
+
+
+handleError : String -> State -> State
+handleError line state =
+    case state.status of
+        InVerbatimBlock name ->
+            let
+                _ =
+                    Debug.log "handleError, InVerbatimBlock, LINE" line
+
+                endTag =
+                    "\\end{" ++ name ++ "}"
+
+                outputHead =
+                    List.head state.output
+            in
+            case outputHead of
+                Nothing ->
+                    { state | output = line :: state.output }
+
+                Just "" ->
+                    { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+
+                _ ->
+                    if outputHead == Just endTag then
+                        { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+                    else
+                        { state | output = line :: state.output }
+
+        InOrdinaryBlock name ->
+            let
+                _ =
+                    Debug.log "LINE" line
+
+                endTag =
+                    "\\end{" ++ (name |> Debug.log "name") ++ "}" |> Debug.log "endTag"
+
+                outputHead =
+                    List.head state.output |> Debug.log "outputHead"
+
+                n =
+                    Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
+            in
+            if line == "" then
+                if n > 0 then
+                    { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
+
+                else
+                    { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
+
+            else
+                case outputHead of
+                    Nothing ->
+                        { state | output = line :: state.output }
+
+                    Just "" ->
+                        if List.isEmpty state.stack then
+                            { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (3)"
+
+                        else
+                            { state | output = line :: state.output }
+
+                    _ ->
+                        if outputHead == Just endTag && List.isEmpty state.stack then
+                            { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+                        else
+                            { state | output = line :: state.output }
+
+        LXNormal ->
+            { state | output = line :: state.output }
+
+
+
+-- HELPERS
 
 
 leadingBlanks : String -> Int
@@ -356,29 +347,6 @@ transformBegin args str =
                     String.replace target (prefix ++ " " ++ environmentName) str
 
 
-transformBlockHeader2 : String -> String -> String
-transformBlockHeader2 blockName str =
-    transformBlockHeader_ blockName str |> String.replace "[" " " |> String.replace "]" " "
-
-
-transformBlockHeader_ : String -> String -> String
-transformBlockHeader_ blockName str =
-    if List.member blockName verbatimBlockNames then
-        String.replace ("\\begin{" ++ blockName ++ "}") ("|| " ++ blockName) str
-
-    else
-        String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
-
-
-transformBlockHeader : String -> String -> String
-transformBlockHeader blockName str =
-    if List.member blockName verbatimBlockNames then
-        String.replace ("\\begin{" ++ blockName ++ "}") ("|| " ++ blockName) str
-
-    else
-        String.replace ("\\begin{" ++ blockName ++ "}") ("| " ++ blockName) str
-
-
 type Arity
     = Arity Int
     | Grouped
@@ -400,50 +368,3 @@ substitutions =
         , ( "setcounter", { prefix = "|", arity = Arity 1 } )
         , ( "contents", { prefix = "|", arity = Arity 0 } )
         ]
-
-
-makeBlanksEmpty : String -> String
-makeBlanksEmpty str =
-    if String.trim str == "" then
-        ""
-
-    else
-        str
-
-
-blockBegin : String -> Maybe String
-blockBegin str =
-    if str == "$$" then
-        Just "$$"
-
-    else
-        case Parser.MathMacro.parseOne str of
-            Just (Macro "begin" [ MathList [ MathText blockName ] ]) ->
-                Just blockName
-
-            _ ->
-                Nothing
-
-
-blockEnd : String -> Maybe String
-blockEnd str =
-    if str == "$$" then
-        Just "$$"
-
-    else
-        case Parser.MathMacro.parseOne str of
-            Just (Macro "end" [ MathList [ MathText blockName ] ]) ->
-                Just blockName
-
-            _ ->
-                Nothing
-
-
-isBegin : String -> Bool
-isBegin str =
-    String.left 6 (String.trimLeft str) == "\\begin"
-
-
-isEnd : String -> Bool
-isEnd str =
-    String.left 4 (String.trimLeft str) == "\\end"
