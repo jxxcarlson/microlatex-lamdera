@@ -86,7 +86,7 @@ type alias State =
 
 type LXStatus
     = InVerbatimBlock String
-    | InOrdinaryBlock
+    | InOrdinaryBlock String
     | LXNormal
 
 
@@ -134,7 +134,8 @@ nextState state =
 
                     else
                         -- Just add the line to output
-                        Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog "(0b)"
+                        --- Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog "(0b)"
+                        Loop (handleError line state |> (\st -> { st | input = List.drop 1 state.input }))
 
                 Ok myMacro ->
                     let
@@ -144,10 +145,65 @@ nextState state =
                     Loop (nextState2 line myMacro { state | input = List.drop 1 state.input })
 
 
+handleError : String -> State -> State
+handleError line state =
+    case state.status of
+        InVerbatimBlock name ->
+            let
+                endTag =
+                    "\\end{" ++ name ++ "}"
+
+                outputHead =
+                    List.head state.output
+            in
+            case outputHead of
+                Nothing ->
+                    { state | output = line :: state.output }
+
+                Just "" ->
+                    { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+
+                _ ->
+                    if outputHead == Just endTag then
+                        { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+                    else
+                        { state | output = line :: state.output }
+
+        InOrdinaryBlock name ->
+            let
+                endTag =
+                    "\\end{" ++ name ++ "}"
+
+                outputHead =
+                    List.head state.output
+            in
+            case List.head state.output of
+                Nothing ->
+                    { state | output = line :: state.output }
+
+                Just "" ->
+                    { state | output = "" :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+
+                _ ->
+                    if outputHead == Just endTag then
+                        { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+                    else
+                        { state | output = line :: state.output }
+
+        LXNormal ->
+            { state | output = line :: state.output }
+
+
 nextState2 line (MyMacro name args) state =
-    if name == "begin" && args == [ "code" ] then
+    let
+        firstArg =
+            List.head args |> Maybe.withDefault "((no-first-arg))"
+    in
+    if name == "begin" && List.member firstArg [ "code", "equation" ] then
         -- HANDLE CODE BLOCKS, BEGIN
-        { state | output = "|| code" :: state.output, status = InVerbatimBlock "code" } |> fakeDebugLog "(1)"
+        { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg } |> fakeDebugLog "(1)"
 
     else if name == "end" && args == [ "code" ] then
         -- HANDLE CODE BLOCKS, END
@@ -167,9 +223,9 @@ nextState2 line (MyMacro name args) state =
 
     else if name == "begin" && state.status == LXNormal then
         -- HANDLE ENVIRONMENT, BEGIN
-        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock } |> fakeDebugLog "(5)"
+        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock firstArg } |> fakeDebugLog "(5)"
 
-    else if name == "end" && state.status == InOrdinaryBlock then
+    else if name == "end" && state.status == InOrdinaryBlock name then
         -- HANDLE ENVIRONMENT, END
         { state | output = "" :: state.output } |> fakeDebugLog "(6)"
 
@@ -178,7 +234,7 @@ nextState2 line (MyMacro name args) state =
         { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> fakeDebugLog "(7)"
         -- ??
 
-    else if state.status == InOrdinaryBlock then
+    else if state.status == InOrdinaryBlock name then
         if String.trimLeft line == "" then
             { state | output = "" :: state.output } |> fakeDebugLog "(8)"
 
