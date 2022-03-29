@@ -10,7 +10,6 @@ import Parser.TextMacro exposing (MyMacro(..))
 
 
 
---
 --fakeDebugLog =
 --    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
 --
@@ -22,13 +21,15 @@ fakeDebugLog =
 
 xx1 =
     """
-\\begin{equation}
-x^2
-\\end{equation}
+\\begin{theorem}
+  There are infinitely many prime numbers
 
-\\begin{aligned}
-a &= x + y \\\\
-\\end{aligned}
+  $$
+  p \\equiv 1\\ mod\\ 4
+  $$
+
+  Isn't that nice?
+\\end{theorem}
 """
 
 
@@ -100,6 +101,19 @@ type LXStatus
     = InVerbatimBlock String
     | InOrdinaryBlock String
     | LXNormal
+
+
+endBlockOfLXStatus : LXStatus -> Maybe String
+endBlockOfLXStatus status =
+    case status of
+        InVerbatimBlock name ->
+            Just ("\\end{" ++ name ++ "}")
+
+        InOrdinaryBlock name ->
+            Just ("\\end{" ++ name ++ "}")
+
+        LXNormal ->
+            Nothing
 
 
 toL0Aux : List String -> List String
@@ -194,9 +208,15 @@ handleError line state =
                     List.head state.output
 
                 -- |> Debug.log "outputHead"
+                n =
+                    Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
             in
             if line == "" then
-                { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (1)"
+                if n > 0 then
+                    { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
+
+                else
+                    { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (1)"
 
             else
                 case outputHead of
@@ -266,8 +286,20 @@ nextState2 line (MyMacro name args) state =
         else
             { state | output = transformHeader name args line :: state.output } |> fakeDebugLog state.i "(9)"
 
+    else if Just line == (List.head state.stack |> Maybe.andThen endBlockOfLXStatus) then
+        { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(10)"
+
     else
-        { state | output = line :: state.output } |> fakeDebugLog state.i "(10)"
+        { state | output = line :: state.output } |> fakeDebugLog state.i "(12)"
+
+
+leadingBlanks : String -> Int
+leadingBlanks str =
+    let
+        trimmed =
+            String.trimLeft str
+    in
+    String.length str - String.length trimmed
 
 
 transformHeader : String -> List String -> String -> String
