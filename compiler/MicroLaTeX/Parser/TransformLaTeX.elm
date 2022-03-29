@@ -9,16 +9,17 @@ import Parser.MathMacro exposing (MathExpression(..))
 import Parser.TextMacro exposing (MyMacro(..))
 
 
+
+--fakeDebugLog1 =
+--    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
+--
+
+
 fakeDebugLog =
-    \str -> Debug.log str
+    \i label -> identity
 
 
-
---fakeDebugLog =
---    \str -> identity
-
-
-xx =
+xx1 =
     """
 \\begin{theorem}
 Ho ho ho
@@ -87,7 +88,7 @@ verbatimBlockNames =
 
 
 type alias State =
-    { status : LXStatus, input : List String, output : List String, stack : List LXStatus }
+    { i : Int, status : LXStatus, input : List String, output : List String, stack : List LXStatus }
 
 
 type LXStatus
@@ -98,7 +99,7 @@ type LXStatus
 
 toL0Aux : List String -> List String
 toL0Aux list =
-    loop { input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse
+    loop { i = 0, input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse
 
 
 type Step state a
@@ -125,30 +126,36 @@ nextState state =
         Just line ->
             let
                 trimmedLine =
-                    String.trimLeft line |> fakeDebugLog "TRIMMED"
-
-                numberOfLeadingBlanks =
-                    String.length line - String.length trimmedLine
-
-                prefix =
-                    String.left numberOfLeadingBlanks line
+                    String.trimLeft line
             in
             case Parser.TextMacro.get trimmedLine of
                 Err _ ->
                     if trimmedLine == "$$" then
-                        Loop (nextState2 line (MyMacro "$$" []) { state | input = List.drop 1 state.input }) |> fakeDebugLog "(0a)"
+                        Loop (nextState2 line (MyMacro "$$" []) { state | i = state.i + 1, input = List.drop 1 state.input }) |> fakeDebugLog state.i "(0a)"
+
+                    else if List.isEmpty state.stack && line == "" then
+                        Loop { state | i = state.i + 1, output = line :: state.output, status = LXNormal, input = List.drop 1 state.input } |> fakeDebugLog state.i "(0b)"
 
                     else
                         -- Just add the line to output
-                        --- Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog "(0b)"
-                        Loop (handleError line state |> (\st -> { st | input = List.drop 1 state.input })) |> fakeDebugLog "(0b)"
+                        --- Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog state.i  "(0b)"
+                        state
+                            |> handleError line
+                            |> (\st -> { st | input = List.drop 1 state.input, i = state.i + 1 })
+                            |> fakeDebugLog state.i "(0c)"
+                            |> Loop
 
                 Ok myMacro ->
-                    let
-                        _ =
-                            fakeDebugLog "(0!!)" myMacro
-                    in
-                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input }) |> fakeDebugLog "(0c)"
+                    case List.head state.stack of
+                        Nothing ->
+                            Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0d)"
+
+                        Just foo ->
+                            let
+                                _ =
+                                    Debug.log "FOO (0d)" foo
+                            in
+                            Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
 handleError : String -> State -> State
@@ -179,28 +186,35 @@ handleError line state =
         InOrdinaryBlock name ->
             let
                 endTag =
-                    "\\end{" ++ name ++ "}"
+                    "\\end{" ++ name ++ "}" |> Debug.log "END TAG"
 
                 outputHead =
-                    List.head state.output
+                    List.head state.output |> Debug.log "OUTPUT HEAD"
+
+                _ =
+                    Debug.log "LINE" line
             in
-            case List.head state.output of
-                Nothing ->
-                    { state | output = line :: state.output }
+            if line == "" then
+                { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (1)"
 
-                Just "" ->
-                    if List.isEmpty state.stack then
-                        { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal } |> fakeDebugLog "ERROR"
-
-                    else
+            else
+                case outputHead of
+                    Nothing ->
                         { state | output = line :: state.output }
 
-                _ ->
-                    if outputHead == Just endTag && List.isEmpty state.stack then
-                        { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+                    Just "" ->
+                        if List.isEmpty state.stack then
+                            { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (2)"
 
-                    else
-                        { state | output = line :: state.output }
+                        else
+                            { state | output = line :: state.output }
+
+                    _ ->
+                        if outputHead == Just endTag && List.isEmpty state.stack then
+                            { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+                        else
+                            { state | output = line :: state.output }
 
         LXNormal ->
             { state | output = line :: state.output }
@@ -213,54 +227,50 @@ nextState2 line (MyMacro name args) state =
     in
     if name == "begin" && List.member firstArg [ "code", "equation" ] then
         -- HANDLE CODE BLOCKS, BEGIN
-        { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog "(1)"
+        { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog state.i "(1)"
 
     else if name == "end" && args == [ "code" ] then
         -- HANDLE CODE BLOCKS, END
-        { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog "(2)"
+        { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(2)"
 
     else if name == "$$" && state.status == LXNormal then
         -- HANDLE $$ BLOCK, BEGIN
-        { state | output = "$$" :: state.output, status = InVerbatimBlock "$$", stack = InVerbatimBlock "$$" :: state.stack } |> fakeDebugLog "(3)"
+        { state | output = "$$" :: state.output, status = InVerbatimBlock "$$", stack = InVerbatimBlock "$$" :: state.stack } |> fakeDebugLog state.i "(3)"
 
     else if List.member name [ "$$" ] && state.status == InVerbatimBlock name then
         -- HANDLE $$ BLOCK, END
-        { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog "(4)"
+        { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(4)"
 
     else if state.status == InVerbatimBlock "```" then
         -- HANDLE ``` BLOCK, INTERIOR
-        { state | output = line :: state.output } |> fakeDebugLog "(3.1)"
+        { state | output = line :: state.output } |> fakeDebugLog state.i "(3.1)"
 
     else if name == "begin" && state.status == LXNormal then
         -- HANDLE ENVIRONMENT, BEGIN
-        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock firstArg, stack = InOrdinaryBlock firstArg :: state.stack } |> fakeDebugLog "(5)"
+        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock firstArg, stack = InOrdinaryBlock firstArg :: state.stack } |> fakeDebugLog state.i "(5)"
 
     else if name == "end" && state.status == InOrdinaryBlock firstArg then
         -- HANDLE ENVIRONMENT, END
-        { state | output = line :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog "(6)"
+        { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(6)"
 
     else if state.status == LXNormal && List.member name [ "item", "numbered", "bibref", "desc", "contents" ] then
         -- HANDLE \item, \bibref, etc
-        { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> fakeDebugLog "(7)"
+        { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> fakeDebugLog state.i "(7)"
         -- ??
 
     else if state.status == InOrdinaryBlock name then
         if String.trimLeft line == "" then
-            { state | output = "" :: state.output } |> fakeDebugLog "(8)"
+            { state | output = "" :: state.output } |> fakeDebugLog state.i "(8)"
 
         else
-            { state | output = transformHeader name args line :: state.output } |> fakeDebugLog "(9)"
+            { state | output = transformHeader name args line :: state.output } |> fakeDebugLog state.i "(9)"
 
     else
-        { state | output = line :: state.output } |> fakeDebugLog "(10)"
+        { state | output = line :: state.output } |> fakeDebugLog state.i "(10)"
 
 
 transformHeader : String -> List String -> String -> String
 transformHeader name args str =
-    let
-        _ =
-            fakeDebugLog "args" args
-    in
     if name == "begin" then
         transformBegin args str
 
@@ -270,28 +280,19 @@ transformHeader name args str =
 
 transformOther name args str =
     let
-        _ =
-            fakeDebugLog "name" name
-
         target =
             if name == "$$" then
                 "$$"
 
             else
                 "\\" ++ name
-
-        _ =
-            fakeDebugLog "str" str
-
-        _ =
-            fakeDebugLog "TARGET (1)" target
     in
     case Dict.get name substitutions of
         Nothing ->
-            str |> fakeDebugLog "NOTHING"
+            str
 
         Just { prefix } ->
-            String.replace target ("| " ++ name) str |> fixArgs |> fakeDebugLog "Transformed!! (2)"
+            String.replace target ("| " ++ name) str |> fixArgs
 
 
 fixArgs str =
@@ -305,24 +306,15 @@ transformBegin args str =
 
         Just environmentName ->
             let
-                _ =
-                    fakeDebugLog "environmentName" environmentName
-
                 target =
                     "\\begin{" ++ environmentName ++ "}"
-
-                _ =
-                    fakeDebugLog "str" str
-
-                _ =
-                    fakeDebugLog "TARGET (2)" target
             in
             case Dict.get environmentName substitutions of
                 Nothing ->
-                    str |> fakeDebugLog "NOTHING"
+                    str
 
                 Just { prefix } ->
-                    String.replace target (prefix ++ " " ++ environmentName) str |> fakeDebugLog "Transformed!!"
+                    String.replace target (prefix ++ " " ++ environmentName) str
 
 
 transformBlockHeader2 : String -> String -> String
@@ -332,10 +324,6 @@ transformBlockHeader2 blockName str =
 
 transformBlockHeader_ : String -> String -> String
 transformBlockHeader_ blockName str =
-    let
-        _ =
-            fakeDebugLog "transformBlockHeader_, blockName" blockName
-    in
     if List.member blockName verbatimBlockNames then
         String.replace ("\\begin{" ++ blockName ++ "}") ("|| " ++ blockName) str
 

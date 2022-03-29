@@ -3,7 +3,7 @@ module PrimitiveBlock exposing (..)
 import Compiler.Util exposing (depth, size)
 import Expect exposing (..)
 import Markup
-import MicroLaTeX.Parser.TransformLaTeX exposing (indentStrings, toL0Aux)
+import MicroLaTeX.Parser.TransformLaTeX exposing (toL0Aux)
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock, parse)
 import Test exposing (..)
@@ -42,28 +42,20 @@ suite =
         ]
 
 
-indent_ str =
-    indentStrings (String.lines str)
 
-
-transform : String -> List String
-transform str =
-    indentStrings (String.lines str) |> toL0Aux
-
-
-suite2 : Test
-suite2 =
-    describe "indenter and transformer 2"
-        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
-        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
-        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
-        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
-        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cIN)
-        , test_ "nested microLaTeX blocks, transform" (transform cIN) [ "| theorem", "  abc", "", "  $$", "  x^2", "  $$", "", "  def", "" ]
-        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
-        , test_ "p1" (indent_ p1) (String.lines p1)
-        , test_ "p2" (indent_ p2) (String.lines p2Indented)
-        ]
+--suite2 : Test
+--suite2 =
+--    describe "indenter and transformer 2"
+--        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
+--        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
+--        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
+--        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
+--        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cIN)
+--        , test_ "nested microLaTeX blocks, transform" (transform cIN) [ "| theorem", "  abc", "", "  $$", "  x^2", "  $$", "", "  def", "" ]
+--        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
+--        , test_ "p1" (indent_ p1) (String.lines p1)
+--        , test_ "p2" (indent_ p2) (String.lines p2Indented)
+--        ]
 
 
 suite3 : Test

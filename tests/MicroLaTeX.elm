@@ -1,16 +1,12 @@
 module MicroLaTeX exposing (..)
 
-import Compiler.Util exposing (depth, size)
 import Expect exposing (..)
-import Markup
-import MicroLaTeX.Parser.TransformLaTeX exposing (indentStrings, toL0Aux, toL0Aux2)
-import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, parse)
+import MicroLaTeX.Parser.TransformLaTeX exposing (toL0Aux)
 import Test exposing (..)
 
 
 f str =
-    toL0Aux2 (String.lines str)
+    toL0Aux (String.lines str)
 
 
 test_ label expr expectedOutput =
@@ -24,6 +20,8 @@ suite =
         , test_ "x2" (f x2) [ "", "|| equation", "\\int_0^1 x^n dx = \\frac{1}{n+1}", "", "" ]
         , test_ "section" (f section) [ "", "\\section{Intro}", "", "\\subsection{Foobar}", "" ]
         , test_ "item" (f item) [ "", "| item", "Foo bar", "" ]
+        , test_ "theorem" (f "\n\\begin{theorem}\nHo ho ho\n\\end{theorem}\n") [ "", "| theorem", "Ho ho ho", "", "" ]
+        , test_ "theorem, unterminated" (f "\n\\begin{theorem}\nHo ho ho\n") [ "", "| theorem", "Ho ho ho", "\\red{^^^ missing end tag (2)}", "" ]
         ]
 
 
