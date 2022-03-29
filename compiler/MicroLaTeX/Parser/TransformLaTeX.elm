@@ -57,8 +57,12 @@ $$
 """
 
 
+
+-- TO L0: ["\\title{MicroLaTeX Test}","","| theorem","  AAA","","  $$","  x^2","  $$","","  BBB","","",""]
+
+
 xx6 =
-    "\\begin{theorem}\n  AAA\n  \n  $$\n  x^2\n  $$\n  \n  BBB\n\\{theorem}"
+    "\\begin{theorem}\n  AAA\n  \n  $$\n  x^2\n  $$\n  \n  BBB\n\\end{theorem}"
 
 
 
@@ -309,6 +313,7 @@ type alias State =
 
 type LXStatus
     = InVerbatimBlock String
+    | InOrdinaryBlock
     | LXNormal
 
 
@@ -341,7 +346,7 @@ nextState state =
         Just line ->
             let
                 trimmedLine =
-                    String.trimLeft line
+                    String.trimLeft line |> Debug.log "TRIMMED"
 
                 numberOfLeadingBlanks =
                     String.length line - String.length trimmedLine
@@ -352,39 +357,56 @@ nextState state =
             case Parser.TextMacro.get trimmedLine of
                 Err _ ->
                     if trimmedLine == "$$" then
-                        Loop (nextState2 line (MyMacro "$$" []) { state | input = List.drop 1 state.input })
+                        Loop (nextState2 line (MyMacro "$$" []) { state | input = List.drop 1 state.input }) |> Debug.log "(0a)"
 
                     else
-                        Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> Debug.log "(0)"
+                        -- Just add the line to output
+                        Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> Debug.log "(0b)"
 
                 Ok myMacro ->
+                    let
+                        _ =
+                            Debug.log "(0!!)" myMacro
+                    in
                     Loop (nextState2 line myMacro { state | input = List.drop 1 state.input })
 
 
 nextState2 line (MyMacro name args) state =
+    -- HANDLE CODE BLOCKS
     if name == "begin" && args == [ "code" ] then
         { state | output = "|| code" :: state.output, status = InVerbatimBlock "code" } |> Debug.log "(1)"
 
     else if name == "end" && args == [ "code" ] then
         { state | output = "" :: state.output, status = LXNormal } |> Debug.log "(2)"
+        -- HANDLE MATH BLOCKS
 
     else if name == "$$" && state.status == LXNormal then
         { state | output = line :: state.output, status = InVerbatimBlock "$$" }
 
     else if name == "$$" && state.status == InVerbatimBlock "$$" then
         { state | output = "" :: state.output, status = LXNormal }
+        -- HANDLE ENVIRONMENTS
 
     else if name == "begin" && state.status == LXNormal then
-        { state | output = transformHeader name args line :: state.output } |> Debug.log "(3)"
+        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock } |> Debug.log "(3)"
 
-    else if name == "end" && state.status == LXNormal then
+    else if name == "end" && state.status == InOrdinaryBlock then
         { state | output = "" :: state.output } |> Debug.log "(4)"
+        -- ??
 
-    else if state.status == LXNormal then
-        { state | output = transformHeader name args line :: state.output } |> Debug.log "(5)"
+    else if state.status == LXNormal && not (List.member name [ "title", "section", "subsection" ]) then
+        { state | output = (String.replace "\\" "| " line |> fixArgs) :: state.output } |> Debug.log "(5)"
+        -- ??
+
+    else if state.status == InOrdinaryBlock then
+        if String.trimLeft line == "" then
+            { state | output = "" :: state.output } |> Debug.log "(6)"
+
+        else
+            { state | output = transformHeader name args line :: state.output } |> Debug.log "(7)"
 
     else
-        { state | output = line :: state.output } |> Debug.log "(6)"
+        { state | output = line :: state.output } |> Debug.log "(8)"
 
 
 transformHeader : String -> List String -> String -> String
@@ -423,7 +445,11 @@ transformOther name args str =
             str |> Debug.log "NOTHING"
 
         Just { prefix } ->
-            String.replace target ("| " ++ name) str |> String.replace "{" " " |> String.replace "}" " " |> Debug.log "Transformed!! (2)"
+            String.replace target ("| " ++ name) str |> fixArgs |> Debug.log "Transformed!! (2)"
+
+
+fixArgs str =
+    str |> String.replace "{" " " |> String.replace "}" " "
 
 
 transformBegin args str =

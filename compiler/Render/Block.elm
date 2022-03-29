@@ -115,7 +115,8 @@ blockDict =
         , ( "document", document )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
-        , ( "heading", section )
+
+        -- , ( "heading", section )
         , ( "section", section )
         , ( "title", \_ _ _ _ _ _ -> Element.none )
         , ( "subtitle", \_ _ _ _ _ _ -> Element.none )
@@ -195,7 +196,7 @@ section count acc settings args id exprs =
          ]
             ++ highlightAttrs id settings
         )
-        { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| heading" count acc settings exprs) }
+        { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| section" count acc settings exprs) }
 
 
 renderWithDefault : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element MarkupMsg)
