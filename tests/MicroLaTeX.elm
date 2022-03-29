@@ -24,6 +24,7 @@ suite =
         , test_ "theorem, missmatched" (f "\n\\begin{theorem}\nHo ho ho\n\\end{the}\n") [ "", "| theorem", "Ho ho ho", "", "\\red{^^^ missmatched end tags}", "" ]
         , test_ "theorem, unterminated" (f "\n\\begin{theorem}\nHo ho ho\n") [ "", "| theorem", "Ho ho ho", "\\red{^^^ missing end tag (2)}", "" ]
         , test_ "equation, then aligned" (f "\n\\begin{equation}\nx^2\n\\end{equation}\n\n\\begin{aligned}\na &= x + y \\\\\n\\end{aligned}\n") [ "", "|| equation", "x^2", "", "", "|| aligned", "a &= x + y \\\\", "", "" ]
+        , test_ "block inside code block" (f "\n\\begin{code}\n\\begin{mathmacros}\n\\newcommand{\\bra}[0]{\\]langle}\n\\end{mathmacros}\n\\end{code}\n") [ "", "|| code", "\\begin{mathmacros}", "\\newcommand{\\bra}[0]{\\]langle}", "\\end{mathmacros}", "", "" ]
         ]
 
 

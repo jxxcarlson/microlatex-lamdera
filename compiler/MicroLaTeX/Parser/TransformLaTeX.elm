@@ -5,30 +5,27 @@ module MicroLaTeX.Parser.TransformLaTeX exposing (..)
 --)
 
 import Dict exposing (Dict)
+import List.Extra
 import Parser.TextMacro exposing (MyMacro(..))
 
 
-fakeDebugLog =
-    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
 
-
-
---
 --fakeDebugLog =
---    \i label -> identity
+--    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
+--
+
+
+fakeDebugLog =
+    \i label -> identity
 
 
 xx1 =
     """
-\\begin{theorem}
-  There are infinitely many prime numbers
-
-  $$
-  p \\equiv 1\\ mod\\ 4
-  $$
-
-  Isn't that nice?
-\\end{theorem}
+\\begin{code}
+\\begin{mathmacros}
+\\newcommand{\\bra}[0]{\\]langle}
+\\end{mathmacros}
+\\end{code}
 """
 
 
@@ -207,7 +204,7 @@ nextState2 line (MyMacro name args) state =
             newStack =
                 List.drop 1 state.stack
         in
-        if name == "end" then
+        if name == "end" && List.Extra.last state.stack /= Just (InVerbatimBlock "code") then
             { state | output = "\\red{^^^ missmatched end tags}" :: "" :: state.output, stack = newStack } |> fakeDebugLog state.i "(12)"
 
         else
@@ -219,9 +216,8 @@ handleError line state =
     case state.status of
         InVerbatimBlock name ->
             let
-                _ =
-                    Debug.log "handleError, InVerbatimBlock, LINE" line
-
+                --_ =
+                --    Debug.log "handleError, InVerbatimBlock, LINE" line
                 endTag =
                     "\\end{" ++ name ++ "}"
 
@@ -244,15 +240,16 @@ handleError line state =
 
         InOrdinaryBlock name ->
             let
-                _ =
-                    Debug.log "LINE" line
-
+                --_ =
+                --    Debug.log "LINE" line
                 endTag =
-                    "\\end{" ++ (name |> Debug.log "name") ++ "}" |> Debug.log "endTag"
+                    "\\end{" ++ name ++ "}"
 
+                -- |> Debug.log "endTag"
                 outputHead =
-                    List.head state.output |> Debug.log "outputHead"
+                    List.head state.output
 
+                --  |> Debug.log "outputHead"
                 n =
                     Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
             in
