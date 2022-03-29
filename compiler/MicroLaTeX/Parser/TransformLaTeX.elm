@@ -188,6 +188,9 @@ handleError line state =
 
         InOrdinaryBlock name ->
             let
+                _ =
+                    Debug.log "LINE" line
+
                 endTag =
                     "\\end{" ++ (name |> Debug.log "name") ++ "}" |> Debug.log "endTag"
 
@@ -200,13 +203,12 @@ handleError line state =
             if line == "" then
                 if n > 0 then
                     { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
-
-                else if outputHead == Just endTag then
-                    --{ state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2)"
-                    { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
+                    --else if outputHead /= Just endTag then
+                    --    { state | output = "" :: "\\red{^^^ missmatched end tag (2b)}" :: "" :: List.drop 1 state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2b)"
+                    --    --{ state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2)"
 
                 else
-                    { state | output = "" :: "\\red{^^^ missmatched end tag (2b)}" :: "" :: List.drop 1 state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2b)"
+                    { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
 
             else
                 case outputHead of
