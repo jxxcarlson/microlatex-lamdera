@@ -20,9 +20,9 @@ test_ label expr expectedOutput =
 suite : Test
 suite =
     describe "MicroLaTeX, toL0"
-        [ test_ "x1" (f x1) [ "", "| title MicroLaTeX Test", "", "abc", "", "def", "" ]
+        [ test_ "x1" (f x1) [ "", "\\title{MicroLaTeX Test}", "", "abc", "", "def", "" ]
         , test_ "x2" (f x2) [ "", "|| equation", "\\int_0^1 x^n dx = \\frac{1}{n+1}", "", "" ]
-        , test_ "section" (f section) []
+        , test_ "section" (f section) [ "", "\\section{Intro}", "", "\\subsection{Foobar}", "" ]
         , test_ "item" (f item) [ "", "| item", "Foo bar", "" ]
         ]
 

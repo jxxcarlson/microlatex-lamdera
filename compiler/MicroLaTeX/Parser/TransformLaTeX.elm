@@ -372,30 +372,33 @@ nextState state =
 
 
 nextState2 line (MyMacro name args) state =
-    -- HANDLE CODE BLOCKS
     if name == "begin" && args == [ "code" ] then
+        -- HANDLE CODE BLOCKS, BEGIN
         { state | output = "|| code" :: state.output, status = InVerbatimBlock "code" } |> Debug.log "(1)"
 
     else if name == "end" && args == [ "code" ] then
+        -- HANDLE CODE BLOCKS, END
         { state | output = "" :: state.output, status = LXNormal } |> Debug.log "(2)"
-        -- HANDLE MATH BLOCKS
 
     else if name == "$$" && state.status == LXNormal then
+        -- HANDLE $$ BLOCK, BEGIN
         { state | output = line :: state.output, status = InVerbatimBlock "$$" }
 
     else if name == "$$" && state.status == InVerbatimBlock "$$" then
+        -- HANDLE $$ BLOCK, END
         { state | output = "" :: state.output, status = LXNormal }
-        -- HANDLE ENVIRONMENTS
 
     else if name == "begin" && state.status == LXNormal then
+        -- HANDLE ENVIRONMENT, BEGIN
         { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock } |> Debug.log "(3)"
 
     else if name == "end" && state.status == InOrdinaryBlock then
+        -- HANDLE ENVIRONMENT, END
         { state | output = "" :: state.output } |> Debug.log "(4)"
-        -- ??
 
-    else if state.status == LXNormal && not (List.member name [ "title", "section", "subsection" ]) then
-        { state | output = (String.replace "\\" "| " line |> fixArgs) :: state.output } |> Debug.log "(5)"
+    else if state.status == LXNormal && not (List.member name [ "title", "section", "subsection", "subsubsection", "subheading", "bold" ]) then
+        -- HANDLE \item, \bibref, etc
+        { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> Debug.log "(5)"
         -- ??
 
     else if state.status == InOrdinaryBlock then
@@ -573,6 +576,7 @@ substitutions =
         [ ( "item", { prefix = "|", arity = Arity 0 } )
         , ( "equation", { prefix = "||", arity = Arity 0 } )
         , ( "aligned", { prefix = "||", arity = Arity 0 } )
+        , ( "mathmacros", { prefix = "||", arity = Arity 0 } )
         , ( "theorem", { prefix = "|", arity = Arity 0 } )
         , ( "numbered", { prefix = "|", arity = Arity 0 } )
         , ( "abstract", { prefix = "|", arity = Arity 0 } )
