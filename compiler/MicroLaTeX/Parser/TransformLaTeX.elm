@@ -1,10 +1,10 @@
-module MicroLaTeX.Parser.TransformLaTeX exposing
-    ( toL0
-    , toL0Aux
-    )
+module MicroLaTeX.Parser.TransformLaTeX exposing (..)
+
+--( toL0
+--, toL0Aux
+--)
 
 import Dict exposing (Dict)
-import Parser.Classify exposing (Classification(..), classify)
 import Parser.MathMacro exposing (MathExpression(..))
 import Parser.TextMacro exposing (MyMacro(..))
 
@@ -34,6 +34,14 @@ xx2 =
 \\int_0^1 x^n dx = \\frac{1}{n+1}
 \\end{equation}
 """
+
+
+xx2a =
+    """
+\\begin{theorem}
+Ho ho ho! 
+\\end{theorem}
+ """
 
 
 xx3 =
@@ -81,7 +89,7 @@ verbatimBlockNames =
 
 
 type alias State =
-    { status : LXStatus, input : List String, output : List String }
+    { status : LXStatus, input : List String, output : List String, stack : List LXStatus }
 
 
 type LXStatus
@@ -92,7 +100,7 @@ type LXStatus
 
 toL0Aux : List String -> List String
 toL0Aux list =
-    loop { input = list, output = [], status = LXNormal } nextState |> List.reverse
+    loop { input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse
 
 
 type Step state a
@@ -135,14 +143,14 @@ nextState state =
                     else
                         -- Just add the line to output
                         --- Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog "(0b)"
-                        Loop (handleError line state |> (\st -> { st | input = List.drop 1 state.input }))
+                        Loop (handleError line state |> (\st -> { st | input = List.drop 1 state.input })) |> fakeDebugLog "(0a)"
 
                 Ok myMacro ->
                     let
                         _ =
                             fakeDebugLog "(0!!)" myMacro
                     in
-                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input })
+                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input }) |> fakeDebugLog "(0cx`)"
 
 
 handleError : String -> State -> State
@@ -183,10 +191,14 @@ handleError line state =
                     { state | output = line :: state.output }
 
                 Just "" ->
-                    { state | output = "" :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+                    if List.isEmpty state.stack then
+                        { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal }
+
+                    else
+                        { state | output = line :: state.output }
 
                 _ ->
-                    if outputHead == Just endTag then
+                    if outputHead == Just endTag && List.isEmpty state.stack then
                         { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
 
                     else
@@ -203,19 +215,19 @@ nextState2 line (MyMacro name args) state =
     in
     if name == "begin" && List.member firstArg [ "code", "equation" ] then
         -- HANDLE CODE BLOCKS, BEGIN
-        { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg } |> fakeDebugLog "(1)"
+        { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog "(1)"
 
     else if name == "end" && args == [ "code" ] then
         -- HANDLE CODE BLOCKS, END
-        { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog "(2)"
+        { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog "(2)"
 
     else if name == "$$" && state.status == LXNormal then
         -- HANDLE $$ BLOCK, BEGIN
-        { state | output = "$$" :: state.output, status = InVerbatimBlock "$$" } |> fakeDebugLog "(3)"
+        { state | output = "$$" :: state.output, status = InVerbatimBlock "$$", stack = InVerbatimBlock "$$" :: state.stack } |> fakeDebugLog "(3)"
 
     else if List.member name [ "$$" ] && state.status == InVerbatimBlock name then
         -- HANDLE $$ BLOCK, END
-        { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog "(4)"
+        { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog "(4)"
 
     else if state.status == InVerbatimBlock "```" then
         -- HANDLE ``` BLOCK, INTERIOR
@@ -223,11 +235,11 @@ nextState2 line (MyMacro name args) state =
 
     else if name == "begin" && state.status == LXNormal then
         -- HANDLE ENVIRONMENT, BEGIN
-        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock firstArg } |> fakeDebugLog "(5)"
+        { state | output = transformHeader name args line :: state.output, status = InOrdinaryBlock firstArg, stack = InOrdinaryBlock firstArg :: state.stack } |> fakeDebugLog "(5)"
 
-    else if name == "end" && state.status == InOrdinaryBlock name then
+    else if name == "end" && state.status == InOrdinaryBlock firstArg then
         -- HANDLE ENVIRONMENT, END
-        { state | output = "" :: state.output } |> fakeDebugLog "(6)"
+        { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog "(6)"
 
     else if state.status == LXNormal && List.member name [ "item", "numbered", "bibref", "desc", "contents" ] then
         -- HANDLE \item, \bibref, etc
