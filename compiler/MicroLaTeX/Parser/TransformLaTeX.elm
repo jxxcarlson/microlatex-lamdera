@@ -9,22 +9,20 @@ import Parser.MathMacro exposing (MathExpression(..))
 import Parser.TextMacro exposing (MyMacro(..))
 
 
+fakeDebugLog =
+    \str -> Debug.log str
+
+
 
 --fakeDebugLog =
---    \str -> Debug.log str
-
-
-fakeDebugLog =
-    \str -> identity
+--    \str -> identity
 
 
 xx =
     """
-\\title{MicroLaTeX Test}
-
-abc
-
-def
+\\begin{theorem}
+Ho ho ho
+\\end{theorem}
 """
 
 
@@ -143,14 +141,14 @@ nextState state =
                     else
                         -- Just add the line to output
                         --- Loop { state | output = line :: state.output, input = List.drop 1 state.input } |> fakeDebugLog "(0b)"
-                        Loop (handleError line state |> (\st -> { st | input = List.drop 1 state.input })) |> fakeDebugLog "(0a)"
+                        Loop (handleError line state |> (\st -> { st | input = List.drop 1 state.input })) |> fakeDebugLog "(0b)"
 
                 Ok myMacro ->
                     let
                         _ =
                             fakeDebugLog "(0!!)" myMacro
                     in
-                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input }) |> fakeDebugLog "(0cx`)"
+                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input }) |> fakeDebugLog "(0c)"
 
 
 handleError : String -> State -> State
@@ -192,7 +190,7 @@ handleError line state =
 
                 Just "" ->
                     if List.isEmpty state.stack then
-                        { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal }
+                        { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal } |> fakeDebugLog "ERROR"
 
                     else
                         { state | output = line :: state.output }
@@ -239,7 +237,7 @@ nextState2 line (MyMacro name args) state =
 
     else if name == "end" && state.status == InOrdinaryBlock firstArg then
         -- HANDLE ENVIRONMENT, END
-        { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog "(6)"
+        { state | output = line :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog "(6)"
 
     else if state.status == LXNormal && List.member name [ "item", "numbered", "bibref", "desc", "contents" ] then
         -- HANDLE \item, \bibref, etc
