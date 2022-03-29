@@ -138,10 +138,6 @@ nextState state =
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0d)"
 
                         Just foo ->
-                            let
-                                _ =
-                                    Debug.log "foo" foo
-                            in
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
@@ -195,12 +191,6 @@ nextState2 line (MyMacro name args) state =
 
     else
         let
-            _ =
-                Debug.log "LINE (12)" line
-
-            _ =
-                Debug.log "(macro, args)" ( name, args )
-
             newStack =
                 List.drop 1 state.stack
         in
