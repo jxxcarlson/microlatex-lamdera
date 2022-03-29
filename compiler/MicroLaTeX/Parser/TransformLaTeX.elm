@@ -10,7 +10,8 @@ import Parser.TextMacro exposing (MyMacro(..))
 
 
 
---fakeDebugLog1 =
+--
+--fakeDebugLog =
 --    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
 --
 
@@ -21,9 +22,13 @@ fakeDebugLog =
 
 xx1 =
     """
-\\begin{theorem}
-Ho ho ho
-\\end{theorem}
+\\begin{equation}
+x^2
+\\end{equation}
+
+\\begin{aligned}
+a &= x + y \\\\
+\\end{aligned}
 """
 
 
@@ -184,8 +189,11 @@ handleError line state =
                 endTag =
                     "\\end{" ++ name ++ "}"
 
+                -- |> Debug.log "endTag"
                 outputHead =
                     List.head state.output
+
+                -- |> Debug.log "outputHead"
             in
             if line == "" then
                 { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (1)"
@@ -218,7 +226,7 @@ nextState2 line (MyMacro name args) state =
         firstArg =
             List.head args |> Maybe.withDefault "((no-first-arg))"
     in
-    if name == "begin" && List.member firstArg [ "code", "equation" ] then
+    if name == "begin" && List.member firstArg [ "code", "equation", "aligned" ] then
         -- HANDLE CODE BLOCKS, BEGIN
         { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog state.i "(1)"
 
