@@ -151,10 +151,6 @@ nextState state =
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0d)"
 
                         Just foo ->
-                            let
-                                _ =
-                                    Debug.log "FOO (0d)" foo
-                            in
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
@@ -186,13 +182,10 @@ handleError line state =
         InOrdinaryBlock name ->
             let
                 endTag =
-                    "\\end{" ++ name ++ "}" |> Debug.log "END TAG"
+                    "\\end{" ++ name ++ "}"
 
                 outputHead =
-                    List.head state.output |> Debug.log "OUTPUT HEAD"
-
-                _ =
-                    Debug.log "LINE" line
+                    List.head state.output
             in
             if line == "" then
                 { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (1)"
