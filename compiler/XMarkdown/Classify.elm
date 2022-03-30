@@ -1,4 +1,4 @@
-module XMarkdown.Classify exposing (..)
+module XMarkdown.Classify exposing (classify)
 
 import Compiler.Util
 import List.Extra
