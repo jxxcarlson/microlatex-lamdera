@@ -31,7 +31,10 @@ reducible symbols =
 
 reducibleF : List Symbol -> Bool
 reducibleF symbols =
-    symbols == [ LBracket, RBracket, LParen, RParen ]
+    symbols
+        == [ LBracket, RBracket, LParen, RParen ]
+        || symbols
+        == [ LParen, RParen ]
 
 
 

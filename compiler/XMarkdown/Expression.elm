@@ -250,6 +250,9 @@ reduceState state =
             Just SAT ->
                 handleAt symbols state
 
+            Just LParen ->
+                handleParens symbols state
+
             _ ->
                 state
 
@@ -332,6 +335,26 @@ handleAt symbols state =
 
                 Just name ->
                     Expr name [ Text (String.join " " (List.drop 1 data)) meta ] meta
+    in
+    { state | committed = expr :: state.committed, stack = [] }
+
+
+handleParens : List Symbol -> State -> State
+handleParens symbols state =
+    let
+        str =
+            case state.stack of
+                [ RP _, S str_ _, LP _ ] ->
+                    str_
+
+                _ ->
+                    "none"
+
+        meta =
+            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+
+        expr =
+            Text ("(" ++ str ++ ")") meta
     in
     { state | committed = expr :: state.committed, stack = [] }
 
