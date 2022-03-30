@@ -11,13 +11,14 @@ module XMarkdown.Expression exposing
 import List.Extra
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
+import Tools
 import XMarkdown.Match as M
 import XMarkdown.Symbol as Symbol exposing (Symbol(..))
 import XMarkdown.Token as Token exposing (Token(..), TokenType(..))
 
 
-fakeDebugLog label =
-    Debug.log label
+forkLogWidth =
+    12
 
 
 
@@ -66,9 +67,11 @@ parse : Int -> String -> List Expr
 parse lineNumber str =
     str
         |> Token.run
+        |> Tools.forklogCyan "TOKENS" forkLogWidth Token.toString
         |> initWithTokens lineNumber
         |> run
         |> .committed
+        |> Tools.forklogCyan "LENGTH" forkLogWidth List.length
 
 
 parseToState : Int -> String -> State
@@ -102,7 +105,7 @@ nextStep state =
 
         Just token ->
             pushToken token { state | tokenIndex = state.tokenIndex + 1 }
-                |> fakeDebugLog "P (0)"
+                |> Tools.forklogBlue "STACK" forkLogWidth (.stack >> Token.toString)
                 |> reduceState
                 |> (\st -> { st | step = st.step + 1 })
                 |> Loop
@@ -143,6 +146,12 @@ pushToken token state =
             pushOnStack token state
 
         Italic _ ->
+            pushOnStack token state
+
+        Image _ ->
+            pushOnStack token state
+
+        AT _ ->
             pushOnStack token state
 
         TokenError _ _ ->
@@ -221,70 +230,219 @@ reduceState state =
         in
         case List.head symbols of
             Just M ->
-                let
-                    content =
-                        state.stack |> List.reverse |> Token.toString
-
-                    trailing =
-                        String.right 1 content
-
-                    committed =
-                        if trailing == "$" && content == "$" then
-                            let
-                                ( first_, rest_ ) =
-                                    case state.committed of
-                                        first :: rest ->
-                                            ( first, rest )
-
-                                        _ ->
-                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-                            in
-                            first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
-
-                        else if trailing == "$" then
-                            Verbatim "math" (String.replace "$" "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
-
-                        else
-                            Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
-                                :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
-                                :: state.committed
-                in
-                { state | stack = [], committed = committed }
+                handleMathSymbol symbols state
 
             Just C ->
-                let
-                    content =
-                        state.stack |> List.reverse |> Token.toString
+                handleCodeSymbol symbols state
 
-                    trailing =
-                        String.right 1 content
+            Just SBold ->
+                handleBoldSymbol symbols state
 
-                    committed =
-                        if trailing == "`" && content == "`" then
-                            let
-                                ( first_, rest_ ) =
-                                    case state.committed of
-                                        first :: rest ->
-                                            ( first, rest )
+            Just SItalic ->
+                handleItalicSymbol symbols state
 
-                                        _ ->
-                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-                            in
-                            first_ :: Expr "red" [ Text "`" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId :: rest_
+            Just LBracket ->
+                handleLink symbols state
 
-                        else if trailing == "`" then
-                            Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
+            Just SImage ->
+                handleImage symbols state
 
-                        else
-                            Expr "red" [ Text "`" dummyLocWithId ] dummyLocWithId :: Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
-                in
-                { state | stack = [], committed = committed }
+            Just SAT ->
+                handleAt symbols state
 
             _ ->
                 state
 
     else
         state
+
+
+takeMiddle : List a -> List a
+takeMiddle list =
+    list
+        |> List.drop 1
+        |> List.reverse
+        |> List.drop 1
+
+
+handleLink : List Symbol -> State -> State
+handleLink symbols state =
+    let
+        _ =
+            Tools.forklogRed "SYMBOLS (2)" forkLogWidth identity symbols
+
+        data =
+            case state.stack of
+                [ RP _, S url _, LP _, RB _, S linkText _, LB _ ] ->
+                    { url = url, linkText = linkText }
+
+                _ ->
+                    { url = "none", linkText = "none" }
+
+        expr =
+            Expr "link" [ Text (data.linkText ++ " " ++ data.url) meta ] meta
+
+        _ =
+            Tools.forklogRed "OUT" forkLogWidth identity data
+
+        meta =
+            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+    in
+    { state | committed = expr :: state.committed, stack = [] }
+
+
+handleImage : List Symbol -> State -> State
+handleImage symbols state =
+    let
+        data =
+            case state.stack of
+                [ RP _, S url _, LP _, RB _, S label _, LB _, Image _ ] ->
+                    { label = label, url = url }
+
+                _ ->
+                    { label = "none", url = "none" }
+
+        expr =
+            Expr "image" [ Text (data.url ++ " " ++ data.label) meta ] meta |> Tools.forklogRed "EXPR" forkLogWidth identity
+
+        meta =
+            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+    in
+    { state | committed = expr :: state.committed, stack = [] }
+
+
+handleAt : List Symbol -> State -> State
+handleAt symbols state =
+    let
+        data =
+            case state.stack of
+                [ RB _, S str _, LB _, AT _ ] ->
+                    str |> String.words
+
+                _ ->
+                    [ "none" ]
+
+        meta =
+            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+
+        expr =
+            case List.head data of
+                Nothing ->
+                    Expr "red" [ Text (String.join " " (List.drop 1 data)) meta ] meta
+
+                Just name ->
+                    Expr name [ Text (String.join " " (List.drop 1 data)) meta ] meta
+    in
+    { state | committed = expr :: state.committed, stack = [] }
+
+
+handleItalicSymbol : List Symbol -> State -> State
+handleItalicSymbol symbols state =
+    if symbols == [ SItalic, SItalic ] then
+        let
+            content =
+                takeMiddle state.stack |> Token.toString
+
+            meta =
+                { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+
+            expr =
+                Expr "italic" [ Text content meta ] meta
+        in
+        { state | stack = [], committed = expr :: state.committed }
+
+    else
+        state
+
+
+handleBoldSymbol : List Symbol -> State -> State
+handleBoldSymbol symbols state =
+    if symbols == [ SBold, SBold ] then
+        let
+            content =
+                takeMiddle state.stack |> Token.toString
+
+            meta =
+                { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+
+            expr =
+                Expr "bold" [ Text content meta ] meta
+        in
+        { state | stack = [], committed = expr :: state.committed }
+
+    else
+        state
+
+
+handleMathSymbol : List Symbol -> State -> State
+handleMathSymbol symbols state =
+    if symbols == [ M, M ] then
+        let
+            content =
+                takeMiddle state.stack |> Token.toString
+
+            expr =
+                Verbatim "math" content { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+        in
+        { state | stack = [], committed = expr :: state.committed }
+
+    else
+        state
+
+
+handleCodeSymbol : List Symbol -> State -> State
+handleCodeSymbol symbols state =
+    if symbols == [ C, C ] then
+        let
+            content =
+                takeMiddle state.stack |> Token.toString
+
+            expr =
+                Verbatim "code" content { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+        in
+        { state | stack = [], committed = expr :: state.committed }
+
+    else
+        state
+
+
+handleSymbol1 : String -> String -> State -> State
+handleSymbol1 name symbol state =
+    let
+        _ =
+            Tools.forklogRed "SYM" forkLogWidth identity symbol
+
+        content =
+            state.stack |> List.reverse |> Tools.forklogYellow "CONT" forkLogWidth identity |> Token.toString
+
+        trailing =
+            String.right 1 content |> Tools.forklogYellow "TRAILING" forkLogWidth identity
+
+        committed =
+            --if trailing == symbol && content == symbol then
+            --    let
+            --        ( first_, rest_ ) =
+            --            case state.committed of
+            --                first :: rest ->
+            --                    ( first, rest )
+            --
+            --                _ ->
+            --                    ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
+            --    in
+            --    first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
+            if trailing == symbol then
+                Verbatim "math" (String.replace symbol "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 })
+                    :: state.committed
+                    |> Tools.forklogRed "(1)" forkLogWidth identity
+
+            else
+                (Expr "red" [ Text symbol dummyLocWithId ] dummyLocWithId
+                    :: Verbatim name (String.replace symbol "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+                    :: state.committed
+                )
+                    |> Tools.forklogRed "(2)" forkLogWidth identity
+    in
+    { state | stack = [], committed = committed }
 
 
 eval : Int -> List Token -> List Expr
@@ -303,7 +461,7 @@ evalList macroName lineNumber tokens =
         Just token ->
             case Token.type_ token of
                 TLB ->
-                    case M.match (Symbol.convertTokens2 tokens) of
+                    case M.match (Symbol.convertTokens tokens) of
                         Nothing ->
                             errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
@@ -368,13 +526,13 @@ isReducible : List Token -> Bool
 isReducible tokens =
     let
         preliminary =
-            tokens |> List.reverse |> Symbol.convertTokens2 |> List.filter (\sym -> sym /= O) |> fakeDebugLog "SYMBOLS"
+            tokens |> List.reverse |> Symbol.convertTokens |> List.filter (\sym -> sym /= O) |> Tools.forklogYellow "SYMBOLS" forkLogWidth identity
     in
     if preliminary == [] then
         False
 
     else
-        preliminary |> M.reducible
+        preliminary |> M.reducible |> Tools.forklogYellow "REDUCIBLE ?" forkLogWidth identity
 
 
 recoverFromError : State -> Step State State

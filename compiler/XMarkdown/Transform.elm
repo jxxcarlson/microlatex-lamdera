@@ -27,12 +27,11 @@ transform block =
 
             else if String.left 2 firstLine == ". " then
                 handleNumberedItem block (String.dropLeft 2 firstLine) rest_
-
-            else if String.left 1 firstLine == "@" then
-                handleOrdinaryBlock block (String.dropLeft 1 firstLine) rest_
-
-            else if String.left 1 firstLine == "!" then
-                handleImageBlock block (String.dropLeft 1 firstLine) rest_
+                --else if String.left 1 firstLine == "@" then
+                --    handleOrdinaryBlock block (String.dropLeft 1 firstLine) rest_
+                --
+                --else if String.left 1 firstLine == "!" then
+                --    handleImageBlock block (String.dropLeft 1 firstLine) rest_
 
             else
                 block

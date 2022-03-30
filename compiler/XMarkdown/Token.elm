@@ -3,6 +3,7 @@ module XMarkdown.Token exposing
     , TokenType(..)
     , idem
     , idemTest
+    , imageParser
     , init
     , run
     , toString
@@ -12,11 +13,16 @@ module XMarkdown.Token exposing
 import Parser.Advanced as Parser exposing (DeadEnd, Parser)
 import Parser.Helpers exposing (Step(..), loop)
 import Parser.Meta exposing (Meta)
-import Parser.Tools as PT exposing (Context, Problem)
+import Parser.Tools as PT exposing (Context(..), Problem)
 
 
-fakeDebugLog label =
-    Debug.log label
+
+--fakeDebugLog label =
+--    Debug.log label
+
+
+fakeDebugLog =
+    \_ -> identity
 
 
 idem : String -> String
@@ -38,6 +44,8 @@ type Token
     | RB Meta
     | LP Meta
     | RP Meta
+    | Image Meta
+    | AT Meta
     | Bold Meta
     | Italic Meta
     | S String Meta
@@ -67,6 +75,12 @@ setIndex k token =
 
         Italic meta ->
             Italic { meta | index = k }
+
+        Image meta ->
+            Image { meta | index = k }
+
+        AT meta ->
+            AT { meta | index = k }
 
         S str meta ->
             S str { meta | index = k }
@@ -108,6 +122,8 @@ type TokenType
     | TRP
     | TBold
     | TItalic
+    | TImage
+    | TAT
     | TS
     | TW
     | TMath
@@ -135,6 +151,12 @@ type_ token =
 
         Italic _ ->
             TItalic
+
+        Image _ ->
+            TImage
+
+        AT _ ->
+            TAT
 
         S _ _ ->
             TS
@@ -171,6 +193,12 @@ getMeta token =
             m
 
         Italic m ->
+            m
+
+        Image m ->
+            m
+
+        AT m ->
             m
 
         S _ m ->
@@ -210,6 +238,12 @@ stringValue token =
         Italic _ ->
             "__"
 
+        Image _ ->
+            "image"
+
+        AT _ ->
+            "@"
+
         S str _ ->
             str
 
@@ -226,9 +260,52 @@ stringValue token =
             "tokenError"
 
 
+stringValue2 : Token -> String
+stringValue2 token =
+    case token of
+        LB _ ->
+            "LB"
+
+        RB _ ->
+            "RB"
+
+        LP _ ->
+            "LP"
+
+        RP _ ->
+            "RP"
+
+        Bold _ ->
+            "BOLD"
+
+        Italic _ ->
+            "ITALIC"
+
+        Image _ ->
+            "IMAGE"
+
+        AT _ ->
+            "@"
+
+        S str _ ->
+            str
+
+        W str _ ->
+            str
+
+        MathToken _ ->
+            "M"
+
+        CodeToken _ ->
+            "C"
+
+        TokenError _ _ ->
+            "tokenError"
+
+
 toString : List Token -> String
 toString tokens =
-    List.map stringValue tokens |> String.join ""
+    List.map stringValue2 tokens |> String.join ", "
 
 
 length : Token -> Int
@@ -250,6 +327,12 @@ length token =
             meta.end - meta.begin
 
         Italic meta ->
+            meta.end - meta.begin
+
+        Image meta ->
+            meta.end - meta.begin
+
+        AT meta ->
             meta.end - meta.begin
 
         S _ meta ->
@@ -489,7 +572,9 @@ codeChars =
 tokenParser_ : Int -> Int -> TokenParser
 tokenParser_ start index =
     Parser.oneOf
-        [ textParser start index
+        [ imageParser start index
+        , atParser start index
+        , textParser start index
         , leftBracketParser start index
         , rightBracketParser start index
         , leftParenParser start index
@@ -524,6 +609,18 @@ whiteSpaceParser : Int -> Int -> TokenParser
 whiteSpaceParser start index =
     PT.text (\c -> c == ' ') (\c -> c == ' ')
         |> Parser.map (\data -> W data.content { begin = start, end = start, index = index, id = makeId start index })
+
+
+imageParser : Int -> Int -> TokenParser
+imageParser start index =
+    Parser.symbol (Parser.Token "![" PT.ExpectingImageStart)
+        |> Parser.map (\_ -> Image { begin = start, end = start, index = index, id = makeId start index })
+
+
+atParser : Int -> Int -> TokenParser
+atParser start index =
+    Parser.symbol (Parser.Token "@[" PT.ExpectingATStart)
+        |> Parser.map (\_ -> AT { begin = start, end = start, index = index, id = makeId start index })
 
 
 leftBracketParser : Int -> Int -> TokenParser

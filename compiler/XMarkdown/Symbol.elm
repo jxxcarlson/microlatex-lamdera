@@ -1,4 +1,4 @@
-module XMarkdown.Symbol exposing (Symbol(..), balance, convertTokens, convertTokens2, toString, value)
+module XMarkdown.Symbol exposing (Symbol(..), balance, convertTokens, convertTokens2, symbolToStringLiteral, toString, value)
 
 import Maybe.Extra
 import XMarkdown.Token exposing (Token(..))
@@ -11,6 +11,8 @@ type Symbol
     | RParen
     | SBold
     | SItalic
+    | SImage
+    | SAT
     | O
     | M
     | C
@@ -36,6 +38,12 @@ value symbol =
 
         SItalic ->
             0
+
+        SImage ->
+            1
+
+        SAT ->
+            1
 
         O ->
             0
@@ -73,6 +81,12 @@ symbolToString symbol =
         SItalic ->
             "SItalic"
 
+        SImage ->
+            "SImage"
+
+        SAT ->
+            "SAT"
+
         O ->
             "O"
 
@@ -81,6 +95,43 @@ symbolToString symbol =
 
         C ->
             "C"
+
+
+symbolToStringLiteral : Symbol -> String
+symbolToStringLiteral symbol =
+    case symbol of
+        LBracket ->
+            "["
+
+        RBracket ->
+            "]"
+
+        LParen ->
+            "("
+
+        RParen ->
+            ")"
+
+        SBold ->
+            "*"
+
+        SItalic ->
+            "_"
+
+        SImage ->
+            "image"
+
+        SAT ->
+            "@"
+
+        O ->
+            "O"
+
+        M ->
+            "$"
+
+        C ->
+            "`"
 
 
 toString : List Symbol -> String
@@ -115,6 +166,12 @@ toSymbol token =
 
         Italic _ ->
             Just SItalic
+
+        Image _ ->
+            Just SImage
+
+        AT _ ->
+            Just SAT
 
         RP _ ->
             Just RParen

@@ -13,52 +13,71 @@ reducible symbols =
         Just C ->
             List.head (List.reverse (List.drop 1 symbols)) == Just C
 
+        Just SBold ->
+            List.head (List.reverse (List.drop 1 symbols)) == Just SBold
+
+        Just SItalic ->
+            List.head (List.reverse (List.drop 1 symbols)) == Just SItalic
+
+        Just SImage ->
+            symbols == [ SImage, LBracket, RBracket, LParen, RParen ]
+
+        Just SAT ->
+            symbols == [ SAT, LBracket, RBracket ]
+
         _ ->
             reducibleF symbols
 
 
 reducibleF : List Symbol -> Bool
 reducibleF symbols =
-    case List.head symbols of
-        Nothing ->
-            True
+    symbols == [ LBracket, RBracket, LParen, RParen ]
 
-        Just RBracket ->
-            False
 
-        Just RParen ->
-            False
 
-        Just SBold ->
-            False
-
-        Just SItalic ->
-            False
-
-        Just O ->
-            False
-
-        Just M ->
-            False
-
-        Just C ->
-            False
-
-        Just LBracket ->
-            case match symbols of
-                Nothing ->
-                    False
-
-                Just k ->
-                    reducibleF (List.drop 1 (deleteAt k symbols))
-
-        Just LParen ->
-            case match symbols of
-                Nothing ->
-                    False
-
-                Just k ->
-                    reducibleF (List.drop 1 (deleteAt k symbols))
+--
+--reducibleF : List Symbol -> Bool
+--reducibleF symbols =
+--    case List.head symbols of
+--        Nothing ->
+--            True
+--
+--        Just RBracket ->
+--            False
+--
+--        Just RParen ->
+--            False
+--
+--        Just SBold ->
+--            False
+--
+--        Just SItalic ->
+--            False
+--
+--        Just O ->
+--            False
+--
+--        Just M ->
+--            False
+--
+--        Just C ->
+--            False
+--
+--        Just LBracket ->
+--            case match symbols of
+--                Nothing ->
+--                    False
+--
+--                Just k ->
+--                    reducibleF (List.drop 1 (deleteAt k symbols))
+--
+--        Just LParen ->
+--            case match symbols of
+--                Nothing ->
+--                    False
+--
+--                Just k ->
+--                    reducibleF (List.drop 1 (deleteAt k symbols))
 
 
 {-|

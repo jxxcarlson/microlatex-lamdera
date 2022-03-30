@@ -24,6 +24,7 @@ import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 import Parser.Tree
 import Tree
+import XMarkdown.Expression
 
 
 isVerbatimLine : String -> Bool
@@ -53,7 +54,7 @@ parse lang sourceText =
 
                 XMarkdownLang ->
                     -- TODO: implement this
-                    L0.Parser.Expression.parse
+                    XMarkdown.Expression.parse
     in
     sourceText
         |> toPrimitiveBlockForest lang

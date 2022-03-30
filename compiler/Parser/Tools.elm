@@ -13,6 +13,8 @@ import Parser.Advanced as Parser exposing ((|.), (|=))
 type Problem
     = ExpectingPrefix
     | ExpectingSymbol String
+    | ExpectingImageStart
+    | ExpectingATStart
 
 
 type Context

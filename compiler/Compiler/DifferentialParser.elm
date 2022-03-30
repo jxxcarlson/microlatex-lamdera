@@ -10,6 +10,7 @@ import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 import Tree exposing (Tree)
+import XMarkdown.Expression
 
 
 type alias EditRecord =
@@ -49,4 +50,4 @@ parser lang =
             Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)
 
         XMarkdownLang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toExpressionBlock XMarkdown.Expression.parse)
