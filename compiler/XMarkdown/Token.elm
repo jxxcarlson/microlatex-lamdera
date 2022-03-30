@@ -372,7 +372,7 @@ nextStep state =
                 else
                     -- the token is neither a left bracket token nore a text token.  Commit it immediately, taking care
                     -- to also commit the currentToken if it holds text.
-                    handleDefault state token |> fakeDebugLog "3)"
+                    handleDefault state token |> fakeDebugLog "(3)"
 
             currentToken =
                 if isTextToken token then
