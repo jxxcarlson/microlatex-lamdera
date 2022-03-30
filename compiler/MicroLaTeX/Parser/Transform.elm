@@ -1,7 +1,6 @@
 module MicroLaTeX.Parser.Transform exposing (transform)
 
 import Dict exposing (Dict)
-import Parser.Language exposing (Language(..))
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.MathMacro exposing (MathExpression(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
@@ -30,7 +29,7 @@ transform block =
                 |> normalize
     in
     case normalizedContent of
-        name_ :: rest_ ->
+        name_ :: _ ->
             let
                 name =
                     (if String.left 1 name_ == "\\" then
@@ -59,7 +58,7 @@ handlePseudoBlockWithContent block name name_ macroExpr =
         Nothing ->
             block
 
-        Just ((Macro macroName args) as macro) ->
+        Just (Macro macroName args) ->
             let
                 realArgs =
                     List.map Parser.MathMacro.getArgs args |> List.concat

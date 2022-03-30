@@ -20,13 +20,9 @@ considered the first line of a verbatim block.
 
 --- (PrimitiveBlock, empty, toPrimitiveBlocks)
 
-import Compiler.Util
-import List.Extra
 import MicroLaTeX.Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
-import MicroLaTeX.Parser.TransformLaTeX exposing (toL0)
 import Parser.Language exposing (Language(..))
 import Parser.TextMacro as TextMacro exposing (MyMacro(..))
-import Tools exposing (..)
 
 
 {-| -}
@@ -135,9 +131,6 @@ init isVerbatimLine lines =
         firstBlock_ : Maybe PrimitiveBlock
         firstBlock_ =
             Maybe.map blockFromLine firstLine
-
-        firstBlock =
-            Maybe.map2 elaborate firstLine firstBlock_
     in
     { blocks = []
     , currentBlock = Nothing
@@ -161,7 +154,7 @@ blockFromLine ({ indent, lineNumber, position, prefix, content } as line) =
                 Err _ ->
                     ( PBParagraph, Nothing, content )
 
-                Ok (MyMacro "begin" (name_ :: rest)) ->
+                Ok (MyMacro "begin" (name_ :: _)) ->
                     ( PBOrdinary, Just name_, "| " ++ name_ )
 
                 _ ->
@@ -298,7 +291,7 @@ commitBlock state currentLine =
                 Err _ ->
                     Nothing
 
-                Ok (MyMacro "end" (name_ :: rest)) ->
+                Ok (MyMacro "end" (name_ :: _)) ->
                     Just name_
 
                 _ ->
@@ -313,9 +306,6 @@ commitBlock state currentLine =
 
         Just block ->
             let
-                foo =
-                    block
-
                 adjustedBlock =
                     if block.content == [ "" ] then
                         block

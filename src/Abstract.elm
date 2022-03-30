@@ -59,7 +59,7 @@ authorTagDict author abstractDict =
 publicTagDict : Dict String Document -> Dict String Abstract -> Dict String (List { id : String, title : String })
 publicTagDict documentDict abstractDict =
     getAllTags abstractDict
-        |> List.filter (\{ id, title, tags } -> Maybe.map .public (Dict.get id documentDict) == Just True)
+        |> List.filter (\{ id } -> Maybe.map .public (Dict.get id documentDict) == Just True)
         |> makeTagDict
 
 

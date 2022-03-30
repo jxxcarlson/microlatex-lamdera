@@ -50,7 +50,6 @@ import Tree.Zipper as Zipper exposing (Zipper)
 {-| -}
 type Error
     = EmptyBlocks
-    | BlocksNotWellFormed
 
 
 type alias State data =
@@ -112,47 +111,6 @@ forestFromBlocks defaultNode makeNode renderNode blocks =
     in
     fromBlocks defaultNode makeNode blocks2
         |> Result.map Tree.children
-
-
-differences : List Int -> List Int
-differences xs =
-    let
-        n =
-            List.length xs
-
-        us =
-            List.drop 1 xs
-
-        vs =
-            List.take (n - 1) xs
-    in
-    List.map2 (-) us vs
-
-
-{-| Used by Tree.Build
--}
-quantumOfBlocks : List (Block data) -> Int
-quantumOfBlocks blocks =
-    blocks |> List.map .indent |> differences |> List.filter (\n -> n > 0) |> gcdList
-
-
-gcd : Int -> Int -> Int
-gcd a b =
-    if a == 0 then
-        b
-
-    else
-        gcd (modBy a b) a
-
-
-gcdList : List Int -> Int
-gcdList is =
-    case List.head is of
-        Nothing ->
-            1
-
-        Just n ->
-            List.foldl (\k acc -> gcd k acc) n (List.drop 1 is)
 
 
 

@@ -7,8 +7,6 @@ import Either exposing (Either(..))
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
-import Parser.Helpers exposing (Step(..), loop)
-import Render.Settings exposing (Settings)
 import Render.Utility as Utility
 import Tree
 
@@ -36,7 +34,7 @@ exportBlock ((ExpressionBlock { blockType, indent, name, args, content }) as blo
                 Right exprs_ ->
                     exportExprList exprs_
 
-        OrdinaryBlock args_ ->
+        OrdinaryBlock _ ->
             case content of
                 Left _ ->
                     ""
@@ -81,13 +79,6 @@ exportBlock ((ExpressionBlock { blockType, indent, name, args, content }) as blo
 
 verbatimExprDict =
     Dict.empty
-
-
-blockNames : Dict String String
-blockNames =
-    Dict.fromList
-        [ ( "code", "verbatim" )
-        ]
 
 
 macroDict : Dict String (List Expr -> String)

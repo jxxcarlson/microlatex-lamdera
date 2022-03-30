@@ -8,19 +8,12 @@ module Parser.BlockUtil exposing
 
 import Compiler.Util
 import Either exposing (Either(..))
-import L0.Parser.Classify
-import MicroLaTeX.Parser.Classify
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
-import Parser.Common
 import Parser.Expr exposing (Expr)
 import Parser.Language exposing (Language(..))
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
-
-
-type alias Classification =
-    { blockType : BlockType, args : List String, name : Maybe String }
 
 
 l0Empty =
@@ -92,20 +85,6 @@ mapContent parse lineNumber blockType content =
                         Left content
             in
             content_
-
-
-classify : Language -> PrimitiveBlock -> Parser.Common.Classification
-classify lang block =
-    case lang of
-        MicroLaTeXLang ->
-            MicroLaTeX.Parser.Classify.classify block
-
-        L0Lang ->
-            L0.Parser.Classify.classify block
-
-        XMarkdownLang ->
-            -- TODO: implement this
-            L0.Parser.Classify.classify block
 
 
 toBlockType : PrimitiveBlockType -> List String -> BlockType

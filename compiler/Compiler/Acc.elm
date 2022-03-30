@@ -17,7 +17,7 @@ import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
-import Parser.Language exposing (Language(..))
+import Parser.Language exposing (Language)
 import Parser.MathMacro
 import Tree exposing (Tree)
 
@@ -101,15 +101,15 @@ transformAccumulateTree lang tree acc =
 transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
 transformBlock lang acc (ExpressionBlock block) =
     case ( block.name, block.args ) of
-        ( Just "section", level :: rest ) ->
+        ( Just "section", level :: _ ) ->
             ExpressionBlock
                 { block | args = [ level, Vector.toString acc.headingIndex ] }
 
-        ( Just "document", id :: level :: rest ) ->
+        ( Just "document", id :: level :: _ ) ->
             ExpressionBlock
                 { block | args = [ id, level, Vector.toString acc.documentIndex ] }
 
-        ( Just name_, args ) ->
+        ( Just name_, _ ) ->
             -- Insert the numerical counter, e.g,, equation number, in the arg list of the block
             ExpressionBlock
                 { block | args = insertInStringList (getCounterAsString (reduceName name_) acc.counter) block.args }
@@ -125,15 +125,6 @@ reduceName str =
 
     else
         str
-
-
-insertInList : a -> List a -> List a
-insertInList a list =
-    if List.Extra.notMember a list then
-        a :: list
-
-    else
-        list
 
 
 insertInStringList : String -> List String -> List String
@@ -225,7 +216,7 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
         ( Just "mathmacros", VerbatimBlock [] ) ->
             updateWithMathMacros accumulator content
 
-        ( Just name_, VerbatimBlock _ ) ->
+        ( Just _, VerbatimBlock _ ) ->
             -- TODO: tighten up
             updateWithVerbatimBlock accumulator name tag id
 

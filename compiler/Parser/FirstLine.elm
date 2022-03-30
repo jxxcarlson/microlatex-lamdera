@@ -1,12 +1,10 @@
 module Parser.FirstLine exposing (FirstLineClassification(..), classify)
 
 import Parser exposing ((|.), (|=), Parser)
-import Set
 
 
 type FirstLineClassification
     = FBareMacro String
-    | FMacro String (List String)
     | FMathBlock
     | FVerbatimBlock
     | FNothing
@@ -45,18 +43,6 @@ verbatimBlockDelimParser =
         |. Parser.symbol "```"
     )
         |> Parser.map (\_ -> FVerbatimBlock)
-
-
-macroParser =
-    (Parser.succeed String.slice
-        |. Parser.spaces
-        |. Parser.symbol "\\"
-        |= Parser.getOffset
-        |. Parser.chompUntil "{"
-        |= Parser.getOffset
-        |= Parser.getSource
-    )
-        |> Parser.map FBareMacro
 
 
 bareMacroParser =

@@ -435,15 +435,6 @@ aligned_ count acc settings _ id str =
         w =
             String.fromInt settings.width ++ "px"
 
-        allLines =
-            String.lines str
-
-        n =
-            List.length allLines
-
-        lastLine =
-            List.Extra.getAt (n - 1) allLines
-
         filteredLines =
             -- lines of math text to be rendered: filter stuff out
             String.lines str
@@ -518,14 +509,6 @@ renderVerbatim _ _ _ _ id str =
         , Render.Utility.elementAttribute "id" id
         ]
         (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
-
-
-item1 count acc settings _ id exprs =
-    Element.row ([ Element.alignTop, Render.Utility.elementAttribute "id" id, vspace 0 12 ] ++ highlightAttrs id settings)
-        [ Element.el [ Font.size 18, Element.alignTop, Element.moveRight 6, Element.width (Element.px 24), Render.Settings.leftIndentation ] (Element.text "•")
-        , Element.paragraph [ Render.Settings.leftIndentation, Events.onClick (SendId id) ]
-            (renderWithDefault "| item" count acc settings exprs)
-        ]
 
 
 item count acc settings args id exprs =

@@ -1,4 +1,4 @@
-module MicroLaTeX exposing (..)
+module MicroLaTeX exposing (f, item, section, suite, test_, x1, x2)
 
 import Expect exposing (..)
 import MicroLaTeX.Parser.TransformLaTeX exposing (toL0Aux)

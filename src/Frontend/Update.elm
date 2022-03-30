@@ -367,12 +367,6 @@ setDocumentAsCurrent model doc permissions =
                 Nothing
 
         -- Disabled: this makes it impossible to edit master documents
-        cmd =
-            if isMaster newEditRecord then
-                sendToBackend (GetDocumentById Config.masterDocLoadedPageId)
-
-            else
-                Cmd.none
     in
     ( { model
         | currentDocument = Just doc

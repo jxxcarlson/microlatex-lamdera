@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (FrontendModel, FrontendMsg, SidebarState(..))
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry

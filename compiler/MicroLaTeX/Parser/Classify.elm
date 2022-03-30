@@ -1,6 +1,5 @@
 module MicroLaTeX.Parser.Classify exposing (classify)
 
-import Compiler.Util
 import List.Extra
 import Parser.Block exposing (BlockType(..))
 import Parser.Common exposing (Classification)

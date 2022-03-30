@@ -1,7 +1,7 @@
 module View.Admin exposing (view)
 
 import Element as E exposing (Element)
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
 import View.Footer as Footer
 import View.Geometry as Geometry

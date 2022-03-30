@@ -231,13 +231,6 @@ verbatimExprDict =
     Dict.empty
 
 
-blockNames : Dict String String
-blockNames =
-    Dict.fromList
-        [ ( "code", "verbatim" )
-        ]
-
-
 macroDict : Dict String (Settings -> List Expr -> String)
 macroDict =
     Dict.fromList

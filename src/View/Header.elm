@@ -1,10 +1,10 @@
 module View.Header exposing (view)
 
 import Config
-import Document exposing (Document)
+import Document
 import Element as E exposing (Element)
 import Element.Font as Font
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
 import View.Color as Color
 import View.Input

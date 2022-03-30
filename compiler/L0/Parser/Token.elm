@@ -49,10 +49,10 @@ indexOf token =
         RB meta ->
             meta.index
 
-        S str meta ->
+        S _ meta ->
             meta.index
 
-        W str meta ->
+        W _ meta ->
             meta.index
 
         MathToken meta ->
@@ -61,7 +61,7 @@ indexOf token =
         CodeToken meta ->
             meta.index
 
-        TokenError list meta ->
+        TokenError _ meta ->
             meta.index
 
 

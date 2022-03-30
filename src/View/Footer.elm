@@ -1,9 +1,7 @@
 module View.Footer exposing (view)
 
-import Document exposing (Document)
-import Element as E exposing (Element)
+import Element as E
 import Element.Font as Font
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
 import View.Button as Button
 import View.Style
 import View.Utility

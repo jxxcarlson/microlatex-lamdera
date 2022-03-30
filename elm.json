@@ -26,7 +26,6 @@
             "elm-community/random-extra": "3.2.0",
             "elm-community/result-extra": "2.4.0",
             "elm-community/string-extra": "4.0.1",
-            "elm-explorations/test": "1.2.2",
             "jinjor/elm-debounce": "3.0.0",
             "jxxcarlson/hex": "4.0.0",
             "ktonon/elm-crypto": "1.1.2",
@@ -49,11 +48,9 @@
         }
     },
     "test-dependencies": {
-        "direct": {},
-        "indirect": {
-            "elm/svg": "1.0.1",
-            "jxxcarlson/htree": "2.0.1",
-            "jxxcarlson/tree-extra": "1.0.1"
-        }
+        "direct": {
+            "elm-explorations/test": "1.2.2"
+        },
+        "indirect": {}
     }
 }

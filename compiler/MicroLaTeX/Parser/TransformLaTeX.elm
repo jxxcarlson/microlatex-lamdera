@@ -16,7 +16,7 @@ import Parser.TextMacro exposing (MyMacro(..))
 
 
 fakeDebugLog =
-    \i label -> identity
+    \_ _ -> identity
 
 
 xx1 =
@@ -137,7 +137,7 @@ nextState state =
                         Nothing ->
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0d)"
 
-                        Just foo ->
+                        Just _ ->
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
@@ -308,7 +308,7 @@ transformOther name args str =
         Nothing ->
             str
 
-        Just { prefix } ->
+        Just _ ->
             String.replace target ("| " ++ name) str |> fixArgs
 
 
@@ -336,7 +336,6 @@ transformBegin args str =
 
 type Arity
     = Arity Int
-    | Grouped
 
 
 substitutions : Dict String { prefix : String, arity : Arity }

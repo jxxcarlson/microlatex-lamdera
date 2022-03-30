@@ -1,9 +1,8 @@
 module View.Main exposing (view)
 
-import Document exposing (Document)
 import Element as E exposing (Element)
 import Html exposing (Html)
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (AppMode(..), FrontendModel, FrontendMsg)
 import View.Admin as Admin
 import View.Editor as Editor
 import View.Footer as Footer
@@ -89,13 +88,3 @@ viewRenderedContainer model =
     E.column [ E.spacing 18 ]
         [ Rendered.view model (Geometry.smallPanelWidth model.windowWidth)
         ]
-
-
-currentAuthor : Maybe Document -> String
-currentAuthor maybeDoc =
-    case maybeDoc of
-        Nothing ->
-            ""
-
-        Just doc ->
-            doc.author |> Maybe.withDefault ""

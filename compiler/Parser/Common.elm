@@ -1,6 +1,6 @@
 module Parser.Common exposing (Classification, bareBlockNames, verbatimBlockNames)
 
-import Parser.Block exposing (BlockType(..))
+import Parser.Block exposing (BlockType)
 
 
 type alias Classification =

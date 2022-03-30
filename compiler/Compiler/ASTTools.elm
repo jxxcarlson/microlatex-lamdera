@@ -21,7 +21,7 @@ import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
-import Tree exposing (Tree)
+import Tree
 
 
 normalize : Either String (List Expr) -> Either String (List Expr)

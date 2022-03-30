@@ -7,7 +7,6 @@ import Element exposing (Element)
 import Element.Events as Events
 import Element.Font as Font
 import List.Extra
-import Markup
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Parser.Forest exposing (Forest)

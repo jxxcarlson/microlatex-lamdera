@@ -34,7 +34,7 @@ exportBlock ((ExpressionBlock { blockType, indent, name, args, content }) as blo
                 Right exprs_ ->
                     exportExprList exprs_
 
-        OrdinaryBlock args_ ->
+        OrdinaryBlock _ ->
             case content of
                 Left _ ->
                     ""
@@ -98,13 +98,6 @@ mapChars str =
 
 verbatimExprDict =
     Dict.empty
-
-
-blockNames : Dict String String
-blockNames =
-    Dict.fromList
-        [ ( "code", "verbatim" )
-        ]
 
 
 macroDict : Dict String (List Expr -> String)

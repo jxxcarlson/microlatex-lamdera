@@ -10,7 +10,7 @@ import Html.Attributes as HtmlAttr
 import Render.Markup
 import Render.Settings
 import Render.TOC
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (FrontendModel, FrontendMsg(..))
 import View.Button as Button
 import View.Geometry as Geometry
 import View.Style as Style

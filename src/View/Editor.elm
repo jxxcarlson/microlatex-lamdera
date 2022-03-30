@@ -4,11 +4,11 @@ import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Keyed
-import Html exposing (Html)
+import Html
 import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (FrontendModel, FrontendMsg(..))
 import View.Geometry as Geometry
 
 

@@ -30,15 +30,6 @@ masterDocLoadedPageId =
     "id-vt202-ux358"
 
 
-loadingText1 =
-    """
-| title
-Loading ...
-
-[image https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_2Dis9S-LNLx0xVNXKR9ox5Oj0Nv2-nqIGg&usqp=CAU]
-"""
-
-
 loadingText =
     """
 | title

@@ -30,18 +30,6 @@ type alias PrimitiveBlock =
     }
 
 
-report1 : String -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String ) -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String )
-report1 label a =
-    -- Tools.debugLog2 label identity a
-    identity a
-
-
-report2 : String -> State -> State
-report2 label a =
-    -- Tools.debugLog2 label (\s -> ( s.lineNumber, s.inVerbatim, Maybe.map .content s.currentBlock )) a
-    identity a
-
-
 empty : PrimitiveBlock
 empty =
     { indent = 0

@@ -1,4 +1,4 @@
-module L0 exposing (..)
+module L0 exposing (e1, e2, e3, parse, suite, test_)
 
 import Compiler.Acc
 import Compiler.Util exposing (depth, size)
@@ -7,11 +7,8 @@ import Markup
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
-import Parser.Line as Line exposing (Line, PrimitiveBlockType(..))
-import Parser.PrimitiveBlock exposing (parse)
-import Parser.TextMacro exposing (MyMacro(..))
 import Test exposing (..)
-import Tree exposing (Tree)
+import Tree
 
 
 parse : String -> Forest ExpressionBlock

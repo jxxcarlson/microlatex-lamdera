@@ -5,7 +5,7 @@ import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocPermissions(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), SidebarState(..), SortMode(..))
+import Types exposing (ActiveDocList(..), DocPermissions(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
 import View.Button as Button
 import View.Geometry as Geometry
 import View.Rendered as Rendered

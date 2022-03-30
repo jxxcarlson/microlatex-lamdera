@@ -330,17 +330,6 @@ evalList macroName lineNumber tokens =
             []
 
 
-split : List Token -> ( List Token, List Token )
-split tokens =
-    case M.match (Symbol.convertTokens2 tokens) of
-        Nothing ->
-            -- errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
-            ( tokens, [] )
-
-        Just k ->
-            M.splitAt (k + 1) tokens
-
-
 errorMessage2Part : Int -> String -> String -> List Expr
 errorMessage2Part lineNumber a b =
     [ Expr "red" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]

@@ -1,11 +1,9 @@
 module PrimitiveBlock exposing (..)
 
-import Compiler.Util exposing (depth, size)
 import Expect exposing (..)
 import Markup
-import MicroLaTeX.Parser.TransformLaTeX exposing (toL0Aux)
 import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock exposing (PrimitiveBlock, parse)
+import Parser.PrimitiveBlock exposing (parse)
 import Test exposing (..)
 
 
