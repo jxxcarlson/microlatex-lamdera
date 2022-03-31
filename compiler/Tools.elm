@@ -27,7 +27,6 @@ forklogBlue label width f a =
 --    in
 --    a
 --
---
 
 
 forklog_ fg bg label width f a =

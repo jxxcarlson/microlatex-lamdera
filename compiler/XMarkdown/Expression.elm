@@ -194,10 +194,11 @@ reduceState state =
         reducible1 =
             isReducible state.stack
     in
-    if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
+    -- if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
+    if state.tokenIndex >= state.numberOfTokens || reducible1 then
         let
             symbols =
-                state.stack |> Symbol.convertTokens |> List.reverse
+                state.stack |> Symbol.convertTokens |> List.reverse |> Tools.forklogRed "SYMBOLS" forkLogWidth identity
         in
         case List.head symbols of
             Just M ->
@@ -213,8 +214,15 @@ reduceState state =
                 handleItalicSymbol symbols state
 
             Just LBracket ->
-                handleLink symbols state
+                if symbols == [ LBracket, RBracket, LParen, RParen ] then
+                    handleLink symbols state
+                    --else if symbols == [ LBracket, RBracket ] then
 
+                else
+                    handleBracketedText state |> Tools.forklogRed "HANDLE[]" forkLogWidth identity
+
+            --else
+            --    state
             Just SImage ->
                 handleImage symbols state
 
@@ -245,24 +253,67 @@ handleLink symbols state =
         _ =
             Tools.forklogRed "SYMBOLS (2)" forkLogWidth identity symbols
 
-        data =
+        expr =
             case state.stack of
                 [ RP _, S url _, LP _, RB _, S linkText _, LB _ ] ->
-                    { url = url, linkText = linkText }
+                    Expr "link" [ Text (linkText ++ " " ++ url) meta ] meta
+
+                [ RP _, LP _, RB _, S linkText _, LB _ ] ->
+                    Expr "red" [ Text ("[" ++ linkText ++ "](no label)") meta ] meta
+
+                [ RP _, S url _, LP _, RB _, LB _ ] ->
+                    Expr "red" [ Text ("[Link: no label](" ++ url ++ ")") meta ] meta
 
                 _ ->
-                    { url = "none", linkText = "none" }
-
-        expr =
-            Expr "link" [ Text (data.linkText ++ " " ++ data.url) meta ] meta
+                    Expr "red" [ Text "[Link: no label or url]" meta ] meta
 
         _ =
-            Tools.forklogRed "OUT" forkLogWidth identity data
+            Tools.forklogRed "OUT" forkLogWidth identity expr
 
         meta =
             { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
     in
     { state | committed = expr :: state.committed, stack = [] }
+
+
+handleBracketedText : State -> State
+handleBracketedText state =
+    let
+        str =
+            case state.stack of
+                [ RP _, S str_ _, LP _ ] ->
+                    "[" ++ str_ ++ "]"
+
+                _ ->
+                    state.stack |> List.reverse |> Token.toString
+
+        meta =
+            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+
+        expr =
+            Text str meta
+    in
+    { state | committed = expr :: state.committed, stack = [] }
+
+
+
+--
+--let
+--    _ =
+--        Tools.forklogRed "HNDL, STACK" forkLogWidth .stack state
+--
+--    expr =
+--        case state.stack of
+--            [ RB _, S txt meta, LB _ ] ->
+--                Text ("[" ++ txt ++ "]") meta
+--
+--            _ ->
+--                ( "??", dummyMeta )
+--
+--    expr =
+--        Text ("[" ++ txt ++ "]") meta
+--in
+--{ state | committed = expr :: state.committed, stack = [] }
 
 
 handleImage : List Symbol -> State -> State
@@ -274,7 +325,7 @@ handleImage symbols state =
                     { label = label, url = url }
 
                 _ ->
-                    { label = "none", url = "none" }
+                    { label = "no image label", url = "no image url" }
 
         expr =
             Expr "image" [ Text (data.url ++ " " ++ data.label) meta ] meta |> Tools.forklogRed "EXPR" forkLogWidth identity
@@ -308,16 +359,16 @@ handleParens symbols state =
         str =
             case state.stack of
                 [ RP _, S str_ _, LP _ ] ->
-                    str_
+                    "(" ++ str_ ++ ")"
 
                 _ ->
-                    "none"
+                    state.stack |> List.reverse |> Token.toString
 
         meta =
             { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
 
         expr =
-            Text ("(" ++ str ++ ")") meta
+            Text str meta
     in
     { state | committed = expr :: state.committed, stack = [] }
 
@@ -532,7 +583,14 @@ isReducible tokens =
 
 recoverFromError : State -> Step State State
 recoverFromError state =
+    let
+        _ =
+            Tools.forklogRed "RECOVER" forkLogWidth .stack state
+    in
     case List.reverse state.stack of
+        (LB _) :: (S txt meta) :: (RB _) :: [] ->
+            Loop { state | stack = [], committed = Text ("[" ++ txt ++ "]") meta :: [] }
+
         (Italic meta) :: [] ->
             if List.isEmpty state.committed then
                 Loop { state | stack = [], committed = errorMessage "_" :: [] }
@@ -658,6 +716,10 @@ errorSuffix rest =
 boostMeta : Int -> Int -> { begin : Int, end : Int, index : Int } -> { begin : Int, end : Int, index : Int, id : String }
 boostMeta lineNumber tokenIndex { begin, end, index } =
     { begin = begin, end = end, index = index, id = makeId lineNumber tokenIndex }
+
+
+dummyMeta =
+    { begin = 0, end = 0, index = 0, id = "??" }
 
 
 makeId : Int -> Int -> String
