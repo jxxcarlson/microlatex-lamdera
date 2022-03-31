@@ -308,7 +308,7 @@ elaborate lang line pb =
         let
             ( blockType, name, args ) =
                 -- TODO: note this change: it needs to be verified
-                Line.getNameAndArgs lang line
+                Line.getNameAndArgs L0Lang line
 
             content =
                 if blockType == PBVerbatim then
