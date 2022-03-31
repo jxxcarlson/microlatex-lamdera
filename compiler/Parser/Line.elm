@@ -122,13 +122,13 @@ getNameAndArgs lang line =
                 ( PBVerbatim, Just "code", [] )
 
             else if String.left 3 line.content == "|| " then
-                ( PBVerbatim, Just "code", [] )
+                ( PBVerbatim, Just (String.dropLeft 3 line.content |> String.trimRight), [] )
 
             else if String.left 2 line.content == "$$" then
                 ( PBVerbatim, Just "math", [] )
 
             else if String.left 2 line.content == "| " then
-                ( PBOrdinary, Just (String.dropLeft 2 line.content), [] )
+                ( PBOrdinary, Just (String.dropLeft 2 line.content |> String.trimRight), [] )
 
             else
                 ( PBParagraph, Nothing, [] )
