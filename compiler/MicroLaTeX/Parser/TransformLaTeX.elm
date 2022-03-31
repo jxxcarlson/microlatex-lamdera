@@ -162,6 +162,10 @@ nextState2 line (MyMacro name args) state =
         -- HANDLE $$ BLOCK, END
         { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(4)"
 
+    else if name == "```" && state.status == LXNormal then
+        -- HANDLE ``` BLOCK, BEGIN
+        { state | output = line :: state.output, status = InVerbatimBlock "```", stack = InVerbatimBlock "```" :: state.stack } |> fakeDebugLog state.i "(3)"
+
     else if state.status == InVerbatimBlock "```" then
         -- HANDLE ``` BLOCK, INTERIOR
         { state | output = line :: state.output } |> fakeDebugLog state.i "(3.1)"

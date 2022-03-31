@@ -47,6 +47,7 @@ empty =
 type alias State =
     { blocks : List PrimitiveBlock
     , currentBlock : Maybe PrimitiveBlock
+    , lang : Language
     , lines : List String
     , inBlock : Bool
     , indent : Int
@@ -65,16 +66,21 @@ of a verbatim block
 -}
 parse : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
 parse lang isVerbatimLine lines =
-    if lang == MicroLaTeXLang then
-        lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> parse_ isVerbatimLine
+    case lang of
+        L0Lang ->
+            lines |> parse_ lang isVerbatimLine
 
-    else
-        lines |> parse_ isVerbatimLine
+        MicroLaTeXLang ->
+            lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> parse_ lang isVerbatimLine
+
+        XMarkdownLang ->
+            -- lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> parse_ isVerbatimLine
+            lines |> parse_ lang isVerbatimLine
 
 
-parse_ : (String -> Bool) -> List String -> List PrimitiveBlock
-parse_ isVerbatimLine lines =
-    loop (init isVerbatimLine lines) nextStep
+parse_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock
+parse_ lang isVerbatimLine lines =
+    loop (init lang isVerbatimLine lines) nextStep
         |> List.map (\block -> finalize block)
 
 
@@ -101,10 +107,11 @@ finalize block =
     and lineNumber is the index of the current line in the source
 
 -}
-init : (String -> Bool) -> List String -> State
-init isVerbatimLine lines =
+init : Language -> (String -> Bool) -> List String -> State
+init lang isVerbatimLine lines =
     { blocks = []
     , currentBlock = Nothing
+    , lang = lang
     , lines = lines
     , indent = 0
     , lineNumber = 0
@@ -117,8 +124,8 @@ init isVerbatimLine lines =
     }
 
 
-blockFromLine : Line -> PrimitiveBlock
-blockFromLine ({ indent, lineNumber, position, prefix, content } as line) =
+blockFromLine : Language -> Line -> PrimitiveBlock
+blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
     { indent = indent
     , lineNumber = lineNumber
     , position = position
@@ -129,7 +136,7 @@ blockFromLine ({ indent, lineNumber, position, prefix, content } as line) =
     , sourceText = ""
     , blockType = PBParagraph
     }
-        |> elaborate line
+        |> elaborate lang line
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
@@ -214,7 +221,7 @@ addCurrentLine2 state currentLine =
                 , position = state.position + String.length currentLine.content
                 , count = state.count + 1
                 , currentBlock =
-                    Just (addCurrentLine currentLine block)
+                    Just (addCurrentLine state.lang currentLine block)
             }
 
 
@@ -234,7 +241,7 @@ commitBlock state currentLine =
                         ( Nothing, state.blocks )
 
                     else
-                        ( Just (blockFromLine currentLine), block :: state.blocks )
+                        ( Just (blockFromLine state.lang currentLine), block :: state.blocks )
             in
             { state
                 | lines = List.drop 1 state.lines
@@ -266,7 +273,7 @@ createBlock state currentLine =
                         block :: state.blocks
 
         newBlock =
-            Just (blockFromLine currentLine)
+            Just (blockFromLine state.lang currentLine)
     in
     { state
         | lines = List.drop 1 state.lines
@@ -280,17 +287,17 @@ createBlock state currentLine =
     }
 
 
-addCurrentLine : Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine ({ prefix, content, indent } as line) block =
+addCurrentLine : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine lang ({ prefix, content, indent } as line) block =
     let
         pb =
             addCurrentLine_ line block
     in
-    elaborate line pb
+    elaborate lang line pb
 
 
-elaborate : Line -> PrimitiveBlock -> PrimitiveBlock
-elaborate line pb =
+elaborate : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
+elaborate lang line pb =
     if pb.named then
         pb
 
@@ -301,7 +308,7 @@ elaborate line pb =
         let
             ( blockType, name, args ) =
                 -- TODO: note this change: it needs to be verified
-                Line.getNameAndArgs L0Lang line
+                Line.getNameAndArgs lang line
 
             content =
                 if blockType == PBVerbatim then

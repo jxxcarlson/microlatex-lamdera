@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , isVerbatimLine, toPrimitiveBlockForest
+    , f, g, h, isVerbatimLine, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -53,7 +53,6 @@ parse lang sourceText =
                     L0.Parser.Expression.parse
 
                 XMarkdownLang ->
-                    -- TODO: implement this
                     XMarkdown.Expression.parse
     in
     sourceText
@@ -73,3 +72,36 @@ toPrimitiveBlockForest lang str =
         |> List.map (Compiler.Transform.transform lang)
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []
+
+
+f str =
+    str |> String.lines |> Parser.PrimitiveBlock.parse L0Lang isVerbatimLine
+
+
+g str =
+    str |> String.lines |> Parser.PrimitiveBlock.parse MicroLaTeXLang isVerbatimLine
+
+
+h str =
+    str |> String.lines |> Parser.PrimitiveBlock.parse XMarkdownLang isVerbatimLine
+
+
+x1 =
+    """
+```
+# multiplication table
+  for x in range(1, 11):
+      for y in range(1, 11):
+          print('%d * %d = %d' % (x, y, x*y))
+```
+"""
+
+
+x2 =
+    """
+|| code
+# multiplication table
+  for x in range(1, 11):
+      for y in range(1, 11):
+          print('%d * %d = %d' % (x, y, x*y))
+"""

@@ -80,7 +80,7 @@ handleOrdinaryBlock block firstLine rest =
 
 handleVerbatim : PrimitiveBlock -> List String -> PrimitiveBlock
 handleVerbatim block rest =
-    { block | name = Just "code", named = True, blockType = PBVerbatim }
+    { block | name = Just "code", named = True, blockType = PBVerbatim, content = Compiler.Util.dropLast block.content }
 
 
 handleMath : PrimitiveBlock -> List String -> PrimitiveBlock
