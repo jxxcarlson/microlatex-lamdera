@@ -7,6 +7,7 @@ module XMarkdown.Token exposing
     , init
     , run
     , toString
+    , toString2
     , type_
     )
 
@@ -27,7 +28,7 @@ fakeDebugLog =
 
 idem : String -> String
 idem str =
-    str |> run |> List.reverse |> toString
+    str |> run |> List.reverse |> toString2
 
 
 idemTest : String -> Bool
@@ -233,10 +234,10 @@ stringValue token =
             ")"
 
         Bold _ ->
-            "**"
+            "*"
 
         Italic _ ->
-            "__"
+            "_"
 
         Image _ ->
             "image"
@@ -305,6 +306,11 @@ stringValue2 token =
 
 toString : List Token -> String
 toString tokens =
+    List.map stringValue tokens |> String.join ""
+
+
+toString2 : List Token -> String
+toString2 tokens =
     List.map stringValue2 tokens |> String.join ", "
 
 

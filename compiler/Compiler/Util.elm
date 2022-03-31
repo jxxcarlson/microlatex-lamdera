@@ -8,6 +8,7 @@ module Compiler.Util exposing
     , getItem
     , getMarkdownImageArgs
     , getMicroLaTeXItem
+    , middle
     , size
     )
 
@@ -24,6 +25,11 @@ dropLast list =
             List.length list
     in
     List.take (n - 1) list
+
+
+middle : List a -> List a
+middle list =
+    list |> List.drop 1 |> dropLast
 
 
 userReplace : String -> (Regex.Match -> String) -> String -> String

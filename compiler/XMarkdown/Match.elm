@@ -1,5 +1,7 @@
 module XMarkdown.Match exposing (deleteAt, match, reducible, splitAt)
 
+import Compiler.Util
+import List.Extra
 import Parser.Helpers exposing (Step(..), loop)
 import XMarkdown.Symbol as Symbol exposing (Symbol(..))
 
@@ -22,11 +24,31 @@ reducible symbols =
         Just SImage ->
             symbols == [ SImage, LBracket, RBracket, LParen, RParen ]
 
+        Just LBracket ->
+            if symbols == [ LBracket, RBracket, LParen, RParen ] then
+                True
+
+            else
+                False
+
         Just SAT ->
-            symbols == [ SAT, LBracket, RBracket ]
+            -- symbols == [ SAT, LBracket, RBracket ]
+            reducibleAux (List.drop 1 symbols)
 
         _ ->
             reducibleF symbols
+
+
+reducibleAux : List Symbol -> Bool
+reducibleAux symbols =
+    if List.isEmpty symbols then
+        True
+
+    else if List.head symbols == Just LBracket && List.Extra.last symbols == Just RBracket then
+        reducibleAux (Compiler.Util.middle symbols)
+
+    else
+        False
 
 
 reducibleF : List Symbol -> Bool
@@ -35,52 +57,6 @@ reducibleF symbols =
         == [ LBracket, RBracket, LParen, RParen ]
         || symbols
         == [ LParen, RParen ]
-
-
-
---
---reducibleF : List Symbol -> Bool
---reducibleF symbols =
---    case List.head symbols of
---        Nothing ->
---            True
---
---        Just RBracket ->
---            False
---
---        Just RParen ->
---            False
---
---        Just SBold ->
---            False
---
---        Just SItalic ->
---            False
---
---        Just O ->
---            False
---
---        Just M ->
---            False
---
---        Just C ->
---            False
---
---        Just LBracket ->
---            case match symbols of
---                Nothing ->
---                    False
---
---                Just k ->
---                    reducibleF (List.drop 1 (deleteAt k symbols))
---
---        Just LParen ->
---            case match symbols of
---                Nothing ->
---                    False
---
---                Just k ->
---                    reducibleF (List.drop 1 (deleteAt k symbols))
 
 
 {-|

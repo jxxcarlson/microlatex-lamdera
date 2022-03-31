@@ -8,6 +8,7 @@ module XMarkdown.Expression exposing
     , parseToState
     )
 
+import L0.Parser.Expression
 import List.Extra
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
@@ -67,7 +68,7 @@ parse : Int -> String -> List Expr
 parse lineNumber str =
     str
         |> Token.run
-        |> Tools.forklogCyan "TOKENS" forkLogWidth Token.toString
+        |> Tools.forklogCyan "TOKENS" forkLogWidth Token.toString2
         |> initWithTokens lineNumber
         |> run
         |> .committed
@@ -105,7 +106,7 @@ nextStep state =
 
         Just token ->
             pushToken token { state | tokenIndex = state.tokenIndex + 1 }
-                |> Tools.forklogBlue "STACK" forkLogWidth (.stack >> Token.toString)
+                |> Tools.forklogBlue "STACK" forkLogWidth (.stack >> Token.toString2)
                 |> reduceState
                 |> (\st -> { st | step = st.step + 1 })
                 |> Loop
@@ -124,37 +125,7 @@ pushToken token state =
         W _ _ ->
             pushOrCommit token state
 
-        MathToken _ ->
-            pushOnStack token state
-
-        CodeToken _ ->
-            pushOnStack token state
-
-        LB _ ->
-            pushOnStack token state
-
-        RB _ ->
-            pushOnStack token state
-
-        LP _ ->
-            pushOnStack token state
-
-        RP _ ->
-            pushOnStack token state
-
-        Bold _ ->
-            pushOnStack token state
-
-        Italic _ ->
-            pushOnStack token state
-
-        Image _ ->
-            pushOnStack token state
-
-        AT _ ->
-            pushOnStack token state
-
-        TokenError _ _ ->
+        _ ->
             pushOnStack token state
 
 
@@ -317,26 +288,18 @@ handleImage symbols state =
 handleAt : List Symbol -> State -> State
 handleAt symbols state =
     let
-        data =
-            case state.stack of
-                [ RB _, S str _, LB _, AT _ ] ->
-                    str |> String.words
+        content =
+            state.stack
+                |> List.reverse
+                |> Token.toString
+                |> String.dropLeft 1
+                |> Tools.forklogRed "STACK (AT)" forkLogWidth identity
 
-                _ ->
-                    [ "none" ]
-
-        meta =
-            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
-
+        expr : List Expr
         expr =
-            case List.head data of
-                Nothing ->
-                    Expr "red" [ Text (String.join " " (List.drop 1 data)) meta ] meta
-
-                Just name ->
-                    Expr name [ Text (String.join " " (List.drop 1 data)) meta ] meta
+            L0.Parser.Expression.parse 0 content
     in
-    { state | committed = expr :: state.committed, stack = [] }
+    { state | committed = expr ++ state.committed, stack = [] }
 
 
 handleParens : List Symbol -> State -> State
@@ -364,7 +327,7 @@ handleItalicSymbol symbols state =
     if symbols == [ SItalic, SItalic ] then
         let
             content =
-                takeMiddle state.stack |> Token.toString
+                takeMiddle state.stack |> Token.toString2
 
             meta =
                 { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -383,7 +346,7 @@ handleBoldSymbol symbols state =
     if symbols == [ SBold, SBold ] then
         let
             content =
-                takeMiddle state.stack |> Token.toString
+                takeMiddle state.stack |> Token.toString2
 
             meta =
                 { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -402,7 +365,7 @@ handleMathSymbol symbols state =
     if symbols == [ M, M ] then
         let
             content =
-                takeMiddle state.stack |> Token.toString
+                takeMiddle state.stack |> Token.toString2
 
             expr =
                 Verbatim "math" content { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -418,7 +381,7 @@ handleCodeSymbol symbols state =
     if symbols == [ C, C ] then
         let
             content =
-                takeMiddle state.stack |> Token.toString
+                takeMiddle state.stack |> Token.toString2
 
             expr =
                 Verbatim "code" content { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -436,7 +399,7 @@ handleSymbol1 name symbol state =
             Tools.forklogRed "SYM" forkLogWidth identity symbol
 
         content =
-            state.stack |> List.reverse |> Tools.forklogYellow "CONT" forkLogWidth identity |> Token.toString
+            state.stack |> List.reverse |> Tools.forklogYellow "CONT" forkLogWidth identity |> Token.toString2
 
         trailing =
             String.right 1 content |> Tools.forklogYellow "TRAILING" forkLogWidth identity
@@ -486,7 +449,7 @@ evalList macroName lineNumber tokens =
                 TLB ->
                     case M.match (Symbol.convertTokens tokens) of
                         Nothing ->
-                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
+                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString2 tokens) " ?}"
 
                         Just k ->
                             let
@@ -626,7 +589,7 @@ recoverFromError state =
         (MathToken meta) :: rest ->
             let
                 content =
-                    Token.toString rest
+                    Token.toString2 rest
 
                 message =
                     if content == "" then
@@ -648,7 +611,7 @@ recoverFromError state =
         (CodeToken meta) :: rest ->
             let
                 content =
-                    Token.toString rest
+                    Token.toString2 rest
 
                 message =
                     if content == "" then
