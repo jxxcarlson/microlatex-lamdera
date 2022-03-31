@@ -19,9 +19,9 @@ view model _ =
           Button.nextSyncButton model.foundIds
         , Button.exportToLaTeX
         , Button.printToPDF model
-        , Button.exportToMicroLaTeX
-        , Button.exportToXMarkdown
 
+        --, Button.exportToMicroLaTeX
+        --, Button.exportToXMarkdown
         -- , View.Utility.showIf (isAdmin model) Button.runSpecial
         , View.Utility.showIf (View.Utility.isAdmin model) (Button.toggleAppMode model)
 
