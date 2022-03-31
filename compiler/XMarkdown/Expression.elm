@@ -534,46 +534,54 @@ recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
         (Italic meta) :: [] ->
-            let
-                expr =
-                    case List.head state.committed of
-                        Just (Text str1 meta1) ->
-                            Expr "italic" [ Text str1 meta1 ] meta1
+            if List.isEmpty state.committed then
+                Loop { state | stack = [], committed = errorMessage "_" :: [] }
 
-                        _ ->
-                            Expr "italic" [ Text "??" meta ] meta
-            in
-            Loop
-                { state
-                    | stack = []
-                    , committed = expr :: errorMessage "_?" :: List.drop 1 state.committed
-                    , tokenIndex = meta.index + 1
-                    , messages = [ "!!" ]
-                }
+            else
+                let
+                    expr =
+                        case List.head state.committed of
+                            Just (Text str1 meta1) ->
+                                Expr "italic" [ Text str1 meta1 ] meta1
+
+                            _ ->
+                                Expr "italic" [ Text "??" meta ] meta
+                in
+                Loop
+                    { state
+                        | stack = []
+                        , committed = expr :: errorMessage "_" :: List.drop 1 state.committed
+                        , tokenIndex = meta.index + 1
+                        , messages = [ "!!" ]
+                    }
 
         (Bold meta) :: [] ->
-            let
-                expr =
-                    case List.head state.committed of
-                        Just (Text str1 meta1) ->
-                            Expr "bold" [ Text str1 meta1 ] meta1
+            if List.isEmpty state.committed then
+                Loop { state | stack = [], committed = errorMessage "*" :: [] }
 
-                        _ ->
-                            Expr "bold" [ Text "??" meta ] meta
-            in
-            Loop
-                { state
-                    | stack = []
-                    , committed = expr :: errorMessage "*?" :: List.drop 1 state.committed
-                    , tokenIndex = meta.index + 1
-                    , messages = [ "!!" ]
-                }
+            else
+                let
+                    expr =
+                        case List.head state.committed of
+                            Just (Text str1 meta1) ->
+                                Expr "bold" [ Text str1 meta1 ] meta1
+
+                            _ ->
+                                Expr "bold" [ Text "??" meta ] meta
+                in
+                Loop
+                    { state
+                        | stack = []
+                        , committed = expr :: errorMessage "*" :: List.drop 1 state.committed
+                        , tokenIndex = meta.index + 1
+                        , messages = [ "!!" ]
+                    }
 
         (Italic _) :: (S str meta) :: [] ->
             Loop
                 { state
                     | stack = []
-                    , committed = errorMessage "_?" :: Expr "italic" [ Text str meta ] meta :: state.committed
+                    , committed = errorMessage "_" :: Expr "italic" [ Text str meta ] meta :: state.committed
                     , tokenIndex = meta.index + 1
                     , messages = [ "!!" ]
                 }
@@ -582,7 +590,7 @@ recoverFromError state =
             Loop
                 { state
                     | stack = []
-                    , committed = errorMessage "*?" :: Expr "bold" [ Text str meta ] meta :: state.committed
+                    , committed = errorMessage "*" :: Expr "bold" [ Text str meta ] meta :: state.committed
                     , tokenIndex = meta.index + 1
                     , messages = [ "!!" ]
                 }
