@@ -570,7 +570,7 @@ newDocument model =
                     "\\title{" ++ title ++ "}\n\n"
 
                 XMarkdownLang ->
-                    "# " ++ title ++ "\\n"
+                    "| title\n" ++ title ++ "\n\n"
 
         doc =
             { emptyDoc
