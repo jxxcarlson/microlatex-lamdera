@@ -102,7 +102,7 @@ nextStep state =
 
             else
                 -- the stack is not empty, so we need to handle the parse error
-                recoverFromError state
+                recoverFromError (state |> Tools.forklogBlue "RECOVER" 12 (.stack >> List.reverse >> Token.toString2))
 
         Just token ->
             pushToken token { state | tokenIndex = state.tokenIndex + 1 }
@@ -486,7 +486,12 @@ errorMessage3Part lineNumber a b c =
 
 errorMessage : String -> Expr
 errorMessage message =
-    Expr "red" [ Expr "underline" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
+    Expr "red" [ Text message dummyLocWithId ] dummyLocWithId
+
+
+errorMessageLarge : String -> Expr
+errorMessageLarge message =
+    Expr "large" [ Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId ] dummyLocWithId
 
 
 errorMessageBold : String -> Expr
@@ -521,9 +526,67 @@ isReducible tokens =
         preliminary |> M.reducible |> Tools.forklogYellow "REDUCIBLE ?" forkLogWidth identity
 
 
+
+-- TODO: finish recoverFromError
+
+
 recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
+        (Italic meta) :: [] ->
+            let
+                expr =
+                    case List.head state.committed of
+                        Just (Text str1 meta1) ->
+                            Expr "italic" [ Text str1 meta1 ] meta1
+
+                        _ ->
+                            Expr "italic" [ Text "??" meta ] meta
+            in
+            Loop
+                { state
+                    | stack = []
+                    , committed = expr :: errorMessage "_?" :: List.drop 1 state.committed
+                    , tokenIndex = meta.index + 1
+                    , messages = [ "!!" ]
+                }
+
+        (Bold meta) :: [] ->
+            let
+                expr =
+                    case List.head state.committed of
+                        Just (Text str1 meta1) ->
+                            Expr "bold" [ Text str1 meta1 ] meta1
+
+                        _ ->
+                            Expr "bold" [ Text "??" meta ] meta
+            in
+            Loop
+                { state
+                    | stack = []
+                    , committed = expr :: errorMessage "*?" :: List.drop 1 state.committed
+                    , tokenIndex = meta.index + 1
+                    , messages = [ "!!" ]
+                }
+
+        (Italic _) :: (S str meta) :: [] ->
+            Loop
+                { state
+                    | stack = []
+                    , committed = errorMessage "_?" :: Expr "italic" [ Text str meta ] meta :: state.committed
+                    , tokenIndex = meta.index + 1
+                    , messages = [ "!!" ]
+                }
+
+        (Bold _) :: (S str meta) :: [] ->
+            Loop
+                { state
+                    | stack = []
+                    , committed = errorMessage "*?" :: Expr "bold" [ Text str meta ] meta :: state.committed
+                    , tokenIndex = meta.index + 1
+                    , messages = [ "!!" ]
+                }
+
         -- brackets with no intervening text
         (LB _) :: (RB meta) :: _ ->
             Loop

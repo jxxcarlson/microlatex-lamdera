@@ -20,12 +20,14 @@ forklogBlue label width f a =
 
 
 
+--
 --forklog_ fg bg label width f a =
 --    let
 --        _ =
 --            Debug.log (coloredLabel fg bg label width) (f a)
 --    in
 --    a
+--
 
 
 forklog_ fg bg label width f a =
