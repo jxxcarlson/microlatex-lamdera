@@ -595,67 +595,6 @@ recoverFromError state =
                     , messages = [ "!!" ]
                 }
 
-        -- brackets with no intervening text
-        (LB _) :: (RB meta) :: _ ->
-            Loop
-                { state
-                    | committed = errorMessage "[?]" :: state.committed
-                    , stack = []
-                    , tokenIndex = meta.index + 1
-                    , messages = Helpers.prependMessage state.lineNumber "Brackets need to enclose something" state.messages
-                }
-
-        -- consecutive left brackets
-        (LB _) :: (LB meta) :: _ ->
-            Loop
-                { state
-                    | committed = errorMessage "[" :: state.committed
-                    , stack = []
-                    , tokenIndex = meta.index
-                    , messages = Helpers.prependMessage state.lineNumber "You have consecutive left brackets" state.messages
-                }
-
-        -- missing right bracket // OK
-        (LB _) :: (S fName meta) :: rest ->
-            Loop
-                { state
-                    | committed = errorMessage (errorSuffix rest) :: errorMessage2 ("[" ++ fName) :: state.committed
-                    , stack = []
-                    , tokenIndex = meta.index + 1
-                    , messages = Helpers.prependMessage state.lineNumber "Missing right bracket" state.messages
-                }
-
-        -- space after left bracket // OK
-        (LB _) :: (W " " meta) :: _ ->
-            Loop
-                { state
-                    | committed = errorMessage "[ - can't have space after the bracket " :: state.committed
-                    , stack = []
-                    , tokenIndex = meta.index + 1
-                    , messages = Helpers.prependMessage state.lineNumber "Can't have space after left bracket - try [something ..." state.messages
-                }
-
-        -- left bracket with nothing after it.  // OK
-        (LB _) :: [] ->
-            Done
-                { state
-                    | committed = errorMessage "[...?" :: state.committed
-                    , stack = []
-                    , tokenIndex = 0
-                    , numberOfTokens = 0
-                    , messages = Helpers.prependMessage state.lineNumber "That left bracket needs something after it" state.messages
-                }
-
-        -- extra right bracket
-        (RB meta) :: _ ->
-            Loop
-                { state
-                    | committed = errorMessage " extra ]?" :: state.committed
-                    , stack = []
-                    , tokenIndex = meta.index + 1
-                    , messages = Helpers.prependMessage state.lineNumber "Extra right bracket(s)" state.messages
-                }
-
         -- dollar sign with no closing dollar sign
         (MathToken meta) :: rest ->
             let
@@ -701,7 +640,7 @@ recoverFromError state =
                 }
 
         _ ->
-            recoverFromError1 state
+            Done state
 
 
 errorSuffix rest =
@@ -724,70 +663,6 @@ boostMeta lineNumber tokenIndex { begin, end, index } =
 makeId : Int -> Int -> String
 makeId a b =
     String.fromInt a ++ "." ++ String.fromInt b
-
-
-recoverFromError1 : State -> Step State State
-recoverFromError1 state =
-    let
-        k =
-            Symbol.balance <| Symbol.convertTokens (List.reverse state.stack)
-
-        newStack =
-            List.repeat k (RB (boostMeta state.lineNumber state.tokenIndex dummyLoc)) ++ state.stack
-
-        newSymbols =
-            Symbol.convertTokens (List.reverse newStack)
-
-        reducible =
-            M.reducible newSymbols
-    in
-    if reducible then
-        Done <|
-            addErrorMessage " ]? " <|
-                reduceState <|
-                    { state
-                        | stack = newStack
-                        , tokenIndex = 0
-                        , numberOfTokens = List.length newStack
-                        , committed = errorMessage "[" :: state.committed
-                        , messages = Helpers.prependMessage state.lineNumber ("Unmatched brackets: added " ++ String.fromInt k ++ " right brackets") state.messages
-                    }
-
-    else
-        Done
-            { state
-                | committed =
-                    bracketError k
-                        -- :: Expr "blue" [ Text (" " ++ Token.toString state.tokens) dummyLoc ] dummyLoc
-                        :: state.committed
-                , messages = Helpers.prependMessage state.lineNumber (bracketErrorAsString k) state.messages
-            }
-
-
-bracketError : Int -> Expr
-bracketError k =
-    if k < 0 then
-        let
-            brackets =
-                List.repeat -k "]" |> String.join ""
-        in
-        errorMessage <| " " ++ brackets ++ " << Too many right brackets (" ++ String.fromInt -k ++ ")"
-
-    else
-        let
-            brackets =
-                List.repeat k "[" |> String.join ""
-        in
-        errorMessage <| " " ++ brackets ++ " << Too many left brackets (" ++ String.fromInt k ++ ")"
-
-
-bracketErrorAsString : Int -> String
-bracketErrorAsString k =
-    if k < 0 then
-        "Too many right brackets (" ++ String.fromInt -k ++ ")"
-
-    else
-        "Too many left brackets (" ++ String.fromInt k ++ ")"
 
 
 
