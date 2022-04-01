@@ -101,7 +101,6 @@ getDocumentByCmdId model clientId id =
             Cmd.batch
                 [ sendToFrontend clientId (SendDocument CanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
-                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                 ]
 
 
@@ -124,7 +123,6 @@ getDocumentByAuthorId model clientId authorId =
                     , Cmd.batch
                         [ sendToFrontend clientId (SendDocument CanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
-                        , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                         ]
                     )
 
@@ -164,7 +162,6 @@ getDocumentByPublicId model clientId publicId =
                         [ sendToFrontend clientId (SendMessage "Public document received")
                         , sendToFrontend clientId (SendDocument CanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
-                        , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                         ]
                     )
 
@@ -280,8 +277,7 @@ signIn model clientId username encryptedPassword =
                 , Cmd.batch
                     [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (UserSignedUp userData.user)
-
-                    --, sendToFrontend clientId (SendMessage <| "Success! your are signed in and your documents are now available")
+                    , sendToFrontend clientId (SendMessage <| "Signed in")
                     ]
                 )
 

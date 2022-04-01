@@ -377,7 +377,11 @@ setDocumentAsCurrent model doc permissions =
                 Just user ->
                     let
                         docs =
-                            BoundedDeque.pushFront doc user.docs
+                            if BoundedDeque.member doc user.docs then
+                                user.docs
+
+                            else
+                                BoundedDeque.pushFront doc user.docs
 
                         newUser =
                             { user | docs = docs }
@@ -393,7 +397,7 @@ setDocumentAsCurrent model doc permissions =
         , title =
             Compiler.ASTTools.title newEditRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-        , message = "id = " ++ doc.id
+        , message = ""
         , permissions = setPermissions model.currentUser permissions doc
         , counter = model.counter + 1
         , language = doc.language
