@@ -139,8 +139,7 @@ getHomePage model clientId username =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (SendMessage "Public document received")
-                , sendToFrontend clientId (SendDocument CanEdit doc)
+                [ sendToFrontend clientId (SendDocument CanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
             )
@@ -159,8 +158,7 @@ getDocumentByPublicId model clientId publicId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (SendMessage "Public document received")
-                        , sendToFrontend clientId (SendDocument CanEdit doc)
+                        [ sendToFrontend clientId (SendDocument CanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -179,7 +177,6 @@ fetchDocumentById model clientId docId maybeUserName =
                       sendToFrontend clientId (SendDocument CanEdit document)
 
                     --, sendToFrontend clientId (SetShowEditor True)
-                    , sendToFrontend clientId (SendMessage "Public document received")
                     ]
                 )
 
