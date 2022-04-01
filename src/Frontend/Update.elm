@@ -34,6 +34,7 @@ module Frontend.Update exposing
 --
 
 import Authentication
+import BoundedDeque
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
@@ -368,7 +369,20 @@ setDocumentAsCurrent model doc permissions =
             else
                 Nothing
 
-        -- Disabled: this makes it impossible to edit master documents
+        newCurrentUser =
+            case model.currentUser of
+                Nothing ->
+                    Nothing
+
+                Just user ->
+                    let
+                        docs =
+                            BoundedDeque.pushFront doc user.docs
+
+                        newUser =
+                            { user | docs = docs }
+                    in
+                    Just newUser
     in
     ( { model
         | currentDocument = Just doc
@@ -383,6 +397,7 @@ setDocumentAsCurrent model doc permissions =
         , permissions = setPermissions model.currentUser permissions doc
         , counter = model.counter + 1
         , language = doc.language
+        , currentUser = newCurrentUser
       }
     , Cmd.batch [ View.Utility.setViewPortToTop ]
     )
@@ -435,6 +450,15 @@ runSpecial model =
 
 
 handleSignOut model =
+    let
+        cmd =
+            case model.currentUser of
+                Nothing ->
+                    Cmd.none
+
+                Just user ->
+                    sendToBackend (UpdateUserWith user)
+    in
     ( { model
         | currentUser = Nothing
         , currentDocument = Just Docs.notSignedIn
@@ -445,8 +469,7 @@ handleSignOut model =
         , inputPassword = ""
         , showEditor = False
       }
-    , -- Cmd.none
-      Nav.pushUrl model.key "/"
+    , Cmd.batch [ Nav.pushUrl model.key "/", cmd ]
     )
 
 

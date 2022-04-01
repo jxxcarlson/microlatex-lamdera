@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -39,6 +39,7 @@ type alias FrontendModel =
     , inputEmail : String
     , inputLanguage : Language
     , tagDict : Dict String (List { id : String, title : String })
+    , documentList : DocumentList
 
     -- UI
     , appMode : AppMode
@@ -292,6 +293,7 @@ type FrontendMsg
     | SetDeleteDocumentState DocumentDeleteState
     | Render Render.Msg.MarkupMsg
     | SetSortMode SortMode
+    | SelectList DocumentList
     | GetUserTags String
     | GetPublicTags
       -- Export
@@ -306,6 +308,11 @@ type FrontendMsg
     | FinallyDoCleanPrintArtefacts String
       ---
     | Help String
+
+
+type DocumentList
+    = WorkingList
+    | StandardList
 
 
 type SidebarState
@@ -335,6 +342,7 @@ type ToBackend
       -- USER
     | SignInBE String String
     | SignUpBE String Language String String String
+    | UpdateUserWith User
       -- DOCUMENT
     | GetHomePage String
     | FetchDocumentById String (Maybe String)

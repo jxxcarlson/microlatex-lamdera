@@ -101,6 +101,12 @@ updateFromFrontend _ clientId msg model =
             ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
 
         -- USER
+        UpdateUserWith user ->
+            ( { model | authenticationDict = Authentication.updateUser user model.authenticationDict }, Cmd.none )
+
+        --
+        --UpdateUser user ->
+        --    ( { model | authenticationDict = Authentication.updateUser user model.authenticationDict }, Cmd.none )
         SignInBE username encryptedPassword ->
             Backend.Update.signIn model clientId username encryptedPassword
 

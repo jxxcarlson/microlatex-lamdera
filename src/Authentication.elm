@@ -42,6 +42,20 @@ updateUser user authDict =
             Dict.insert user.username newUserData authDict
 
 
+
+-- Dict.update user.username lift (\{user, credentials} -> newUserData authDict
+
+
+lift : (a -> a) -> (Maybe a -> Maybe a)
+lift f x =
+    case x of
+        Nothing ->
+            Nothing
+
+        Just y ->
+            Just (f y)
+
+
 users : AuthenticationDict -> List User
 users authDict =
     authDict |> Dict.values |> List.map .user

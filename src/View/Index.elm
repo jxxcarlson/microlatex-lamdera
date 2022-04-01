@@ -1,11 +1,12 @@
 module View.Index exposing (view, viewDocuments)
 
+import BoundedDeque
 import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Time
-import Types exposing (ActiveDocList(..), DocPermissions(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
+import Types exposing (ActiveDocList(..), DocPermissions(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
 import View.Button as Button
 import View.Geometry as Geometry
 import View.Rendered as Rendered
@@ -25,8 +26,13 @@ view model width_ deltaH =
                             -150
             in
             E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
-                [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                , viewMydocs model deltaH -indexShift
+                [ E.row [ E.spacing 12 ] [ Button.toggleDocumentList model.documentList, Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
+                , case model.documentList of
+                    WorkingList ->
+                        viewWorkingDocs model deltaH -indexShift
+
+                    StandardList ->
+                        viewMydocs model deltaH -indexShift
                 , viewPublicDocs model deltaH indexShift
                 ]
 
@@ -48,6 +54,46 @@ view model width_ deltaH =
                     Both ->
                         viewPublicDocs model deltaH indexShift
                 ]
+
+
+viewWorkingDocs : FrontendModel -> Int -> Int -> Element FrontendMsg
+viewWorkingDocs model deltaH indexShift =
+    let
+        sort =
+            case model.sortMode of
+                SortAlphabetically ->
+                    List.sortBy (\doc -> View.Utility.softTruncate View.Utility.softTruncateLimit doc.title)
+
+                SortByMostRecent ->
+                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+
+        docs =
+            case model.currentUser of
+                Nothing ->
+                    []
+
+                Just user_ ->
+                    user_.docs |> BoundedDeque.toList |> sort
+
+        buttonText =
+            "Working docs (" ++ String.fromInt (List.length docs) ++ ")"
+
+        titleButton =
+            Button.toggleActiveDocList buttonText
+    in
+    E.column
+        [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
+        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , Font.size 14
+        , E.scrollbarY
+        , Background.color (E.rgb 0.95 0.95 1.0)
+        , E.paddingXY 12 18
+        , Font.color (E.rgb 0.1 0.1 1.0)
+        , E.spacing 8
+        ]
+        (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
+            :: viewDocuments CanEdit model.currentDocument docs
+        )
 
 
 viewMydocs : FrontendModel -> Int -> Int -> Element FrontendMsg

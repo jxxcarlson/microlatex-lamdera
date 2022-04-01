@@ -27,7 +27,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -77,6 +77,7 @@ init url key =
       , inputRealname = ""
       , tagDict = Dict.empty
       , inputLanguage = L0Lang
+      , documentList = WorkingList
 
       -- UI
       , appMode = UserMode
@@ -262,6 +263,9 @@ update msg model =
             ( { model | inputEmail = str }, Cmd.none )
 
         -- UI
+        SelectList list ->
+            ( { model | documentList = list }, Cmd.none )
+
         ChangePopup popupState ->
             ( { model | popupState = popupState }, Cmd.none )
 

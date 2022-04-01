@@ -42,6 +42,7 @@ module View.Button exposing
     , syncLR
     , toggleActiveDocList
     , toggleAppMode
+    , toggleDocumentList
     , toggleEditor
     , togglePublic
     , toggleSidebar
@@ -55,7 +56,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -287,7 +288,7 @@ setSortModeAlpha sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0 0 0)
     in
-    buttonTemplate [ bg, E.width (E.px sortButtonWidth) ] (SetSortMode SortAlphabetically) "Alphabetical"
+    buttonTemplate [ bg, E.width (E.px 80) ] (SetSortMode SortAlphabetically) "Alpha"
 
 
 setSortModeMostRecent : SortMode -> Element FrontendMsg
@@ -301,7 +302,16 @@ setSortModeMostRecent sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0.5 0 0)
     in
-    buttonTemplate [ bg, E.width (E.px sortButtonWidth) ] (SetSortMode SortByMostRecent) "Most recent"
+    buttonTemplate [ bg ] (SetSortMode SortByMostRecent) "Most recent"
+
+
+toggleDocumentList currentDocumentList =
+    case currentDocumentList of
+        WorkingList ->
+            buttonTemplate [ E.width (E.px 90) ] (SelectList StandardList) "Work"
+
+        StandardList ->
+            buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "Standard"
 
 
 
