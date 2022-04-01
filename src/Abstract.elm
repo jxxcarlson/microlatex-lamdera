@@ -140,7 +140,18 @@ get author_ lang source =
                 Just realAuthor ->
                     realAuthor
     in
-    getForL0 author source
+    case lang of
+        L0Lang ->
+            getForL0 author source
+
+        MicroLaTeXLang ->
+            getForMiniLaTeX author source
+
+        PlainTextLang ->
+            getForL0 author source
+
+        XMarkdownLang ->
+            getForL0 author source
 
 
 getForL0 : String -> String -> Abstract
