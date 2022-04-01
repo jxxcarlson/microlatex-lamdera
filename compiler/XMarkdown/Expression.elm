@@ -192,7 +192,7 @@ reduceState state =
             List.Extra.getAt state.tokenIndex state.tokens
 
         reducible1 =
-            isReducible state.stack
+            isReducible state.stack |> Tools.forklogRed "SYMBOLS (!!)" forkLogWidth identity
     in
     -- if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
     if state.tokenIndex >= state.numberOfTokens || reducible1 then
@@ -201,6 +201,9 @@ reduceState state =
                 state.stack |> Symbol.convertTokens |> List.reverse |> Tools.forklogRed "SYMBOLS" forkLogWidth identity
         in
         case List.head symbols of
+            Just SAT ->
+                handleAt symbols state
+
             Just M ->
                 handleMathSymbol symbols state
 
@@ -225,9 +228,6 @@ reduceState state =
             --    state
             Just SImage ->
                 handleImage symbols state
-
-            Just SAT ->
-                handleAt symbols state
 
             Just LParen ->
                 handleParens symbols state

@@ -84,15 +84,15 @@ toPrimitiveBlockForest lang str =
 
 
 f str =
-    str |> String.lines |> Parser.PrimitiveBlock.parse L0Lang isVerbatimLine
+    parse L0Lang str
 
 
 g str =
-    str |> String.lines |> Parser.PrimitiveBlock.parse MicroLaTeXLang isVerbatimLine
+    parse MicroLaTeXLang str
 
 
 h str =
-    str |> String.lines |> Parser.PrimitiveBlock.parse XMarkdownLang isVerbatimLine
+    parse XMarkdownLang str
 
 
 x1 =

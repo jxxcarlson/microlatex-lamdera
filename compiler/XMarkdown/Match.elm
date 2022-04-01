@@ -32,8 +32,12 @@ reducible symbols =
                 False
 
         Just SAT ->
-            -- symbols == [ SAT, LBracket, RBracket ]
-            reducibleAux (List.drop 1 symbols)
+            if List.length symbols > 1 then
+                -- symbols == [ SAT, LBracket, RBracket ]
+                reducibleAux (List.drop 1 symbols)
+
+            else
+                False
 
         _ ->
             reducibleF symbols
