@@ -1,0 +1,9 @@
+module Evergreen.V194.Parser.Expr exposing (..)
+
+import Evergreen.V194.Parser.Meta
+
+
+type Expr
+    = Expr String (List Expr) Evergreen.V194.Parser.Meta.Meta
+    | Text String Evergreen.V194.Parser.Meta.Meta
+    | Verbatim String String Evergreen.V194.Parser.Meta.Meta
