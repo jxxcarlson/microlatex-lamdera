@@ -19,6 +19,7 @@ import View.Rendered as Rendered
 import View.Sidebar as Sidebar
 import View.SignUp as SignUp
 import View.Style as Style
+import View.TopHeader as TopHeader
 import View.Utility
 
 
@@ -55,7 +56,7 @@ viewEditorAndRenderedText model =
     in
     E.column (Style.mainColumn model)
         [ E.column [ E.inFront (languageMenu model), E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
-            [ Header.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+            [ headerRow model
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
                 , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
@@ -115,6 +116,13 @@ newDocumentPopup model =
             E.none
 
 
+headerRow model =
+    E.column [ E.spacing 4, Background.color Color.darkGray, E.padding 12, E.width E.fill ]
+        [ TopHeader.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+        , Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
+        ]
+
+
 viewRenderedTextOnly : Model -> Element FrontendMsg
 viewRenderedTextOnly model =
     let
@@ -126,11 +134,10 @@ viewRenderedTextOnly model =
             [ E.inFront (languageMenu model)
             , E.inFront (newDocumentPopup model)
             , E.centerX
-            , E.spacing 12
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
             ]
-            [ Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
+            [ headerRow model
             , E.row [ E.spacing 12, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
                 , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH

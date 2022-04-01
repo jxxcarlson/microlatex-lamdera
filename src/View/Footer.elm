@@ -1,8 +1,10 @@
 module View.Footer exposing (view)
 
 import Element as E
+import Element.Background as Background
 import Element.Font as Font
 import View.Button as Button
+import View.Color as Color
 import View.Style
 import View.Utility
 
@@ -11,7 +13,8 @@ view model _ =
     E.row
         [ E.spacing 12
         , E.paddingXY 0 8
-        , E.height (E.px 25)
+        , E.height (E.px 35)
+        , Background.color Color.black
         , E.width E.fill -- (E.px width_)
         , Font.size 14
         ]

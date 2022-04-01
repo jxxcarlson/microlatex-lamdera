@@ -1,6 +1,7 @@
 module Document exposing
     ( Access(..)
     , Document
+    , currentAuthor
     , defaultSettings
     , empty
     , wordCount
@@ -24,6 +25,11 @@ type alias Document =
     , readOnly : Bool
     , tags : List String
     }
+
+
+currentAuthor : Maybe Document -> String
+currentAuthor mDoc =
+    Maybe.andThen .author mDoc |> Maybe.withDefault ""
 
 
 type alias Username =

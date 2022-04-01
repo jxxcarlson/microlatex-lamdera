@@ -34,9 +34,14 @@ medGray =
     gray 0.5
 
 
+darkGray : E.Color
+darkGray =
+    gray 0.3
+
+
 black : E.Color
 black =
-    E.rgb 20 20 20
+    gray 0.2
 
 
 red : E.Color
@@ -82,10 +87,6 @@ transparentBlue =
 paleViolet : E.Color
 paleViolet =
     E.rgb255 230 230 255
-
-
-darkGray =
-    gray 0.6
 
 
 gray : Float -> E.Color
