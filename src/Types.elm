@@ -242,10 +242,6 @@ type FrontendMsg
       -- ADMIN
     | InputSpecial String
     | RunSpecial
-    | ExportJson
-    | JsonRequested
-    | JsonSelected File
-    | JsonLoaded String
       -- USER
     | SignIn
     | SetSignupState SignupState
@@ -334,10 +330,8 @@ type SearchTerm
 
 type ToBackend
     = --ADMIN
-      GetBackupData
-    | RunTask
+      RunTask
     | GetStatus
-    | RestoreBackup BackupOLD
       -- USER
     | SignInBE String String
     | SignUpBE String Language String String String

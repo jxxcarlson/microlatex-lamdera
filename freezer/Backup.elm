@@ -202,7 +202,7 @@ userCodec =
         |> Codec.field "email" .email Codec.string
         |> Codec.field "created" .created posixCodec
         |> Codec.field "modified" .modified posixCodec
-        |> Codec.field "docs" .docs (Codec.list docInfoCodec)
+        |> Codec.field "docs" .docs docsCodec
         |> Codec.field "preferences" .preferences preferencesCodec
         |> Codec.buildObject
 
@@ -285,8 +285,8 @@ preferencesCodec =
         |> Codec.buildObject
 
 
-docInfoCodec : Codec User.DocInfo
-docInfoCodec =
+docsCodec : Codec User.DocInfo
+docsCodec =
     Codec.object User.DocInfo
         |> Codec.field "title" .title Codec.string
         |> Codec.field "id" .id Codec.string

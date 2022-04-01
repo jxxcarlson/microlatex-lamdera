@@ -7,7 +7,6 @@ module View.Button exposing
     , deleteDocument
     , doSignUp
     , export
-    , exportJson
     , exportToLaTeX
     , exportToMarkown
     , exportToMicroLaTeX
@@ -19,7 +18,6 @@ module View.Button exposing
     , help
     , home
     , iLink
-    , importJson
     , languageMenu
     , linkTemplate
     , maximizeMyDocs
@@ -402,16 +400,6 @@ cancelSignUp =
 doSignUp : Element FrontendMsg
 doSignUp =
     buttonTemplate [] DoSignUp "Sign up"
-
-
-exportJson : Element FrontendMsg
-exportJson =
-    buttonTemplate [] ExportJson "Export Backup"
-
-
-importJson : Element FrontendMsg
-importJson =
-    buttonTemplate [] JsonRequested "Restore from backup"
 
 
 

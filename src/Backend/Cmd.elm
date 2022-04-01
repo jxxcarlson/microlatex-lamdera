@@ -1,6 +1,5 @@
-module Backend.Cmd exposing (exportJson, getRandomNumber)
+module Backend.Cmd exposing (getRandomNumber)
 
-import Backend.Backup
 import Http
 import Lamdera exposing (ClientId, sendToFrontend)
 import Types exposing (BackendModel, BackendMsg(..), ToFrontend(..))
@@ -29,11 +28,6 @@ randomNumberUrl maxDigits =
             "&col=1&base=10&format=plain&rnd=new"
     in
     prefix ++ String.fromInt maxNumber ++ suffix
-
-
-exportJson : BackendModel -> ClientId -> Cmd msg
-exportJson model clientId =
-    sendToFrontend clientId (SendBackupData (Backend.Backup.encode model))
 
 
 

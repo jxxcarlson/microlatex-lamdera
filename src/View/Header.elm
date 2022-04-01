@@ -23,7 +23,7 @@ view model _ =
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument))
         , View.Utility.showIf model.showEditor (wordCount model)
-        , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9) ] (E.text (Document.currentAuthor model.currentDocument))
+        , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9), E.alignRight ] (E.text (Document.currentAuthor model.currentDocument))
         ]
 
 

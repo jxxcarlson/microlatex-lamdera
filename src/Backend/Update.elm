@@ -20,6 +20,7 @@ module Backend.Update exposing
 
 import Abstract
 import Authentication
+import BoundedDeque
 import Cmd.Extra
 import Config
 import DateTimeUtility
@@ -85,7 +86,8 @@ getDocumentById model clientId id =
             , Cmd.batch
                 [ sendToFrontend clientId (SendDocument CanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
-                , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
+
+                -- , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
                 ]
             )
 
@@ -278,7 +280,8 @@ signIn model clientId username encryptedPassword =
                 , Cmd.batch
                     [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (UserSignedUp userData.user)
-                    , sendToFrontend clientId (SendMessage <| "Success! your are signed in and your documents are now available")
+
+                    --, sendToFrontend clientId (SendMessage <| "Success! your are signed in and your documents are now available")
                     ]
                 )
 
@@ -417,7 +420,7 @@ signUpUser model clientId username lang transitPassword realname email =
             , email = email
             , created = model.currentTime
             , modified = model.currentTime
-            , docs = []
+            , docs = BoundedDeque.empty 12
             , preferences = { language = lang }
             }
     in

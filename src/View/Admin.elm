@@ -20,8 +20,6 @@ view model =
                 [ View.Utility.showIf (View.Utility.isAdmin model) (View.Input.specialInput model)
                 , Button.runSpecial
                 , Button.toggleAppMode model
-                , Button.exportJson
-                , View.Utility.showIf (View.Utility.isAdmin model) Button.importJson
                 ]
             , Footer.view model (Geometry.appWidth model.sidebarState model.windowWidth)
             ]

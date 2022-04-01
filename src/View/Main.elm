@@ -52,7 +52,7 @@ viewEditorAndRenderedText : Model -> Element FrontendMsg
 viewEditorAndRenderedText model =
     let
         deltaH =
-            (Geometry.appHeight_ model - 100) // 2 + 130
+            (Geometry.appHeight_ model - 100) // 2 + 135
     in
     E.column (Style.mainColumn model)
         [ E.column [ E.inFront (languageMenu model), E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
@@ -127,7 +127,7 @@ viewRenderedTextOnly : Model -> Element FrontendMsg
 viewRenderedTextOnly model =
     let
         deltaH =
-            (Geometry.appHeight_ model - 100) // 2 + 130
+            (Geometry.appHeight_ model - 100) // 2 + 135
     in
     E.column (Style.mainColumn model)
         [ E.column

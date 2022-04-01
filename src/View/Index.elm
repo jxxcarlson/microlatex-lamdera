@@ -24,7 +24,7 @@ view model width_ deltaH =
                         MPublicDocs ->
                             -150
             in
-            E.column [ E.spacing 8 ]
+            E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
                 [ E.row [ E.spacing 12 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
                 , viewMydocs model deltaH -indexShift
                 , viewPublicDocs model deltaH indexShift

@@ -20,7 +20,6 @@ module Backend exposing
 
 import Abstract exposing (Abstract)
 import Authentication
-import Backend.Backup
 import Backend.Cmd
 import Backend.Update
 import Cmd.Extra
@@ -92,13 +91,6 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend _ clientId msg model =
     case msg of
-        -- ADMIN
-        GetBackupData ->
-            ( model, Backend.Cmd.exportJson model clientId )
-
-        RestoreBackup backendModel ->
-            ( Backend.Backup.oldBackupToNew backendModel, sendToFrontend clientId (SendMessage "... data restored from backup") )
-
         RunTask ->
             ( model, Cmd.none )
 

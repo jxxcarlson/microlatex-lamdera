@@ -1,6 +1,5 @@
 module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
 
-import Backend.Backup
 import Browser.Events
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withNoCmd)
@@ -241,23 +240,6 @@ update msg model =
             Frontend.Update.handleSignOut model
 
         -- ADMIN
-        ExportJson ->
-            ( model, sendToBackend GetBackupData )
-
-        JsonRequested ->
-            ( model, Select.file [ "text/json" ] JsonSelected )
-
-        JsonSelected file ->
-            ( model, Task.perform JsonLoaded (File.toString file) )
-
-        JsonLoaded jsonImport ->
-            case Backend.Backup.decodeBackup jsonImport of
-                Err _ ->
-                    ( { model | message = "Error decoding backup" }, Cmd.none )
-
-                Ok backendModel ->
-                    ( { model | message = "restoring backup ..." }, sendToBackend (RestoreBackup backendModel) )
-
         InputSpecial str ->
             { model | inputSpecial = str } |> withNoCmd
 
