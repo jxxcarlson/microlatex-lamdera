@@ -3,8 +3,6 @@ module View.Button exposing
     , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
-    , setLanguage
-    , languageMenu
     , deleteDocument
     , doSignUp
     , export
@@ -21,6 +19,7 @@ module View.Button exposing
     , home
     , iLink
     , importJson
+    , languageMenu
     , linkTemplate
     , maximizeMyDocs
     , maximizePublicDocs
@@ -31,8 +30,10 @@ module View.Button exposing
     , runSpecial
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
+    , setLanguage
     , setSortModeAlpha
     , setSortModeMostRecent
+    , setUserLanguage
     , showTOCInPhone
     , signIn
     , signOut
@@ -55,7 +56,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), PopupState(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -127,12 +128,28 @@ exportToXMarkdown =
 setLanguage : Language -> Language -> String -> Element FrontendMsg
 setLanguage currentLang targetLang targetLangString =
     let
-        (bg, fg) = if currentLang == targetLang then
-          (Background.color Color.darkRed, Font.color Color.white)
-          else
-          (Background.color (E.rgb 0 0 0), Font.color Color.white)
-   in
-     buttonTemplate [bg, fg, E.width (E.px 100)] (SetLanguage targetLang) targetLangString
+        ( bg, fg ) =
+            if currentLang == targetLang then
+                ( Background.color Color.darkRed, Font.color Color.white )
+
+            else
+                ( Background.color (E.rgb 0 0 0), Font.color Color.white )
+    in
+    buttonTemplate [ bg, fg, E.width (E.px 100) ] (SetLanguage targetLang) targetLangString
+
+
+setUserLanguage : Language -> Language -> String -> Element FrontendMsg
+setUserLanguage currentLang targetLang targetLangString =
+    let
+        ( bg, fg ) =
+            if currentLang == targetLang then
+                ( Background.color Color.darkRed, Font.color Color.white )
+
+            else
+                ( Background.color (E.rgb 0 0 0), Font.color Color.white )
+    in
+    buttonTemplate [ bg, fg, E.width (E.px 100) ] (SetUserLanguage targetLang) targetLangString
+
 
 languageMenu : PopupState -> Language -> Element FrontendMsg
 languageMenu popupState lang =
@@ -142,7 +159,6 @@ languageMenu popupState lang =
                 MicroLaTeXLang ->
                     "lang: µLaTeX"
 
-
                 L0Lang ->
                     "lang: L0"
 
@@ -150,9 +166,10 @@ languageMenu popupState lang =
                     "lang: XMarkdown"
     in
     if popupState == NoPopup then
-       buttonTemplate [] (ChangePopup LanguageMenuPopup) langString
+        buttonTemplate [] (ChangePopup LanguageMenuPopup) langString
+
     else
-      buttonTemplate [] (ChangePopup NoPopup) langString
+        buttonTemplate [] (ChangePopup NoPopup) langString
 
 
 deleteDocument : FrontendModel -> Element FrontendMsg

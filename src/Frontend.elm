@@ -28,7 +28,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), PopupState(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -77,6 +77,7 @@ init url key =
       , inputEmail = ""
       , inputRealname = ""
       , tagDict = Dict.empty
+      , inputLanguage = L0Lang
 
       -- UI
       , appMode = UserMode
@@ -279,7 +280,7 @@ update msg model =
 
         -- UI
         ChangePopup popupState ->
-            ({ model | popupState = popupState}, Cmd.none)
+            ( { model | popupState = popupState }, Cmd.none )
 
         ToggleSideBar ->
             let
@@ -398,6 +399,9 @@ update msg model =
 
         SetLanguage lang ->
             Frontend.Update.setLanguage lang model
+
+        SetUserLanguage lang ->
+            Frontend.Update.setUserLanguage lang model
 
         Render msg_ ->
             Frontend.Update.render model msg_
@@ -681,6 +685,7 @@ updateFromBackend msg model =
                 , inputUsername = ""
                 , inputPassword = ""
                 , inputPasswordAgain = ""
+                , language = user.preferences.language
               }
             , Cmd.none
             )

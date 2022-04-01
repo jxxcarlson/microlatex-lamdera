@@ -395,8 +395,8 @@ gotAtmosphericRandomNumber model result =
 -- USER
 
 
-signUpUser : Model -> ClientId -> String -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
-signUpUser model clientId username transitPassword realname email =
+signUpUser : Model -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
+signUpUser model clientId username lang transitPassword realname email =
     let
         ( randInt, seed ) =
             Random.step (Random.int (Random.minInt // 2) (Random.maxInt - 1000)) model.randomSeed
@@ -414,6 +414,8 @@ signUpUser model clientId username transitPassword realname email =
             , email = email
             , created = model.currentTime
             , modified = model.currentTime
+            , docs = []
+            , preferences = { language = lang }
             }
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of

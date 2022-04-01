@@ -1,0 +1,8 @@
+Run the tokenizer:
+
+  r str = run str |> List.reverse |> T.toString
+
+Look at the symbols:
+
+  s str = run str |> convertTokens |> List.reverse
+

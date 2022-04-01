@@ -112,8 +112,8 @@ updateFromFrontend _ clientId msg model =
         SignInBE username encryptedPassword ->
             Backend.Update.signIn model clientId username encryptedPassword
 
-        SignUpBE username encryptedPassword realname email ->
-            Backend.Update.signUpUser model clientId username encryptedPassword realname email
+        SignUpBE username lang encryptedPassword realname email ->
+            Backend.Update.signUpUser model clientId username lang encryptedPassword realname email
 
         -- DOCUMENTS
         GetUserTagsFromBE author ->

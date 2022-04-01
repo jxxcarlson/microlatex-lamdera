@@ -202,6 +202,8 @@ userCodec =
         |> Codec.field "email" .email Codec.string
         |> Codec.field "created" .created posixCodec
         |> Codec.field "modified" .modified posixCodec
+        |> Codec.field "docs" .docs (Codec.list docInfoCodec)
+        |> Codec.field "preferences" .preferences preferencesCodec
         |> Codec.buildObject
 
 
@@ -238,13 +240,14 @@ documentCodec =
         |> Codec.field "author" .author (Codec.maybe Codec.string)
         |> Codec.field "language" .language languageCodec
         |> Codec.field "readOnly" .readOnly Codec.bool
+        |> Codec.field "tags" .tags (Codec.list Codec.string)
         |> Codec.buildObject
 
 
 languageCodec : Codec Language
 languageCodec =
     Codec.custom
-        (\l0lang microlatexlang value ->
+        (\l0lang microlatexlang xmarkdownLang value ->
             case value of
                 L0Lang ->
                     l0lang
@@ -253,11 +256,11 @@ languageCodec =
                     microlatexlang
 
                 XMarkdownLang ->
-                    -- TODO: ???
-                    microlatexlang
+                    xmarkdownLang
         )
         |> Codec.variant0 "L0Language" L0Lang
         |> Codec.variant0 "MicroLaTeXLang" MicroLaTeXLang
+        |> Codec.variant0 "XMarkdownLang" XMarkdownLang
         |> Codec.buildCustom
 
 
@@ -269,3 +272,18 @@ posixCodec =
 randomSeedCodec : Codec Random.Seed
 randomSeedCodec =
     Codec.map Random.initialSeed (\_ -> 0) Codec.int
+
+
+preferencesCodec : Codec User.Preferences
+preferencesCodec =
+    Codec.object User.Preferences
+        |> Codec.field "language" .language languageCodec
+        |> Codec.buildObject
+
+
+docInfoCodec : Codec User.DocInfo
+docInfoCodec =
+    Codec.object User.DocInfo
+        |> Codec.field "title" .title Codec.string
+        |> Codec.field "id" .id Codec.string
+        |> Codec.buildObject

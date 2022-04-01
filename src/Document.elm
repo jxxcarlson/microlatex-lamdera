@@ -22,6 +22,7 @@ type alias Document =
     , author : Maybe String
     , language : Language
     , readOnly : Bool
+    , tags : List String
     }
 
 
@@ -55,6 +56,7 @@ empty =
     , author = Nothing
     , language = MicroLaTeXLang
     , readOnly = False
+    , tags = []
     }
 
 

@@ -1,6 +1,5 @@
 module Frontend.Update exposing
     ( adjustId
-    , setLanguage
     , debounceMsg
     , deleteDocument
     , exportToLaTeX
@@ -20,8 +19,10 @@ module Frontend.Update exposing
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
     , setInitialEditorContent
+    , setLanguage
     , setPublic
     , setPublicDocumentAsCurrentById
+    , setUserLanguage
     , setViewportForElement
     , syncLR
     , updateCurrentDocument
@@ -54,7 +55,7 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
-import Types exposing (PopupState(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), ToBackend(..))
+import Types exposing (DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), ToBackend(..))
 import View.Utility
 
 
@@ -231,6 +232,10 @@ render model msg_ =
 
 setLanguage lang model =
     ( { model | language = lang, popupState = NoPopup }, Cmd.none )
+
+
+setUserLanguage lang model =
+    ( { model | inputLanguage = lang, popupState = NoPopup }, Cmd.none )
 
 
 firstSyncLR model searchSourceText =
@@ -460,7 +465,7 @@ handleSignUp model =
     in
     if List.isEmpty errors then
         ( model
-        , sendToBackend (SignUpBE model.inputUsername (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
+        , sendToBackend (SignUpBE model.inputUsername model.inputLanguage (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
         )
 
     else
