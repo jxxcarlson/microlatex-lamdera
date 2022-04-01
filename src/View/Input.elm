@@ -79,7 +79,7 @@ username model =
 
 
 title model =
-    inputFieldTemplate (E.px 550) "Title" InputTitle model.inputTitle
+    inputFieldTemplate (E.px 500) "Title" InputTitle model.inputTitle
 
 
 signUpInputWidth =

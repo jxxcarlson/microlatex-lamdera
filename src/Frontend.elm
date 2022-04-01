@@ -364,7 +364,7 @@ update msg model =
             ( model, Cmd.none )
 
         CloseEditor ->
-            ( { model | showEditor = False, initialText = "" }, sendToBackend GetPublicDocuments )
+            ( { model | showEditor = False, initialText = "", popupState = NoPopup }, sendToBackend GetPublicDocuments )
 
         OpenEditor ->
             case model.currentDocument of
@@ -566,6 +566,7 @@ updateDoc model str =
                     | currentDocument = Just newDocument
                     , counter = model.counter + 1
                     , documents = documents
+                    , currentUser = Frontend.Update.addDocToCurrentUser model doc
                   }
                 , sendToBackend (SaveDocument model.currentUser newDocument)
                 )

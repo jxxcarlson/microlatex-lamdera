@@ -3,6 +3,7 @@ module View.Button exposing
     , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
+    , closePopUp
     , createDocument
     , deleteDocument
     , doSignUp
@@ -311,7 +312,7 @@ toggleDocumentList currentDocumentList =
             buttonTemplate [ E.width (E.px 90) ] (SelectList StandardList) "Work"
 
         StandardList ->
-            buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "All"
+            buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "My docs"
 
 
 
@@ -367,6 +368,11 @@ popupNewDocumentForm popupState =
 
         _ ->
             buttonTemplate [] (ChangePopup NoPopup) "New"
+
+
+closePopUp : Element FrontendMsg
+closePopUp =
+    buttonTemplate [] (ChangePopup NoPopup) "x"
 
 
 closeEditor : Element FrontendMsg

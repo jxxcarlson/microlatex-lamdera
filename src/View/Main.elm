@@ -55,7 +55,14 @@ viewEditorAndRenderedText model =
             (Geometry.appHeight_ model - 100) // 2 + 135
     in
     E.column (Style.mainColumn model)
-        [ E.column [ E.inFront (languageMenu model), E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+        [ E.column
+            [ E.inFront (languageMenu model)
+            , E.spacing 12
+            , E.centerX
+            , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+            , E.height (E.px (Geometry.appHeight_ model))
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
+            ]
             [ headerRow model
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
@@ -96,7 +103,7 @@ newDocumentPopup model =
                         ""
             in
             E.column [ Font.size 14, E.moveDown 35, E.spacing 36, E.padding 20, Background.color (Color.gray 0.35), E.width (E.px 600), E.height (E.px 250) ]
-                [ View.Input.title model
+                [ E.row [ E.spacing 12 ] [ View.Input.title model, Button.closePopUp ]
                 , E.el [ Font.color Color.white ] (E.text message)
                 , E.row [ E.spacing 12 ]
                     [ E.el [ Font.color Color.white ] (E.text "Language")
@@ -132,7 +139,7 @@ viewRenderedTextOnly model =
     E.column (Style.mainColumn model)
         [ E.column
             [ E.inFront (languageMenu model)
-            , E.inFront (newDocumentPopup model)
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.centerX
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))

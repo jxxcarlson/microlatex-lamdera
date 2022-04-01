@@ -1,5 +1,6 @@
 module Frontend.Update exposing
-    ( adjustId
+    ( addDocToCurrentUser
+    , adjustId
     , debounceMsg
     , deleteDocument
     , exportToLaTeX
@@ -58,6 +59,7 @@ import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
 import Types exposing (DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), ToBackend(..))
+import User exposing (User)
 import View.Utility
 
 
@@ -126,10 +128,20 @@ deleteDocument model =
             ( model, Cmd.none )
 
         Just doc ->
+            let
+                newUser =
+                    case model.currentUser of
+                        Nothing ->
+                            Nothing
+
+                        Just user ->
+                            deleteDocFromCurrentUser model doc
+            in
             ( { model
                 | currentDocument = Just Docs.deleted
                 , documents = List.filter (\d -> d.id /= doc.id) model.documents
                 , deleteDocumentState = WaitingForDeleteAction
+                , currentUser = newUser
               }
             , Cmd.batch [ sendToBackend (DeleteDocumentBE doc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
@@ -357,6 +369,43 @@ isMaster editRecord =
     Compiler.ASTTools.existsBlockWithName editRecord.parsed "collection"
 
 
+addDocToCurrentUser : FrontendModel -> Document -> Maybe User
+addDocToCurrentUser model doc =
+    case model.currentUser of
+        Nothing ->
+            Nothing
+
+        Just user ->
+            let
+                docs =
+                    if BoundedDeque.member doc user.docs then
+                        user.docs
+
+                    else
+                        BoundedDeque.pushFront doc user.docs
+
+                newUser =
+                    { user | docs = docs }
+            in
+            Just newUser
+
+
+deleteDocFromCurrentUser model doc =
+    case model.currentUser of
+        Nothing ->
+            Nothing
+
+        Just user ->
+            let
+                newDocs =
+                    BoundedDeque.filter (\d -> d.id /= doc.id) user.docs
+
+                newUser =
+                    { user | docs = newDocs }
+            in
+            Just newUser
+
+
 setDocumentAsCurrent model doc permissions =
     let
         newEditRecord =
@@ -370,23 +419,7 @@ setDocumentAsCurrent model doc permissions =
                 Nothing
 
         newCurrentUser =
-            case model.currentUser of
-                Nothing ->
-                    Nothing
-
-                Just user ->
-                    let
-                        docs =
-                            if BoundedDeque.member doc user.docs then
-                                user.docs
-
-                            else
-                                BoundedDeque.pushFront doc user.docs
-
-                        newUser =
-                            { user | docs = docs }
-                    in
-                    Just newUser
+            addDocToCurrentUser model doc
     in
     ( { model
         | currentDocument = Just doc
