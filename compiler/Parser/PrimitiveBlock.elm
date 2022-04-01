@@ -91,6 +91,7 @@ parsePlainText lines =
         rest =
             List.drop 2 lines
 
+        --  |> List.Extra.dropWhile (\line -> line == "")
         title =
             if String.contains "| title" (List.head firstLines |> Maybe.withDefault "") then
                 List.Extra.getAt 1 firstLines |> Maybe.withDefault "((no title))" |> String.trim
@@ -100,14 +101,15 @@ parsePlainText lines =
 
         titleBLock =
             { empty
-                | name = Just title
+                | name = Just "title"
                 , args = []
                 , named = True
+                , content = [ "| title", title, "" ]
                 , sourceText = String.join "\n" lines
                 , blockType = PBOrdinary
             }
     in
-    titleBLock :: parsePlainText_ rest |> Debug.log "parsePlainText"
+    titleBLock :: parsePlainText_ rest
 
 
 parsePlainText_ : List String -> List PrimitiveBlock
@@ -116,7 +118,7 @@ parsePlainText_ lines =
       , lineNumber = 0
       , position = 0
       , content = lines
-      , name = Just "plain"
+      , name = Just "verbatim"
       , args = []
       , named = True
       , sourceText = String.join "\n" lines
