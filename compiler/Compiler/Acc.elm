@@ -19,6 +19,7 @@ import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language)
 import Parser.MathMacro
+import Tools
 import Tree exposing (Tree)
 
 
@@ -204,6 +205,13 @@ updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, conten
                     List.head args |> Maybe.withDefault "1"
             in
             updateWithOrdinaryDocumentBlock accumulator name content level id
+
+        ( Just "setcounter", OrdinaryBlock _ ) ->
+            let
+                n =
+                    List.head args |> Maybe.andThen String.toInt |> Maybe.withDefault 1
+            in
+            { accumulator | headingIndex = { content = [ n, 0, 0, 0 ], size = 4 } }
 
         ( Just "bibitem", OrdinaryBlock _ ) ->
             updateBibItemBlock accumulator args content id
