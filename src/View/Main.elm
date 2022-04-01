@@ -117,7 +117,7 @@ newDocumentPopup model =
 
 
 headerRow model =
-    E.column [ E.spacing 4, Background.color Color.darkGray, E.padding 12, E.width E.fill ]
+    E.column [ E.spacing 8, Background.color Color.darkGray, E.padding 12, E.width E.fill ]
         [ TopHeader.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
         , Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
         ]
@@ -138,7 +138,7 @@ viewRenderedTextOnly model =
             , E.height (E.px (Geometry.appHeight_ model))
             ]
             [ headerRow model
-            , E.row [ E.spacing 12, E.inFront (SignUp.view model) ]
+            , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
                 , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
                 , Sidebar.view model
