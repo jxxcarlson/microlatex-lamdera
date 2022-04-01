@@ -562,11 +562,17 @@ setDocAsCurrentWithDocInfo currentDocument documents docInfo =
                 |> String.replace "  " " "
                 |> View.Utility.truncateString 40
 
+        emptydoc =
+            Document.empty
+
         targetDocument =
-            List.filter (\d -> d.id == docInfo.id) documents |> List.head |> Maybe.withDefault Document.empty
+            List.filter (\d -> d.id == docInfo.id) documents |> List.head |> Maybe.withDefault { emptydoc | title = "Oops!" }
     in
     Input.button []
-        { onPress = Just (SetDocumentAsCurrent Types.CanEdit targetDocument)
+        --{ onPress = Just (SetDocumentAsCurrent Types.CanEdit targetDocument)
+        --, label = E.el [ Font.size 14, fg, style ] (E.text titleString)
+        --}
+        { onPress = Just (Fetch docInfo.id)
         , label = E.el [ Font.size 14, fg, style ] (E.text titleString)
         }
 
