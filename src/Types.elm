@@ -69,6 +69,7 @@ type alias FrontendModel =
     , documentsCreatedCounter : Int
     , initialText : String
     , sourceText : String
+    , inputTitle : String
 
     --, ast : Markup.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord
@@ -97,6 +98,7 @@ type alias FrontendModel =
 type PopupState
     = NoPopup
     | LanguageMenuPopup
+    | NewDocumentPopup
 
 
 type TagSelection
@@ -269,7 +271,7 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- DOC
-    | SetLanguage Language
+    | SetLanguage Bool Language
     | Fetch String
     | SetPublicDocumentAsCurrentById String
     | SetInitialEditorContent
@@ -277,6 +279,7 @@ type FrontendMsg
     | ShowTOCInPhone
     | InputSearchSource String
     | InputText String
+    | InputTitle String
     | DebounceMsg Debounce.Msg
     | Saved String
     | InputSearchKey String

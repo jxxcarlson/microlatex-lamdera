@@ -128,6 +128,7 @@ init url key =
       , deleteDocumentState = WaitingForDeleteAction
       , sortMode = SortByMostRecent
       , language = MicroLaTeXLang
+      , inputTitle = ""
       }
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
@@ -397,8 +398,8 @@ update msg model =
         GetPublicTags ->
             ( { model | tagSelection = TagPublic }, sendToBackend GetPublicTagsFromBE )
 
-        SetLanguage lang ->
-            Frontend.Update.setLanguage lang model
+        SetLanguage dismiss lang ->
+            Frontend.Update.setLanguage dismiss lang model
 
         SetUserLanguage lang ->
             Frontend.Update.setUserLanguage lang model
@@ -423,6 +424,9 @@ update msg model =
 
         InputText str ->
             Frontend.Update.inputText model str
+
+        InputTitle str ->
+            Frontend.Update.inputTitle model str
 
         SetInitialEditorContent ->
             Frontend.Update.setInitialEditorContent model
@@ -488,6 +492,9 @@ update msg model =
                             ( model, Download.string "out-microlatex.txt" "text/plain" newText )
 
                         L0Lang ->
+                            ( model, Download.string "out-l0.txt" "text/plain" doc.content )
+
+                        PlainTextLang ->
                             ( model, Download.string "out-l0.txt" "text/plain" doc.content )
 
                         XMarkdownLang ->

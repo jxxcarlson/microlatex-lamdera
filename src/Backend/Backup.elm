@@ -247,7 +247,7 @@ documentCodec =
 languageCodec : Codec Language
 languageCodec =
     Codec.custom
-        (\l0lang microlatexlang xmarkdownLang value ->
+        (\l0lang microlatexlang plaintextlang xmarkdownLang value ->
             case value of
                 L0Lang ->
                     l0lang
@@ -255,11 +255,15 @@ languageCodec =
                 MicroLaTeXLang ->
                     microlatexlang
 
+                PlainTextLang ->
+                    plaintextlang
+
                 XMarkdownLang ->
                     xmarkdownLang
         )
         |> Codec.variant0 "L0Language" L0Lang
         |> Codec.variant0 "MicroLaTeXLang" MicroLaTeXLang
+        |> Codec.variant0 "PlainTextLang" PlainTextLang
         |> Codec.variant0 "XMarkdownLang" XMarkdownLang
         |> Codec.buildCustom
 

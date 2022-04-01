@@ -107,6 +107,7 @@ size t =
 -}
 getItem : Language -> String -> String -> String
 getItem language key str =
+    -- TODO: fix this
     case language of
         L0Lang ->
             runParser (keyValParser key) str ""
@@ -114,9 +115,11 @@ getItem language key str =
         MicroLaTeXLang ->
             runParser (macroValParser key) str ""
 
+        PlainTextLang ->
+            runParser (keyValParser key) str ""
+
         XMarkdownLang ->
-            -- TODO: implement this
-            "((unimplemented))"
+            runParser (keyValParser key) str ""
 
 
 getMicroLaTeXItem : String -> String -> Maybe String
@@ -173,6 +176,9 @@ eraseItem language key value str =
                     "[" ++ key ++ " " ++ value ++ "]\n"
             in
             String.replace target "" str
+
+        PlainTextLang ->
+            str
 
         MicroLaTeXLang ->
             let

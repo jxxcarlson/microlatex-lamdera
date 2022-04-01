@@ -11,6 +11,7 @@ module Parser.PrimitiveBlock exposing
 
 -}
 
+import List.Extra
 import MicroLaTeX.Parser.TransformLaTeX
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
@@ -73,9 +74,55 @@ parse lang isVerbatimLine lines =
         MicroLaTeXLang ->
             lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> parse_ lang isVerbatimLine
 
+        PlainTextLang ->
+            parsePlainText lines
+
         XMarkdownLang ->
             -- lines |> MicroLaTeX.Parser.TransformLaTeX.toL0 |> parse_ isVerbatimLine
             lines |> parse_ lang isVerbatimLine
+
+
+parsePlainText : List String -> List PrimitiveBlock
+parsePlainText lines =
+    let
+        firstLines =
+            List.take 2 lines
+
+        rest =
+            List.drop 2 lines
+
+        title =
+            if String.contains "| title" (List.head firstLines |> Maybe.withDefault "") then
+                List.Extra.getAt 1 firstLines |> Maybe.withDefault "((no title))" |> String.trim
+
+            else
+                "((no title))"
+
+        titleBLock =
+            { empty
+                | name = Just title
+                , args = []
+                , named = True
+                , sourceText = String.join "\n" lines
+                , blockType = PBOrdinary
+            }
+    in
+    titleBLock :: parsePlainText_ rest |> Debug.log "parsePlainText"
+
+
+parsePlainText_ : List String -> List PrimitiveBlock
+parsePlainText_ lines =
+    [ { indent = 0
+      , lineNumber = 0
+      , position = 0
+      , content = lines
+      , name = Just "plain"
+      , args = []
+      , named = True
+      , sourceText = String.join "\n" lines
+      , blockType = PBVerbatim
+      }
+    ]
 
 
 parse_ : Language -> (String -> Bool) -> List String -> List PrimitiveBlock

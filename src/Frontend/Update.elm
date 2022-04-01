@@ -10,6 +10,7 @@ module Frontend.Update exposing
     , handleSignUp
     , handleUrlRequest
     , inputText
+    , inputTitle
     , isMaster
     , newDocument
     , nextSyncLR
@@ -163,6 +164,10 @@ save s =
     Task.perform Saved (Task.succeed s)
 
 
+inputTitle model str =
+    ( { model | inputTitle = str }, Cmd.none )
+
+
 inputText model str =
     let
         -- Push your values here.
@@ -230,8 +235,12 @@ render model msg_ =
             ( model, sendToBackend (FetchDocumentById id (Maybe.map .username model.currentUser)) )
 
 
-setLanguage lang model =
-    ( { model | language = lang, popupState = NoPopup }, Cmd.none )
+setLanguage dismiss lang model =
+    if dismiss then
+        ( { model | language = lang, popupState = NoPopup }, Cmd.none )
+
+    else
+        ( { model | language = lang }, Cmd.none )
 
 
 setUserLanguage lang model =
@@ -552,28 +561,22 @@ newDocument model =
             model.documentsCreatedCounter + 1
 
         title =
-            "New Document (" ++ String.fromInt documentsCreatedCounter ++ ")"
-
-        titleString =
             case model.language of
-                L0Lang ->
-                    "| title\n" ++ title ++ "\n\n"
-
                 MicroLaTeXLang ->
-                    "\\title{" ++ title ++ "}\n\n"
+                    "\\title{" ++ model.inputTitle ++ "}\n\n"
 
-                XMarkdownLang ->
-                    "| title\n" ++ title ++ "\n\n"
+                _ ->
+                    "| title\n" ++ model.inputTitle ++ "\n\n"
 
         doc =
             { emptyDoc
                 | title = title
-                , content = titleString
+                , content = title
                 , author = Maybe.map .username model.currentUser
                 , language = model.language
             }
     in
-    ( { model | showEditor = True, documentsCreatedCounter = documentsCreatedCounter }
+    ( { model | showEditor = True, documentsCreatedCounter = documentsCreatedCounter, popupState = NoPopup }
     , Cmd.batch [ sendToBackend (CreateDocument model.currentUser doc) ]
     )
 

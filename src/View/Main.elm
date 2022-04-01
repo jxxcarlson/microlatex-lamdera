@@ -1,23 +1,25 @@
 module View.Main exposing (view)
 
 import Element as E exposing (Element)
+import Element.Background as Background
+import Element.Font as Font
 import Html exposing (Html)
-import Types exposing (AppMode(..), PopupState(..), FrontendModel, FrontendMsg)
+import Parser.Language exposing (Language(..))
+import Types exposing (AppMode(..), FrontendModel, FrontendMsg, PopupState(..))
 import View.Admin as Admin
+import View.Button as Button
+import View.Color as Color
 import View.Editor as Editor
 import View.Footer as Footer
 import View.Geometry as Geometry
 import View.Header as Header
 import View.Index as Index
+import View.Input
 import View.Rendered as Rendered
 import View.Sidebar as Sidebar
 import View.SignUp as SignUp
 import View.Style as Style
 import View.Utility
-import Element.Background as Background
-import View.Color as Color
-import View.Button as Button
-import Parser.Language exposing (Language(..))
 
 
 type alias Model =
@@ -52,9 +54,9 @@ viewEditorAndRenderedText model =
             (Geometry.appHeight_ model - 100) // 2 + 130
     in
     E.column (Style.mainColumn model)
-        [ E.column [E.inFront (languageMenu model), E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+        [ E.column [ E.inFront (languageMenu model), E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
             [ Header.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
-            , E.row [ E.spacing 12  ]
+            , E.row [ E.spacing 12 ]
                 [ Editor.view model
                 , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
                 , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) deltaH
@@ -64,16 +66,54 @@ viewEditorAndRenderedText model =
             ]
         ]
 
+
 languageMenu : FrontendModel -> Element FrontendMsg
 languageMenu model =
     case model.popupState of
         LanguageMenuPopup ->
-            E.column [E.moveDown 35, E.spacing 12, E.padding 20, Background.color (Color.gray 0.35), E.width (E.px 200), E.height (E.px 300)] [
-              Button.setLanguage model.language L0Lang "L0"
-              ,Button.setLanguage model.language MicroLaTeXLang "MicroLaTeX"
-              ,Button.setLanguage model.language XMarkdownLang "XMarkdown"
-              ]
-        _ -> E.none
+            E.column [ E.moveDown 35, E.spacing 12, E.padding 20, Background.color (Color.gray 0.35), E.width (E.px 200), E.height (E.px 300) ]
+                [ Button.setLanguage True model.language L0Lang "L0"
+                , Button.setLanguage True model.language MicroLaTeXLang "MicroLaTeX"
+                , Button.setLanguage True model.language PlainTextLang "Plain text"
+                , Button.setLanguage True model.language XMarkdownLang "XMarkdown"
+                ]
+
+        _ ->
+            E.none
+
+
+newDocumentPopup : FrontendModel -> Element FrontendMsg
+newDocumentPopup model =
+    case model.popupState of
+        NewDocumentPopup ->
+            let
+                message =
+                    if String.length model.inputTitle < 4 then
+                        "Title must contain at least three letters"
+
+                    else
+                        ""
+            in
+            E.column [ Font.size 14, E.moveDown 35, E.spacing 36, E.padding 20, Background.color (Color.gray 0.35), E.width (E.px 600), E.height (E.px 250) ]
+                [ View.Input.title model
+                , E.el [ Font.color Color.white ] (E.text message)
+                , E.row [ E.spacing 12 ]
+                    [ E.el [ Font.color Color.white ] (E.text "Language")
+                    , Button.setLanguage False model.language L0Lang "L0"
+                    , Button.setLanguage False model.language MicroLaTeXLang "MicroLaTeX"
+                    , Button.setLanguage False model.language PlainTextLang "Plain text"
+                    , Button.setLanguage False model.language XMarkdownLang "XMarkdown"
+                    ]
+                , if String.length model.inputTitle >= 3 then
+                    Button.createDocument
+
+                  else
+                    E.none
+                ]
+
+        _ ->
+            E.none
+
 
 viewRenderedTextOnly : Model -> Element FrontendMsg
 viewRenderedTextOnly model =
@@ -82,7 +122,14 @@ viewRenderedTextOnly model =
             (Geometry.appHeight_ model - 100) // 2 + 130
     in
     E.column (Style.mainColumn model)
-        [ E.column [ E.inFront (languageMenu model), E.centerX, E.spacing 12, E.width (E.px <| Geometry.smallAppWidth model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+        [ E.column
+            [ E.inFront (languageMenu model)
+            , E.inFront (newDocumentPopup model)
+            , E.centerX
+            , E.spacing 12
+            , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
+            , E.height (E.px (Geometry.appHeight_ model))
+            ]
             [ Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
             , E.row [ E.spacing 12, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
@@ -99,6 +146,6 @@ viewRenderedTextOnly model =
 
 
 viewRenderedContainer model =
-    E.column [ E.spacing 18]
+    E.column [ E.spacing 18 ]
         [ Rendered.view model (Geometry.smallPanelWidth model.windowWidth)
         ]

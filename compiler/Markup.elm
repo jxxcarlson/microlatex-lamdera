@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , f, g, h, isVerbatimLine, toPrimitiveBlockForest, x1, x2
+    , f, g, h, isVerbatimLine, parsePlainText, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -19,6 +19,7 @@ import L0.Parser.Expression
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil
+import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
@@ -52,12 +53,20 @@ parse lang sourceText =
                 L0Lang ->
                     L0.Parser.Expression.parse
 
+                PlainTextLang ->
+                    parsePlainText
+
                 XMarkdownLang ->
                     XMarkdown.Expression.parse
     in
     sourceText
         |> toPrimitiveBlockForest lang
         |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlock parser))
+
+
+parsePlainText : Int -> String -> List Parser.Expr.Expr
+parsePlainText lineNumber str =
+    [ Text str { begin = 0, end = 0, index = 0, id = "??" } ]
 
 
 emptyBlock =

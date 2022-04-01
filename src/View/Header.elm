@@ -4,7 +4,6 @@ import Config
 import Document
 import Element as E exposing (Element)
 import Element.Font as Font
-
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
 import View.Color as Color
@@ -13,14 +12,13 @@ import View.Style
 import View.Utility
 
 
-
 view : FrontendModel -> b -> Element FrontendMsg
 view model _ =
     E.row [ E.spacing 12, E.width E.fill ]
         [ View.Utility.hideIf (model.currentUser == Nothing) (Button.languageMenu model.popupState model.language)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor Button.closeEditor)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.hideIf model.showEditor Button.openEditor)
-        , View.Utility.hideIf (model.currentUser == Nothing) Button.newDocument
+        , View.Utility.hideIf (model.currentUser == Nothing) (Button.popupNewDocumentForm model.popupState)
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.deleteDocument model)
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument))
@@ -38,9 +36,7 @@ view model _ =
         -- , Button.help
         , E.el [ E.alignRight ] (title Config.appName)
         , E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (Button.toggleSidebar model.sidebarState)
-
         ]
-
 
 
 title : String -> Element msg

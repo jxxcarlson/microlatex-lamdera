@@ -3,6 +3,7 @@ module View.Button exposing
     , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
+    , createDocument
     , deleteDocument
     , doSignUp
     , export
@@ -23,9 +24,9 @@ module View.Button exposing
     , linkTemplate
     , maximizeMyDocs
     , maximizePublicDocs
-    , newDocument
     , nextSyncButton
     , openEditor
+    , popupNewDocumentForm
     , printToPDF
     , runSpecial
     , setDocumentAsCurrent
@@ -125,8 +126,8 @@ exportToXMarkdown =
     buttonTemplate [] (ExportTo XMarkdownLang) "Export to XMarkdown"
 
 
-setLanguage : Language -> Language -> String -> Element FrontendMsg
-setLanguage currentLang targetLang targetLangString =
+setLanguage : Bool -> Language -> Language -> String -> Element FrontendMsg
+setLanguage dismiss currentLang targetLang targetLangString =
     let
         ( bg, fg ) =
             if currentLang == targetLang then
@@ -135,7 +136,7 @@ setLanguage currentLang targetLang targetLangString =
             else
                 ( Background.color (E.rgb 0 0 0), Font.color Color.white )
     in
-    buttonTemplate [ bg, fg, E.width (E.px 100) ] (SetLanguage targetLang) targetLangString
+    buttonTemplate [ bg, fg, E.width (E.px 100) ] (SetLanguage dismiss targetLang) targetLangString
 
 
 setUserLanguage : Language -> Language -> String -> Element FrontendMsg
@@ -161,6 +162,9 @@ languageMenu popupState lang =
 
                 L0Lang ->
                     "lang: L0"
+
+                PlainTextLang ->
+                    "lang: Plain"
 
                 XMarkdownLang ->
                     "lang: XMarkdown"
@@ -342,9 +346,19 @@ printToPDF model =
                 { url = Config.pdfServer ++ "/pdf/" ++ (Maybe.map .id model.currentDocument |> Maybe.withDefault "???"), label = E.el [] (E.text "Click for PDF") }
 
 
-newDocument : Element FrontendMsg
-newDocument =
-    buttonTemplate [] NewDocument "New"
+createDocument : Element FrontendMsg
+createDocument =
+    buttonTemplate [] NewDocument "Create"
+
+
+popupNewDocumentForm : PopupState -> Element FrontendMsg
+popupNewDocumentForm popupState =
+    case popupState of
+        NoPopup ->
+            buttonTemplate [] (ChangePopup NewDocumentPopup) "New"
+
+        _ ->
+            buttonTemplate [] (ChangePopup NoPopup) "New"
 
 
 closeEditor : Element FrontendMsg

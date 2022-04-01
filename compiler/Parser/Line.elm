@@ -116,8 +116,10 @@ getNameAndArgs lang line =
             else
                 ( PBParagraph, Nothing, [] )
 
+        PlainTextLang ->
+            ( PBParagraph, Nothing, [] )
+
         XMarkdownLang ->
-            -- TODO: implement this
             if String.left 3 line.content == "```" then
                 ( PBVerbatim, Just "code", [] )
 

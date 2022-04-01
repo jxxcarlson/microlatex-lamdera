@@ -49,5 +49,8 @@ parser lang =
         L0Lang ->
             Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)
 
+        PlainTextLang ->
+            Tree.map (Parser.BlockUtil.toExpressionBlock Markup.parsePlainText)
+
         XMarkdownLang ->
             Tree.map (Parser.BlockUtil.toExpressionBlock XMarkdown.Expression.parse)

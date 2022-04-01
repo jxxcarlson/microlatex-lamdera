@@ -112,6 +112,7 @@ runParser stringParser str default =
 
 getItem : Language -> String -> String -> String
 getItem language key str =
+    -- TODO: review this
     case language of
         -- TODO: deal with the XX's
         L0Lang ->
@@ -120,12 +121,16 @@ getItem language key str =
         MicroLaTeXLang ->
             runParser (macroValParser key) str ("XX:" ++ key)
 
+        PlainTextLang ->
+            "XX:" ++ key
+
         XMarkdownLang ->
             "XX:" ++ key
 
 
 get : Maybe String -> Language -> String -> Abstract
 get author_ lang source =
+    -- TODO: review this
     let
         author =
             case author_ of
@@ -135,25 +140,7 @@ get author_ lang source =
                 Just realAuthor ->
                     realAuthor
     in
-    case lang of
-        L0Lang ->
-            getForL0 author source
-
-        MicroLaTeXLang ->
-            getForMiniLaTeX author source
-
-        XMarkdownLang ->
-            getforXMarkdown author source
-
-
-getforXMarkdown author source =
-    -- TODO: implement this
-    { title = "?? (1)"
-    , author = author
-    , abstract = "?? (2)"
-    , tags = "no tags"
-    , digest = [] |> String.join " " |> String.toLower
-    }
+    getForL0 author source
 
 
 getForL0 : String -> String -> Abstract

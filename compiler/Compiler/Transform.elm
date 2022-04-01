@@ -15,6 +15,9 @@ transform lang block =
         MicroLaTeXLang ->
             MicroLaTeX.Parser.Transform.transform block
 
+        PlainTextLang ->
+            block
+
         XMarkdownLang ->
             -- TODO: implement this
             XMarkdown.Transform.transform block
