@@ -28,7 +28,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), PopupState(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -91,6 +91,7 @@ init url key =
       , sidebarState = SidebarIn
       , tagSelection = TagNeither
       , signupState = HideSignUpForm
+      , popupState = NoPopup
 
       -- SYNC
       , doSync = False
@@ -277,6 +278,9 @@ update msg model =
             ( { model | inputEmail = str }, Cmd.none )
 
         -- UI
+        ChangePopup popupState ->
+            ({ model | popupState = popupState}, Cmd.none)
+
         ToggleSideBar ->
             let
                 tagSelection =
@@ -392,8 +396,8 @@ update msg model =
         GetPublicTags ->
             ( { model | tagSelection = TagPublic }, sendToBackend GetPublicTagsFromBE )
 
-        CycleLanguage ->
-            Frontend.Update.cycleLanguage model
+        SetLanguage lang ->
+            Frontend.Update.setLanguage lang model
 
         Render msg_ ->
             Frontend.Update.render model msg_

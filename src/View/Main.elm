@@ -2,7 +2,7 @@ module View.Main exposing (view)
 
 import Element as E exposing (Element)
 import Html exposing (Html)
-import Types exposing (AppMode(..), FrontendModel, FrontendMsg)
+import Types exposing (AppMode(..), PopupState(..), FrontendModel, FrontendMsg)
 import View.Admin as Admin
 import View.Editor as Editor
 import View.Footer as Footer
@@ -14,6 +14,10 @@ import View.Sidebar as Sidebar
 import View.SignUp as SignUp
 import View.Style as Style
 import View.Utility
+import Element.Background as Background
+import View.Color as Color
+import View.Button as Button
+import Parser.Language exposing (Language(..))
 
 
 type alias Model =
@@ -48,9 +52,9 @@ viewEditorAndRenderedText model =
             (Geometry.appHeight_ model - 100) // 2 + 130
     in
     E.column (Style.mainColumn model)
-        [ E.column [ E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+        [ E.column [E.inFront (languageMenu model), E.spacing 12, E.centerX, E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
             [ Header.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
-            , E.row [ E.spacing 12 ]
+            , E.row [ E.spacing 12  ]
                 [ Editor.view model
                 , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
                 , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) deltaH
@@ -60,6 +64,16 @@ viewEditorAndRenderedText model =
             ]
         ]
 
+languageMenu : FrontendModel -> Element FrontendMsg
+languageMenu model =
+    case model.popupState of
+        LanguageMenuPopup ->
+            E.column [E.moveDown 35, E.spacing 12, E.padding 20, Background.color (Color.gray 0.35), E.width (E.px 200), E.height (E.px 300)] [
+              Button.setLanguage model.language L0Lang "L0"
+              ,Button.setLanguage model.language MicroLaTeXLang "MicroLaTeX"
+              ,Button.setLanguage model.language XMarkdownLang "XMarkdown"
+              ]
+        _ -> E.none
 
 viewRenderedTextOnly : Model -> Element FrontendMsg
 viewRenderedTextOnly model =
@@ -68,7 +82,7 @@ viewRenderedTextOnly model =
             (Geometry.appHeight_ model - 100) // 2 + 130
     in
     E.column (Style.mainColumn model)
-        [ E.column [ E.centerX, E.spacing 12, E.width (E.px <| Geometry.smallAppWidth model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
+        [ E.column [ E.inFront (languageMenu model), E.centerX, E.spacing 12, E.width (E.px <| Geometry.smallAppWidth model.windowWidth), E.height (E.px (Geometry.appHeight_ model)) ]
             [ Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
             , E.row [ E.spacing 12, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
@@ -85,6 +99,6 @@ viewRenderedTextOnly model =
 
 
 viewRenderedContainer model =
-    E.column [ E.spacing 18 ]
+    E.column [ E.spacing 18]
         [ Rendered.view model (Geometry.smallPanelWidth model.windowWidth)
         ]

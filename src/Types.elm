@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, PopupState(..), AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -53,6 +53,7 @@ type alias FrontendModel =
     , sidebarState : SidebarState
     , tagSelection : TagSelection
     , signupState : SignupState
+    , popupState : PopupState
 
     -- SYNC
     , foundIds : List String
@@ -90,6 +91,8 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+type PopupState = NoPopup | LanguageMenuPopup
 
 
 type TagSelection
@@ -259,8 +262,9 @@ type FrontendMsg
     | CloseCollectionIndex
     | ToggleIndexSize
     | ToggleSideBar
+    | ChangePopup PopupState
       -- DOC
-    | CycleLanguage
+    | SetLanguage Language
     | Fetch String
     | SetPublicDocumentAsCurrentById String
     | SetInitialEditorContent

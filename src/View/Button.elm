@@ -3,7 +3,8 @@ module View.Button exposing
     , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
-    , cycleLanguage
+    , setLanguage
+    , languageMenu
     , deleteDocument
     , doSignUp
     , export
@@ -54,7 +55,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), PopupState(..), DocPermissions, DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -123,13 +124,24 @@ exportToXMarkdown =
     buttonTemplate [] (ExportTo XMarkdownLang) "Export to XMarkdown"
 
 
-cycleLanguage : Language -> Element FrontendMsg
-cycleLanguage lang =
+setLanguage : Language -> Language -> String -> Element FrontendMsg
+setLanguage currentLang targetLang targetLangString =
+    let
+        (bg, fg) = if currentLang == targetLang then
+          (Background.color Color.darkRed, Font.color Color.white)
+          else
+          (Background.color (E.rgb 0 0 0), Font.color Color.white)
+   in
+     buttonTemplate [bg, fg, E.width (E.px 100)] (SetLanguage targetLang) targetLangString
+
+languageMenu : PopupState -> Language -> Element FrontendMsg
+languageMenu popupState lang =
     let
         langString =
             case lang of
                 MicroLaTeXLang ->
                     "lang: µLaTeX"
+
 
                 L0Lang ->
                     "lang: L0"
@@ -137,7 +149,10 @@ cycleLanguage lang =
                 XMarkdownLang ->
                     "lang: XMarkdown"
     in
-    buttonTemplate [] CycleLanguage langString
+    if popupState == NoPopup then
+       buttonTemplate [] (ChangePopup LanguageMenuPopup) langString
+    else
+      buttonTemplate [] (ChangePopup NoPopup) langString
 
 
 deleteDocument : FrontendModel -> Element FrontendMsg

@@ -1,6 +1,6 @@
 module Frontend.Update exposing
     ( adjustId
-    , cycleLanguage
+    , setLanguage
     , debounceMsg
     , deleteDocument
     , exportToLaTeX
@@ -54,7 +54,7 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
-import Types exposing (DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), ToBackend(..))
+import Types exposing (PopupState(..), DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), ToBackend(..))
 import View.Utility
 
 
@@ -229,20 +229,8 @@ render model msg_ =
             ( model, sendToBackend (FetchDocumentById id (Maybe.map .username model.currentUser)) )
 
 
-cycleLanguage model =
-    let
-        mewLang =
-            case model.language of
-                MicroLaTeXLang ->
-                    L0Lang
-
-                L0Lang ->
-                    XMarkdownLang
-
-                XMarkdownLang ->
-                    MicroLaTeXLang
-    in
-    ( { model | language = mewLang }, Cmd.none )
+setLanguage lang model =
+    ( { model | language = lang, popupState = NoPopup }, Cmd.none )
 
 
 firstSyncLR model searchSourceText =

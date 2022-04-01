@@ -4,6 +4,7 @@ module View.Color exposing
     , darkBlue
     , darkGray
     , darkRed
+    , gray
     , lightBlue
     , lightGray
     , medGray
