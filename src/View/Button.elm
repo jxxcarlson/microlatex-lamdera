@@ -310,7 +310,7 @@ setSortModeMostRecent sortMode =
 toggleDocumentList currentDocumentList =
     case currentDocumentList of
         WorkingList ->
-            buttonTemplate [ E.width (E.px 90) ] (SelectList StandardList) "Work"
+            buttonTemplate [ E.width (E.px 90) ] (SelectList StandardList) "Work List"
 
         StandardList ->
             buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "My docs"
