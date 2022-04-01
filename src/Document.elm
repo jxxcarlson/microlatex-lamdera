@@ -1,9 +1,11 @@
 module Document exposing
     ( Access(..)
     , Document
+    , DocumentInfo
     , currentAuthor
     , defaultSettings
     , empty
+    , toDocInfo
     , wordCount
     )
 
@@ -25,6 +27,15 @@ type alias Document =
     , readOnly : Bool
     , tags : List String
     }
+
+
+toDocInfo : Document -> DocumentInfo
+toDocInfo doc =
+    { title = doc.title, id = doc.id, modified = doc.modified, public = doc.public }
+
+
+type alias DocumentInfo =
+    { title : String, id : String, modified : Time.Posix, public : Bool }
 
 
 currentAuthor : Maybe Document -> String

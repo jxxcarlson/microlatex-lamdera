@@ -62,12 +62,12 @@ viewWorkingDocs model deltaH indexShift =
         sort =
             case model.sortMode of
                 SortAlphabetically ->
-                    List.sortBy (\doc -> View.Utility.softTruncate View.Utility.softTruncateLimit doc.title)
+                    List.sortBy (\docInfo -> View.Utility.softTruncate View.Utility.softTruncateLimit docInfo.title)
 
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
 
-        docs =
+        docInfoList =
             case model.currentUser of
                 Nothing ->
                     []
@@ -76,7 +76,7 @@ viewWorkingDocs model deltaH indexShift =
                     user_.docs |> BoundedDeque.toList |> sort
 
         buttonText =
-            "Working docs (" ++ String.fromInt (List.length docs) ++ ")"
+            "Working docs (" ++ String.fromInt (List.length docInfoList) ++ ")"
 
         titleButton =
             Button.toggleActiveDocList buttonText
@@ -92,7 +92,7 @@ viewWorkingDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments CanEdit model.currentDocument docs
+            :: viewDocInfoList model.currentDocument model.documents docInfoList
         )
 
 
@@ -171,3 +171,8 @@ viewPublicDocuments model =
 viewDocuments : DocPermissions -> Maybe Document -> List Document -> List (Element FrontendMsg)
 viewDocuments docPermissions currentDocument docs =
     List.map (Button.setDocumentAsCurrent docPermissions currentDocument) docs
+
+
+viewDocInfoList : Maybe Document -> List Document -> List Document.DocumentInfo -> List (Element FrontendMsg)
+viewDocInfoList currentDocument documents docInfoList =
+    List.map (\docInfo -> Button.setDocAsCurrentWithDocInfo currentDocument documents docInfo) docInfoList

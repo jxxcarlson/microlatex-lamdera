@@ -35,7 +35,7 @@ module Frontend.Update exposing
 --
 
 import Authentication
-import BoundedDeque
+import BoundedDeque exposing (BoundedDeque)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
@@ -377,12 +377,18 @@ addDocToCurrentUser model doc =
 
         Just user ->
             let
+                isNotInDeque : Document -> BoundedDeque Document.DocumentInfo -> Bool
+                isNotInDeque doc_ deque =
+                    BoundedDeque.filter (\item -> item.id == doc_.id) deque |> BoundedDeque.isEmpty
+
                 docs =
-                    if BoundedDeque.member doc user.docs then
-                        user.docs
+                    if isNotInDeque doc user.docs then
+                        BoundedDeque.pushFront (Document.toDocInfo doc) user.docs
 
                     else
-                        BoundedDeque.pushFront doc user.docs
+                        user.docs
+                            |> BoundedDeque.filter (\item -> item.id /= doc.id)
+                            |> BoundedDeque.pushFront (Document.toDocInfo doc)
 
                 newUser =
                     { user | docs = docs }

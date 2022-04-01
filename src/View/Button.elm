@@ -28,6 +28,7 @@ module View.Button exposing
     , popupNewDocumentForm
     , printToPDF
     , runSpecial
+    , setDocAsCurrentWithDocInfo
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
     , setLanguage
@@ -533,6 +534,39 @@ setDocumentAsCurrent docPermissions currentDocument document =
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docPermissions document)
+        , label = E.el [ Font.size 14, fg, style ] (E.text titleString)
+        }
+
+
+setDocAsCurrentWithDocInfo : Maybe Document.Document -> List Document.Document -> Document.DocumentInfo -> Element FrontendMsg
+setDocAsCurrentWithDocInfo currentDocument documents docInfo =
+    let
+        fg =
+            if Maybe.map .id currentDocument == Just docInfo.id then
+                Font.color (E.rgb 0.7 0 0)
+
+            else
+                Font.color (E.rgb 0 0 0.8)
+
+        style =
+            if docInfo.public then
+                Font.italic
+
+            else
+                Font.unitalicized
+
+        titleString =
+            docInfo.title
+                -- TODO: Find out why we need to compress blank spaces in the first place
+                |> String.replace "   " " "
+                |> String.replace "  " " "
+                |> View.Utility.truncateString 40
+
+        targetDocument =
+            List.filter (\d -> d.id == docInfo.id) documents |> List.head |> Maybe.withDefault Document.empty
+    in
+    Input.button []
+        { onPress = Just (SetDocumentAsCurrent Types.CanEdit targetDocument)
         , label = E.el [ Font.size 14, fg, style ] (E.text titleString)
         }
 

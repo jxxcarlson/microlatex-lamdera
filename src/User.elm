@@ -13,7 +13,7 @@ type alias User =
     , email : String
     , created : Time.Posix
     , modified : Time.Posix
-    , docs : BoundedDeque Document
+    , docs : BoundedDeque Document.DocumentInfo
     , preferences : Preferences
     }
 
