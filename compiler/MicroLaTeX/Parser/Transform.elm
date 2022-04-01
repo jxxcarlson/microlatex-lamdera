@@ -4,10 +4,11 @@ import Dict exposing (Dict)
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.MathMacro exposing (MathExpression(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
+import Tools
 
 
 pseudoBlockNamesWithContent =
-    [ "title", "section", "subsection", "subsubsection", "subheading" ]
+    [ "title", "section", "subsection", "subsubsection", "subheading", "setcounter" ]
 
 
 sectionDict : Dict String String
