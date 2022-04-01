@@ -420,7 +420,7 @@ signUpUser model clientId username lang transitPassword realname email =
             , email = email
             , created = model.currentTime
             , modified = model.currentTime
-            , docs = BoundedDeque.empty 12
+            , docs = BoundedDeque.empty 15
             , preferences = { language = lang }
             }
     in

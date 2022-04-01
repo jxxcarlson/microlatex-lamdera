@@ -311,7 +311,7 @@ toggleDocumentList currentDocumentList =
             buttonTemplate [ E.width (E.px 90) ] (SelectList StandardList) "Work"
 
         StandardList ->
-            buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "Standard"
+            buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "All"
 
 
 
