@@ -41,9 +41,15 @@ viewTocItem count acc settings (ExpressionBlock { args, content, lineNumber }) =
                     String.fromInt lineNumber
 
                 sectionNumber =
-                    List.Extra.getAt 1 args
-                        |> Maybe.withDefault ""
-                        |> (\s -> Element.el [] (Element.text (s ++ ". ")))
+                    case List.Extra.getAt 1 args of
+                        Just "-" ->
+                            Element.none
+
+                        Just s ->
+                            Element.el [] (Element.text (s ++ ". "))
+
+                        _ ->
+                            Element.none
 
                 label : Element MarkupMsg
                 label =
@@ -133,7 +139,7 @@ tocIndentAux args =
             0
 
         Just str ->
-            String.toInt str |> Maybe.withDefault 0 |> (\x -> 12 * x)
+            String.toInt str |> Maybe.withDefault 0 |> (\x -> 12 * (x - 1))
 
 
 getHeadings : Forest ExpressionBlock -> { title : Maybe (List Expr), subtitle : Maybe (List Expr) }

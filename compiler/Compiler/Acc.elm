@@ -102,9 +102,13 @@ transformAccumulateTree lang tree acc =
 transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
 transformBlock lang acc (ExpressionBlock block) =
     case ( block.name, block.args ) of
-        ( Just "section", level :: _ ) ->
+        ( Just "section", level :: [] ) ->
             ExpressionBlock
-                { block | args = [ level, Vector.toString acc.headingIndex ] }
+                { block | args = level :: Vector.toString acc.headingIndex :: [] }
+
+        ( Just "section", level :: "-" :: [] ) ->
+            ExpressionBlock
+                { block | args = level :: "-" :: [] }
 
         ( Just "document", id :: level :: _ ) ->
             ExpressionBlock
