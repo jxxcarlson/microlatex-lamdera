@@ -134,11 +134,6 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , sendToBackend GetPublicDocuments
-        , if allowedPrefix url.path then
-            Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById (getId url.path)))
-
-          else
-            Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.welcomeDocId))
         ]
     )
 
@@ -200,7 +195,8 @@ urlAction path =
                 sendToBackend GetStatus
 
             _ ->
-                Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
+                --Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
+                sendToBackend (GetDocumentById Config.welcomeDocId)
 
 
 urlIsForGuest : Url -> Bool
