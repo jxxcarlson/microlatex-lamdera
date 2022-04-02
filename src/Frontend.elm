@@ -381,6 +381,9 @@ update msg model =
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
 
         -- DOCUMENT
+        GetPinnedDocuments ->
+            ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin") )
+
         GetUserTags author ->
             ( { model | tagSelection = TagUser }, sendToBackend (GetUserTagsFromBE author) )
 

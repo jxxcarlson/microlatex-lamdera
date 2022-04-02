@@ -268,6 +268,7 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- DOC
+    | GetPinnedDocuments
     | SetLanguage Bool Language
     | Fetch String
     | SetPublicDocumentAsCurrentById String

@@ -26,7 +26,7 @@ view model width_ deltaH =
                             -150
             in
             E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
-                [ E.row [ E.spacing 12 ] [ Button.toggleDocumentList model.documentList, Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
+                [ E.row [ E.spacing 6 ] [ Button.getPinnedDocs, Button.toggleDocumentList model.documentList, Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
                 , case model.documentList of
                     WorkingList ->
                         viewWorkingDocs model deltaH -indexShift
@@ -86,7 +86,7 @@ viewWorkingDocs model deltaH indexShift =
         , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
-        , Background.color (E.rgb 0.95 0.95 1.0)
+        , Background.color (E.rgb 1.0 0.93 0.93)
         , E.paddingXY 12 18
         , Font.color (E.rgb 0.1 0.1 1.0)
         , E.spacing 8

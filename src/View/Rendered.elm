@@ -5,6 +5,7 @@ import Compiler.DifferentialParser
 import Config
 import Document exposing (Document)
 import Element as E exposing (Element)
+import Element.Background as Background
 import Element.Font as Font
 import Html.Attributes as HtmlAttr
 import Render.Markup
@@ -51,6 +52,7 @@ viewSmall model doc width_ deltaH indexShift =
     in
     E.column
         [ E.paddingEach { left = 12, right = 12, top = 18, bottom = 96 }
+        , Background.color (E.rgb 1.0 1.0 0.9)
         , Style.bgGray 1.0
         , E.width (E.px <| Geometry.indexWidth model.windowWidth)
         , E.height (E.px (Geometry.appHeight_ model - deltaH + indexShift))
@@ -112,7 +114,7 @@ viewDocumentSmall windowWidth counter currentDocId editRecord =
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
-    E.row [ E.spacing 16, E.width E.fill ] [ title_, E.el [ E.moveUp 6, E.alignRight, E.paddingEach { left = 0, right = 8, top = 0, bottom = 0 } ] Button.closeCollectionsIndex ] :: body
+    E.row [ Background.color (E.rgb 0.8 0.8 1.0), E.paddingEach { left = 8, right = 8, top = 12, bottom = 0 }, E.spacing 16, E.width E.fill ] [ title_, E.el [ E.moveUp 6, E.alignRight, E.paddingEach { left = 0, right = 8, top = 0, bottom = 0 } ] Button.closeCollectionsIndex ] :: body
 
 
 viewDocument windowWidth counter selectedId editRecord =

@@ -1,5 +1,6 @@
 module View.Button exposing
-    ( cancelDeleteDocument
+    ( buttonTemplate
+    , cancelDeleteDocument
     , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
@@ -14,6 +15,7 @@ module View.Button exposing
     , exportToXMarkdown
     , getDocument
     , getDocumentByPrivateId
+    , getPinnedDocs
     , getPublicTags
     , getUserTags
     , help
@@ -290,7 +292,7 @@ setSortModeAlpha sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0 0 0)
     in
-    buttonTemplate [ bg, E.width (E.px 80) ] (SetSortMode SortAlphabetically) "Alpha"
+    buttonTemplate [ bg, E.width (E.px 65) ] (SetSortMode SortAlphabetically) "Alpha"
 
 
 setSortModeMostRecent : SortMode -> Element FrontendMsg
@@ -310,10 +312,10 @@ setSortModeMostRecent sortMode =
 toggleDocumentList currentDocumentList =
     case currentDocumentList of
         WorkingList ->
-            buttonTemplate [ E.width (E.px 90) ] (SelectList StandardList) "Work List"
+            buttonTemplate [ E.width (E.px 70) ] (SelectList StandardList) "Work "
 
         StandardList ->
-            buttonTemplate [ E.width (E.px 90) ] (SelectList WorkingList) "My docs"
+            buttonTemplate [ E.width (E.px 70) ] (SelectList WorkingList) "Docs"
 
 
 
@@ -421,6 +423,10 @@ doSignUp =
 
 
 -- USER
+
+
+getPinnedDocs =
+    buttonTemplate [] GetPinnedDocuments (String.fromChar '📌')
 
 
 toggleActiveDocList : String -> Element FrontendMsg
