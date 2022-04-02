@@ -95,7 +95,7 @@ setPublic model doc public =
         documents =
             List.Extra.setIf (\d -> d.id == newDocument_.id) newDocument_ model.documents
     in
-    ( { model | documents = documents, currentDocument = Just newDocument_ }, sendToBackend (SaveDocument model.currentUser newDocument_) )
+    ( { model | documents = documents, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument model.currentUser newDocument_) )
 
 
 setPublicDocumentAsCurrentById model id =

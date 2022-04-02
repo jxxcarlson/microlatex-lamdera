@@ -15,7 +15,7 @@ import Types exposing (SidebarState(..))
 
 
 appHeight_ model =
-    model.windowHeight - 40
+    model.windowHeight - 30
 
 
 panelHeight_ model =
