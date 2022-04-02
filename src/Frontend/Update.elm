@@ -505,6 +505,7 @@ handleSignOut model =
     ( { model
         | currentUser = Nothing
         , currentDocument = Nothing
+        , currentMasterDocument = Nothing
         , documents = []
         , message = "Signed out"
         , inputSearchKey = ""
