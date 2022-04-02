@@ -58,7 +58,7 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
-import Types exposing (DocPermissions(..), DocumentDeleteState(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), ToBackend(..))
+import Types exposing (DocPermissions(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), ToBackend(..))
 import User exposing (User)
 import View.Utility
 
@@ -504,12 +504,13 @@ handleSignOut model =
     in
     ( { model
         | currentUser = Nothing
-        , currentDocument = Just Docs.notSignedIn
+        , currentDocument = Nothing
         , documents = []
         , message = "Signed out"
         , inputSearchKey = ""
         , inputUsername = ""
         , inputPassword = ""
+        , documentList = StandardList
         , showEditor = False
       }
     , Cmd.batch [ Nav.pushUrl model.key "/", cmd, sendToBackend (GetDocumentById Config.welcomeDocId) ]

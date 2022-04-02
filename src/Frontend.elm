@@ -77,7 +77,7 @@ init url key =
       , inputRealname = ""
       , tagDict = Dict.empty
       , inputLanguage = L0Lang
-      , documentList = WorkingList
+      , documentList = StandardList
 
       -- UI
       , appMode = UserMode
