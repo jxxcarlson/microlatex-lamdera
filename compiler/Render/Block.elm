@@ -422,9 +422,16 @@ renderEquation count acc settings args id str =
 
             else
                 [ Events.onClick (SendId id), leftPadding ]
+
+        attrs2 =
+            if List.member "highlight" args then
+                Background.color (Element.rgb 0.85 0.85 1.0) :: [ Element.centerX ]
+
+            else
+                [ Element.centerX ]
     in
     Element.row ([ Element.width (Element.px settings.width), Render.Utility.elementAttribute "id" id ] ++ attrs)
-        [ Element.el [ Element.centerX ] (Render.Math.mathText count w id DisplayMathMode content)
+        [ Element.el attrs2 (Render.Math.mathText count w id DisplayMathMode content)
         , Element.el [ Element.alignRight, Font.size 12, equationLabelPadding ] (Element.text <| "(" ++ Render.Utility.getArg "(??)" 0 args ++ ")")
         ]
 
