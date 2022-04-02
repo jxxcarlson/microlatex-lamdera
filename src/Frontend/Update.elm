@@ -101,7 +101,7 @@ setPublic model doc public =
 setPublicDocumentAsCurrentById model id =
     case List.filter (\doc -> doc.id == id) model.publicDocuments |> List.head of
         Nothing ->
-            ( { model | message = "No document of id " ++ id ++ " found" }, Cmd.none )
+            ( { model | message = "No document of id [" ++ id ++ "] found" }, Cmd.none )
 
         Just doc ->
             let
