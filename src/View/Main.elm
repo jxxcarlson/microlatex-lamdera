@@ -57,7 +57,6 @@ viewEditorAndRenderedText model =
     E.column (Style.mainColumn model)
         [ E.column
             [ E.inFront (languageMenu model)
-            , E.spacing 12
             , E.centerX
             , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
