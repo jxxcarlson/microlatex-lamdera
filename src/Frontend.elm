@@ -134,11 +134,18 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , sendToBackend GetPublicDocuments
+        , if allowedPrefix url.path then
+            Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById (getId url.path)))
 
-        -- , Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.welcomeDocId))
-        , Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById (getId url.path)))
+          else
+            Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.welcomeDocId))
         ]
     )
+
+
+allowedPrefix : String -> Bool
+allowedPrefix path =
+    List.member (String.left 3 path) [ "/a/", "/h/", "/i/", "/p/", "/s/" ]
 
 
 getId : String -> String
