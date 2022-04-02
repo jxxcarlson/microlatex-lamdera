@@ -69,7 +69,7 @@ viewEditorAndRenderedText model =
                 , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) deltaH
                 , Sidebar.view model
                 ]
-            , Footer.view model (Geometry.appWidth model.sidebarState model.windowWidth)
+            , Footer.view model (Geometry.appWidth model.sidebarState (model.windowWidth - 80))
             ]
         ]
 
