@@ -409,7 +409,7 @@ update msg model =
             updateDoc model str
 
         Search ->
-            ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) model.inputSearchKey) )
+            ( { model | documentList = StandardList, currentMasterDocument = Nothing }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) model.inputSearchKey) )
 
         SearchText ->
             Frontend.Update.searchText model
