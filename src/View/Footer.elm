@@ -9,13 +9,13 @@ import View.Style
 import View.Utility
 
 
-view model _ =
+view model width_ =
     E.row
         [ E.spacing 12
         , E.paddingXY 0 8
         , E.height (E.px 35)
         , Background.color Color.black
-        , E.width E.fill -- (E.px width_)
+        , E.width (E.px (width_ + 7))
         , Font.size 14
         ]
         [ -- Button.syncButton
