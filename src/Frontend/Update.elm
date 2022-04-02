@@ -512,6 +512,7 @@ handleSignOut model =
         , inputUsername = ""
         , inputPassword = ""
         , documentList = StandardList
+        , maximizedIndex = Types.MPublicDocs
         , showEditor = False
       }
     , Cmd.batch [ Nav.pushUrl model.key "/", cmd, sendToBackend (GetDocumentById Config.welcomeDocId) ]
