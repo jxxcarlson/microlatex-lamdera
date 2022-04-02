@@ -24,7 +24,7 @@ view model _ =
             (Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
             (Button.cancelDeleteDocument model)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument))
-        , View.Utility.showIf model.showEditor (wordCount model)
+        , E.el [ E.alignRight ] (wordCount model)
         , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9), E.alignRight ] (E.text (Document.currentAuthorFancy model.currentDocument))
         ]
 
