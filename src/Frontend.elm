@@ -377,11 +377,11 @@ update msg model =
             ( { model | inputEditors = str }, Cmd.none )
 
         ShareDocument ->
-            case model.currentDocument of
-                Nothing ->
+            case ( model.currentDocument, model.popupState ) of
+                ( Nothing, _ ) ->
                     ( model, Cmd.none )
 
-                Just doc ->
+                ( Just doc, NoPopup ) ->
                     let
                         ( inputReaders, inputEditors ) =
                             case doc.share of
@@ -392,6 +392,9 @@ update msg model =
                                     ( String.join ", " readers, String.join ", " editors )
                     in
                     ( { model | popupState = SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
+
+                ( Just doc, _ ) ->
+                    ( { model | popupState = NoPopup }, Cmd.none )
 
         DoShare ->
             case model.currentDocument of
