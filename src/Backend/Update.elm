@@ -191,6 +191,7 @@ fetchDocumentById model clientId docId maybeUserName =
 
 
 saveDocument model currentUser document =
+    -- TODO: review this for safety
     case currentUser of
         Nothing ->
             ( model, Cmd.none )
@@ -298,7 +299,7 @@ searchForDocuments model clientId maybeUsername key =
 
 searchForPublicDocuments : Maybe String -> String -> Model -> List Document.Document
 searchForPublicDocuments mUsername key model =
-    searchForDocuments_ key model |> List.filter (\doc -> doc.public || View.Utility.isShared_ mUsername doc)
+    searchForDocuments_ key model |> List.filter (\doc -> doc.public || View.Utility.isSharedToMe_ mUsername doc)
 
 
 searchForDocuments_ : String -> Model -> List Document.Document
