@@ -53,4 +53,4 @@ viewUserList users =
 
 viewUser : ( User.User, Int ) -> Element FrontendMsg
 viewUser ( user, k ) =
-    E.row [ E.spacing 8 ] [ E.el [ E.width (E.px 150) ] (E.text user.username), E.el [ E.width (E.px 50), E.alignRight ] (E.text (String.fromInt k)) ]
+    E.row [ E.spacing 8, E.width (E.px 300) ] [ E.el [ E.width (E.px 150) ] (E.text user.username), E.el [ E.width (E.px 80), E.alignRight ] (E.text (String.fromInt k)) ]
