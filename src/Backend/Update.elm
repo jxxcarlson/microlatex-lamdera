@@ -35,6 +35,7 @@ import Random
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, DocumentDict, SystemDocPermissions(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
+import View.Utility
 
 
 type alias Model =
@@ -290,14 +291,14 @@ searchForDocuments model clientId maybeUsername key =
     ( model
     , Cmd.batch
         [ sendToFrontend clientId (SendDocuments (searchForUserDocuments maybeUsername key model))
-        , sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments key model))
+        , sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments maybeUsername key model))
         ]
     )
 
 
-searchForPublicDocuments : String -> Model -> List Document.Document
-searchForPublicDocuments key model =
-    searchForDocuments_ key model |> List.filter (\doc -> doc.public)
+searchForPublicDocuments : Maybe String -> String -> Model -> List Document.Document
+searchForPublicDocuments mUsername key model =
+    searchForDocuments_ key model |> List.filter (\doc -> doc.public || View.Utility.isShared_ mUsername doc)
 
 
 searchForDocuments_ : String -> Model -> List Document.Document

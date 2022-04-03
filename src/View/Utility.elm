@@ -5,6 +5,7 @@ module View.Utility exposing
     , hideIf
     , isAdmin
     , isShared
+    , isShared_
     , katexCSS
     , noFocus
     , onEnter
@@ -51,6 +52,21 @@ isShared mUser doc =
 
                 Document.Share { readers, editors } ->
                     List.member user.username readers || List.member user.username editors
+
+
+isShared_ : Maybe String -> Document.Document -> Bool
+isShared_ mUsername doc =
+    case mUsername of
+        Nothing ->
+            False
+
+        Just username ->
+            case doc.share of
+                Document.Private ->
+                    False
+
+                Document.Share { readers, editors } ->
+                    List.member username readers || List.member username editors
 
 
 truncateString : Int -> String -> String

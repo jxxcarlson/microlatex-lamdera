@@ -134,7 +134,7 @@ init url key =
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
-        , sendToBackend GetPublicDocuments
+        , sendToBackend (GetPublicDocuments Nothing)
         ]
     )
 
@@ -356,7 +356,7 @@ update msg model =
             ( model, Cmd.none )
 
         CloseEditor ->
-            ( { model | showEditor = False, initialText = "", popupState = NoPopup }, sendToBackend GetPublicDocuments )
+            ( { model | showEditor = False, initialText = "", popupState = NoPopup }, sendToBackend (GetPublicDocuments (Maybe.map .username model.currentUser)) )
 
         OpenEditor ->
             case model.currentDocument of
