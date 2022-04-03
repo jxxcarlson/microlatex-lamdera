@@ -21,7 +21,7 @@ view model _ =
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
         , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.share
         , E.el [ E.alignRight ] (wordCount model)
-        , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9), E.alignRight ] (E.text (Document.currentAuthorFancy model.currentDocument))
+        , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
         ]
 
 
@@ -33,7 +33,7 @@ showIfUserIsDocumentAuthor model condition element =
 
 showIfUserIsDocumentOrShared model condition element =
     View.Utility.showIf
-        ((Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser) || Maybe.map (View.Utility.isShared model.currentUser) model.currentDocument == Just True && condition)
+        ((Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser) || Maybe.map (View.Utility.isSharedToMe model.currentUser) model.currentDocument == Just True && condition)
         element
 
 

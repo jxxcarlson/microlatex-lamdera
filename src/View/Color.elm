@@ -9,10 +9,12 @@ module View.Color exposing
     , lightGray
     , medGray
     , paleBlue
+    , palePink
     , paleViolet
     , red
     , transparentBlue
     , veryPaleBlue
+    , violet
     , white
     )
 
@@ -22,6 +24,10 @@ import Element as E
 white : E.Color
 white =
     E.rgb 255 255 255
+
+
+palePink =
+    E.rgb 1.0 0.9 0.93
 
 
 lightGray : E.Color
@@ -76,7 +82,7 @@ paleBlue =
 
 veryPaleBlue : E.Color
 veryPaleBlue =
-    E.rgb255 140 140 150
+    E.rgb 0.9 0.9 1.0
 
 
 transparentBlue : E.Color
@@ -87,6 +93,11 @@ transparentBlue =
 paleViolet : E.Color
 paleViolet =
     E.rgb255 230 230 255
+
+
+violet : E.Color
+violet =
+    E.rgb 0.95 0.9 1.0
 
 
 gray : Float -> E.Color
