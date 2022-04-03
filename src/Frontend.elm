@@ -25,7 +25,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import Util
@@ -106,7 +106,7 @@ init url key =
 
       -- DOCUMENT
       , lineNumber = 0
-      , permissions = ReadOnly
+      , permissions = SystemReadOnly
       , initialText = Config.loadingText
       , documentsCreatedCounter = 0
       , sourceText = Config.loadingText

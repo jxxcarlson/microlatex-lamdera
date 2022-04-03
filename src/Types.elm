@@ -1,4 +1,4 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocPermissions(..), DocumentDeleteState(..), DocumentDict, DocumentLink, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocumentDeleteState(..), DocumentDict, DocumentLink, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -80,7 +80,7 @@ type alias FrontendModel =
     , searchCount : Int
     , searchSourceText : String
     , lineNumber : Int
-    , permissions : DocPermissions
+    , permissions : SystemDocPermissions
     , debounce : Debounce String
     , currentDocument : Maybe Document
     , currentMasterDocument : Maybe Document
@@ -275,7 +275,7 @@ type FrontendMsg
     | Fetch String
     | SetPublicDocumentAsCurrentById String
     | SetInitialEditorContent
-    | SetDocumentInPhoneAsCurrent DocPermissions Document
+    | SetDocumentInPhoneAsCurrent SystemDocPermissions Document
     | ShowTOCInPhone
     | InputSearchSource String
     | InputText String
@@ -288,7 +288,7 @@ type FrontendMsg
     | SearchText
     | InputAuthorId String
     | NewDocument
-    | SetDocumentAsCurrent DocPermissions Document
+    | SetDocumentAsCurrent SystemDocPermissions Document
     | SetPublic Document Bool
     | AskFoDocumentById String
     | AskForDocumentByAuthorId
@@ -382,7 +382,7 @@ type ToFrontend
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
-    | SendDocument DocPermissions Document
+    | SendDocument SystemDocPermissions Document
     | SendDocuments (List Document)
     | SendMessage String
     | StatusReport (List String)
@@ -390,9 +390,9 @@ type ToFrontend
     | GotPublicDocuments (List Document)
 
 
-type DocPermissions
-    = ReadOnly
-    | CanEdit
+type SystemDocPermissions
+    = SystemReadOnly
+    | SystemCanEdit
 
 
 type alias BackupOLD =

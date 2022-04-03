@@ -33,7 +33,7 @@ import Maybe.Extra
 import Parser.Language exposing (Language(..))
 import Random
 import Token
-import Types exposing (AbstractDict, BackendModel, BackendMsg, DocPermissions(..), DocumentDict, ToFrontend(..), UsersDocumentsDict)
+import Types exposing (AbstractDict, BackendModel, BackendMsg, DocumentDict, SystemDocPermissions(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
 
 
@@ -85,7 +85,7 @@ getDocumentById model clientId id =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (SendDocument CanEdit doc)
+                [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
 
                 -- , sendToFrontend clientId (SendMessage ("id = " ++ doc.id))
@@ -100,7 +100,7 @@ getDocumentByCmdId model clientId id =
 
         Just doc ->
             Cmd.batch
-                [ sendToFrontend clientId (SendDocument CanEdit doc)
+                [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
 
@@ -122,7 +122,7 @@ getDocumentByAuthorId model clientId authorId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (SendDocument CanEdit doc)
+                        [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -140,7 +140,7 @@ getHomePage model clientId username =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (SendDocument CanEdit doc)
+                [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
             )
@@ -159,7 +159,7 @@ getDocumentByPublicId model clientId publicId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (SendDocument CanEdit doc)
+                        [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -175,7 +175,7 @@ fetchDocumentById model clientId docId maybeUserName =
                 ( model
                 , Cmd.batch
                     [ -- sendToFrontend clientId (SendDocument ReadOnly document)
-                      sendToFrontend clientId (SendDocument CanEdit document)
+                      sendToFrontend clientId (SendDocument SystemCanEdit document)
 
                     --, sendToFrontend clientId (SetShowEditor True)
                     ]
@@ -262,7 +262,7 @@ createDocument model clientId maybeCurrentUser doc_ =
         , usersDocumentsDict = usersDocumentsDict
     }
         |> Cmd.Extra.withCmds
-            [ sendToFrontend clientId (SendDocument CanEdit doc)
+            [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
             , sendToFrontend clientId (SendMessage message)
             ]
 

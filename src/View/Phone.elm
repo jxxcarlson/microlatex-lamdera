@@ -7,7 +7,7 @@ import Html exposing (Html)
 import Render.Markup
 import Render.Settings
 import Render.TOC
-import Types exposing (DocPermissions(..), FrontendModel, FrontendMsg(..), PhoneMode(..))
+import Types exposing (FrontendModel, FrontendMsg(..), PhoneMode(..), SystemDocPermissions(..))
 import View.Button as Button
 import View.Input
 import View.Style
@@ -53,7 +53,7 @@ view model =
 --
 
 
-viewDocumentsInIndex : DocPermissions -> Maybe Document -> List Document -> List (Element FrontendMsg)
+viewDocumentsInIndex : SystemDocPermissions -> Maybe Document -> List Document -> List (Element FrontendMsg)
 viewDocumentsInIndex docPermissions currentDocument docs =
     List.map (Button.setDocumentInPhoneAsCurrent docPermissions currentDocument) docs
 
@@ -96,7 +96,7 @@ viewRendered model width_ =
 
 viewPublicDocuments : Model -> List (Element FrontendMsg)
 viewPublicDocuments model =
-    viewDocumentsInIndex ReadOnly model.currentDocument model.publicDocuments
+    viewDocumentsInIndex SystemReadOnly model.currentDocument model.publicDocuments
 
 
 header model _ =

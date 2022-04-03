@@ -7,7 +7,7 @@ import Element.Background as Background
 import Element.Font as Font
 import String.Extra
 import Time
-import Types exposing (ActiveDocList(..), DocPermissions(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
+import Types exposing (ActiveDocList(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..), SystemDocPermissions(..))
 import View.Button as Button
 import View.Geometry as Geometry
 import View.Rendered as Rendered
@@ -128,7 +128,7 @@ viewMydocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments CanEdit model.currentDocument docs
+            :: viewDocuments SystemCanEdit model.currentDocument docs
         )
 
 
@@ -166,10 +166,10 @@ viewPublicDocuments model =
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
     in
-    viewDocuments ReadOnly model.currentDocument (sorter model.publicDocuments)
+    viewDocuments SystemReadOnly model.currentDocument (sorter model.publicDocuments)
 
 
-viewDocuments : DocPermissions -> Maybe Document -> List Document -> List (Element FrontendMsg)
+viewDocuments : SystemDocPermissions -> Maybe Document -> List Document -> List (Element FrontendMsg)
 viewDocuments docPermissions currentDocument docs =
     List.map (Button.setDocumentAsCurrent docPermissions currentDocument) docs
 

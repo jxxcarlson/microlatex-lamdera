@@ -58,7 +58,7 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
-import Types exposing (DocPermissions(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), ToBackend(..))
+import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
 import User exposing (User)
 import View.Utility
 
@@ -453,7 +453,7 @@ setPermissions currentUser permissions document =
 
         Just author ->
             if Just author == Maybe.map .username currentUser then
-                CanEdit
+                SystemCanEdit
 
             else
                 permissions

@@ -63,7 +63,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
 import String.Extra
-import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions, TagSelection(..))
 import User exposing (User)
 import View.Color as Color
 import View.Style
@@ -518,7 +518,7 @@ getDocument id title =
     buttonTemplate3 [ Font.size 12, Font.color Color.blue ] (AskFoDocumentById id) title
 
 
-setDocumentAsCurrent : DocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
+setDocumentAsCurrent : SystemDocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
 setDocumentAsCurrent docPermissions currentDocument document =
     let
         fg =
@@ -587,7 +587,7 @@ showTOCInPhone =
         }
 
 
-setDocumentInPhoneAsCurrent : DocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
+setDocumentInPhoneAsCurrent : SystemDocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
 setDocumentInPhoneAsCurrent docPermissions currentDocument document =
     let
         fg =
