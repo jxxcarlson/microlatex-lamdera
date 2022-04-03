@@ -1,11 +1,13 @@
 module View.Utility exposing
     ( cssNode
+    , currentDocumentAuthor
     , elementAttribute
     , getElementWithViewPort
+    , getReadersAndEditors
     , hideIf
     , isAdmin
-    , isShared
-    , isShared_
+    , isSharedToMe
+    , isSharedToMe_
     , katexCSS
     , noFocus
     , onEnter
@@ -20,6 +22,7 @@ module View.Utility exposing
 import Browser.Dom as Dom
 import Document
 import Element exposing (Element)
+import Element.Font as Font
 import Html
 import Html.Attributes as HA
 import Html.Events exposing (keyCode, on)
@@ -39,8 +42,23 @@ softTruncateLimit =
     50
 
 
-isShared : Maybe User.User -> Document.Document -> Bool
-isShared mUser doc =
+getReadersAndEditors : Maybe Document.Document -> ( String, String )
+getReadersAndEditors mDocument =
+    case mDocument of
+        Nothing ->
+            ( "", "" )
+
+        Just doc ->
+            case doc.share of
+                Document.Private ->
+                    ( "", "" )
+
+                Document.Share { readers, editors } ->
+                    ( readers |> String.join ", ", editors |> String.join ", " )
+
+
+isSharedToMe : Maybe User.User -> Document.Document -> Bool
+isSharedToMe mUser doc =
     case mUser of
         Nothing ->
             False
@@ -52,6 +70,25 @@ isShared mUser doc =
 
                 Document.Share { readers, editors } ->
                     List.member user.username readers || List.member user.username editors
+
+
+isSharedToMe_ : Maybe String -> Document.Document -> Bool
+isSharedToMe_ mUsername doc =
+    case mUsername of
+        Nothing ->
+            False
+
+        Just username ->
+            case doc.share of
+                Document.Private ->
+                    False
+
+                Document.Share { readers, editors } ->
+                    let
+                        _ =
+                            Debug.log "(mUsername, readers, editors )" ( mUsername, readers, editors )
+                    in
+                    List.member username readers || List.member username editors
 
 
 isShared_ : Maybe String -> Document.Document -> Bool
@@ -66,7 +103,45 @@ isShared_ mUsername doc =
                     False
 
                 Document.Share { readers, editors } ->
-                    List.member username readers || List.member username editors
+                    List.isEmpty readers && List.isEmpty editors |> not
+
+
+currentDocumentAuthor : Maybe String -> Maybe Document.Document -> Element FrontendMsg
+currentDocumentAuthor mUsername mDoc =
+    case mDoc of
+        Nothing ->
+            Element.none
+
+        Just doc ->
+            let
+                _ =
+                    Debug.log "??? (user, author)" ( mUsername, doc.author )
+
+                _ =
+                    Debug.log "??? (am the author, shared)" ( mUsername == doc.author, isSharedToMe_ mUsername doc )
+
+                color =
+                    if mUsername == doc.author then
+                        if doc.share == Document.Private then
+                            -- my doc, not shared
+                            Font.color (Element.rgb 0.5 0.5 0.9)
+
+                        else
+                            -- my doc, shared to someone
+                            Font.color (Element.rgb 0.5 0.8 0.8)
+
+                    else if isSharedToMe_ mUsername doc then
+                        -- not my doc, shared to me
+                        Font.color (Element.rgb 0.9 0.8 0.6)
+
+                    else
+                        -- not my doc, not shared to me
+                        Font.color (Element.rgb 0.9 0.9 0.9)
+
+                str =
+                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x) |> Maybe.withDefault ""
+            in
+            Element.el [ color, Font.size 14 ] (Element.text str)
 
 
 truncateString : Int -> String -> String
