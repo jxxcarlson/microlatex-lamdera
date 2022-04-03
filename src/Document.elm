@@ -1,7 +1,7 @@
 module Document exposing
-    ( Access(..)
-    , Document
+    ( Document
     , DocumentInfo
+    , Share(..)
     , currentAuthor
     , currentAuthorFancy
     , defaultSettings
@@ -22,19 +22,25 @@ type alias Document =
     , modified : Time.Posix
     , content : String
     , title : String
-    , public : Bool
+    , public : Bool -- document visible to others if public == True
     , author : Maybe String
     , language : Language
-
-    --, readOnly : Bool
-    -- , share : Share
+    , share : Share
     , tags : List String
     }
 
 
-{-| -}
+{-|
+
+    This type determines who can read and who can edit a document.
+    Private documents can only be edited by their author.
+    The 'public' field of a document determines whether
+    it is visible to all users; it has nothing to do with the
+    value of the share field.
+
+-}
 type Share
-    = Share { canRead : List Username, canEdit : List Username }
+    = Share { readers : List Username, editors : List Username }
     | Private
 
 
@@ -61,10 +67,6 @@ type alias Username =
     String
 
 
-type Access
-    = Shared { canRead : List Username, canWrite : List Username }
-
-
 defaultSettings : Render.Settings.Settings
 defaultSettings =
     { width = 500
@@ -86,8 +88,7 @@ empty =
     , public = False
     , author = Nothing
     , language = MicroLaTeXLang
-
-    --, share = Private
+    , share = Private
     , tags = []
     }
 

@@ -4,9 +4,10 @@ module View.Button exposing
     , cancelSignUp
     , closeCollectionsIndex
     , closeEditor
-    , closePopUp
     , createDocument
     , deleteDocument
+    , dismissPopup
+    , doShare
     , doSignUp
     , export
     , exportToLaTeX
@@ -38,6 +39,7 @@ module View.Button exposing
     , setSortModeAlpha
     , setSortModeMostRecent
     , setUserLanguage
+    , share
     , showTOCInPhone
     , signIn
     , signOut
@@ -182,6 +184,19 @@ languageMenu popupState lang =
         buttonTemplate [] (ChangePopup NoPopup) langString
 
 
+
+-- DOCUMENT
+
+
+share : Element FrontendMsg
+share =
+    buttonTemplate [] ShareDocument "Share"
+
+
+doShare =
+    buttonTemplate [] DoShare "Update"
+
+
 deleteDocument : FrontendModel -> Element FrontendMsg
 deleteDocument model =
     let
@@ -200,14 +215,6 @@ deleteDocument model =
 
     else
         E.none
-
-
-
---if Maybe.map .author model.currentDocument == Maybe.andThen .username model.currentUser then
---    deleteDocument_ model
---
---else
---    E.none
 
 
 deleteDocument_ model =
@@ -372,8 +379,8 @@ popupNewDocumentForm popupState =
             buttonTemplate [] (ChangePopup NoPopup) "New"
 
 
-closePopUp : Element FrontendMsg
-closePopUp =
+dismissPopup : Element FrontendMsg
+dismissPopup =
     buttonTemplate [] (ChangePopup NoPopup) "x"
 
 

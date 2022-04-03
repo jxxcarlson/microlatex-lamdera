@@ -128,6 +128,8 @@ init url key =
       , sortMode = SortByMostRecent
       , language = MicroLaTeXLang
       , inputTitle = ""
+      , inputReaders = ""
+      , inputEditors = ""
       }
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
@@ -368,6 +370,59 @@ update msg model =
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
 
         -- DOCUMENT
+        InputReaders str ->
+            ( { model | inputReaders = str }, Cmd.none )
+
+        InputEditors str ->
+            ( { model | inputEditors = str }, Cmd.none )
+
+        ShareDocument ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        ( inputReaders, inputEditors ) =
+                            case doc.share of
+                                Document.Private ->
+                                    ( "", "" )
+
+                                Document.Share { readers, editors } ->
+                                    ( String.join ", " readers, String.join ", " editors )
+                    in
+                    ( { model | popupState = SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
+
+        DoShare ->
+            case model.currentDocument of
+                Nothing ->
+                    ( { model | popupState = NoPopup }, Cmd.none )
+
+                Just doc ->
+                    let
+                        readers =
+                            model.inputReaders |> String.split "," |> List.map String.trim
+
+                        editors =
+                            model.inputEditors |> String.split "," |> List.map String.trim
+
+                        share =
+                            if List.isEmpty readers && List.isEmpty editors then
+                                Document.Private
+
+                            else
+                                Document.Share { readers = readers, editors = editors }
+
+                        newDocument =
+                            { doc | share = share }
+
+                        documents =
+                            List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
+                    in
+                    ( { model | popupState = NoPopup, currentDocument = Just newDocument, documents = documents }
+                    , sendToBackend (SaveDocument model.currentUser newDocument)
+                    )
+
         GetPinnedDocuments ->
             ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin") )
 

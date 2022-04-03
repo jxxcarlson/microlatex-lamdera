@@ -16,6 +16,7 @@ import View.Header as Header
 import View.Index as Index
 import View.Input
 import View.Rendered as Rendered
+import View.Share as Share
 import View.Sidebar as Sidebar
 import View.SignUp as SignUp
 import View.Style as Style
@@ -57,10 +58,11 @@ viewEditorAndRenderedText model =
     E.column (Style.mainColumn model)
         [ E.column
             [ E.inFront (languageMenu model)
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
             , E.centerX
             , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
-            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             ]
             [ headerRow model
             , E.row [ E.spacing 12 ]
@@ -102,7 +104,7 @@ newDocumentPopup model =
                         ""
             in
             E.column [ Font.size 14, E.moveDown 35, E.spacing 36, E.padding 20, Background.color (Color.gray 0.35), E.width (E.px 600), E.height (E.px 250) ]
-                [ E.row [ E.spacing 12 ] [ View.Input.title model, Button.closePopUp ]
+                [ E.row [ E.spacing 12 ] [ View.Input.title model, Button.dismissPopup ]
                 , E.el [ Font.color Color.white ] (E.text message)
                 , E.row [ E.spacing 12 ]
                     [ E.el [ Font.color Color.white ] (E.text "Language")
@@ -139,6 +141,7 @@ viewRenderedTextOnly model =
         [ E.column
             [ E.inFront (languageMenu model)
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
             , E.centerX
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))

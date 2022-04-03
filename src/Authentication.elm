@@ -63,7 +63,7 @@ insert user salt transitPassword authDict =
         Err err ->
             case err of
                 DecodingError ->
-                    Err "Decoding error"
+                    Err "Oops, please press Sign Up again."
 
                 _ ->
                     Err "Unknown error"

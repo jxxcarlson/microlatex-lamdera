@@ -16,14 +16,25 @@ view model _ =
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor Button.closeEditor)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.hideIf model.showEditor Button.openEditor)
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.popupNewDocumentForm model.popupState)
-        , View.Utility.hideIf (model.currentUser == Nothing) (Button.deleteDocument model)
-        , View.Utility.showIf
-            (Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
-            (Button.cancelDeleteDocument model)
-        , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument))
+        , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.deleteDocument model)
+        , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
+        , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
+        , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.share
         , E.el [ E.alignRight ] (wordCount model)
         , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9), E.alignRight ] (E.text (Document.currentAuthorFancy model.currentDocument))
         ]
+
+
+showIfUserIsDocumentAuthor model condition element =
+    View.Utility.showIf
+        (Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser && condition)
+        element
+
+
+showIfUserIsDocumentOrShared model condition element =
+    View.Utility.showIf
+        ((Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser) || Maybe.map (View.Utility.isShared model.currentUser) model.currentDocument == Just True && condition)
+        element
 
 
 wordCount : FrontendModel -> Element FrontendMsg

@@ -87,6 +87,8 @@ type alias FrontendModel =
     , documents : List Document
     , inputSearchKey : String
     , inputSearchTagsKey : String
+    , inputReaders : String
+    , inputEditors : String
     , printingState : PrintingState
     , documentDeleteState : DocumentDeleteState
     , counter : Int
@@ -101,6 +103,7 @@ type PopupState
     = NoPopup
     | LanguageMenuPopup
     | NewDocumentPopup
+    | SharePopup
 
 
 type TagSelection
@@ -270,6 +273,8 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- DOC
+    | ShareDocument
+    | DoShare
     | GetPinnedDocuments
     | SetLanguage Bool Language
     | Fetch String
@@ -280,6 +285,8 @@ type FrontendMsg
     | InputSearchSource String
     | InputText String
     | InputTitle String
+    | InputReaders String
+    | InputEditors String
     | DebounceMsg Debounce.Msg
     | Saved String
     | InputSearchKey String

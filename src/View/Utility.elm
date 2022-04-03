@@ -4,6 +4,7 @@ module View.Utility exposing
     , getElementWithViewPort
     , hideIf
     , isAdmin
+    , isShared
     , katexCSS
     , noFocus
     , onEnter
@@ -16,6 +17,7 @@ module View.Utility exposing
     )
 
 import Browser.Dom as Dom
+import Document
 import Element exposing (Element)
 import Html
 import Html.Attributes as HA
@@ -24,6 +26,7 @@ import Json.Decode as D
 import String.Extra
 import Task exposing (Task)
 import Types exposing (FrontendModel, FrontendMsg)
+import User
 
 
 isAdmin : FrontendModel -> Bool
@@ -33,6 +36,21 @@ isAdmin model =
 
 softTruncateLimit =
     50
+
+
+isShared : Maybe User.User -> Document.Document -> Bool
+isShared mUser doc =
+    case mUser of
+        Nothing ->
+            False
+
+        Just user ->
+            case doc.share of
+                Document.Private ->
+                    False
+
+                Document.Share { readers, editors } ->
+                    List.member user.username readers || List.member user.username editors
 
 
 truncateString : Int -> String -> String

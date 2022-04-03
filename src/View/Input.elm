@@ -1,9 +1,11 @@
 module View.Input exposing
-    ( email
+    ( editors
+    , email
     , enterPrivateId
     , password
     , passwordAgain
     , passwordLarge
+    , readers
     , realName
     , searchDocsInput
     , searchSourceText
@@ -28,6 +30,27 @@ searchSourceText model =
 
 enterPrivateId displayText =
     inputFieldTemplate (E.px 200) "Private ID" InputAuthorId displayText
+
+
+multiLineTemplate : Int -> Int -> String -> (String -> msg) -> String -> Element msg
+multiLineTemplate width_ height_ default msg text =
+    Input.multiline [ E.moveUp 5, Font.size 16, E.width (E.px width_), E.height (E.px height_) ]
+        { onChange = msg
+        , text = text
+        , label = Input.labelHidden default
+        , placeholder = Just <| Input.placeholder [ E.moveUp 5 ] (E.text default)
+        , spellcheck = False
+        }
+
+
+readers : Int -> Int -> FrontendModel -> Element FrontendMsg
+readers width_ height_ model =
+    multiLineTemplate width_ height_ "Readers ..." InputReaders model.inputReaders
+
+
+editors : Int -> Int -> FrontendModel -> Element FrontendMsg
+editors width_ height_ model =
+    multiLineTemplate width_ height_ "Editors ..." InputEditors model.inputEditors
 
 
 inputFieldTemplate : E.Length -> String -> (String -> msg) -> String -> Element msg
