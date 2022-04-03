@@ -114,12 +114,6 @@ currentDocumentAuthor mUsername mDoc =
 
         Just doc ->
             let
-                _ =
-                    Debug.log "??? (user, author)" ( mUsername, doc.author )
-
-                _ =
-                    Debug.log "??? (am the author, shared)" ( mUsername == doc.author, isSharedToMe_ mUsername doc )
-
                 color =
                     if mUsername == doc.author then
                         if doc.share == Document.Private then
@@ -138,8 +132,16 @@ currentDocumentAuthor mUsername mDoc =
                         -- not my doc, not shared to me
                         Font.color (Element.rgb 0.9 0.9 0.9)
 
+                nowEditing =
+                    case doc.currentEditor of
+                        Nothing ->
+                            " , editor: no one"
+
+                        Just editorName ->
+                            " , editor: " ++ editorName
+
                 str =
-                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x) |> Maybe.withDefault ""
+                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x ++ nowEditing) |> Maybe.withDefault ""
             in
             Element.el [ color, Font.size 14 ] (Element.text str)
 

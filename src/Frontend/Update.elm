@@ -95,7 +95,7 @@ setPublic model doc public =
         documents =
             List.Extra.setIf (\d -> d.id == newDocument_.id) newDocument_ model.documents
     in
-    ( { model | documents = documents, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument model.currentUser newDocument_) )
+    ( { model | documents = documents, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument newDocument_) )
 
 
 setPublicDocumentAsCurrentById model id =
@@ -412,7 +412,7 @@ deleteDocFromCurrentUser model doc =
             Just newUser
 
 
-setDocumentAsCurrent model doc permissions =
+setDocumentAsCurrent model doc_ permissions =
     let
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
@@ -429,10 +429,37 @@ setDocumentAsCurrent model doc permissions =
 
         newCurrentUser =
             addDocToCurrentUser model doc
+
+        -- set the currentEditor on doc
+        ( doc, documents_, cmd1 ) =
+            if model.showEditor then
+                ( { doc_ | currentEditor = Maybe.map .username model.currentUser }
+                , List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
+                , sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
+                )
+
+            else
+                ( doc_, model.documents, Cmd.none )
+
+        -- set the currentEditor on the previous currentDoc to Nothing
+        ( documents, cmd2 ) =
+            case model.currentDocument of
+                Nothing ->
+                    ( documents_, Cmd.none )
+
+                Just previousCurrentDoc_ ->
+                    if model.showEditor then
+                        ( List.Extra.setIf (\d -> d.id == doc_.id) previousCurrentDoc_ model.documents
+                        , sendToBackend (SaveDocument { previousCurrentDoc_ | currentEditor = Nothing })
+                        )
+
+                    else
+                        ( model.documents, Cmd.none )
     in
     ( { model
         | currentDocument = Just doc
         , currentMasterDocument = currentMasterDocument
+        , documents = documents
         , sourceText = doc.content
         , initialText = doc.content
         , editRecord = newEditRecord
@@ -447,7 +474,7 @@ setDocumentAsCurrent model doc permissions =
         , inputReaders = readers
         , inputEditors = editors
       }
-    , Cmd.batch [ View.Utility.setViewPortToTop ]
+    , Cmd.batch [ View.Utility.setViewPortToTop, cmd1 ]
     )
 
 

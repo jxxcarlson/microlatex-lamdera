@@ -358,7 +358,7 @@ type ToBackend
     | GetHomePage String
     | FetchDocumentById String (Maybe String)
     | GetPublicDocuments (Maybe String)
-    | SaveDocument (Maybe User) Document
+    | SaveDocument Document
     | GetDocumentByAuthorId String
     | GetDocumentByPublicId String
     | GetDocumentById String

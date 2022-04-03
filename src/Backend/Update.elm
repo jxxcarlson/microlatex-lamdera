@@ -190,18 +190,13 @@ fetchDocumentById model clientId docId maybeUserName =
                 )
 
 
-saveDocument model currentUser document =
+saveDocument model document =
     -- TODO: review this for safety
-    case currentUser of
-        Nothing ->
-            ( model, Cmd.none )
-
-        Just _ ->
-            let
-                documentDict =
-                    Dict.insert document.id { document | modified = model.currentTime } model.documentDict
-            in
-            ( { model | documentDict = documentDict }, Cmd.none )
+    let
+        documentDict =
+            Dict.insert document.id { document | modified = model.currentTime } model.documentDict
+    in
+    ( { model | documentDict = documentDict }, Cmd.none )
 
 
 createDocument model clientId maybeCurrentUser doc_ =

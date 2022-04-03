@@ -123,8 +123,8 @@ updateFromFrontend _ clientId msg model =
         CreateDocument maybeCurrentUser doc_ ->
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
-        SaveDocument currentUser document ->
-            Backend.Update.saveDocument model currentUser document
+        SaveDocument document ->
+            Backend.Update.saveDocument model document
 
         FetchDocumentById docId maybeCurrentUserId ->
             Backend.Update.fetchDocumentById model clientId docId maybeCurrentUserId

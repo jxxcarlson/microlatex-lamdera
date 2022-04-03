@@ -28,6 +28,7 @@ import Task
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
+import User
 import Util
 import View.Main
 import View.Phone
@@ -364,7 +365,21 @@ update msg model =
                     ( { model | message = "No document to open in editor" }, Cmd.none )
 
                 Just doc ->
-                    ( { model | showEditor = True, sourceText = doc.content, initialText = "" }, Frontend.Cmd.setInitialEditorContent 20 )
+                    let
+                        newDoc =
+                            { doc | currentEditor = Maybe.map .username model.currentUser }
+
+                        documents =
+                            List.Extra.setIf (\d -> d.id == newDoc.id) newDoc model.documents
+                    in
+                    ( { model
+                        | documents = documents
+                        , showEditor = True
+                        , sourceText = doc.content
+                        , initialText = ""
+                      }
+                    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, sendToBackend (SaveDocument newDoc) ]
+                    )
 
         Help docId ->
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
@@ -423,7 +438,7 @@ update msg model =
                             List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
                     in
                     ( { model | popupState = NoPopup, currentDocument = Just newDocument, documents = documents }
-                    , sendToBackend (SaveDocument model.currentUser newDocument)
+                    , sendToBackend (SaveDocument newDocument)
                     )
 
         GetPinnedDocuments ->
@@ -583,44 +598,50 @@ fixId_ str =
 
 
 updateDoc model str =
-    case ( model.currentDocument, model.currentUser ) of
-        ( Nothing, _ ) ->
+    case model.currentDocument of
+        Nothing ->
             ( model, Cmd.none )
 
-        ( _, Nothing ) ->
-            ( model, Cmd.none )
-
-        ( Just doc, Just user ) ->
-            if Just user.username /= doc.author then
-                ( model, Cmd.none )
+        Just doc ->
+            if canSave model.currentUser doc then
+                updateDoc_ model doc str
 
             else
-                let
-                    provisionalTitle : String
-                    provisionalTitle =
-                        Compiler.ASTTools.title model.editRecord.parsed
+                ( model, Cmd.none )
 
-                    ( safeContent, safeTitle ) =
-                        if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
-                            ( String.replace "| title\n" "| title\n{untitled}\n\n" str, "{untitled}" )
 
-                        else
-                            ( str, provisionalTitle )
+canSave : Maybe User.User -> Document.Document -> Bool
+canSave mCurrentUser currentDocument =
+    Maybe.map .username mCurrentUser == .author currentDocument || View.Utility.isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument
 
-                    newDocument =
-                        { doc | content = safeContent, title = safeTitle }
 
-                    documents =
-                        List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
-                in
-                ( { model
-                    | currentDocument = Just newDocument
-                    , counter = model.counter + 1
-                    , documents = documents
-                    , currentUser = Frontend.Update.addDocToCurrentUser model doc
-                  }
-                , sendToBackend (SaveDocument model.currentUser newDocument)
-                )
+updateDoc_ model doc str =
+    let
+        provisionalTitle : String
+        provisionalTitle =
+            Compiler.ASTTools.title model.editRecord.parsed
+
+        ( safeContent, safeTitle ) =
+            if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
+                ( String.replace "| title\n" "| title\n{untitled}\n\n" str, "{untitled}" )
+
+            else
+                ( str, provisionalTitle )
+
+        newDocument =
+            { doc | content = safeContent, title = safeTitle }
+
+        documents =
+            List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
+    in
+    ( { model
+        | currentDocument = Just newDocument
+        , counter = model.counter + 1
+        , documents = documents
+        , currentUser = Frontend.Update.addDocToCurrentUser model doc
+      }
+    , sendToBackend (SaveDocument newDocument)
+    )
 
 
 changePrintingState : PrintingState -> { a | id : String } -> Cmd FrontendMsg

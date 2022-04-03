@@ -23,6 +23,7 @@ type alias Document =
     , title : String
     , public : Bool -- document visible to others if public == True
     , author : Maybe String
+    , currentEditor : Maybe String -- the username of the person currently editing the document
     , language : Language
     , share : Share
     , tags : List String
@@ -81,6 +82,7 @@ empty =
     , title = "(Untitled)"
     , public = False
     , author = Nothing
+    , currentEditor = Nothing
     , language = MicroLaTeXLang
     , share = Private
     , tags = []
