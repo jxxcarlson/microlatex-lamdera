@@ -639,10 +639,10 @@ toggleAppMode : FrontendModel -> Element FrontendMsg
 toggleAppMode model =
     case model.appMode of
         UserMode ->
-            buttonTemplate [] (SetAppMode AdminMode) "Admin mode"
+            buttonTemplate [] (SetAppMode AdminMode) "Admin"
 
         AdminMode ->
-            buttonTemplate [] (SetAppMode UserMode) "User Mode"
+            buttonTemplate [] (SetAppMode UserMode) "User"
 
 
 
