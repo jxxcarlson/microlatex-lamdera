@@ -331,7 +331,16 @@ update msg model =
             Frontend.Update.setDocumentInPhoneAsCurrent model doc permissions
 
         SetAppMode appMode ->
-            ( { model | appMode = appMode }, Cmd.none )
+            let
+                cmd =
+                    case appMode of
+                        UserMode ->
+                            Cmd.none
+
+                        AdminMode ->
+                            sendToBackend GetUserList
+            in
+            ( { model | appMode = appMode }, cmd )
 
         GotNewWindowDimensions w h ->
             ( { model | windowWidth = w, windowHeight = h }, Cmd.none )
