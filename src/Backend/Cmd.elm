@@ -1,8 +1,7 @@
 module Backend.Cmd exposing (getRandomNumber)
 
 import Http
-import Lamdera exposing (ClientId, sendToFrontend)
-import Types exposing (BackendModel, BackendMsg(..), ToFrontend(..))
+import Types exposing (BackendMsg(..))
 
 
 getRandomNumber : Cmd BackendMsg

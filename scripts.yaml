@@ -11,6 +11,9 @@ scripts:
 
   review-fix: npx elm-review@beta --ignore-dirs src/Evergreen/ --fix
 
+  review-fix-all: npx elm-review@beta --ignore-dirs src/Evergreen/ --fix-all
+
+
   cloc: cloc --by-file --exclude-dir=Evergreen src/
 
   clean-macros:

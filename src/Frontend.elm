@@ -11,9 +11,7 @@ import Dict
 import Docs
 import Document
 import Element
-import File
 import File.Download as Download
-import File.Select as Select
 import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
@@ -137,30 +135,6 @@ init url key =
         , sendToBackend GetPublicDocuments
         ]
     )
-
-
-allowedPrefix : String -> Bool
-allowedPrefix path =
-    List.member (String.left 3 path) [ "/a/", "/h/", "/i/", "/p/", "/s/" ]
-
-
-getId : String -> String
-getId path =
-    let
-        prefix =
-            String.left 3 path
-
-        id =
-            String.dropLeft 3 path
-
-        allowedPrefixes =
-            [ "/a/", "/h/", "/i/", "/p/", "/s/" ]
-    in
-    if not (List.member prefix allowedPrefixes) then
-        Config.welcomeDocId
-
-    else
-        id
 
 
 urlAction : String -> Cmd FrontendMsg
@@ -645,7 +619,7 @@ updateFromBackend msg model =
         AcceptPublicTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
 
-        SendDocument access doc ->
+        SendDocument _ doc ->
             let
                 documents =
                     Util.insertInListViaTitle doc model.documents

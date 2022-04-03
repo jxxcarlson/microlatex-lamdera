@@ -45,12 +45,3 @@ messageRow model =
         , View.Style.fgGray 1.0
         ]
         [ E.text model.message ]
-
-
-rightPaddingFooter showEditor =
-    case showEditor of
-        True ->
-            E.paddingEach { left = 0, right = 22, top = 0, bottom = 0 }
-
-        False ->
-            E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }

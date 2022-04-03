@@ -14,7 +14,7 @@ module XMarkdown.Token exposing
 import Parser.Advanced as Parser exposing (DeadEnd, Parser)
 import Parser.Helpers exposing (Step(..), loop)
 import Parser.Meta exposing (Meta)
-import Parser.Tools as PT exposing (Context(..), Problem)
+import Parser.Tools as PT exposing (Context, Problem)
 
 
 

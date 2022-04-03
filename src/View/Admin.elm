@@ -7,12 +7,9 @@ import Types exposing (FrontendModel, FrontendMsg)
 import User
 import View.Button as Button
 import View.Color
-import View.Footer as Footer
 import View.Geometry as Geometry
-import View.Header as Header
 import View.Input
 import View.Style as Style
-import View.Utility
 
 
 view : FrontendModel -> Element FrontendMsg
@@ -61,7 +58,7 @@ adminFooter model =
 
 viewUserList : List ( User.User, Int ) -> List (Element FrontendMsg)
 viewUserList users =
-    List.map viewUser (List.sortBy (\( u, k ) -> u.username) users)
+    List.map viewUser (List.sortBy (\( u, _ ) -> u.username) users)
 
 
 viewUser : ( User.User, Int ) -> Element FrontendMsg

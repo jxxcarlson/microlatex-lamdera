@@ -1,8 +1,8 @@
 module User exposing (Preferences, User)
 
 import BoundedDeque exposing (BoundedDeque)
-import Document exposing (Document)
-import Parser.Language exposing (Language(..))
+import Document
+import Parser.Language exposing (Language)
 import Time
 
 

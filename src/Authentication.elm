@@ -45,21 +45,11 @@ updateUser user authDict =
 
 userList : AuthenticationDict -> List User
 userList authDict =
-    Dict.toList authDict |> List.map (\( username, item ) -> item.user)
+    Dict.toList authDict |> List.map (\( _, item ) -> item.user)
 
 
 
 -- Dict.update user.username lift (\{user, credentials} -> newUserData authDict
-
-
-lift : (a -> a) -> (Maybe a -> Maybe a)
-lift f x =
-    case x of
-        Nothing ->
-            Nothing
-
-        Just y ->
-            Just (f y)
 
 
 users : AuthenticationDict -> List User

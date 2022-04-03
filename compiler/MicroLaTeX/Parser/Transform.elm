@@ -4,7 +4,6 @@ import Dict exposing (Dict)
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.MathMacro exposing (MathExpression(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
-import Tools
 
 
 pseudoBlockNamesWithContent =

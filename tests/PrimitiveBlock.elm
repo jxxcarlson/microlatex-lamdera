@@ -1,4 +1,4 @@
-module PrimitiveBlock exposing (..)
+module PrimitiveBlock exposing (aIN, aTRANS, bIN, bTRANS, bll, bllc, cIN, eIN, eTRANS, err1, p1, p2, p2Indented, p3, p3Indented, p4Indented, s1, suite, suite3, test_, x2, x2Indent, xIN)
 
 import Expect exposing (..)
 import Markup

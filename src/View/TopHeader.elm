@@ -1,12 +1,9 @@
 module View.TopHeader exposing (view)
 
 import Config
-import Document
 import Element as E exposing (Element)
-import Element.Font as Font
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
-import View.Color as Color
 import View.Input
 import View.Style
 import View.Utility
@@ -39,13 +36,3 @@ rightPaddingHeader showEditor =
 
         False ->
             E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
-
-
-wordCount : FrontendModel -> Element FrontendMsg
-wordCount model =
-    case model.currentDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            E.el [ Font.size 14, Font.color Color.lightGray ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))

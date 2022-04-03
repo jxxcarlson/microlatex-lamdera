@@ -134,7 +134,7 @@ deleteDocument model =
                         Nothing ->
                             Nothing
 
-                        Just user ->
+                        Just _ ->
                             deleteDocFromCurrentUser model doc
             in
             ( { model

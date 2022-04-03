@@ -19,7 +19,6 @@ import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language)
 import Parser.MathMacro
-import Tools
 import Tree exposing (Tree)
 
 

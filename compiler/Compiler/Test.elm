@@ -1,4 +1,4 @@
-module Compiler.Test exposing (..)
+module Compiler.Test exposing (a2, a3, a4, bll, blm, blmt, blx, blxt, dpl, dpm, e2, pl, plt, pm, pmt, pxt, tol0, ww, xx)
 
 --( bll
 --, blm

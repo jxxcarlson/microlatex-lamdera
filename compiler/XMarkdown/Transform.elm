@@ -48,36 +48,6 @@ handleNumberedItem block firstLine rest =
     { block | name = Just "numbered", blockType = PBOrdinary, content = "| numbered" :: firstLine :: rest }
 
 
-handleImageBlock block firstLine rest =
-    let
-        args =
-            Compiler.Util.getMarkdownImageArgs firstLine
-    in
-    case args of
-        Nothing ->
-            block
-
-        Just ( _, url ) ->
-            let
-                imageString =
-                    "[image " ++ url ++ "]"
-            in
-            { block | content = [ imageString ] }
-
-
-handleOrdinaryBlock block firstLine rest =
-    let
-        args =
-            firstLine |> String.words |> List.map String.trim
-    in
-    case List.head args of
-        Nothing ->
-            block
-
-        Just name ->
-            { block | name = Just name, args = List.drop 1 args, content = rest, blockType = PBOrdinary }
-
-
 handleVerbatim : PrimitiveBlock -> List String -> PrimitiveBlock
 handleVerbatim block rest =
     { block | name = Just "code", named = True, blockType = PBVerbatim, content = Compiler.Util.dropLast block.content }

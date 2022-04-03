@@ -278,10 +278,6 @@ getDocumentByPrivateId =
     buttonTemplate [] AskForDocumentByAuthorId "Get document"
 
 
-sortButtonWidth =
-    143
-
-
 setSortModeAlpha : SortMode -> Element FrontendMsg
 setSortModeAlpha sortMode =
     let
@@ -573,12 +569,6 @@ setDocAsCurrentWithDocInfo currentDocument documents docInfo =
                 |> String.replace "   " " "
                 |> String.replace "  " " "
                 |> View.Utility.truncateString 40
-
-        emptydoc =
-            Document.empty
-
-        targetDocument =
-            List.filter (\d -> d.id == docInfo.id) documents |> List.head |> Maybe.withDefault { emptydoc | title = "Oops!" }
     in
     Input.button []
         --{ onPress = Just (SetDocumentAsCurrent Types.CanEdit targetDocument)

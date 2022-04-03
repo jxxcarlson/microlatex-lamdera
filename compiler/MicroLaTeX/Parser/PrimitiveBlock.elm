@@ -1,4 +1,4 @@
-module MicroLaTeX.Parser.PrimitiveBlock exposing (..)
+module MicroLaTeX.Parser.PrimitiveBlock exposing (PrimitiveBlock, State, Step(..), a1, a2, a3, a4, addCurrentLine, addCurrentLineXX, addCurrentLine_, advance, blockFromLine, commitBlock, createBlock, elaborate, empty, finalize, init, loop, nextStep, report1, report2, toPrimitiveBlocks, toPrimitiveBlocks_, transformContent)
 
 {-| This module is like Tree.Blocks, except that if the first line of a block
 is deemed to signal the beginning of a "verbatim block," all succeeding lines will be

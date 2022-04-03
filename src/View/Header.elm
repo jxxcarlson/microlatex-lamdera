@@ -1,14 +1,11 @@
 module View.Header exposing (view)
 
-import Config
 import Document
 import Element as E exposing (Element)
 import Element.Font as Font
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
 import View.Color as Color
-import View.Input
-import View.Style
 import View.Utility
 
 
@@ -27,20 +24,6 @@ view model _ =
         , E.el [ E.alignRight ] (wordCount model)
         , E.el [ Font.size 14, Font.color (E.rgb 0.9 0.9 0.9), E.alignRight ] (E.text (Document.currentAuthorFancy model.currentDocument))
         ]
-
-
-title : String -> Element msg
-title str =
-    E.row [ E.centerX, View.Style.fgGray 0.9 ] [ E.text str ]
-
-
-rightPaddingHeader showEditor =
-    case showEditor of
-        True ->
-            E.paddingEach { left = 0, right = 30, top = 0, bottom = 0 }
-
-        False ->
-            E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }
 
 
 wordCount : FrontendModel -> Element FrontendMsg

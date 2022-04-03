@@ -175,15 +175,6 @@ push token state =
 -- REDUCE
 
 
-isLBToken maybeTok =
-    case maybeTok of
-        Just (LB _) ->
-            True
-
-        _ ->
-            False
-
-
 reduceState : State -> State
 reduceState state =
     let
@@ -250,9 +241,6 @@ takeMiddle list =
 handleLink : List Symbol -> State -> State
 handleLink symbols state =
     let
-        _ =
-            Tools.forklogRed "SYMBOLS (2)" forkLogWidth identity symbols
-
         expr =
             case state.stack of
                 [ RP _, S url _, LP _, RB _, S linkText _, LB _ ] ->
@@ -266,9 +254,6 @@ handleLink symbols state =
 
                 _ ->
                     Expr "red" [ Text "[Link: no label or url]" meta ] meta
-
-        _ =
-            Tools.forklogRed "OUT" forkLogWidth identity expr
 
         meta =
             { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
@@ -443,45 +428,6 @@ handleCodeSymbol symbols state =
         state
 
 
-handleSymbol1 : String -> String -> State -> State
-handleSymbol1 name symbol state =
-    let
-        _ =
-            Tools.forklogRed "SYM" forkLogWidth identity symbol
-
-        content =
-            state.stack |> List.reverse |> Tools.forklogYellow "CONT" forkLogWidth identity |> Token.toString2
-
-        trailing =
-            String.right 1 content |> Tools.forklogYellow "TRAILING" forkLogWidth identity
-
-        committed =
-            --if trailing == symbol && content == symbol then
-            --    let
-            --        ( first_, rest_ ) =
-            --            case state.committed of
-            --                first :: rest ->
-            --                    ( first, rest )
-            --
-            --                _ ->
-            --                    ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-            --    in
-            --    first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
-            if trailing == symbol then
-                Verbatim "math" (String.replace symbol "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 })
-                    :: state.committed
-                    |> Tools.forklogRed "(1)" forkLogWidth identity
-
-            else
-                (Expr "red" [ Text symbol dummyLocWithId ] dummyLocWithId
-                    :: Verbatim name (String.replace symbol "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
-                    :: state.committed
-                )
-                    |> Tools.forklogRed "(2)" forkLogWidth identity
-    in
-    { state | stack = [], committed = committed }
-
-
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
     case tokens of
@@ -540,28 +486,9 @@ errorMessage message =
     Expr "red" [ Text message dummyLocWithId ] dummyLocWithId
 
 
-errorMessageLarge : String -> Expr
-errorMessageLarge message =
-    Expr "large" [ Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId ] dummyLocWithId
-
-
 errorMessageBold : String -> Expr
 errorMessageBold message =
     Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
-
-
-errorMessage2 : String -> Expr
-errorMessage2 message =
-    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
-
-
-addErrorMessage : String -> State -> State
-addErrorMessage message state =
-    let
-        committed =
-            errorMessage message :: state.committed
-    in
-    { state | committed = committed }
 
 
 isReducible : List Token -> Bool
@@ -583,10 +510,6 @@ isReducible tokens =
 
 recoverFromError : State -> Step State State
 recoverFromError state =
-    let
-        _ =
-            Tools.forklogRed "RECOVER" forkLogWidth .stack state
-    in
     case List.reverse state.stack of
         (LB _) :: (S txt meta) :: (RB _) :: [] ->
             Loop { state | stack = [], committed = Text ("[" ++ txt ++ "]") meta :: [] }
@@ -701,27 +624,6 @@ recoverFromError state =
             Done state
 
 
-errorSuffix rest =
-    case rest of
-        [] ->
-            "]?"
-
-        (W _ _) :: [] ->
-            "]?"
-
-        _ ->
-            ""
-
-
-boostMeta : Int -> Int -> { begin : Int, end : Int, index : Int } -> { begin : Int, end : Int, index : Int, id : String }
-boostMeta lineNumber tokenIndex { begin, end, index } =
-    { begin = begin, end = end, index = index, id = makeId lineNumber tokenIndex }
-
-
-dummyMeta =
-    { begin = 0, end = 0, index = 0, id = "??" }
-
-
 makeId : Int -> Int -> String
 makeId a b =
     String.fromInt a ++ "." ++ String.fromInt b
@@ -733,10 +635,6 @@ makeId a b =
 
 dummyTokenIndex =
     0
-
-
-dummyLoc =
-    { begin = 0, end = 0, index = dummyTokenIndex }
 
 
 dummyLocWithId =

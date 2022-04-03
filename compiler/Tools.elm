@@ -33,17 +33,6 @@ forklog_ fg bg label width f a =
     a
 
 
-coloredLabel fg bg label width =
-    let
-        n =
-            String.length label
-
-        padding =
-            String.repeat (width - n) " "
-    in
-    label |> (\x -> " " ++ x ++ padding) |> bg |> fg
-
-
 blue : String -> Int -> String
 blue label width =
     let
@@ -54,18 +43,6 @@ blue label width =
             String.repeat (width - n) " "
     in
     label |> (\x -> " " ++ x ++ padding) |> Console.bgBlue |> Console.white
-
-
-red : String -> Int -> String
-red label width =
-    let
-        n =
-            String.length label
-
-        padding =
-            String.repeat (width - n) " "
-    in
-    label |> (\x -> " " ++ x ++ padding) |> Console.bgRed |> Console.white
 
 
 cyan label width =
