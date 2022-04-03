@@ -48,9 +48,9 @@ view model =
 
 viewUserList : List ( User.User, Int ) -> List (Element FrontendMsg)
 viewUserList users =
-    List.map viewUser users
+    List.map viewUser (List.sortBy (\( u, k ) -> u.username) users)
 
 
 viewUser : ( User.User, Int ) -> Element FrontendMsg
 viewUser ( user, k ) =
-    E.row [ E.spacing 8 ] [ E.el [ E.width (E.px 150) ] (E.text user.username), E.el [ E.width (E.px 50) ] (E.text (String.fromInt k)) ]
+    E.row [ E.spacing 8 ] [ E.el [ E.width (E.px 150) ] (E.text user.username), E.el [ E.width (E.px 50), E.alignRight ] (E.text (String.fromInt k)) ]
