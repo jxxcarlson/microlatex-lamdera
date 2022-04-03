@@ -24,25 +24,38 @@ view model =
             , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
             ]
-            [ Header.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
-            , E.column
-                [ E.spacing 12
-                , E.centerX
-                , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
-                , E.height (E.px (Geometry.appHeight_ model - 150))
-                , Background.color View.Color.white
-                , Font.size 14
-                , E.padding 20
-                , E.scrollbarY
-                ]
-                (viewUserList model.userList)
-            , E.row [ E.spacing 12 ]
-                [ View.Utility.showIf (View.Utility.isAdmin model) (View.Input.specialInput model)
-                , Button.runSpecial
-                , Button.getUserList
-                ]
-            , Footer.view model (Geometry.appWidth model.sidebarState model.windowWidth)
+            [ adminHeader model
+            , adminBody model
+            , adminFooter model
             ]
+        ]
+
+
+adminHeader model =
+    E.row [ E.spacing 12 ]
+        [ Button.getUserList
+        ]
+
+
+adminBody model =
+    E.column
+        [ E.spacing 12
+        , E.centerX
+        , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+        , E.height (E.px (Geometry.appHeight_ model - 150))
+        , Background.color View.Color.white
+        , Font.size 14
+        , E.padding 20
+        , E.scrollbarY
+        ]
+        (viewUserList model.userList)
+
+
+adminFooter model =
+    E.row [ E.spacing 12 ]
+        [ View.Input.specialInput model
+        , Button.runSpecial
+        , Button.toggleAppMode model
         ]
 
 
@@ -53,4 +66,4 @@ viewUserList users =
 
 viewUser : ( User.User, Int ) -> Element FrontendMsg
 viewUser ( user, k ) =
-    E.row [ E.spacing 8, E.width (E.px 300) ] [ E.el [ E.width (E.px 150) ] (E.text user.username), E.el [ E.width (E.px 80), E.alignRight ] (E.text (String.fromInt k)) ]
+    E.row [ E.spacing 8, E.width (E.px 100) ] [ E.el [ E.width (E.px 50) ] (E.text user.username), E.el [ E.width (E.px 20), E.alignRight ] (E.text (String.fromInt k)) ]
