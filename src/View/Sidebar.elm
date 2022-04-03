@@ -4,6 +4,7 @@ import Dict exposing (Dict)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
+import String.Extra
 import Types exposing (FrontendModel, FrontendMsg, SidebarState(..))
 import View.Button as Button
 import View.Color as Color
@@ -80,4 +81,4 @@ viewTagGroup list =
 
 viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg
 viewTagDictItem data =
-    E.row [ Font.size 14, E.spacing 8 ] [ E.el [] (Button.getDocument data.id (View.Utility.softTruncate 30 data.title)) ]
+    E.row [ Font.size 14, E.spacing 8 ] [ E.el [] (Button.getDocument data.id (String.Extra.ellipsisWith 30 " ..." data.title)) ]

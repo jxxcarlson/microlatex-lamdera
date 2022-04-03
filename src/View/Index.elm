@@ -5,6 +5,7 @@ import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
+import String.Extra
 import Time
 import Types exposing (ActiveDocList(..), DocPermissions(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
 import View.Button as Button
@@ -62,7 +63,7 @@ viewWorkingDocs model deltaH indexShift =
         sort =
             case model.sortMode of
                 SortAlphabetically ->
-                    List.sortBy (\docInfo -> View.Utility.softTruncate View.Utility.softTruncateLimit docInfo.title)
+                    List.sortBy (\docInfo -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." docInfo.title)
 
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
@@ -102,7 +103,7 @@ viewMydocs model deltaH indexShift =
         sort =
             case model.sortMode of
                 SortAlphabetically ->
-                    List.sortBy (\doc -> View.Utility.softTruncate View.Utility.softTruncateLimit doc.title)
+                    List.sortBy (\doc -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." doc.title)
 
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
@@ -160,7 +161,7 @@ viewPublicDocuments model =
         sorter =
             case model.sortMode of
                 SortAlphabetically ->
-                    List.sortBy (\doc -> View.Utility.softTruncate View.Utility.softTruncateLimit doc.title)
+                    List.sortBy (\doc -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." doc.title)
 
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))

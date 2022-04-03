@@ -53,6 +53,7 @@ module View.Button exposing
     , toggleSidebar
     )
 
+import Compiler.Util
 import Config
 import Document
 import Element as E exposing (Element)
@@ -61,6 +62,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
+import String.Extra
 import Types exposing (AppMode(..), DocPermissions, DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import View.Color as Color
@@ -535,10 +537,8 @@ setDocumentAsCurrent docPermissions currentDocument document =
 
         titleString =
             document.title
-                -- TODO: Find out why we need to compress blank spaces in the first place
-                |> String.replace "   " " "
-                |> String.replace "  " " "
-                |> View.Utility.truncateString 40
+                |> Compiler.Util.compressWhitespace
+                |> String.Extra.ellipsisWith 40 " ..."
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docPermissions document)

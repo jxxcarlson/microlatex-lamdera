@@ -11,7 +11,6 @@ module View.Utility exposing
     , setViewPortToTop
     , setViewportForElement
     , showIf
-    , softTruncate
     , softTruncateLimit
     , truncateString
     )
@@ -34,19 +33,6 @@ isAdmin model =
 
 softTruncateLimit =
     50
-
-
-softTruncate : Int -> String -> String
-softTruncate k str =
-    case String.Extra.softBreak k str of
-        [] ->
-            ""
-
-        str2 :: [] ->
-            str2
-
-        str2 :: _ ->
-            str2 ++ " ..."
 
 
 truncateString : Int -> String -> String
