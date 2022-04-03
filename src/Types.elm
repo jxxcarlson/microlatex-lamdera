@@ -29,6 +29,7 @@ type alias FrontendModel =
     -- ADMIN
     , statusReport : List String
     , inputSpecial : String
+    , userList : List User
 
     -- USER
     , currentUser : Maybe User
@@ -243,6 +244,7 @@ type FrontendMsg
       -- ADMIN
     | InputSpecial String
     | RunSpecial
+    | GoGetUserList
       -- USER
     | SignIn
     | SetSignupState SignupState
@@ -340,6 +342,7 @@ type ToBackend
     = --ADMIN
       RunTask
     | GetStatus
+    | GetUserList
       -- USER
     | SignInBE String String
     | SignUpBE String Language String String String
@@ -373,6 +376,7 @@ type BackendMsg
 type ToFrontend
     = -- ADMIN
       SendBackupData String
+    | GotUserList (List User)
       -- USEr
     | UserSignedUp User
       -- DOCUMENT

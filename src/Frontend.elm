@@ -67,6 +67,7 @@ init url key =
       -- ADMIN
       , statusReport = []
       , inputSpecial = ""
+      , userList = []
 
       -- USER
       , currentUser = Nothing
@@ -244,6 +245,9 @@ update msg model =
             Frontend.Update.handleSignOut model
 
         -- ADMIN
+        GoGetUserList ->
+            ( model, sendToBackend GetUserList )
+
         InputSpecial str ->
             { model | inputSpecial = str } |> withNoCmd
 
@@ -621,6 +625,10 @@ issueCommandIfDefined maybeSomething model cmdMsg =
 updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     case msg of
+        -- ADMIN
+        GotUserList users ->
+            ( { model | userList = users }, Cmd.none )
+
         -- DOCUMENT
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )

@@ -17,6 +17,7 @@ module View.Button exposing
     , getDocumentByPrivateId
     , getPinnedDocs
     , getPublicTags
+    , getUserList
     , getUserTags
     , help
     , home
@@ -439,6 +440,11 @@ closeCollectionsIndex =
     buttonTemplate2 [] CloseCollectionIndex "x"
 
 
+getUserList : Element FrontendMsg
+getUserList =
+    buttonTemplate [] Types.GoGetUserList "Get users"
+
+
 getUserTags : TagSelection -> Maybe User -> Element FrontendMsg
 getUserTags tagSelection user =
     case user of
@@ -633,10 +639,10 @@ toggleAppMode : FrontendModel -> Element FrontendMsg
 toggleAppMode model =
     case model.appMode of
         UserMode ->
-            buttonTemplate [] (SetAppMode AdminMode) "User Mode"
+            buttonTemplate [] (SetAppMode AdminMode) "Admin mode"
 
         AdminMode ->
-            buttonTemplate [] (SetAppMode UserMode) "Admin Mode"
+            buttonTemplate [] (SetAppMode UserMode) "User Mode"
 
 
 

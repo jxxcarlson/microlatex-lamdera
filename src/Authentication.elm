@@ -4,6 +4,7 @@ module Authentication exposing
     , encryptForTransit
     , insert
     , updateUser
+    , userList
     , users
     , verify
     )
@@ -40,6 +41,11 @@ updateUser user authDict =
                     { userData | user = user }
             in
             Dict.insert user.username newUserData authDict
+
+
+userList : AuthenticationDict -> List User
+userList authDict =
+    Dict.toList authDict |> List.map (\( username, item ) -> item.user)
 
 
 

@@ -91,6 +91,9 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend _ clientId msg model =
     case msg of
+        GetUserList ->
+            ( model, sendToFrontend clientId (GotUserList (Authentication.userList model.authenticationDict)) )
+
         RunTask ->
             ( model, Cmd.none )
 
