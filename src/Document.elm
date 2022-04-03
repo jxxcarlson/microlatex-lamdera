@@ -3,7 +3,6 @@ module Document exposing
     , DocumentInfo
     , Share(..)
     , currentAuthor
-    , currentAuthorFancy
     , defaultSettings
     , empty
     , toDocInfo
@@ -56,11 +55,6 @@ type alias DocumentInfo =
 currentAuthor : Maybe Document -> String
 currentAuthor mDoc =
     Maybe.andThen .author mDoc |> Maybe.withDefault ""
-
-
-currentAuthorFancy : Maybe Document -> String
-currentAuthorFancy mDoc =
-    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x) |> Maybe.withDefault ""
 
 
 type alias Username =
