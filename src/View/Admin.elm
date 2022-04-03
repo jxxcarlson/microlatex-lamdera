@@ -53,4 +53,4 @@ viewUserList users =
 
 viewUser : User.User -> Element FrontendMsg
 viewUser user =
-    E.el [] (E.text (user.username )
+    E.el [] (E.text user.username)
