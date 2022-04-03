@@ -16,6 +16,7 @@ module Backend.Update exposing
     , searchForPublicDocuments
     , signIn
     , signUpUser
+    , unlockDocuments
     , updateAbstracts
     )
 
@@ -40,6 +41,25 @@ import View.Utility
 
 type alias Model =
     BackendModel
+
+
+unlockDocuments : Model -> String -> ( Model, Cmd BackendMsg )
+unlockDocuments model userId =
+    case Dict.get userId model.usersDocumentsDict of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just userDocIds ->
+            let
+                userDocs =
+                    List.map (\id -> Dict.get id model.documentDict) userDocIds
+                        |> Maybe.Extra.values
+                        |> List.map (\doc -> { doc | currentEditor = Nothing })
+
+                newDocumentDict =
+                    List.foldl (\doc dict -> Dict.insert doc.id doc dict) model.documentDict userDocs
+            in
+            ( { model | documentDict = newDocumentDict }, Cmd.none )
 
 
 applySpecial model clientId =

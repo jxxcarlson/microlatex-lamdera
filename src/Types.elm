@@ -355,6 +355,7 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- DOCUMENT
+    | UnlockDocuments (Maybe String)
     | GetHomePage String
     | FetchDocumentById String (Maybe String)
     | GetPublicDocuments (Maybe String)

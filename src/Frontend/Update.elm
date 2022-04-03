@@ -412,7 +412,16 @@ deleteDocFromCurrentUser model doc =
             Just newUser
 
 
-setDocumentAsCurrent model doc_ permissions =
+setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent model doc permissions =
+    unlockCurrentDocument ( model, [] )
+        |> setDocumentAsCurrentAux doc permissions
+        |> lockDocumentAndMakeItCurrent doc
+        |> (\( m, cmds ) -> ( m, Cmd.batch cmds ))
+
+
+setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+setDocumentAsCurrentAux doc permissions ( model, cmds ) =
     let
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
@@ -429,37 +438,10 @@ setDocumentAsCurrent model doc_ permissions =
 
         newCurrentUser =
             addDocToCurrentUser model doc
-
-        -- set the currentEditor on doc
-        ( doc, documents_, cmd1 ) =
-            if model.showEditor then
-                ( { doc_ | currentEditor = Maybe.map .username model.currentUser }
-                , List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
-                , sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
-                )
-
-            else
-                ( doc_, model.documents, Cmd.none )
-
-        -- set the currentEditor on the previous currentDoc to Nothing
-        ( documents, cmd2 ) =
-            case model.currentDocument of
-                Nothing ->
-                    ( documents_, Cmd.none )
-
-                Just previousCurrentDoc_ ->
-                    if model.showEditor then
-                        ( List.Extra.setIf (\d -> d.id == doc_.id) previousCurrentDoc_ model.documents
-                        , sendToBackend (SaveDocument { previousCurrentDoc_ | currentEditor = Nothing })
-                        )
-
-                    else
-                        ( model.documents, Cmd.none )
     in
     ( { model
         | currentDocument = Just doc
         , currentMasterDocument = currentMasterDocument
-        , documents = documents
         , sourceText = doc.content
         , initialText = doc.content
         , editRecord = newEditRecord
@@ -474,8 +456,45 @@ setDocumentAsCurrent model doc_ permissions =
         , inputReaders = readers
         , inputEditors = editors
       }
-    , Cmd.batch [ View.Utility.setViewPortToTop, cmd1 ]
+    , View.Utility.setViewPortToTop :: cmds
     )
+
+
+unlockCurrentDocument : ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+unlockCurrentDocument ( model, commands ) =
+    case model.currentDocument of
+        Nothing ->
+            ( model, commands )
+
+        Just doc_ ->
+            let
+                ( doc, documents_, cmd1 ) =
+                    if model.showEditor then
+                        ( { doc_ | currentEditor = Maybe.map .username model.currentUser }
+                        , List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
+                        , sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
+                        )
+
+                    else
+                        ( doc_, model.documents, Cmd.none )
+            in
+            ( model, commands )
+
+
+lockDocumentAndMakeItCurrent : Document.Document -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+lockDocumentAndMakeItCurrent doc_ ( model, commands ) =
+    let
+        ( doc, documents_, cmd ) =
+            if model.showEditor then
+                ( { doc_ | currentEditor = Maybe.map .username model.currentUser }
+                , List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
+                , sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
+                )
+
+            else
+                ( doc_, model.documents, Cmd.none )
+    in
+    ( { model | currentDocument = Just doc, documents = documents_ }, cmd :: commands )
 
 
 setPermissions currentUser permissions document =
@@ -548,7 +567,13 @@ handleSignOut model =
         , popupState = NoPopup
         , showEditor = False
       }
-    , Cmd.batch [ Nav.pushUrl model.key "/", cmd, sendToBackend (GetDocumentById Config.welcomeDocId), sendToBackend (GetPublicDocuments Nothing) ]
+    , Cmd.batch
+        [ Nav.pushUrl model.key "/"
+        , cmd
+        , sendToBackend (UnlockDocuments (model.currentUser |> Maybe.map .id))
+        , sendToBackend (GetDocumentById Config.welcomeDocId)
+        , sendToBackend (GetPublicDocuments Nothing)
+        ]
     )
 
 

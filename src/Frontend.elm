@@ -607,12 +607,17 @@ updateDoc model str =
                 updateDoc_ model doc str
 
             else
-                ( model, Cmd.none )
+                let
+                    message =
+                        "Can't save this document. It is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+                in
+                ( { model | message = message }, Cmd.none )
 
 
 canSave : Maybe User.User -> Document.Document -> Bool
 canSave mCurrentUser currentDocument =
-    Maybe.map .username mCurrentUser == .author currentDocument || View.Utility.isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument
+    (Maybe.map .username mCurrentUser == .author currentDocument || View.Utility.isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument)
+        && (Maybe.map .username mCurrentUser == currentDocument.currentEditor || currentDocument.currentEditor == Nothing)
 
 
 updateDoc_ model doc str =
