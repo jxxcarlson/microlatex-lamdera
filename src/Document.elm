@@ -25,9 +25,17 @@ type alias Document =
     , public : Bool
     , author : Maybe String
     , language : Language
-    , readOnly : Bool
+
+    --, readOnly : Bool
+    -- , share : Share
     , tags : List String
     }
+
+
+{-| -}
+type Share
+    = Share { canRead : List Username, canEdit : List Username }
+    | Private
 
 
 toDocInfo : Document -> DocumentInfo
@@ -78,7 +86,8 @@ empty =
     , public = False
     , author = Nothing
     , language = MicroLaTeXLang
-    , readOnly = False
+
+    --, share = Private
     , tags = []
     }
 
