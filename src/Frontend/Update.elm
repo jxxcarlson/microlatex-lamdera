@@ -424,6 +424,9 @@ setDocumentAsCurrent model doc permissions =
             else
                 Nothing
 
+        ( readers, editors ) =
+            View.Utility.getReadersAndEditors (Just doc)
+
         newCurrentUser =
             addDocToCurrentUser model doc
     in
@@ -441,6 +444,8 @@ setDocumentAsCurrent model doc permissions =
         , counter = model.counter + 1
         , language = doc.language
         , currentUser = newCurrentUser
+        , inputReaders = readers
+        , inputEditors = editors
       }
     , Cmd.batch [ View.Utility.setViewPortToTop ]
     )
