@@ -46,11 +46,11 @@ view model =
         ]
 
 
-viewUserList : List User.User -> List (Element FrontendMsg)
+viewUserList : List ( User.User, Int ) -> List (Element FrontendMsg)
 viewUserList users =
     List.map viewUser users
 
 
-viewUser : User.User -> Element FrontendMsg
-viewUser user =
-    E.el [] (E.text user.username)
+viewUser : ( User.User, Int ) -> Element FrontendMsg
+viewUser ( user, k ) =
+    E.row [ E.spacing 8 ] [ E.el [ E.width (E.px 150) ] (E.text user.username), E.el [ E.width (E.px 50) ] (E.text (String.fromInt k)) ]

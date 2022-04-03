@@ -92,7 +92,7 @@ updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd
 updateFromFrontend _ clientId msg model =
     case msg of
         GetUserList ->
-            ( model, sendToFrontend clientId (GotUserList (Authentication.userList model.authenticationDict)) )
+            ( model, sendToFrontend clientId (GotUserList (Backend.Update.getUserData model)) )
 
         RunTask ->
             ( model, Cmd.none )

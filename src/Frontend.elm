@@ -626,8 +626,8 @@ updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     case msg of
         -- ADMIN
-        GotUserList users ->
-            ( { model | userList = users }, Cmd.none )
+        GotUserList userData ->
+            ( { model | userList = userData }, Cmd.none )
 
         -- DOCUMENT
         AcceptUserTags tagDict ->

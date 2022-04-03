@@ -7,6 +7,7 @@ module Backend.Update exposing
     , getDocumentById
     , getDocumentByPublicId
     , getHomePage
+    , getUserData
     , getUserDocuments
     , gotAtmosphericRandomNumber
     , saveDocument
@@ -438,6 +439,26 @@ getUserDocuments user usersDocumentsDict documentDict =
 
         Just docIds ->
             List.foldl (\id acc -> Dict.get id documentDict :: acc) [] docIds |> Maybe.Extra.values
+
+
+numberOfUserDocuments : User -> UsersDocumentsDict -> DocumentDict -> Int
+numberOfUserDocuments user usersDocumentsDict documentDict =
+    case Dict.get user.id usersDocumentsDict of
+        Nothing ->
+            0
+
+        Just docIds ->
+            List.length docIds
+
+
+getUserData : BackendModel -> List ( User, Int )
+getUserData model =
+    let
+        userList : List User
+        userList =
+            Authentication.userList model.authenticationDict
+    in
+    List.map (\u -> ( u, numberOfUserDocuments u model.usersDocumentsDict model.documentDict )) userList
 
 
 updateAbstract : Document.Document -> AbstractDict -> AbstractDict
