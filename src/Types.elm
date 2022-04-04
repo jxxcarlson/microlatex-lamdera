@@ -403,6 +403,8 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- DOCUMENT
+    | RequestLock String String -- Username, DocumentId
+    | RequestUnlock String String -- Username, DocumentId
     | UnlockDocuments (Maybe String)
     | GetHomePage String
     | FetchDocumentById String (Maybe String)

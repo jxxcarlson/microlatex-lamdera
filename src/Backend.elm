@@ -28,6 +28,7 @@ import Dict exposing (Dict)
 import Docs
 import Document
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
+import Message
 import Random
 import Time
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
@@ -91,6 +92,63 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend _ clientId msg model =
     case msg of
+        RequestLock username docId ->
+            -- TODO: WIP
+            case Dict.get docId model.documentDict of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        _ =
+                            Debug.log "(currentEditor, username, share)" ( doc.currentEditor, username, doc.share )
+                    in
+                    if List.member doc.currentEditor [ Nothing, Just username ] && Document.canEditSharedDoc username doc then
+                        let
+                            newDoc =
+                                { doc | currentEditor = Just username }
+
+                            newDocumentDict =
+                                Dict.insert docId newDoc model.documentDict
+
+                            message =
+                                { content = doc.title ++ " locked", status = Types.MSGreen }
+                        in
+                        ( { model | documentDict = newDocumentDict }
+                        , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc), sendToFrontend clientId (SendMessage message) ]
+                        )
+
+                    else
+                        let
+                            message =
+                                { content = doc.title ++ " -- could not unlock", status = Types.MSWarning }
+
+                            message2 =
+                                { content = "username: " ++ username ++ ", currentEditor" ++ Debug.toString doc.currentEditor, status = Types.MSWarning }
+                        in
+                        ( model, sendToFrontend clientId (SendMessage message) )
+
+        RequestUnlock username docId ->
+            -- TODO: Review this
+            case Dict.get docId model.documentDict of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        revisedDoc =
+                            { doc | currentEditor = Nothing }
+
+                        newDocumentDict =
+                            Dict.insert docId revisedDoc model.documentDict
+
+                        message =
+                            { content = doc.title ++ " unlocked", status = Types.MSGreen }
+                    in
+                    ( { model | documentDict = newDocumentDict }
+                    , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit revisedDoc), sendToFrontend clientId (SendMessage message) ]
+                    )
+
         UnlockDocuments mUsername ->
             case mUsername of
                 Nothing ->

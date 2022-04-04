@@ -2,6 +2,7 @@ module Document exposing
     ( Document
     , DocumentInfo
     , Share(..)
+    , canEditSharedDoc
     , currentAuthor
     , defaultSettings
     , empty
@@ -42,6 +43,19 @@ type alias Document =
 type Share
     = Share { readers : List Username, editors : List Username }
     | Private
+
+
+canEditSharedDoc username doc =
+    if doc.author == Just username then
+        True
+
+    else
+        case doc.share of
+            Private ->
+                False
+
+            Share { editors } ->
+                List.member username editors
 
 
 toDocInfo : Document -> DocumentInfo

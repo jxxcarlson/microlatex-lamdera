@@ -524,6 +524,9 @@ openEditor doc model =
 
         documents =
             List.Extra.setIf (\d -> d.id == newDoc.id) newDoc model.documents
+
+        username =
+            model.currentUser |> Maybe.map .username |> Maybe.withDefault "((nobody))"
     in
     ( { model
         | documents = documents
@@ -534,7 +537,7 @@ openEditor doc model =
       }
     , [ Frontend.Cmd.setInitialEditorContent 20, sendToBackend (SaveDocument newDoc) ]
     )
-        |> lockDocumentAndMakeItCurrent doc
+        |> (\( m, cmds ) -> ( m, sendToBackend (RequestLock username doc.id) :: cmds ))
         |> batch
 
 
@@ -542,7 +545,16 @@ closeEditor model =
     ( { model | showEditor = False, initialText = "", popupState = NoPopup }
     , [ sendToBackend (GetPublicDocuments (Maybe.map .username model.currentUser)) ]
     )
-        |> unlockCurrentDocument
+        |> (\( m, cmds ) ->
+                ( m
+                , sendToBackend
+                    (RequestUnlock
+                        (model.currentUser |> Maybe.map .username |> Maybe.withDefault "((nobody))")
+                        (model.currentDocument |> Maybe.map .id |> Maybe.withDefault "((no-id))")
+                    )
+                    :: cmds
+                )
+           )
         |> batch
 
 
