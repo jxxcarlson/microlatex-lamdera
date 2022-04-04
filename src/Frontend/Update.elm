@@ -499,8 +499,8 @@ batch =
 -- SET DOCUMENT AS CURRENT
 
 
-setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrent model doc permissions =
+setDocumentAsCurrent1 : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent1 model doc permissions =
     if model.showEditor then
         unlockCurrentDocument ( model, [] )
             |> setDocumentAsCurrentAux doc permissions
@@ -513,6 +513,33 @@ setDocumentAsCurrent model doc permissions =
             |> setDocumentAsCurrentAux doc permissions
             |> requestRefresh doc.id
             |> batch
+
+
+setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent model doc permissions =
+    if model.showEditor then
+        unlockCurrentDocument ( model, [] )
+            |> setDocumentAsCurrentAux doc permissions
+            |> requestUnlockPreviousThenLockCurrent doc permissions
+            |> batch
+
+    else
+        ( model, [] )
+            |> setDocumentAsCurrentAux doc permissions
+            |> requestRefresh doc.id
+            |> batch
+
+
+requestUnlockPreviousThenLockCurrent : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestUnlockPreviousThenLockCurrent doc permissions ( model, cmds ) =
+    if Just doc /= model.currentDocument then
+        ( model, cmds )
+            |> requestUnlock
+            |> requestLock doc
+
+    else
+        ( model, cmds )
+            |> requestLock doc
 
 
 setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
