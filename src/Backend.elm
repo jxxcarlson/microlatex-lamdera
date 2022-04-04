@@ -99,10 +99,6 @@ updateFromFrontend _ clientId msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    let
-                        _ =
-                            Debug.log "(currentEditor, username, share)" ( doc.currentEditor, username, doc.share )
-                    in
                     if List.member doc.currentEditor [ Nothing, Just username ] && Document.canEditSharedDoc username doc then
                         let
                             newDoc =
