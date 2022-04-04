@@ -105,11 +105,31 @@ updateFromFrontend _ clientId msg model =
                             newDoc =
                                 { doc | currentEditor = Just username }
 
+                            oldEditor =
+                                "oldEditor: " ++ (doc.currentEditor |> Maybe.withDefault "Nobody")
+
+                            newEditor =
+                                "newEditor: " ++ (newDoc.currentEditor |> Maybe.withDefault "Nobody")
+
+                            docChanged =
+                                if newDoc == doc then
+                                    "doc unchanged"
+
+                                else
+                                    "doc changed"
+
                             newDocumentDict =
                                 Dict.insert docId newDoc model.documentDict
 
+                            equalDicts =
+                                if model.documentDict == newDocumentDict then
+                                    "Dict unchanged"
+
+                                else
+                                    "Dict changed"
+
                             message =
-                                { content = doc.title ++ " locked by " ++ username, status = Types.MSGreen }
+                                { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
                         in
                         ( { model | documentDict = newDocumentDict }
                         , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc), sendToFrontend clientId (SendMessage message) ]
