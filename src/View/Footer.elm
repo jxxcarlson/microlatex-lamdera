@@ -66,5 +66,6 @@ messageRow model =
         , E.paddingXY 8 4
         , View.Style.bgGray 0.1
         , View.Style.fgGray 1.0
+        , E.spacing 12
         ]
         (model.messages |> List.filter (\m -> List.member m.status [ Types.MSGreen, Types.MSWarning, Types.MSError ]) |> List.map Message.handleMessage)

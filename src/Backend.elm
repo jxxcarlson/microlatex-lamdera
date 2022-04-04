@@ -150,7 +150,7 @@ updateFromFrontend _ clientId msg model =
                 Just doc ->
                     let
                         message =
-                            { content = "Refreshing " ++ doc.title, status = Types.MSGreen }
+                            { content = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing"), status = Types.MSGreen }
                     in
                     ( model
                     , Cmd.batch
