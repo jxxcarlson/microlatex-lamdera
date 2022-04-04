@@ -420,17 +420,18 @@ deleteDocFromCurrentUser model doc =
             Just newUser
 
 
+
 -- LOCKING AND UNLOCKING DOCUMENTS
-
-
 
 
 requestLock : Document -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
 requestLock doc ( model, cmds ) =
-    if shouldMakeRequest model.currentUser doc model.showEditor  then
-        ( model, sendToBackend (RequestLock (currentUserName model.currentUser ) (doc.id )) :: cmds)
+    if shouldMakeRequest model.currentUser doc model.showEditor then
+        ( model, sendToBackend (RequestLock (currentUserName model.currentUser) doc.id) :: cmds )
+
     else
         ( model, cmds )
+
 
 currentUserName : Maybe User -> String
 currentUserName mUser =
@@ -440,14 +441,19 @@ currentUserName mUser =
 shouldMakeRequest : Maybe User -> Document -> Bool -> Bool
 shouldMakeRequest mUser doc showEditor =
     (View.Utility.isSharedToMe mUser doc
-                   || View.Utility.iOwnThisDocument mUser doc) && showEditor
+        || View.Utility.iOwnThisDocument mUser doc
+    )
+        && showEditor
+
 
 requestUnlock : ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
 requestUnlock ( model, cmds ) =
     case model.currentDocument of
-        Nothing -> ( model, cmds )
+        Nothing ->
+            ( model, cmds )
+
         Just doc ->
-            if  shouldMakeRequest model.currentUser doc model.showEditor then
+            if shouldMakeRequest model.currentUser doc model.showEditor then
                 ( model
                 , sendToBackend
                     (RequestUnlock
@@ -456,8 +462,9 @@ requestUnlock ( model, cmds ) =
                     )
                     :: cmds
                 )
+
             else
-             ( model, cmds )
+                ( model, cmds )
 
 
 batch =
@@ -535,6 +542,19 @@ unlockCurrentDocument ( model, commands ) =
 
 openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 openEditor doc model =
+    ( { model
+        | showEditor = True
+        , sourceText = doc.content
+        , initialText = ""
+      }
+    , [ Frontend.Cmd.setInitialEditorContent 20 ]
+    )
+        |> requestLock doc
+        |> batch
+
+
+openEditor1 : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+openEditor1 doc model =
     let
         newDoc =
             { doc | currentEditor = Maybe.map .username model.currentUser }
@@ -550,6 +570,7 @@ openEditor doc model =
         , showEditor = True
         , sourceText = doc.content
         , initialText = ""
+
         -- , messages = Message.make ("lock " ++ doc.title ++ " for " ++ (Maybe.map .username model.currentUser |> Maybe.withDefault "??")) MSGreen
       }
     , [ Frontend.Cmd.setInitialEditorContent 20, sendToBackend (SaveDocument newDoc) ]
@@ -565,7 +586,11 @@ closeEditor model =
         |> requestUnlock
         |> batch
 
+
+
 -- END: LOCKING AND UNLOCKING DOCUMENTS
+
+
 setPermissions currentUser permissions document =
     case document.author of
         Nothing ->
