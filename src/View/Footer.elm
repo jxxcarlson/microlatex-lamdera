@@ -36,7 +36,7 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
         , showCurrentEditor model.currentDocument
-        , E.el [ E.width E.fill ] (messageRow model)
+        , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         ]
 
 

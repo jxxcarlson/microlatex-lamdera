@@ -138,7 +138,7 @@ updateFromFrontend _ clientId msg model =
                     else
                         let
                             message =
-                                { content = doc.title ++ " -- could not lock, " ++ Maybe.withDefault "nobody" doc.currentEditor ++ " is editing it.", status = Types.MSWarning }
+                                { content = doc.title ++ " -- could not lock, " ++ Maybe.withDefault "nobody" doc.currentEditor ++ " is already editing it.", status = Types.MSWarning }
                         in
                         ( model, sendToFrontend clientId (SendMessage message) )
 

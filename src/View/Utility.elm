@@ -164,10 +164,10 @@ currentDocumentAuthor mUsername mDoc =
                 nowEditing =
                     case doc.currentEditor of
                         Nothing ->
-                            " , editor: no one"
+                            ""
 
                         Just editorName ->
-                            " , editor: " ++ editorName
+                            " , editing: " ++ editorName
 
                 str =
                     Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x ++ nowEditing) |> Maybe.withDefault ""
