@@ -723,7 +723,15 @@ updateFromBackend msg model =
             ( { model | publicDocuments = publicDocuments }, Cmd.none )
 
         SendMessage message ->
-            ( { model | messages = message :: model.messages }, Cmd.none )
+            let
+                newMessages =
+                    if List.member message.status [ Types.MSGreen, Types.MSWarning, Types.MSError ] then
+                        message :: model.messages
+
+                    else
+                        model.messages
+            in
+            ( { model | messages = newMessages }, Cmd.none )
 
         -- ADMIN
         SendBackupData data ->

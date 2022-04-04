@@ -4,6 +4,7 @@ import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Message
+import Types
 import View.Button as Button
 import View.Color as Color
 import View.Style
@@ -45,4 +46,4 @@ messageRow model =
         , View.Style.bgGray 0.1
         , View.Style.fgGray 1.0
         ]
-        (List.map Message.handleMessage model.messages)
+        (model.messages |> List.filter (\m -> List.member m.status [ Types.MSGreen, Types.MSWarning, Types.MSError ]) |> List.map Message.handleMessage)
