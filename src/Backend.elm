@@ -103,7 +103,7 @@ updateFromFrontend _ clientId msg model =
                     if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc) && Document.canEditSharedDoc username doc then
                         let
                             newDoc =
-                                { doc | currentEditor = Just username }
+                                { doc | currentEditor = Just username, public = not doc.public }
 
                             oldEditor =
                                 "oldEditor: " ++ (doc.currentEditor |> Maybe.withDefault "Nobody")
