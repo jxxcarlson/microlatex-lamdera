@@ -518,7 +518,8 @@ setDocumentAsCurrent1 model doc permissions =
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
-        unlockCurrentDocument ( model, [] )
+        -- unlockCurrentDocument ( model, [] )
+        ( model, [] )
             |> setDocumentAsCurrentAux doc permissions
             |> requestUnlockPreviousThenLockCurrent doc permissions
             |> batch
