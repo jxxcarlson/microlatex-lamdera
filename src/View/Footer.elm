@@ -39,17 +39,25 @@ view model width_ =
         , E.el [ E.width E.fill ] (messageRow model)
         ]
 
+
 showCurrentEditor : Maybe Document.Document -> E.Element msg
 showCurrentEditor mDoc =
-  let
-    message = case mDoc of
-      Nothing -> "No document"
-      Just doc ->
-        case doc.currentEditor of
-            Nothing -> "Editor: nobody"
-            Just username ->  "Editor: " ++ username
-  in
-   E.el [Font.size 14, Font.color Color.white] (E.text message)
+    let
+        message =
+            case mDoc of
+                Nothing ->
+                    "No document"
+
+                Just doc ->
+                    case doc.currentEditor of
+                        Nothing ->
+                            "Editor: nobody"
+
+                        Just username ->
+                            "Editor: " ++ username
+    in
+    E.el [ Font.size 14, Font.color Color.white ] (E.text <| message)
+
 
 messageRow model =
     E.row
