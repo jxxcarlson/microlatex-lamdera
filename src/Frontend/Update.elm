@@ -509,9 +509,7 @@ lockDocumentAndMakeItCurrent doc_ ( model, commands ) =
             else
                 let
                     messages_ =
-                        Message.make
-                            ("Cannot unlock document " ++ doc_.title ++ "; it's being edited by " ++ (doc_.currentEditor |> Maybe.withDefault "??"))
-                            Types.MSWarning
+                        []
                 in
                 { doc = doc_, documents = model.documents, cmd = Cmd.none, messages = messages_ }
     in
