@@ -589,7 +589,7 @@ updateDoc model str =
             ( model, Cmd.none )
 
         Just doc ->
-            if canSave model.currentUser doc then
+            if View.Utility.canSave model.currentUser doc then
                 updateDoc_ model doc str
 
             else
@@ -600,10 +600,6 @@ updateDoc model str =
                 ( { model | messages = [ { content = m, status = MSWarning } ] }, Cmd.none )
 
 
-canSave : Maybe User.User -> Document.Document -> Bool
-canSave mCurrentUser currentDocument =
-    (Maybe.map .username mCurrentUser == .author currentDocument || View.Utility.isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument)
-        && (Maybe.map .username mCurrentUser == currentDocument.currentEditor || currentDocument.currentEditor == Nothing)
 
 
 updateDoc_ model doc str =

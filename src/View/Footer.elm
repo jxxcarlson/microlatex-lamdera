@@ -1,5 +1,6 @@
 module View.Footer exposing (view)
 
+import Document
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
@@ -34,9 +35,21 @@ view model width_ =
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
+        , showCurrentEditor model.currentDocument
         , E.el [ E.width E.fill ] (messageRow model)
         ]
 
+showCurrentEditor : Maybe Document.Document -> E.Element msg
+showCurrentEditor mDoc =
+  let
+    message = case mDoc of
+      Nothing -> "No document"
+      Just doc ->
+        case doc.currentEditor of
+            Nothing -> "Editor: nobody"
+            Just username ->  "Editor: " ++ username
+  in
+   E.el [Font.size 14, Font.color Color.white] (E.text message)
 
 messageRow model =
     E.row

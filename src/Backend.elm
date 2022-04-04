@@ -33,6 +33,7 @@ import Random
 import Time
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
+import View.Utility
 
 
 type alias Model =
@@ -99,7 +100,7 @@ updateFromFrontend _ clientId msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    if List.member doc.currentEditor [ Nothing, Just username ] && Document.canEditSharedDoc username doc then
+                    if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc)  && Document.canEditSharedDoc username doc then
                         let
                             newDoc =
                                 { doc | currentEditor = Just username }
@@ -108,7 +109,7 @@ updateFromFrontend _ clientId msg model =
                                 Dict.insert docId newDoc model.documentDict
 
                             message =
-                                { content = doc.title ++ " locked", status = Types.MSGreen }
+                                { content = doc.title ++ " locked by " ++ username, status = Types.MSGreen }
                         in
                         ( { model | documentDict = newDocumentDict }
                         , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc), sendToFrontend clientId (SendMessage message) ]
