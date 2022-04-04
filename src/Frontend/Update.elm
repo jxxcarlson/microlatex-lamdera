@@ -441,6 +441,15 @@ requestLock doc ( model, cmds ) =
         ( { model | messages = message :: model.messages }, cmds )
 
 
+requestRefresh : String -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestRefresh docId ( model, cmds ) =
+    let
+        message =
+            { content = "Requesting refresh for " ++ docId, status = MSGreen }
+    in
+    ( { model | messages = message :: model.messages }, sendToBackend (RequestRefresh docId) :: cmds )
+
+
 currentUserName : Maybe User -> String
 currentUserName mUser =
     mUser |> Maybe.map .username |> Maybe.withDefault "((nobody))"
@@ -496,6 +505,7 @@ setDocumentAsCurrent model doc permissions =
         |> setDocumentAsCurrentAux doc permissions
         |> requestUnlock
         |> requestLock doc
+        |> requestRefresh doc.id
         |> batch
 
 

@@ -142,6 +142,23 @@ updateFromFrontend _ clientId msg model =
                         in
                         ( model, sendToFrontend clientId (SendMessage message) )
 
+        RequestRefresh docId ->
+            case Dict.get docId model.documentDict of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        message =
+                            { content = "Refreshing " ++ doc.title, status = Types.MSGreen }
+                    in
+                    ( model
+                    , Cmd.batch
+                        [ sendToFrontend clientId (SendDocument Types.SystemCanEdit doc)
+                        , sendToFrontend clientId (SendMessage message)
+                        ]
+                    )
+
         RequestUnlock username docId ->
             -- TODO: Review this
             case Dict.get docId model.documentDict of
