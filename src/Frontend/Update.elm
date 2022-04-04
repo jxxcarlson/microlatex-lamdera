@@ -423,9 +423,39 @@ deleteDocFromCurrentUser model doc =
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     unlockCurrentDocument ( model, [] )
+        -- |> lockDocumentAndMakeItCurrent doc
         |> setDocumentAsCurrentAux doc permissions
-        |> lockDocumentAndMakeItCurrent doc
+        |> requestUnlock
+        |> requestLock doc
         |> batch
+
+
+requestLock : Document -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestLock doc ( model, cmds ) =
+    if model.showEditor then
+        ( model
+        , sendToBackend
+            (RequestLock
+                (model.currentUser |> Maybe.map .username |> Maybe.withDefault "((nobody))")
+                doc.id
+            )
+            :: cmds
+        )
+
+    else
+        ( model, cmds )
+
+
+requestUnlock : ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestUnlock ( model, cmds ) =
+    ( model
+    , sendToBackend
+        (RequestUnlock
+            (model.currentUser |> Maybe.map .username |> Maybe.withDefault "((nobody))")
+            (model.currentDocument |> Maybe.map .id |> Maybe.withDefault "((no-id))")
+        )
+        :: cmds
+    )
 
 
 batch =

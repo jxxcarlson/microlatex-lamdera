@@ -26,7 +26,7 @@ handleMessage { content, status } =
             E.el (style [ Font.color View.Color.yellow ]) (E.text content)
 
         Types.MSGreen ->
-            E.el (style [ Font.color (E.rgb 0 1 0) ]) (E.text content)
+            E.el (style [ Font.color (E.rgb 0 0.7 0) ]) (E.text content)
 
         Types.MSError ->
             E.el (style [ Font.color View.Color.red ]) (E.text content)
