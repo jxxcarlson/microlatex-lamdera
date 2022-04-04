@@ -186,7 +186,8 @@ updateFromFrontend _ clientId msg model =
                     ( model, Cmd.none )
 
                 Just username ->
-                    Backend.Update.unlockDocuments model username
+                    -- Backend.Update.unlockDocuments model username
+                    ( model, Cmd.none )
 
         GetUserList ->
             ( model, sendToFrontend clientId (GotUserList (Backend.Update.getUserData model)) )

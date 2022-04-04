@@ -501,12 +501,18 @@ batch =
 
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
-    unlockCurrentDocument ( model, [] )
-        |> setDocumentAsCurrentAux doc permissions
-        |> requestUnlock
-        |> requestLock doc
-        |> requestRefresh doc.id
-        |> batch
+    if model.showEditor then
+        unlockCurrentDocument ( model, [] )
+            |> setDocumentAsCurrentAux doc permissions
+            |> requestUnlock
+            |> requestLock doc
+            |> batch
+
+    else
+        ( model, [] )
+            |> setDocumentAsCurrentAux doc permissions
+            |> requestRefresh doc.id
+            |> batch
 
 
 setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
