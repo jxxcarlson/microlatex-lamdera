@@ -100,7 +100,7 @@ updateFromFrontend _ clientId msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc)  && Document.canEditSharedDoc username doc then
+                    if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc) && Document.canEditSharedDoc username doc then
                         let
                             newDoc =
                                 { doc | currentEditor = Just username }
@@ -118,7 +118,7 @@ updateFromFrontend _ clientId msg model =
                     else
                         let
                             message =
-                                { content = doc.title ++ " -- could not unlock", status = Types.MSWarning }
+                                { content = doc.title ++ " -- could not lock, " ++ Maybe.withDefault "nobody" doc.currentEditor ++ " is editing it.", status = Types.MSWarning }
                         in
                         ( model, sendToFrontend clientId (SendMessage message) )
 

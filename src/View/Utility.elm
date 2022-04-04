@@ -1,17 +1,17 @@
 module View.Utility exposing
-    ( cssNode
+    ( canSave
+    , cssNode
     , currentDocumentAuthor
     , elementAttribute
     , getElementWithViewPort
     , getReadersAndEditors
     , hideIf
-    , isAdmin
     , iOwnThisDocument
     , iOwnThisDocument_
+    , isAdmin
     , isSharedToMe
-    , canSave
-    , isUnlocked
     , isSharedToMe_
+    , isUnlocked
     , katexCSS
     , noFocus
     , onEnter
@@ -66,14 +66,16 @@ isUnlocked doc =
     doc.currentEditor == Nothing
 
 
-
 canSave : Maybe User.User -> Document.Document -> Bool
 canSave mCurrentUser currentDocument =
     let
-      iOwntheDocOrItIsShareToMe = Maybe.map .username mCurrentUser == .author currentDocument
-         || isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument
+        iOwntheDocOrItIsShareToMe =
+            Maybe.map .username mCurrentUser
+                == .author currentDocument
+                || isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument
 
-      iAmTheCurrentEditorOrNobodyIs = Maybe.map .username mCurrentUser == currentDocument.currentEditor || currentDocument.currentEditor == Nothing
+        iAmTheCurrentEditorOrNobodyIs =
+            Maybe.map .username mCurrentUser == currentDocument.currentEditor || currentDocument.currentEditor == Nothing
     in
     iOwntheDocOrItIsShareToMe && iAmTheCurrentEditorOrNobodyIs
 
@@ -82,23 +84,25 @@ iOwnThisDocument : Maybe User.User -> Document.Document -> Bool
 iOwnThisDocument mUser doc =
     Maybe.map .username mUser == doc.author
 
+
 iOwnThisDocument_ : String -> Document.Document -> Bool
 iOwnThisDocument_ username doc =
-    Just username  == doc.author
+    Just username == doc.author
+
 
 isSharedToMe : Maybe User.User -> Document.Document -> Bool
 isSharedToMe mUser doc =
-        case mUser of
-            Nothing ->
-                False
+    case mUser of
+        Nothing ->
+            False
 
-            Just user ->
-                case doc.share of
-                    Document.Private ->
-                        False
+        Just user ->
+            case doc.share of
+                Document.Private ->
+                    False
 
-                    Document.Share { readers, editors } ->
-                        List.member user.username readers || List.member user.username editors
+                Document.Share { readers, editors } ->
+                    List.member user.username readers || List.member user.username editors
 
 
 isSharedToMe_ : Maybe String -> Document.Document -> Bool
