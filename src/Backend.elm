@@ -118,9 +118,6 @@ updateFromFrontend _ clientId msg model =
                         let
                             message =
                                 { content = doc.title ++ " -- could not unlock", status = Types.MSWarning }
-
-                            message2 =
-                                { content = "username: " ++ username ++ ", currentEditor" ++ Debug.toString doc.currentEditor, status = Types.MSWarning }
                         in
                         ( model, sendToFrontend clientId (SendMessage message) )
 
