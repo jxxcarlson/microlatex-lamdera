@@ -427,10 +427,18 @@ deleteDocFromCurrentUser model doc =
 requestLock : Document -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
 requestLock doc ( model, cmds ) =
     if shouldMakeRequest model.currentUser doc model.showEditor then
-        ( model, sendToBackend (RequestLock (currentUserName model.currentUser) doc.id) :: cmds )
+        let
+            message =
+                { content = "Sending requestLock", status = MSGreen }
+        in
+        ( { model | messages = message :: model.messages }, sendToBackend (RequestLock (currentUserName model.currentUser) doc.id) :: cmds )
 
     else
-        ( model, cmds )
+        let
+            message =
+                { content = "Not sending requestLock", status = MSGreen }
+        in
+        ( { model | messages = message :: model.messages }, cmds )
 
 
 currentUserName : Maybe User -> String
@@ -458,9 +466,13 @@ requestUnlock ( model, cmds ) =
             ( model, cmds )
 
         Just doc ->
+            let
+                mess =
+                    { content = "Sending requestUnLock", status = MSGreen }
+            in
             if shouldMakeRequest model.currentUser doc model.showEditor then
                 -- if View.Utility.isSharedToMe model.currentUser doc || View.Utility.iOwnThisDocument model.currentUser doc then
-                ( model, sendToBackend (RequestUnlock (currentUserName model.currentUser) (currentDocumentId model.currentDocument)) :: cmds )
+                ( { model | messages = mess :: model.messages }, sendToBackend (RequestUnlock (currentUserName model.currentUser) (currentDocumentId model.currentDocument)) :: cmds )
 
             else
                 let

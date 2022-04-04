@@ -129,7 +129,7 @@ updateFromFrontend _ clientId msg model =
                                     "Dict changed"
 
                             message =
-                                { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
+                                { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
                         in
                         ( { model | documentDict = newDocumentDict }
                         , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc), sendToFrontend clientId (SendMessage message) ]
