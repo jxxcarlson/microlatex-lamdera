@@ -486,7 +486,7 @@ unlockCurrentDocument ( model, commands ) =
                 ( documents, cmd, messages ) =
                     ( List.Extra.setIf (\d -> d.id == doc_.id) revisedDoc model.documents
                     , sendToBackend (SaveDocument revisedDoc)
-                    , Message.make ("document " ++ doc_.title ++ " unlocked") Types.MSGreen |> Debug.log "ABC Message"
+                    , Message.make ("document " ++ doc_.title ++ " unlocked") Types.MSGreen
                     )
             in
             ( { model | currentDocument = Just revisedDoc, documents = documents, messages = messages }, cmd :: commands )
@@ -532,7 +532,7 @@ openEditor doc model =
         , showEditor = True
         , sourceText = doc.content
         , initialText = ""
-        , messages = Message.make ("lock " ++ doc.title ++ " for " ++ (Maybe.map .username model.currentUser |> Maybe.withDefault "??")) MSGreen |> Debug.log "ABC Message"
+        , messages = Message.make ("lock " ++ doc.title ++ " for " ++ (Maybe.map .username model.currentUser |> Maybe.withDefault "??")) MSGreen
       }
     , [ Frontend.Cmd.setInitialEditorContent 20, sendToBackend (SaveDocument newDoc) ]
     )

@@ -84,10 +84,6 @@ isSharedToMe_ mUsername doc =
                     False
 
                 Document.Share { readers, editors } ->
-                    let
-                        _ =
-                            Debug.log "(mUsername, readers, editors )" ( mUsername, readers, editors )
-                    in
                     List.member username readers || List.member username editors
 
 
