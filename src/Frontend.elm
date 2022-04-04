@@ -25,7 +25,7 @@ import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Task
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import User
@@ -61,7 +61,7 @@ init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init url key =
     ( { key = key
       , url = url
-      , message = "Welcome!"
+      , messages = [ { content = "Welcome!", status = MSNormal } ]
 
       -- ADMIN
       , statusReport = []
@@ -332,7 +332,7 @@ update msg model =
             ( { model | searchSourceText = str, foundIdIndex = 0 }, Cmd.none )
 
         GetSelection str ->
-            ( { model | message = "Selection: " ++ str }, Cmd.none )
+            ( { model | messages = [ { content = "Selection: " ++ str, status = MSNormal } ] }, Cmd.none )
 
         -- SYNC
         SelectedText str ->
@@ -357,29 +357,15 @@ update msg model =
             ( model, Cmd.none )
 
         CloseEditor ->
-            ( { model | showEditor = False, initialText = "", popupState = NoPopup }, sendToBackend (GetPublicDocuments (Maybe.map .username model.currentUser)) )
+            Frontend.Update.closeEditor model
 
         OpenEditor ->
             case model.currentDocument of
                 Nothing ->
-                    ( { model | message = "No document to open in editor" }, Cmd.none )
+                    ( { model | messages = [ { content = "No document to open in editor", status = MSNormal } ] }, Cmd.none )
 
                 Just doc ->
-                    let
-                        newDoc =
-                            { doc | currentEditor = Maybe.map .username model.currentUser }
-
-                        documents =
-                            List.Extra.setIf (\d -> d.id == newDoc.id) newDoc model.documents
-                    in
-                    ( { model
-                        | documents = documents
-                        , showEditor = True
-                        , sourceText = doc.content
-                        , initialText = ""
-                      }
-                    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, sendToBackend (SaveDocument newDoc) ]
-                    )
+                    Frontend.Update.openEditor doc model
 
         Help docId ->
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
@@ -608,10 +594,10 @@ updateDoc model str =
 
             else
                 let
-                    message =
+                    m =
                         "Can't save this document. It is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
                 in
-                ( { model | message = message }, Cmd.none )
+                ( { model | messages = [ { content = m, status = MSWarning } ] }, Cmd.none )
 
 
 canSave : Maybe User.User -> Document.Document -> Bool
@@ -737,11 +723,11 @@ updateFromBackend msg model =
             ( { model | publicDocuments = publicDocuments }, Cmd.none )
 
         SendMessage message ->
-            ( { model | message = message }, Cmd.none )
+            ( { model | messages = message :: model.messages }, Cmd.none )
 
         -- ADMIN
         SendBackupData data ->
-            ( { model | message = "Backup data: " ++ String.fromInt (String.length data) ++ " chars" }, Download.string "l0-lab-demo    .json" "text/json" data )
+            ( { model | messages = [ { content = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSNormal } ] }, Download.string "l0-lab-demo    .json" "text/json" data )
 
         StatusReport items ->
             ( { model | statusReport = items }, Cmd.none )

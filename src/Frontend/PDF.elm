@@ -13,7 +13,7 @@ import Render.LaTeX as LaTeX
 import Render.Settings
 import Task
 import Tree
-import Types exposing (FrontendModel, FrontendMsg(..), PrintingState(..))
+import Types exposing (FrontendModel, FrontendMsg(..), MessageStatus(..), PrintingState(..))
 
 
 print model =
@@ -22,7 +22,7 @@ print model =
             ( model, Cmd.none )
 
         Just doc ->
-            ( { model | message = "printToPDF" }
+            ( { model | messages = [ { content = "printToPDF", status = MSNormal } ] }
             , Cmd.batch
                 [ generatePdf doc
                 , Process.sleep 1 |> Task.perform (always (ChangePrintingState PrintProcessing))

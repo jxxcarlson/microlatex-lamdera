@@ -3,6 +3,7 @@ module View.Footer exposing (view)
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
+import Message
 import View.Button as Button
 import View.Color as Color
 import View.Style
@@ -44,4 +45,4 @@ messageRow model =
         , View.Style.bgGray 0.1
         , View.Style.fgGray 1.0
         ]
-        [ E.text model.message ]
+        (List.map Message.handleMessage model.messages)

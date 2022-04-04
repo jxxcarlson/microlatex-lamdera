@@ -16,6 +16,7 @@ module View.Color exposing
     , veryPaleBlue
     , violet
     , white
+    , yellow
     )
 
 import Element as E
@@ -73,6 +74,10 @@ darkBlue =
 lightBlue : E.Color
 lightBlue =
     E.rgb255 120 120 200
+
+
+yellow =
+    E.rgb 0.8 0.8 0
 
 
 paleBlue : E.Color

@@ -1,6 +1,7 @@
 module Frontend.Update exposing
     ( addDocToCurrentUser
     , adjustId
+    , closeEditor
     , debounceMsg
     , deleteDocument
     , exportToLaTeX
@@ -15,6 +16,7 @@ module Frontend.Update exposing
     , isMaster
     , newDocument
     , nextSyncLR
+    , openEditor
     , render
     , runSpecial
     , searchText
@@ -47,10 +49,12 @@ import Debounce
 import Docs
 import Document exposing (Document)
 import File.Download as Download
+import Frontend.Cmd
 import Keyboard
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
+import Message
 import Parser.Language exposing (Language(..))
 import Process
 import Render.LaTeX as LaTeX
@@ -58,7 +62,7 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Task
-import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
+import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
 import User exposing (User)
 import View.Utility
 
@@ -98,10 +102,11 @@ setPublic model doc public =
     ( { model | documents = documents, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument newDocument_) )
 
 
+setPublicDocumentAsCurrentById : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
 setPublicDocumentAsCurrentById model id =
     case List.filter (\doc -> doc.id == id) model.publicDocuments |> List.head of
         Nothing ->
-            ( { model | message = "No document of id [" ++ id ++ "] found" }, Cmd.none )
+            ( { model | messages = [ { content = "No document of id [" ++ id ++ "] found", status = MSNormal } ] }, Cmd.none )
 
         Just doc ->
             let
@@ -115,7 +120,7 @@ setPublicDocumentAsCurrentById model id =
                 , editRecord = newEditRecord
                 , title = Compiler.ASTTools.title newEditRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                , message = "id = " ++ doc.id
+                , messages = [ { content = "id = " ++ doc.id, status = MSNormal } ]
                 , counter = model.counter + 1
               }
             , Cmd.batch [ View.Utility.setViewPortToTop ]
@@ -150,7 +155,7 @@ deleteDocument model =
 setInitialEditorContent model =
     case model.currentDocument of
         Nothing ->
-            ( { model | message = "Could not set editor content: there is no current document" }, Cmd.none )
+            ( { model | messages = [ { content = "Could not set editor content: there is no current document", status = MSNormal } ] }, Cmd.none )
 
         Just doc ->
             ( { model | initialText = doc.content }, Cmd.none )
@@ -169,7 +174,7 @@ searchText model =
                 Just id_ ->
                     ( View.Utility.setViewportForElement id_, id_ )
     in
-    ( { model | selectedId = id, searchCount = model.searchCount + 1, message = "ids: " ++ String.join ", " ids }, cmd )
+    ( { model | selectedId = id, searchCount = model.searchCount + 1, messages = [ { content = "ids: " ++ String.join ", " ids, status = MSNormal } ] }, cmd )
 
 
 save : String -> Cmd FrontendMsg
@@ -201,7 +206,7 @@ inputText model str =
         , editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , message = String.join ", " messages
+        , messages = [ { content = String.join ", " messages, status = MSNormal } ]
         , debounce = debounce
         , counter = model.counter + 1
       }
@@ -238,7 +243,7 @@ render model msg_ =
 
         Render.Msg.SendId line ->
             -- TODO: the below (using id also for line number) is not a great idea.
-            ( { model | message = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
+            ( { model | messages = [ { content = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSNormal } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
         Render.Msg.SelectId id ->
             -- the element with this id will be highlighted
@@ -282,7 +287,7 @@ firstSyncLR model searchSourceText =
         , foundIds = data.foundIds
         , foundIdIndex = data.foundIdIndex
         , searchCount = data.searchCount
-        , message = ("[" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", "
+        , messages = [ { content = ("[" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", ", status = MSNormal } ]
       }
     , data.cmd
     )
@@ -297,7 +302,7 @@ nextSyncLR model =
         | selectedId = id_
         , foundIdIndex = modBy (List.length model.foundIds) (model.foundIdIndex + 1)
         , searchCount = model.searchCount + 1
-        , message = ("[" ++ adjustId id_ ++ "]") :: List.map adjustId model.foundIds |> String.join ", "
+        , messages = [ { content = ("[" ++ adjustId id_ ++ "]") :: List.map adjustId model.foundIds |> String.join ", ", status = MSNormal } ]
       }
     , View.Utility.setViewportForElement id_
     )
@@ -338,7 +343,7 @@ syncLR model =
         , foundIds = data.foundIds
         , foundIdIndex = data.foundIdIndex
         , searchCount = data.searchCount
-        , message = ("!![" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", "
+        , messages = [ { content = ("!![" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", ", status = MSNormal } ]
       }
     , data.cmd
     )
@@ -357,7 +362,10 @@ adjustId str =
 setViewportForElement model result =
     case result of
         Ok ( element, viewport ) ->
-            ( { model | message = model.message ++ ", setting viewport" }, View.Utility.setViewPortForSelectedLine element viewport )
+            ( { model | messages = [] }
+              -- [ { content = model.message ++ ", setting viewport", status = MSNormal } ] }
+            , View.Utility.setViewPortForSelectedLine element viewport
+            )
 
         Err _ ->
             -- TODO: restore error message
@@ -417,7 +425,11 @@ setDocumentAsCurrent model doc permissions =
     unlockCurrentDocument ( model, [] )
         |> setDocumentAsCurrentAux doc permissions
         |> lockDocumentAndMakeItCurrent doc
-        |> (\( m, cmds ) -> ( m, Cmd.batch cmds ))
+        |> batch
+
+
+batch =
+    \( m, cmds ) -> ( m, Cmd.batch cmds )
 
 
 setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
@@ -448,7 +460,7 @@ setDocumentAsCurrentAux doc permissions ( model, cmds ) =
         , title =
             Compiler.ASTTools.title newEditRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-        , message = ""
+        , messages = []
         , permissions = setPermissions model.currentUser permissions doc
         , counter = model.counter + 1
         , language = doc.language
@@ -468,33 +480,72 @@ unlockCurrentDocument ( model, commands ) =
 
         Just doc_ ->
             let
-                ( doc, documents_, cmd1 ) =
-                    if model.showEditor then
-                        ( { doc_ | currentEditor = Maybe.map .username model.currentUser }
-                        , List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
-                        , sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
-                        )
+                revisedDoc =
+                    { doc_ | currentEditor = Nothing }
 
-                    else
-                        ( doc_, model.documents, Cmd.none )
+                ( documents, cmd, messages ) =
+                    ( List.Extra.setIf (\d -> d.id == doc_.id) revisedDoc model.documents
+                    , sendToBackend (SaveDocument revisedDoc)
+                    , Message.make ("document " ++ doc_.title ++ " unlocked") Types.MSGreen |> Debug.log "ABC Message"
+                    )
             in
-            ( model, commands )
+            ( { model | currentDocument = Just revisedDoc, documents = documents, messages = messages }, cmd :: commands )
 
 
 lockDocumentAndMakeItCurrent : Document.Document -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
 lockDocumentAndMakeItCurrent doc_ ( model, commands ) =
     let
-        ( doc, documents_, cmd ) =
-            if model.showEditor then
-                ( { doc_ | currentEditor = Maybe.map .username model.currentUser }
-                , List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
-                , sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
-                )
+        { doc, documents, cmd, messages } =
+            if model.showEditor && doc_.currentEditor == Nothing then
+                { doc = { doc_ | currentEditor = Maybe.map .username model.currentUser }
+                , documents = List.Extra.setIf (\d -> d.id == doc_.id) doc_ model.documents
+                , cmd = sendToBackend (SaveDocument { doc_ | currentEditor = Maybe.map .username model.currentUser })
+                , messages =
+                    Message.make
+                        ("locked document " ++ doc_.title ++ " for " ++ (Maybe.map .username model.currentUser |> Maybe.withDefault "??"))
+                        Types.MSGreen
+                }
 
             else
-                ( doc_, model.documents, Cmd.none )
+                let
+                    messages_ =
+                        Message.make
+                            ("Cannot unlock document " ++ doc_.title ++ "; it's being edited by " ++ (doc_.currentEditor |> Maybe.withDefault "??"))
+                            Types.MSWarning
+                in
+                { doc = doc_, documents = model.documents, cmd = Cmd.none, messages = messages_ }
     in
-    ( { model | currentDocument = Just doc, documents = documents_ }, cmd :: commands )
+    ( { model | currentDocument = Just doc, documents = documents, messages = messages }, cmd :: commands )
+
+
+openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+openEditor doc model =
+    let
+        newDoc =
+            { doc | currentEditor = Maybe.map .username model.currentUser }
+
+        documents =
+            List.Extra.setIf (\d -> d.id == newDoc.id) newDoc model.documents
+    in
+    ( { model
+        | documents = documents
+        , showEditor = True
+        , sourceText = doc.content
+        , initialText = ""
+        , messages = Message.make ("lock " ++ doc.title ++ " for " ++ (Maybe.map .username model.currentUser |> Maybe.withDefault "??")) MSGreen |> Debug.log "ABC Message"
+      }
+    , [ Frontend.Cmd.setInitialEditorContent 20, sendToBackend (SaveDocument newDoc) ]
+    )
+        |> lockDocumentAndMakeItCurrent doc
+        |> batch
+
+
+closeEditor model =
+    ( { model | showEditor = False, initialText = "", popupState = NoPopup }
+    , [ sendToBackend (GetPublicDocuments (Maybe.map .username model.currentUser)) ]
+    )
+        |> unlockCurrentDocument
+        |> batch
 
 
 setPermissions currentUser permissions document =
@@ -521,7 +572,7 @@ setDocumentInPhoneAsCurrent model doc permissions =
         , initialText = doc.content
         , title = Compiler.ASTTools.title ast
         , tableOfContents = Compiler.ASTTools.tableOfContents ast
-        , message = "id = " ++ doc.id
+        , messages = [ { content = "id = " ++ doc.id, status = MSNormal } ]
         , permissions = setPermissions model.currentUser permissions doc
         , counter = model.counter + 1
         , phoneMode = PMShowDocument
@@ -558,7 +609,7 @@ handleSignOut model =
         , currentDocument = Nothing
         , currentMasterDocument = Nothing
         , documents = []
-        , message = "Signed out"
+        , messages = [ { content = "Signed out", status = MSNormal } ]
         , inputSearchKey = ""
         , inputUsername = ""
         , inputPassword = ""
@@ -584,7 +635,7 @@ handleSignIn model =
         )
 
     else
-        ( { model | message = "Password must be at least 8 letters long." }, Cmd.none )
+        ( { model | messages = [ { content = "Password must be at least 8 letters long.", status = MSNormal } ] }, Cmd.none )
 
 
 handleSignUp model =
@@ -605,7 +656,7 @@ handleSignUp model =
         )
 
     else
-        ( { model | message = String.join "; " errors }, Cmd.none )
+        ( { model | messages = [ { content = String.join "; " errors, status = MSNormal } ] }, Cmd.none )
 
 
 reject : Bool -> String -> List String -> List String

@@ -1,4 +1,40 @@
-module Types exposing (AbstractDict, AbstractDictOLD, ActiveDocList(..), AppMode(..), AuthorDict, BackendModel, BackendMsg(..), BackupOLD, DocId, DocLoaded(..), DocumentDeleteState(..), DocumentDict, DocumentLink, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PhoneMode(..), PopupState(..), PopupStatus(..), PopupWindow(..), PrintingState(..), PublicIdDict, SearchTerm(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..), UserId, UsersDocumentsDict)
+module Types exposing
+    ( AbstractDict
+    , AbstractDictOLD
+    , ActiveDocList(..)
+    , AppMode(..)
+    , AuthorDict
+    , BackendModel
+    , BackendMsg(..)
+    , BackupOLD
+    , DocId
+    , DocLoaded(..)
+    , DocumentDeleteState(..)
+    , DocumentDict
+    , DocumentLink
+    , DocumentList(..)
+    , FrontendModel
+    , FrontendMsg(..)
+    , MaximizedIndex(..)
+    , Message
+    , MessageStatus(..)
+    , PhoneMode(..)
+    , PopupState(..)
+    , PopupStatus(..)
+    , PopupWindow(..)
+    , PrintingState(..)
+    , PublicIdDict
+    , SearchTerm(..)
+    , SidebarState(..)
+    , SignupState(..)
+    , SortMode(..)
+    , SystemDocPermissions(..)
+    , TagSelection(..)
+    , ToBackend(..)
+    , ToFrontend(..)
+    , UserId
+    , UsersDocumentsDict
+    )
 
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
@@ -9,6 +45,7 @@ import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
 import Document exposing (Document)
+import Element as Color
 import File exposing (File)
 import Http
 import Keyboard
@@ -24,7 +61,7 @@ import User exposing (User)
 type alias FrontendModel =
     { key : Browser.Navigation.Key
     , url : Url
-    , message : String
+    , messages : List Message
 
     -- ADMIN
     , statusReport : List String
@@ -97,6 +134,17 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+
+type alias Message =
+    { content : String, status : MessageStatus }
+
+
+type MessageStatus
+    = MSNormal
+    | MSWarning
+    | MSGreen
+    | MSError
 
 
 type PopupState
@@ -392,7 +440,7 @@ type ToFrontend
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | SendDocument SystemDocPermissions Document
     | SendDocuments (List Document)
-    | SendMessage String
+    | SendMessage Message
     | StatusReport (List String)
     | SetShowEditor Bool
     | GotPublicDocuments (List Document)

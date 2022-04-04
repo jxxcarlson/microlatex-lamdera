@@ -3,6 +3,7 @@ module View.SignUp exposing (view)
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
+import Message
 import Parser.Language exposing (Language(..))
 import Types exposing (SignupState(..))
 import View.Button as Button
@@ -31,7 +32,7 @@ view model =
                         ]
                     ]
                 , E.row [ E.spacing 12, E.paddingEach { top = 30, bottom = 0, left = 0, right = 0 } ] [ Button.doSignUp, Button.cancelSignUp ]
-                , E.paragraph [ Font.size 14, Font.color Color.darkRed ] [ E.text (filterMessage model.message) ]
+                , E.paragraph [ Font.size 14, Font.color Color.darkRed ] (List.map Message.handleMessage model.messages)
                 , E.paragraph [ Font.size 14, E.paddingEach { left = 0, right = 0, top = 10, bottom = 0 } ]
                     [ E.text "* Your real name and email are only to communicate with you. They will not be shared and will not be made public on this site."
                     , E.text " Documents are published with author = username unless you choose to reveal your full name."
