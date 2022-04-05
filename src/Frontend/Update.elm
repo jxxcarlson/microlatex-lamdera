@@ -461,6 +461,11 @@ requestRefresh docId ( model, cmds ) =
     ( { model | messages = message :: model.messages }, sendToBackend (RequestRefresh docId) :: cmds )
 
 
+requestRefreshCmd : String -> FrontendModel -> Cmd FrontendMsg
+requestRefreshCmd docId model =
+    sendToBackend (RequestRefresh docId)
+
+
 currentUserName : Maybe User -> String
 currentUserName mUser =
     mUser |> Maybe.map .username |> Maybe.withDefault "((nobody))"
@@ -517,19 +522,15 @@ setDocumentAsCurrent model doc permissions =
     if model.showEditor then
         -- if we are not in the editor, unlock the previous current document if need be
         -- and loc the new document (doc)
-        ( model, [] )
+        ( model, [ requestLockCmd doc 100 model ] )
             |> setDocumentAsCurrentAux doc permissions
-            -- |> requestUnlockPreviousThenLockCurrent doc permissions
-            |> requestLock doc 0
-            |> batch
+        -- |> requestUnlockPreviousThenLockCurrent doc permissions
 
     else
-        ( model, [] )
+        ( model, [ requestRefreshCmd doc.id model ] )
             -- if we are not in the editor, refresh the document so as
             -- to be looking at the most recent copy
             |> setDocumentAsCurrentAux doc permissions
-            |> requestRefresh doc.id
-            |> batch
 
 
 requestUnlockPreviousThenLockCurrent : Document.Document -> Int -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
@@ -544,7 +545,7 @@ requestUnlockPreviousThenLockCurrent doc delay_ permissions ( model, cmds ) =
             |> requestLock doc delay_
 
 
-setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrentAux doc permissions ( model, cmds ) =
     let
         newEditRecord =
@@ -580,7 +581,7 @@ setDocumentAsCurrentAux doc permissions ( model, cmds ) =
         , inputReaders = readers
         , inputEditors = editors
       }
-    , View.Utility.setViewPortToTop :: cmds
+    , Cmd.batch (View.Utility.setViewPortToTop :: cmds)
     )
 
 
@@ -595,7 +596,7 @@ openEditor doc model =
         , sourceText = doc.content
         , initialText = ""
       }
-    , Cmd.batch [ requestLockCmd doc 300 model, Frontend.Cmd.setInitialEditorContent 20 ]
+    , Cmd.batch [ requestLockCmd doc 100 model, Frontend.Cmd.setInitialEditorContent 20 ]
     )
 
 
