@@ -407,7 +407,7 @@ type ToBackend
     | UpdateUserWith User
       -- DOCUMENT
     | RequestRefresh String
-    | RequestLock String String -- Username, DocumentId
+    | RequestLock Int String String -- delay, Username, DocumentId
     | RequestUnlock String String -- Username, DocumentId
     | UnlockDocuments (Maybe String)
     | GetHomePage String

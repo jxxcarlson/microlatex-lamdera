@@ -108,7 +108,7 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend _ clientId msg model =
     case msg of
-        RequestLock username docId ->
+        RequestLock delay_ username docId ->
             -- TODO: WIP
             case Dict.get docId model.documentDict of
                 Nothing ->
@@ -153,7 +153,7 @@ updateFromFrontend _ clientId msg model =
                                 { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
                         in
                         ( { model | documentDict = newDocumentDict }
-                        , [ Util.delay 300 (DelaySendingDocument clientId newDoc), sendToFrontend clientId (SendMessage message) ]
+                        , [ Util.delay (toFloat delay_) (DelaySendingDocument clientId newDoc), sendToFrontend clientId (SendMessage message) ]
                         )
                             |> Util.batch
 

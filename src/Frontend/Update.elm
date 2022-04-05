@@ -426,14 +426,14 @@ deleteDocFromCurrentUser model doc =
 -- LOCKING AND UNLOCKING DOCUMENTS
 
 
-requestLock : Document -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
-requestLock doc ( model, cmds ) =
+requestLock : Document -> Int -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestLock doc delay_ ( model, cmds ) =
     if shouldMakeRequest model.currentUser doc model.showEditor then
         let
             message =
                 { content = "Sending requestLock for " ++ currentUserName model.currentUser ++ ", " ++ doc.id, status = MSGreen }
         in
-        ( { model | messages = message :: model.messages }, sendToBackend (RequestLock (currentUserName model.currentUser) doc.id) :: cmds )
+        ( { model | messages = message :: model.messages }, sendToBackend (RequestLock delay_ (currentUserName model.currentUser) doc.id) :: cmds )
 
     else
         let
@@ -509,7 +509,7 @@ setDocumentAsCurrent model doc permissions =
         ( model, [] )
             |> setDocumentAsCurrentAux doc permissions
             -- |> requestUnlockPreviousThenLockCurrent doc permissions
-            |> requestLock doc
+            |> requestLock doc 300
             |> batch
 
     else
@@ -521,16 +521,16 @@ setDocumentAsCurrent model doc permissions =
             |> batch
 
 
-requestUnlockPreviousThenLockCurrent : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
-requestUnlockPreviousThenLockCurrent doc permissions ( model, cmds ) =
+requestUnlockPreviousThenLockCurrent : Document.Document -> Int -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestUnlockPreviousThenLockCurrent doc delay_ permissions ( model, cmds ) =
     if Just doc /= model.currentDocument then
         ( model, cmds )
             --|> requestUnlock
-            |> requestLock doc
+            |> requestLock doc delay_
 
     else
         ( model, cmds )
-            |> requestLock doc
+            |> requestLock doc delay_
 
 
 setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
@@ -588,7 +588,7 @@ openEditor doc model =
     )
         -- |> requestLock doc
         --|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
-        |> requestLock doc
+        |> requestLock doc 300
         |> batch
 
 

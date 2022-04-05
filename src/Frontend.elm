@@ -377,7 +377,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    Frontend.Update.requestLock doc ( model, [] ) |> Util.batch
+                    Frontend.Update.requestLock doc 300 ( model, [] ) |> Util.batch
 
         UnLockCurrentDocument ->
             case model.currentDocument of
