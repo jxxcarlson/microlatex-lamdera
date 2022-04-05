@@ -149,7 +149,7 @@ currentDocumentAuthor mUsername mDoc =
                     if mUsername == doc.author then
                         if doc.share == Document.Private then
                             -- my doc, not shared
-                            Font.color (Element.rgb 0.5 0.5 0.9)
+                            Font.color (Element.rgb 0.5 0.5 1.0)
 
                         else
                             -- my doc, shared to someone
@@ -189,7 +189,7 @@ currentDocumentEditor mUsername mDoc =
                     if mUsername == doc.author then
                         if doc.share == Document.Private then
                             -- my doc, not shared
-                            Font.color (Element.rgb 0.5 0.5 0.9)
+                            Font.color (Element.rgb 0.5 0.5 1.0)
 
                         else
                             -- my doc, shared to someone
