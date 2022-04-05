@@ -168,7 +168,14 @@ updateFromFrontend _ clientId msg model =
                 Just doc ->
                     let
                         revisedDoc =
-                            { doc | currentEditor = Nothing }
+                            if doc.currentEditor == Just username || View.Utility.iOwnThisDocument_ username doc then
+                                -- if the currentEditor "belongs" to the current user,
+                                -- then unlock the document
+                                { doc | currentEditor = Nothing }
+
+                            else
+                                -- otherwise, do nothing
+                                doc
 
                         newDocumentDict =
                             Dict.insert docId revisedDoc model.documentDict

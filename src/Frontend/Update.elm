@@ -499,25 +499,11 @@ batch =
 -- SET DOCUMENT AS CURRENT
 
 
-setDocumentAsCurrent1 : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrent1 model doc permissions =
-    if model.showEditor then
-        unlockCurrentDocument ( model, [] )
-            |> setDocumentAsCurrentAux doc permissions
-            |> requestUnlock
-            |> requestLock doc
-            |> batch
-
-    else
-        ( model, [] )
-            |> setDocumentAsCurrentAux doc permissions
-            |> requestRefresh doc.id
-            |> batch
-
-
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
+        -- if we are not in the editor, unlock the previous current document if need be
+        -- and loc the new document (doc)
         ( model, [] )
             |> setDocumentAsCurrentAux doc permissions
             |> requestUnlockPreviousThenLockCurrent doc permissions
@@ -525,6 +511,8 @@ setDocumentAsCurrent model doc permissions =
 
     else
         ( model, [] )
+            -- if we are not in the editor, refresh the document so as
+            -- to be looking at the most recent copy
             |> setDocumentAsCurrentAux doc permissions
             |> requestRefresh doc.id
             |> batch
