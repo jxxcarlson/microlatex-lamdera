@@ -570,24 +570,8 @@ setDocumentAsCurrentAux doc permissions ( model, cmds ) =
     )
 
 
-unlockCurrentDocument : ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
-unlockCurrentDocument ( model, commands ) =
-    case model.currentDocument of
-        Nothing ->
-            ( model, commands )
 
-        Just doc_ ->
-            let
-                revisedDoc =
-                    { doc_ | currentEditor = Nothing }
-
-                ( documents, cmd, messages ) =
-                    ( List.Extra.setIf (\d -> d.id == doc_.id) revisedDoc model.documents
-                    , sendToBackend (SaveDocument revisedDoc)
-                    , Message.make ("document " ++ doc_.title ++ " unlocked") Types.MSGreen
-                    )
-            in
-            ( { model | currentDocument = Just revisedDoc, documents = documents, messages = messages }, cmd :: commands )
+-- OPEN AND CLOSE EDITOR
 
 
 openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
@@ -600,7 +584,8 @@ openEditor doc model =
     , [ Frontend.Cmd.setInitialEditorContent 20 ]
     )
         -- |> requestLock doc
-        |> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
+        --|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
+        |> requestLock doc
         |> batch
 
 
