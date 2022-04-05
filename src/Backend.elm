@@ -29,10 +29,13 @@ import Docs
 import Document
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
 import Message
+import Process
 import Random
+import Task
 import Time
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
+import Util
 import View.Utility
 
 
@@ -109,6 +112,18 @@ updateFromFrontend _ clientId msg model =
                             newDocumentDict =
                                 Dict.insert docId newDoc model.documentDict
 
+                            sendDocCmd : Cmd backendMsg
+                            sendDocCmd =
+                                sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc)
+
+                            sendDocMsg : ToFrontend
+                            sendDocMsg =
+                                SendDocument Types.SystemCanEdit newDoc
+
+                            yada : Cmd ToFrontend
+                            yada =
+                                Util.delay 200 sendDocMsg
+
                             -- REPORTING
                             oldEditor =
                                 "oldEditor: " ++ (doc.currentEditor |> Maybe.withDefault "Nobody")
@@ -134,8 +149,9 @@ updateFromFrontend _ clientId msg model =
                                 { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
                         in
                         ( { model | documentDict = newDocumentDict }
-                        , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc), sendToFrontend clientId (SendMessage message) ]
+                        , [ sendDocCmd, sendToFrontend clientId (SendMessage message) ]
                         )
+                            |> Util.batch
 
                     else
                         let
@@ -184,10 +200,19 @@ updateFromFrontend _ clientId msg model =
 
                         message =
                             { content = doc.title ++ " unlocked", status = Types.MSGreen }
+
+                        cmd : Cmd backendMsg
+                        cmd =
+                            sendToFrontend clientId (SendDocument Types.SystemCanEdit revisedDoc)
+
+                        --  Process.sleep 1 |> Task.perform (always (ChangePrintingState PrintProcessing))
+                        -- Process.sleep 300 |> Task.perform (always (sendToFrontend clientId (SendDocument Types.SystemCanEdit revisedDoc)))
                     in
                     ( { model | documentDict = newDocumentDict }
-                    , Cmd.batch [ sendToFrontend clientId (SendDocument Types.SystemCanEdit revisedDoc), sendToFrontend clientId (SendMessage message) ]
+                      --, Cmd.batch [ cmd, sendToFrontend clientId (SendMessage message) ]
+                    , [ cmd, sendToFrontend clientId (SendMessage message) ]
                     )
+                        |> Util.batch
 
         UnlockDocuments mUsername ->
             case mUsername of
