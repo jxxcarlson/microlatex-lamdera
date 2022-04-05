@@ -429,7 +429,7 @@ requestLock doc ( model, cmds ) =
     if shouldMakeRequest model.currentUser doc model.showEditor then
         let
             message =
-                { content = "Sending requestLock", status = MSGreen }
+                { content = "Sending requestLock for " ++ currentUserName model.currentUser ++ ", " ++ doc.id, status = MSGreen }
         in
         ( { model | messages = message :: model.messages }, sendToBackend (RequestLock (currentUserName model.currentUser) doc.id) :: cmds )
 
@@ -586,7 +586,6 @@ openEditor doc model =
     )
         -- |> requestLock doc
         --|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
-        |> requestLock doc
         |> requestLock doc
         |> batch
 

@@ -100,7 +100,8 @@ updateFromFrontend _ clientId msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc) && Document.canEditSharedDoc username doc then
+                    -- if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc) && Document.canEditSharedDoc username doc then
+                    if View.Utility.isUnlocked doc && Document.canEditSharedDoc username doc then
                         let
                             newDoc =
                                 { doc | currentEditor = Just username }
@@ -169,7 +170,7 @@ updateFromFrontend _ clientId msg model =
                 Just doc ->
                     let
                         revisedDoc =
-                            if doc.currentEditor == Just username || View.Utility.iOwnThisDocument_ username doc then
+                            if doc.currentEditor == Just username then
                                 -- if the currentEditor "belongs" to the current user,
                                 -- then unlock the document
                                 { doc | currentEditor = Nothing }
