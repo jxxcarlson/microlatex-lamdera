@@ -72,6 +72,7 @@ type alias FrontendModel =
     , inputSpecial : String
     , userList : List ( User, Int )
     , connectedUsers : List String
+    , shareDocumentList : List ( String, SharedDocument )
 
     -- USER
     , currentUser : Maybe User
@@ -316,6 +317,7 @@ type FrontendMsg
     | UrlChanged Url
     | NoOpFrontendMsg
       -- UI
+    | OpenSharedDocumentList
     | SetAppMode AppMode
     | GotNewWindowDimensions Int Int
     | GotViewport Dom.Viewport
@@ -407,6 +409,7 @@ type FrontendMsg
 type DocumentList
     = WorkingList
     | StandardList
+    | SharedDocumentList
 
 
 type SidebarState
@@ -434,6 +437,7 @@ type ToBackend
       RunTask
     | GetStatus
     | GetUserList
+    | GetSharedDocuments String
     | ClearConnectionDictBE
       -- USER
     | SignInBE String String
@@ -477,6 +481,7 @@ type ToFrontend
       SendBackupData String
     | GotUserList (List ( User, Int ))
     | GotConnectionList (List String)
+    | GotShareDocumentList (List ( String, SharedDocument ))
       -- USEr
     | UserSignedUp User
       -- DOCUMENT

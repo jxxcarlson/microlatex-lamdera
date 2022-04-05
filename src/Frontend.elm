@@ -68,6 +68,7 @@ init url key =
       , inputSpecial = ""
       , userList = []
       , connectedUsers = []
+      , shareDocumentList = []
 
       -- USER
       , currentUser = Nothing
@@ -201,6 +202,11 @@ update msg model =
             )
 
         -- USER
+        OpenSharedDocumentList ->
+            ( model
+            , sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
+            )
+
         SetSignupState state ->
             ( { model
                 | signupState = state
@@ -252,7 +258,15 @@ update msg model =
 
         -- UI
         SelectList list ->
-            ( { model | documentList = list }, Cmd.none )
+            let
+                cmd =
+                    if list == SharedDocumentList then
+                        sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
+
+                    else
+                        Cmd.none
+            in
+            ( { model | documentList = list }, cmd )
 
         ChangePopup popupState ->
             ( { model | popupState = popupState }, Cmd.none )
@@ -693,6 +707,9 @@ updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
 updateFromBackend msg model =
     case msg of
         -- ADMIN
+        GotShareDocumentList sharedDocList ->
+            ( { model | shareDocumentList = sharedDocList }, Cmd.none )
+
         GotUserList userData ->
             ( { model | userList = userData }, Cmd.none )
 

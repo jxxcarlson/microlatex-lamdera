@@ -1,4 +1,4 @@
-module SharedDocument exposing (createShareDocumentDict)
+module SharedDocument exposing (createShareDocumentDict, isSharedToMe)
 
 import Dict exposing (Dict)
 import Document exposing (Document)
@@ -13,6 +13,16 @@ getSharedDocument doc =
     , share = doc.share
     , currentEditor = doc.currentEditor
     }
+
+
+isSharedToMe : String -> Document.Share -> Bool
+isSharedToMe username share =
+    case share of
+        Document.Private ->
+            False
+
+        Document.Share { readers, editors } ->
+            List.member username readers || List.member username editors
 
 
 insert : Document.Document -> Types.SharedDocumentDict -> Types.SharedDocumentDict

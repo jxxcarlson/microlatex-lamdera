@@ -1,8 +1,10 @@
 module View.Admin exposing (view)
 
+import Document
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
+import String.Extra
 import Types exposing (FrontendModel, FrontendMsg)
 import User
 import View.Button as Button
@@ -48,7 +50,12 @@ adminBody model =
         , E.padding 20
         , E.scrollbarY
         ]
-        [ E.row [ E.spacing 24 ] [ viewUserList model.userList, viewConnectedUsers model.connectedUsers ] ]
+        [ E.row [ E.spacing 36 ]
+            [ viewUserList model.userList
+            , viewConnectedUsers model.connectedUsers
+            , viewSharedDocuments model.shareDocumentList
+            ]
+        ]
 
 
 viewConnectedUsers : List String -> Element FrontendMsg
@@ -57,8 +64,22 @@ viewConnectedUsers users =
 
 
 viewConnectedUser : String -> Element FrontendMsg
-viewConnectedUser username =
-    E.el [ Font.size 14 ] (E.text username)
+viewConnectedUser data =
+    E.el [ Font.size 14 ] (E.text (String.Extra.softEllipsis 80 data))
+
+
+listStyle =
+    [ E.spacing 12, E.alignTop, E.height (E.px 700), E.scrollbarY ]
+
+
+viewSharedDocuments : List ( String, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocuments shareDocuments =
+    E.column [ E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument shareDocuments)
+
+
+viewSharedDocument : ( String, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocument ( author, data ) =
+    E.row [ E.spacing 12 ] (List.map E.text [ author, data.title, data.share |> Document.shareToString, data.currentEditor |> Maybe.withDefault "No one" |> (\s -> "currentEditor: " ++ s) ])
 
 
 adminFooter model =

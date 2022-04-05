@@ -259,11 +259,30 @@ updateFromFrontend sessionId clientId msg model =
                 Just username ->
                     Backend.Update.removeSessionClient model sessionId clientId
 
+        GetSharedDocuments username ->
+            ( model
+            , sendToFrontend clientId
+                (GotShareDocumentList
+                    (model.sharedDocumentDict
+                        |> Dict.toList
+                        |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
+                        |> List.filter (\( _, data ) -> SharedDocument.isSharedToMe username data.share)
+                    )
+                )
+            )
+
         GetUserList ->
             ( model
             , Cmd.batch
                 [ sendToFrontend clientId (GotUserList (Backend.Update.getUserData model))
                 , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
+                , sendToFrontend clientId
+                    (GotShareDocumentList
+                        (model.sharedDocumentDict
+                            |> Dict.toList
+                            |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
+                        )
+                    )
                 ]
             )
 

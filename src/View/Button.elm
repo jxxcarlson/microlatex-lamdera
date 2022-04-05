@@ -31,6 +31,7 @@ module View.Button exposing
     , maximizePublicDocs
     , nextSyncButton
     , openEditor
+    , openSharedDocumentList
     , popupNewDocumentForm
     , printToPDF
     , runSpecial
@@ -90,6 +91,16 @@ buttonTemplate attrList msg label_ =
         ]
 
 
+buttonTemplateSmall : List (E.Attribute msg) -> msg -> String -> Element msg
+buttonTemplateSmall attrList msg label_ =
+    E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ attrList)
+        [ Input.button View.Style.buttonStyleSmall
+            { onPress = Just msg
+            , label = E.el [ E.centerX, E.centerY, Font.size 14, E.paddingXY 4 4 ] (E.text label_)
+            }
+        ]
+
+
 buttonTemplate2 : List (E.Attribute msg) -> msg -> String -> Element msg
 buttonTemplate2 attrList msg label_ =
     E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
@@ -128,6 +139,10 @@ linkStyle =
 
 
 -- UI
+
+
+openSharedDocumentList model =
+    buttonTemplateSmall [] (SelectList SharedDocumentList) ("|" ++ String.fromChar '⇔' ++ "|")
 
 
 exportToMicroLaTeX =
@@ -326,7 +341,7 @@ setSortModeAlpha sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0 0 0)
     in
-    buttonTemplate [ bg, E.width (E.px 65) ] (SetSortMode SortAlphabetically) "Alpha"
+    buttonTemplateSmall [ bg, E.width (E.px 50), Font.size 12 ] (SetSortMode SortAlphabetically) "Alpha"
 
 
 setSortModeMostRecent : SortMode -> Element FrontendMsg
@@ -340,16 +355,19 @@ setSortModeMostRecent sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0.5 0 0)
     in
-    buttonTemplate [ bg ] (SetSortMode SortByMostRecent) "Most recent"
+    buttonTemplateSmall [ bg ] (SetSortMode SortByMostRecent) "Recent"
 
 
 toggleDocumentList currentDocumentList =
     case currentDocumentList of
         WorkingList ->
-            buttonTemplate [ E.width (E.px 70) ] (SelectList StandardList) "Work "
+            buttonTemplateSmall [] (SelectList StandardList) "Work "
 
         StandardList ->
-            buttonTemplate [ E.width (E.px 70) ] (SelectList WorkingList) "Docs"
+            buttonTemplateSmall [] (SelectList WorkingList) "Docs"
+
+        SharedDocumentList ->
+            buttonTemplateSmall [] (SelectList StandardList) "Shared"
 
 
 
@@ -460,7 +478,7 @@ doSignUp =
 
 
 getPinnedDocs =
-    buttonTemplate [] GetPinnedDocuments (String.fromChar '📌')
+    buttonTemplateSmall [] GetPinnedDocuments (String.fromChar '📌')
 
 
 clearConnectionDict =
@@ -668,11 +686,11 @@ toggleAppMode : FrontendModel -> Element FrontendMsg
 toggleAppMode model =
     case model.appMode of
         UserMode ->
-            buttonTemplate [] (SetAppMode AdminMode) "Admin Mode"
+            buttonTemplate [] (SetAppMode AdminMode) "Admin Modew"
 
         AdminMode ->
             buttonTemplate [] (SetAppMode UserMode) "User Mode"
 
 
 
--- buttonTemplate [ Font.size 14, fg, Background.color (E.rgb 0.3 0.3 0.3) ] (SetDocumentAsCurrent document) document.title
+-- buttonTemplateSmall [ Font.size 12, fg, Background.color (E.rgb 0.3 0.3 0.3) ] (SetDocumentAsCurrent document) document.title

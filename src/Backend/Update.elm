@@ -546,9 +546,9 @@ getConnectionData model =
         |> List.map (\( u, data ) -> u ++ ":: " ++ String.fromInt (List.length data) ++ " :: " ++ connectionDataListToString data)
 
 
-truncateMiddle : Int -> String -> String
-truncateMiddle k str =
-    String.left k str ++ "..." ++ String.right k (String.dropRight 2 str)
+truncateMiddle : Int -> Int -> String -> String
+truncateMiddle dropBoth dropRight str =
+    String.left dropBoth str ++ "..." ++ String.right dropBoth (String.dropRight dropRight str)
 
 
 connectionDataListToString : List ConnectionData -> String
@@ -558,7 +558,7 @@ connectionDataListToString list =
 
 connectionDataToString : ConnectionData -> String
 connectionDataToString { session, client } =
-    "(" ++ truncateMiddle 3 session ++ ", " ++ truncateMiddle 3 client ++ ")"
+    "(" ++ truncateMiddle 2 0 session ++ ", " ++ truncateMiddle 2 2 client ++ ")"
 
 
 updateAbstract : Document.Document -> AbstractDict -> AbstractDict

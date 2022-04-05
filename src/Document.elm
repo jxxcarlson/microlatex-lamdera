@@ -6,6 +6,7 @@ module Document exposing
     , currentAuthor
     , defaultSettings
     , empty
+    , shareToString
     , toDocInfo
     , wordCount
     )
@@ -43,6 +44,37 @@ type alias Document =
 type Share
     = Share { readers : List Username, editors : List Username }
     | Private
+
+
+shareToString : Share -> String
+shareToString share =
+    case share of
+        Private ->
+            "private"
+
+        Share { readers, editors } ->
+            let
+                editors1 =
+                    editors |> String.join ", "
+
+                editors2 =
+                    if editors1 == "" then
+                        ""
+
+                    else
+                        "editors: " ++ editors1
+
+                readers1 =
+                    readers |> String.join ", "
+
+                readers2 =
+                    if readers1 == "" then
+                        ""
+
+                    else
+                        "readers: " ++ readers1
+            in
+            [ editors2, readers2 ] |> String.join "; "
 
 
 canEditSharedDoc username doc =

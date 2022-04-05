@@ -5,6 +5,7 @@ module View.Style exposing
     , buttonStyle
     , buttonStyle2
     , buttonStyle3
+    , buttonStyleSmall
     , fgBlack
     , fgGray
     , fgWhite
@@ -48,6 +49,13 @@ fgGray g =
 bgGray : Float -> Element.Attr decorative msg
 bgGray g =
     Background.color (Element.rgb g g g)
+
+
+buttonStyleSmall : List (Element.Attr () msg)
+buttonStyleSmall =
+    [ Font.color (Element.rgb255 255 255 255)
+    , Element.paddingXY 4 4
+    ]
 
 
 buttonStyle : List (Element.Attr () msg)
