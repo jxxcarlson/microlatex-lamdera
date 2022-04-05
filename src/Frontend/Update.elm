@@ -596,7 +596,7 @@ openEditor doc model =
         , sourceText = doc.content
         , initialText = ""
       }
-    , Cmd.batch [ requestLockCmd doc 100 model, Frontend.Cmd.setInitialEditorContent 20 ]
+    , Cmd.batch [ requestLockCmd doc 300 model, Frontend.Cmd.setInitialEditorContent 20 ]
     )
 
 
