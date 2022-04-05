@@ -52,6 +52,7 @@ module View.Button exposing
     , toggleAppMode
     , toggleDocumentList
     , toggleEditor
+    , toggleLock
     , togglePublic
     , toggleSidebar
     , unlock
@@ -190,12 +191,28 @@ languageMenu popupState lang =
 -- DOCUMENT
 
 
+toggleLock : Maybe Document.Document -> Element FrontendMsg
+toggleLock mDoc =
+    case mDoc of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            if doc.currentEditor == Nothing then
+                -- document is unlocked
+                buttonTemplate [ Font.color Color.white ] LockCurrentDocument (String.fromChar '🔓')
+
+            else
+                -- document is locked
+                buttonTemplate [ Font.color Color.white ] UnLockCurrentDocument (String.fromChar '🔒')
+
+
 lock =
-    buttonTemplate [] LockCurrentDocument "Lock"
+    buttonTemplate [] LockCurrentDocument (String.fromChar '🔒')
 
 
 unlock =
-    buttonTemplate [] UnLockCurrentDocument "Unlock"
+    buttonTemplate [] UnLockCurrentDocument (String.fromChar '🔓')
 
 
 share : Element FrontendMsg

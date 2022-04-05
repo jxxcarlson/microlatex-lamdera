@@ -19,9 +19,11 @@ view model _ =
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.deleteDocument model)
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
-        , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.share
-        , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.lock
-        , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.unlock
+        , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) Button.share
+        , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
+
+        --, showIfDocumentIsShared model (model.currentUser /= Nothing) Button.lock
+        --, showIfDocumentIsShared model (model.currentUser /= Nothing) Button.unlock
         , E.el [ E.alignRight ] (wordCount model)
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
         ]
@@ -29,13 +31,18 @@ view model _ =
 
 showIfUserIsDocumentAuthor model condition element =
     View.Utility.showIf
-        (Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser && condition)
+        ((model.currentUser /= Nothing) && (Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser && condition))
         element
 
 
-showIfUserIsDocumentOrShared model condition element =
+showIfDocumentIsShared model condition element =
     View.Utility.showIf
-        ((Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser) || Maybe.map (View.Utility.isSharedToMe model.currentUser) model.currentDocument == Just True && condition)
+        ((model.currentUser /= Nothing)
+            && (Maybe.map (View.Utility.isShared_ (Maybe.map .username model.currentUser)) model.currentDocument
+                    == Just True
+                    && condition
+               )
+        )
         element
 
 

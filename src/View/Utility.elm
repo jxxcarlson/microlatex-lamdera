@@ -11,6 +11,7 @@ module View.Utility exposing
     , isAdmin
     , isSharedToMe
     , isSharedToMe_
+    , isShared_
     , isUnlocked
     , katexCSS
     , noFocus

@@ -464,10 +464,12 @@ currentDocumentId mDoc =
 
 shouldMakeRequest : Maybe User -> Document -> Bool -> Bool
 shouldMakeRequest mUser doc showEditor =
-    (View.Utility.isSharedToMe mUser doc
+    View.Utility.isSharedToMe mUser doc
         || View.Utility.iOwnThisDocument mUser doc
-    )
-        && showEditor
+
+
+
+-- && showEditor
 
 
 requestUnlock : ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
