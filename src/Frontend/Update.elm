@@ -506,7 +506,8 @@ setDocumentAsCurrent model doc permissions =
         -- and loc the new document (doc)
         ( model, [] )
             |> setDocumentAsCurrentAux doc permissions
-            |> requestUnlockPreviousThenLockCurrent doc permissions
+            -- |> requestUnlockPreviousThenLockCurrent doc permissions
+            |> requestLock doc
             |> batch
 
     else
@@ -585,6 +586,7 @@ openEditor doc model =
     )
         -- |> requestLock doc
         --|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
+        |> requestLock doc
         |> requestLock doc
         |> batch
 

@@ -103,8 +103,12 @@ updateFromFrontend _ clientId msg model =
                     if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc) && Document.canEditSharedDoc username doc then
                         let
                             newDoc =
-                                { doc | currentEditor = Just username, public = not doc.public }
+                                { doc | currentEditor = Just username }
 
+                            newDocumentDict =
+                                Dict.insert docId newDoc model.documentDict
+
+                            -- REPORTING
                             oldEditor =
                                 "oldEditor: " ++ (doc.currentEditor |> Maybe.withDefault "Nobody")
 
@@ -117,9 +121,6 @@ updateFromFrontend _ clientId msg model =
 
                                 else
                                     "doc changed"
-
-                            newDocumentDict =
-                                Dict.insert docId newDoc model.documentDict
 
                             equalDicts =
                                 if model.documentDict == newDocumentDict then
