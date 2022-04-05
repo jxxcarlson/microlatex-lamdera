@@ -31,9 +31,12 @@ view model =
 adminHeader model =
     E.row [ E.spacing 12 ]
         [ Button.getUserList
+        , Button.clearConnectionDict
+        , Button.toggleAppMode model
         ]
 
 
+adminBody : FrontendModel -> Element FrontendMsg
 adminBody model =
     E.column
         [ E.spacing 12
@@ -45,20 +48,30 @@ adminBody model =
         , E.padding 20
         , E.scrollbarY
         ]
-        (viewUserList model.userList)
+        [ E.row [ E.spacing 24 ] [ viewUserList model.userList, viewConnectedUsers model.connectedUsers ] ]
+
+
+viewConnectedUsers : List String -> Element FrontendMsg
+viewConnectedUsers users =
+    E.column [ E.spacing 8 ] (E.el [ Font.bold ] (E.text "Connected Users") :: List.map (\u -> viewConnectedUser u) users)
+
+
+viewConnectedUser : String -> Element FrontendMsg
+viewConnectedUser username =
+    E.el [ Font.size 14 ] (E.text username)
 
 
 adminFooter model =
     E.row [ E.spacing 12 ]
         [ View.Input.specialInput model
         , Button.runSpecial
-        , Button.toggleAppMode model
         ]
 
 
-viewUserList : List ( User.User, Int ) -> List (Element FrontendMsg)
+viewUserList : List ( User.User, Int ) -> Element FrontendMsg
 viewUserList users =
-    List.map viewUser (List.sortBy (\( u, _ ) -> u.username) users)
+    E.column [ E.spacing 8 ]
+        (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _ ) -> u.username) users))
 
 
 viewUser : ( User.User, Int ) -> Element FrontendMsg

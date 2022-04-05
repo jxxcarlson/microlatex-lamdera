@@ -693,7 +693,7 @@ handleSignOut model =
     , Cmd.batch
         [ Nav.pushUrl model.key "/"
         , cmd
-        , sendToBackend (UnlockDocuments (model.currentUser |> Maybe.map .id))
+        , sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
         , sendToBackend (GetDocumentById Config.welcomeDocId)
         , sendToBackend (GetPublicDocuments Nothing)
         ]

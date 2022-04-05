@@ -2,6 +2,7 @@ module View.Button exposing
     ( buttonTemplate
     , cancelDeleteDocument
     , cancelSignUp
+    , clearConnectionDict
     , closeCollectionsIndex
     , closeEditor
     , createDocument
@@ -462,6 +463,10 @@ getPinnedDocs =
     buttonTemplate [] GetPinnedDocuments (String.fromChar '📌')
 
 
+clearConnectionDict =
+    buttonTemplate [] Types.ClearConnectionDict "Clear ConnectionDict"
+
+
 toggleActiveDocList : String -> Element FrontendMsg
 toggleActiveDocList name =
     buttonTemplate2 [] ToggleActiveDocList name
@@ -663,10 +668,10 @@ toggleAppMode : FrontendModel -> Element FrontendMsg
 toggleAppMode model =
     case model.appMode of
         UserMode ->
-            buttonTemplate [] (SetAppMode AdminMode) "Admin"
+            buttonTemplate [] (SetAppMode AdminMode) "Admin Mode"
 
         AdminMode ->
-            buttonTemplate [] (SetAppMode UserMode) "User"
+            buttonTemplate [] (SetAppMode UserMode) "User Mode"
 
 
 

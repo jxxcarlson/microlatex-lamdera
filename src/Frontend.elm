@@ -67,6 +67,7 @@ init url key =
       , statusReport = []
       , inputSpecial = ""
       , userList = []
+      , connectedUsers = []
 
       -- USER
       , currentUser = Nothing
@@ -222,6 +223,9 @@ update msg model =
             Frontend.Update.handleSignOut model
 
         -- ADMIN
+        ClearConnectionDict ->
+            ( model, sendToBackend ClearConnectionDictBE )
+
         GoGetUserList ->
             ( model, sendToBackend GetUserList )
 
@@ -692,6 +696,9 @@ updateFromBackend msg model =
         GotUserList userData ->
             ( { model | userList = userData }, Cmd.none )
 
+        GotConnectionList connectedUsers ->
+            ( { model | connectedUsers = connectedUsers }, Cmd.none )
+
         -- DOCUMENT
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
@@ -735,7 +742,10 @@ updateFromBackend msg model =
         SendMessage message ->
             let
                 newMessages =
-                    if List.member message.status [ Types.MSGreen, Types.MSWarning, Types.MSError ] then
+                    if List.member message.status [ Types.MSError, Types.MSWarning ] then
+                        [ message ]
+
+                    else if List.member message.status [ Types.MSGreen ] then
                         List.take 5 <| message :: model.messages
 
                     else

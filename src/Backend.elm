@@ -31,6 +31,7 @@ import Lamdera exposing (ClientId, SessionId, sendToFrontend)
 import Message
 import Process
 import Random
+import SharedDocument
 import Task
 import Time
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
@@ -48,8 +49,16 @@ app =
         { init = init
         , update = update
         , updateFromFrontend = updateFromFrontend
-        , subscriptions = \_ -> Time.every (30 * 1000) Tick
+        , subscriptions = subscriptions
         }
+
+
+subscriptions model =
+    Sub.batch
+        [ Lamdera.onConnect ClientConnected
+        , Lamdera.onDisconnect ClientDisconnected
+        , Time.every (30 * 1000) Tick
+        ]
 
 
 init : ( Model, Cmd BackendMsg )
@@ -67,11 +76,13 @@ init =
 
       -- DATA
       , documentDict = Dict.empty
+      , sharedDocumentDict = Dict.empty
       , authorIdDict = Dict.empty
       , publicIdDict = Dict.empty
       , abstractDict = Dict.empty
       , usersDocumentsDict = Dict.empty
       , publicDocuments = []
+      , connectionDict = Dict.empty
 
       -- DOCUMENTS
       , documents =
@@ -93,6 +104,16 @@ update msg model =
         GotAtomsphericRandomNumber result ->
             Backend.Update.gotAtmosphericRandomNumber model result
 
+        ClientConnected sessionId clientId ->
+            let
+                _ =
+                    Debug.log "XX, Connect: " ( sessionId, clientId )
+            in
+            ( model, Cmd.none )
+
+        ClientDisconnected sessionId clientId ->
+            Backend.Update.removeSessionClient model sessionId clientId
+
         DelaySendingDocument clientId doc ->
             ( model
             , Cmd.batch
@@ -111,8 +132,11 @@ update msg model =
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
-updateFromFrontend _ clientId msg model =
+updateFromFrontend sessionId clientId msg model =
     case msg of
+        ClearConnectionDictBE ->
+            ( { model | connectionDict = Dict.empty }, Cmd.none )
+
         RequestLock delay_ username docId ->
             -- TODO: WIP
             case Dict.get docId model.documentDict of
@@ -227,17 +251,21 @@ updateFromFrontend _ clientId msg model =
                     )
                         |> Util.batch
 
-        UnlockDocuments mUsername ->
+        SignOutBE mUsername ->
             case mUsername of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just username ->
-                    -- Backend.Update.unlockDocuments model username
-                    ( model, Cmd.none )
+                    Backend.Update.removeSessionClient model sessionId clientId
 
         GetUserList ->
-            ( model, sendToFrontend clientId (GotUserList (Backend.Update.getUserData model)) )
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (GotUserList (Backend.Update.getUserData model))
+                , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
+                ]
+            )
 
         RunTask ->
             ( model, Cmd.none )
@@ -253,10 +281,10 @@ updateFromFrontend _ clientId msg model =
             ( { model | authenticationDict = Authentication.updateUser user model.authenticationDict }, Cmd.none )
 
         SignInBE username encryptedPassword ->
-            Backend.Update.signIn model clientId username encryptedPassword
+            Backend.Update.signIn model sessionId clientId username encryptedPassword
 
         SignUpBE username lang encryptedPassword realname email ->
-            Backend.Update.signUpUser model clientId username lang encryptedPassword realname email
+            Backend.Update.signUpUser model sessionId clientId username lang encryptedPassword realname email
 
         -- DOCUMENTS
         GetUserTagsFromBE author ->
@@ -291,7 +319,8 @@ updateFromFrontend _ clientId msg model =
 
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
-            Backend.Update.applySpecial model clientId
+            -- Backend.Update.applySpecial model clientId
+            ( { model | sharedDocumentDict = SharedDocument.createShareDocumentDict model.documentDict |> Debug.log "sharedDocumentDict" }, Cmd.none )
 
         DeleteDocumentBE doc ->
             Backend.Update.deleteDocument clientId doc model

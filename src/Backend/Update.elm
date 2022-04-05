@@ -3,6 +3,7 @@ module Backend.Update exposing
     , createDocument
     , deleteDocument
     , fetchDocumentById
+    , getConnectionData
     , getDocumentByAuthorId
     , getDocumentById
     , getDocumentByPublicId
@@ -10,6 +11,8 @@ module Backend.Update exposing
     , getUserData
     , getUserDocuments
     , gotAtmosphericRandomNumber
+    , removeSessionClient
+    , removeSessionFromDict
     , saveDocument
     , searchForDocuments
     , searchForDocuments_
@@ -29,12 +32,12 @@ import DateTimeUtility
 import Dict
 import Document
 import Hex
-import Lamdera exposing (ClientId, broadcast, sendToFrontend)
+import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
 import Parser.Language exposing (Language(..))
 import Random
 import Token
-import Types exposing (AbstractDict, BackendModel, BackendMsg, DocumentDict, MessageStatus(..), SystemDocPermissions(..), ToFrontend(..), UsersDocumentsDict)
+import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, MessageStatus(..), SystemDocPermissions(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
 import View.Utility
 
@@ -287,11 +290,48 @@ createDocument model clientId maybeCurrentUser doc_ =
             ]
 
 
-signIn model clientId username encryptedPassword =
+removeSessionClient model sessionId clientId =
+    ( { model | connectionDict = removeSessionFromDict (sessionId |> Debug.log "RRXXX, session") (clientId |> Debug.log "RRXXX, client") model.connectionDict }, Cmd.none ) |> Debug.log "XXX, dict"
+
+
+removeSessionFromDict : SessionId -> ClientId -> ConnectionDict -> ConnectionDict
+removeSessionFromDict sessionId clientId connectionDict =
+    connectionDict
+        |> Debug.log "RRXXX, dict before"
+        |> Dict.toList
+        |> removeSessionFromList sessionId clientId
+        |> Dict.fromList
+        |> Debug.log "RRXXX, dict after"
+
+
+removeSessionFromList : SessionId -> ClientId -> List ( String, List ConnectionData ) -> List ( String, List ConnectionData )
+removeSessionFromList sessionId clientId dataList =
+    List.map (\item -> removeItem sessionId clientId item) dataList
+        |> List.filter (\( _, list ) -> list /= [])
+
+
+removeItem : SessionId -> ClientId -> ( String, List ConnectionData ) -> ( String, List ConnectionData )
+removeItem sessionId clientId ( username, data ) =
+    ( username, removeSession username sessionId clientId data )
+
+
+removeSession : String -> SessionId -> ClientId -> List ConnectionData -> List ConnectionData
+removeSession username sessionId clientId list =
+    List.filter (\datum -> datum /= { session = sessionId, client = clientId }) list
+
+
+signIn model sessionId clientId username encryptedPassword =
     case Dict.get username model.authenticationDict of
         Just userData ->
             if Authentication.verify username encryptedPassword model.authenticationDict then
-                ( model
+                let
+                    _ =
+                        Debug.log "XX, Sign in" ( username, sessionId, clientId )
+
+                    newConnectionDict_ =
+                        newConnectionDict username sessionId clientId model.connectionDict
+                in
+                ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
                     [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (UserSignedUp userData.user)
@@ -415,9 +455,27 @@ gotAtmosphericRandomNumber model result =
 -- USER
 
 
-signUpUser : Model -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
-signUpUser model clientId username lang transitPassword realname email =
+newConnectionDict username sessionId clientId connectionDict =
+    case Dict.get username connectionDict of
+        Nothing ->
+            Dict.insert username [ { session = sessionId, client = clientId } ] connectionDict
+
+        Just [] ->
+            Dict.insert username [ { session = sessionId, client = clientId } ] connectionDict
+
+        Just connections ->
+            Dict.insert username ({ session = sessionId, client = clientId } :: connections) connectionDict
+
+
+signUpUser : Model -> SessionId -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
+signUpUser model sessionId clientId username lang transitPassword realname email =
     let
+        _ =
+            Debug.log "XX, Sign up" ( username, sessionId, clientId )
+
+        newConnectionDict_ =
+            newConnectionDict username sessionId clientId model.connectionDict
+
         ( randInt, seed ) =
             Random.step (Random.int (Random.minInt // 2) (Random.maxInt - 1000)) model.randomSeed
 
@@ -440,10 +498,10 @@ signUpUser model clientId username lang transitPassword realname email =
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
         Err str ->
-            ( { model | randomSeed = tokenData.seed }, sendToFrontend clientId (SendMessage { content = "Error: " ++ str, status = MSNormal }) )
+            ( { model | randomSeed = tokenData.seed }, sendToFrontend clientId (SendMessage { content = "Error: " ++ str, status = MSError }) )
 
         Ok authDict ->
-            ( { model | randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
+            ( { model | connectionDict = newConnectionDict_, randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
             , Cmd.batch
                 [ sendToFrontend clientId (UserSignedUp user)
                 , sendToFrontend clientId (SendMessage { content = "Success! You have set up your account", status = MSNormal })
@@ -479,6 +537,28 @@ getUserData model =
             Authentication.userList model.authenticationDict
     in
     List.map (\u -> ( u, numberOfUserDocuments u model.usersDocumentsDict model.documentDict )) userList
+
+
+getConnectionData : BackendModel -> List String
+getConnectionData model =
+    model.connectionDict
+        |> Dict.toList
+        |> List.map (\( u, data ) -> u ++ ":: " ++ String.fromInt (List.length data) ++ " :: " ++ connectionDataListToString data)
+
+
+truncateMiddle : Int -> String -> String
+truncateMiddle k str =
+    String.left k str ++ "..." ++ String.right k (String.dropRight 2 str)
+
+
+connectionDataListToString : List ConnectionData -> String
+connectionDataListToString list =
+    list |> List.map connectionDataToString |> String.join "; "
+
+
+connectionDataToString : ConnectionData -> String
+connectionDataToString { session, client } =
+    "(" ++ truncateMiddle 3 session ++ ", " ++ truncateMiddle 3 client ++ ")"
 
 
 updateAbstract : Document.Document -> AbstractDict -> AbstractDict

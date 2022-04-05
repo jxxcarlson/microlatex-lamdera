@@ -7,6 +7,8 @@ module Types exposing
     , BackendModel
     , BackendMsg(..)
     , BackupOLD
+    , ConnectionData
+    , ConnectionDict
     , DocId
     , DocLoaded(..)
     , DocumentDeleteState(..)
@@ -25,6 +27,8 @@ module Types exposing
     , PrintingState(..)
     , PublicIdDict
     , SearchTerm(..)
+    , SharedDocument
+    , SharedDocumentDict
     , SidebarState(..)
     , SignupState(..)
     , SortMode(..)
@@ -46,10 +50,9 @@ import Debounce exposing (Debounce)
 import Dict exposing (Dict)
 import Document exposing (Document)
 import Element as Color
-import File exposing (File)
 import Http
 import Keyboard
-import Lamdera
+import Lamdera exposing (ClientId, SessionId)
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
@@ -68,6 +71,7 @@ type alias FrontendModel =
     , statusReport : List String
     , inputSpecial : String
     , userList : List ( User, Int )
+    , connectedUsers : List String
 
     -- USER
     , currentUser : Maybe User
@@ -213,15 +217,28 @@ type alias BackendModel =
 
     -- DATA
     , documentDict : DocumentDict
+    , sharedDocumentDict : SharedDocumentDict
     , authorIdDict : AuthorDict
     , publicIdDict : PublicIdDict
     , abstractDict : AbstractDict
     , usersDocumentsDict : UsersDocumentsDict
     , publicDocuments : List Document
+    , connectionDict : ConnectionDict
 
     -- DOCUMENT
     , documents : List Document
     }
+
+
+{-| keys are usernames
+values are lists of ConnectionData because a user could have various active sessions
+-}
+type alias ConnectionDict =
+    Dict String (List ConnectionData)
+
+
+type alias ConnectionData =
+    { session : SessionId, client : ClientId }
 
 
 type alias DocumentLink =
@@ -255,6 +272,21 @@ type alias DocumentDict =
 -}
 type alias UsersDocumentsDict =
     Dict UserId (List DocId)
+
+
+type alias SharedDocument =
+    { title : String
+    , id : String
+    , author : Maybe String
+    , share : Document.Share
+    , currentEditor : Maybe String -- Just user name of current editor if there is one
+    }
+
+
+{-| key = docId
+-}
+type alias SharedDocumentDict =
+    Dict String SharedDocument
 
 
 
@@ -297,6 +329,7 @@ type FrontendMsg
     | InputSpecial String
     | RunSpecial
     | GoGetUserList
+    | ClearConnectionDict
       -- USER
     | SignIn
     | SetSignupState SignupState
@@ -401,6 +434,7 @@ type ToBackend
       RunTask
     | GetStatus
     | GetUserList
+    | ClearConnectionDictBE
       -- USER
     | SignInBE String String
     | SignUpBE String Language String String String
@@ -409,7 +443,7 @@ type ToBackend
     | RequestRefresh String
     | RequestLock Int String String -- delay, Username, DocumentId
     | RequestUnlock String String -- Username, DocumentId
-    | UnlockDocuments (Maybe String)
+    | SignOutBE (Maybe String)
     | GetHomePage String
     | FetchDocumentById String (Maybe String)
     | GetPublicDocuments (Maybe String)
@@ -431,7 +465,9 @@ type SignupState
 
 
 type BackendMsg
-    = GotAtomsphericRandomNumber (Result Http.Error String)
+    = ClientConnected SessionId ClientId
+    | ClientDisconnected SessionId ClientId
+    | GotAtomsphericRandomNumber (Result Http.Error String)
     | DelaySendingDocument Lamdera.ClientId Document
     | Tick Time.Posix
 
@@ -440,6 +476,7 @@ type ToFrontend
     = -- ADMIN
       SendBackupData String
     | GotUserList (List ( User, Int ))
+    | GotConnectionList (List String)
       -- USEr
     | UserSignedUp User
       -- DOCUMENT
