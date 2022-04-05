@@ -97,7 +97,12 @@ update msg model =
             ( model
             , Cmd.batch
                 [ sendToFrontend clientId (SendDocument Types.SystemCanEdit doc)
-                , sendToFrontend clientId (SendMessage { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing"), status = Types.MSWarning })
+                , sendToFrontend clientId
+                    (SendMessage
+                        { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
+                        , status = Types.MSWarning
+                        }
+                    )
                 ]
             )
 
@@ -150,7 +155,9 @@ updateFromFrontend _ clientId msg model =
                                     "Dict changed"
 
                             message =
-                                { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
+                                { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username
+                                , status = Types.MSGreen
+                                }
                         in
                         ( { model | documentDict = newDocumentDict }
                         , [ Util.delay (toFloat delay_) (DelaySendingDocument clientId newDoc), sendToFrontend clientId (SendMessage message) ]
@@ -160,7 +167,9 @@ updateFromFrontend _ clientId msg model =
                     else
                         let
                             message =
-                                { content = doc.title ++ " -- could not lock, " ++ Maybe.withDefault "nobody" doc.currentEditor ++ " is already editing it.", status = Types.MSWarning }
+                                { content = doc.title ++ " -- could not lock, " ++ Maybe.withDefault "nobody" doc.currentEditor ++ " is already editing it."
+                                , status = Types.MSWarning
+                                }
                         in
                         ( model, sendToFrontend clientId (SendMessage message) )
 

@@ -509,7 +509,7 @@ setDocumentAsCurrent model doc permissions =
         ( model, [] )
             |> setDocumentAsCurrentAux doc permissions
             -- |> requestUnlockPreviousThenLockCurrent doc permissions
-            |> requestLock doc 300
+            |> requestLock doc 0
             |> batch
 
     else
