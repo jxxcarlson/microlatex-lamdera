@@ -49,6 +49,7 @@ import Element as Color
 import File exposing (File)
 import Http
 import Keyboard
+import Lamdera
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
@@ -429,6 +430,7 @@ type SignupState
 
 type BackendMsg
     = GotAtomsphericRandomNumber (Result Http.Error String)
+    | DelaySendingDocument Lamdera.ClientId Document
     | Tick Time.Posix
 
 

@@ -83,11 +83,23 @@ init =
     )
 
 
+
+-- SendDocument Types.SystemCanEdit newDoc
+
+
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
 update msg model =
     case msg of
         GotAtomsphericRandomNumber result ->
             Backend.Update.gotAtmosphericRandomNumber model result
+
+        DelaySendingDocument clientId doc ->
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (SendDocument Types.SystemCanEdit doc)
+                , sendToFrontend clientId (SendMessage { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing"), status = Types.MSWarning })
+                ]
+            )
 
         Tick newTime ->
             { model | currentTime = newTime } |> updateAbstracts |> Cmd.Extra.withNoCmd
@@ -116,14 +128,6 @@ updateFromFrontend _ clientId msg model =
                             sendDocCmd =
                                 sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc)
 
-                            sendDocMsg : ToFrontend
-                            sendDocMsg =
-                                SendDocument Types.SystemCanEdit newDoc
-
-                            yada : Cmd ToFrontend
-                            yada =
-                                Util.delay 200 sendDocMsg
-
                             -- REPORTING
                             oldEditor =
                                 "oldEditor: " ++ (doc.currentEditor |> Maybe.withDefault "Nobody")
@@ -149,7 +153,7 @@ updateFromFrontend _ clientId msg model =
                                 { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username, status = Types.MSGreen }
                         in
                         ( { model | documentDict = newDocumentDict }
-                        , [ sendDocCmd, sendToFrontend clientId (SendMessage message) ]
+                        , [ Util.delay 300 (DelaySendingDocument clientId newDoc), sendToFrontend clientId (SendMessage message) ]
                         )
                             |> Util.batch
 
