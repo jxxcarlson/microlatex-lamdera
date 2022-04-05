@@ -426,6 +426,15 @@ deleteDocFromCurrentUser model doc =
 -- LOCKING AND UNLOCKING DOCUMENTS
 
 
+requestLockCmd : Document -> Int -> FrontendModel -> Cmd FrontendMsg
+requestLockCmd doc delay_ model =
+    if shouldMakeRequest model.currentUser doc model.showEditor then
+        sendToBackend (RequestLock delay_ (currentUserName model.currentUser) doc.id)
+
+    else
+        Cmd.none
+
+
 requestLock : Document -> Int -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
 requestLock doc delay_ ( model, cmds ) =
     if shouldMakeRequest model.currentUser doc model.showEditor then
@@ -586,12 +595,15 @@ openEditor doc model =
         , sourceText = doc.content
         , initialText = ""
       }
-    , [ Frontend.Cmd.setInitialEditorContent 20 ]
+    , Cmd.batch [ requestLockCmd doc 300 model, Frontend.Cmd.setInitialEditorContent 20 ]
     )
-        -- |> requestLock doc
-        --|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
-        |> requestLock doc 300
-        |> batch
+
+
+
+-- |> requestLock doc
+----|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
+--|>
+--|> batch
 
 
 closeEditor model =
