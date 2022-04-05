@@ -599,7 +599,8 @@ openEditor doc model =
       }
     , [ Frontend.Cmd.setInitialEditorContent 20 ]
     )
-        |> requestLock doc
+        -- |> requestLock doc
+        |> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
         |> batch
 
 
