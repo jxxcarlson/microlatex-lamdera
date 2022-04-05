@@ -371,6 +371,22 @@ update msg model =
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
 
         -- DOCUMENT
+        LockCurrentDocument ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    Frontend.Update.requestLock doc ( model, [] ) |> Util.batch
+
+        UnLockCurrentDocument ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just _ ->
+                    Frontend.Update.requestUnlock ( model, [] ) |> Util.batch
+
         InputReaders str ->
             ( { model | inputReaders = str }, Cmd.none )
 
@@ -600,8 +616,6 @@ updateDoc model str =
                 ( { model | messages = [ { content = m, status = MSWarning } ] }, Cmd.none )
 
 
-
-
 updateDoc_ model doc str =
     let
         provisionalTitle : String
@@ -722,10 +736,10 @@ updateFromBackend msg model =
             let
                 newMessages =
                     if List.member message.status [ Types.MSGreen, Types.MSWarning, Types.MSError ] then
-                        message :: model.messages
+                        List.take 5 <| message :: model.messages
 
                     else
-                        model.messages
+                        List.take 5 <| model.messages
             in
             ( { model | messages = newMessages }, Cmd.none )
 

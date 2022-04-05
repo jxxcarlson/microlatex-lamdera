@@ -322,6 +322,8 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- DOC
+    | LockCurrentDocument
+    | UnLockCurrentDocument
     | ShareDocument
     | DoShare
     | GetPinnedDocuments

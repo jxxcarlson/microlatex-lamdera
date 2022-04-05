@@ -25,6 +25,7 @@ module View.Button exposing
     , iLink
     , languageMenu
     , linkTemplate
+    , lock
     , maximizeMyDocs
     , maximizePublicDocs
     , nextSyncButton
@@ -53,6 +54,7 @@ module View.Button exposing
     , toggleEditor
     , togglePublic
     , toggleSidebar
+    , unlock
     )
 
 import Compiler.Util
@@ -186,6 +188,14 @@ languageMenu popupState lang =
 
 
 -- DOCUMENT
+
+
+lock =
+    buttonTemplate [] LockCurrentDocument "Lock"
+
+
+unlock =
+    buttonTemplate [] UnLockCurrentDocument "Unlock"
 
 
 share : Element FrontendMsg

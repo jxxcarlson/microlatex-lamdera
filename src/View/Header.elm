@@ -20,6 +20,8 @@ view model _ =
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
         , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.share
+        , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.lock
+        , showIfUserIsDocumentOrShared model (model.currentUser /= Nothing) Button.unlock
         , E.el [ E.alignRight ] (wordCount model)
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
         ]

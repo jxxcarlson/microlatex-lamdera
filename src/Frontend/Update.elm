@@ -18,6 +18,8 @@ module Frontend.Update exposing
     , nextSyncLR
     , openEditor
     , render
+    , requestLock
+    , requestUnlock
     , runSpecial
     , searchText
     , setDocumentAsCurrent
