@@ -2,6 +2,7 @@ module View.Utility exposing
     ( canSave
     , cssNode
     , currentDocumentAuthor
+    , currentDocumentEditor
     , elementAttribute
     , getElementWithViewPort
     , getReadersAndEditors
@@ -171,9 +172,46 @@ currentDocumentAuthor mUsername mDoc =
                             " , editing: " ++ editorName
 
                 str =
-                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x ++ nowEditing) |> Maybe.withDefault ""
+                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x) |> Maybe.withDefault ""
             in
             Element.el [ color, Font.size 14 ] (Element.text str)
+
+
+currentDocumentEditor : Maybe String -> Maybe Document.Document -> Element FrontendMsg
+currentDocumentEditor mUsername mDoc =
+    case mDoc of
+        Nothing ->
+            Element.none
+
+        Just doc ->
+            let
+                color =
+                    if mUsername == doc.author then
+                        if doc.share == Document.Private then
+                            -- my doc, not shared
+                            Font.color (Element.rgb 0.5 0.5 0.9)
+
+                        else
+                            -- my doc, shared to someone
+                            Font.color (Element.rgb 0.5 0.8 0.8)
+
+                    else if isSharedToMe_ mUsername doc then
+                        -- not my doc, shared to me
+                        Font.color (Element.rgb 0.9 0.8 0.6)
+
+                    else
+                        -- not my doc, not shared to me
+                        Font.color (Element.rgb 0.9 0.9 0.9)
+
+                nowEditing =
+                    case doc.currentEditor of
+                        Nothing ->
+                            ""
+
+                        Just editorName ->
+                            "editing: " ++ editorName
+            in
+            Element.el [ color, Font.size 14 ] (Element.text nowEditing)
 
 
 truncateString : Int -> String -> String

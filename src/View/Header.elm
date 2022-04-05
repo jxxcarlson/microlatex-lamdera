@@ -19,13 +19,17 @@ view model _ =
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.deleteDocument model)
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
-        , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) Button.share
-        , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
-
-        --, showIfDocumentIsShared model (model.currentUser /= Nothing) Button.lock
-        --, showIfDocumentIsShared model (model.currentUser /= Nothing) Button.unlock
+        , sharingControls model
         , E.el [ E.alignRight ] (wordCount model)
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
+        ]
+
+
+sharingControls model =
+    E.row [ E.spacing 8, E.paddingXY 18 0 ]
+        [ showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) Button.share
+        , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
+        , View.Utility.currentDocumentEditor (Maybe.map .username model.currentUser) model.currentDocument
         ]
 
 
