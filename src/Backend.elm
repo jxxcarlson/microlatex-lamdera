@@ -106,10 +106,6 @@ update msg model =
             Backend.Update.gotAtmosphericRandomNumber model result
 
         ClientConnected sessionId clientId ->
-            let
-                _ =
-                    Debug.log "XX, Connect: " ( sessionId, clientId )
-            in
             ( model, Cmd.none )
 
         ClientDisconnected sessionId clientId ->
