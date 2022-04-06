@@ -21,15 +21,17 @@ narrowCast sendersName document connectionDict =
         Document.ShareWith { editors, readers } ->
             let
                 usernames =
-                    case document.author of
+                    (case document.author of
                         Nothing ->
-                            editors ++ readers
+                            editors ++ readers |> List.filter (\name -> name /= sendersName && name /= "")
 
                         Just author ->
-                            author :: (editors ++ readers)
+                            author :: (editors ++ readers) |> List.filter (\name -> name /= sendersName && name /= "")
+                    )
+                        |> Debug.log "NAMES"
 
                 clientIds =
-                    getClientIds (List.filter (\name -> name /= sendersName) usernames) connectionDict
+                    getClientIds usernames connectionDict
             in
             Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.SendDocument Types.SystemReadOnly document)) clientIds)
 
