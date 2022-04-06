@@ -9,6 +9,7 @@ module View.Color exposing
     , lightGray
     , medGray
     , paleBlue
+    , paleGreen
     , palePink
     , paleViolet
     , red
@@ -20,6 +21,10 @@ module View.Color exposing
     )
 
 import Element as E
+
+
+paleGreen =
+    E.rgb 0.85 0.95 0.98
 
 
 white : E.Color

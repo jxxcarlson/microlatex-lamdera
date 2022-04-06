@@ -112,7 +112,7 @@ style2 =
     , E.height (E.px 700)
     , E.padding 25
     , Font.size 14
-    , Background.color Color.violet
+    , Background.color Color.paleGreen
     ]
 
 
