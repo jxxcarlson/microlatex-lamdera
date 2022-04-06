@@ -424,6 +424,9 @@ update msg model =
             Frontend.Update.unlockCurrentDocument model
 
         -- DOCUMENT
+        SetDocumentCurrent document ->
+            ( { model | currentDocument = Just document }, Cmd.none )
+
         InputReaders str ->
             ( { model | inputReaders = str }, Cmd.none )
 
@@ -773,7 +776,12 @@ updateFromBackend msg model =
             )
 
         GotPublicDocuments publicDocuments ->
-            ( { model | publicDocuments = publicDocuments, currentDocument = List.head publicDocuments }, Cmd.none )
+            case List.head publicDocuments of
+                Nothing ->
+                    ( { model | publicDocuments = publicDocuments }, Cmd.none )
+
+                Just doc ->
+                    ( { model | publicDocuments = publicDocuments }, Util.delay 300 (SetDocumentCurrent doc) )
 
         SendMessage message ->
             let

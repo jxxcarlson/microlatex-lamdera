@@ -368,6 +368,7 @@ type FrontendMsg
     | ShareDocument
     | DoShare
       -- DOC
+    | SetDocumentCurrent Document
     | GetPinnedDocuments
     | SetLanguage Bool Language
     | Fetch String
