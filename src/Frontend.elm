@@ -420,10 +420,10 @@ update msg model =
                     let
                         ( inputReaders, inputEditors ) =
                             case doc.share of
-                                Document.Private ->
+                                Document.NotShared ->
                                     ( "", "" )
 
-                                Document.Share { readers, editors } ->
+                                Document.ShareWith { readers, editors } ->
                                     ( String.join ", " readers, String.join ", " editors )
                     in
                     ( { model | popupState = SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
@@ -446,10 +446,10 @@ update msg model =
 
                         share =
                             if List.isEmpty readers && List.isEmpty editors then
-                                Document.Private
+                                Document.NotShared
 
                             else
-                                Document.Share { readers = readers, editors = editors }
+                                Document.ShareWith { readers = readers, editors = editors }
 
                         newDocument =
                             { doc | share = share }
@@ -659,7 +659,7 @@ updateDoc_ model doc str =
         , documents = documents
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-    , sendToBackend (SaveDocument newDocument)
+    , Cmd.batch [ sendToBackend (SaveDocument newDocument), sendToBackend (Narrowcast (doc.author |> Maybe.withDefault "(nobody)") doc) ]
     )
 
 

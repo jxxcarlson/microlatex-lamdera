@@ -136,8 +136,8 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
-        Narrowcast document ->
-            ( model, Share.narrowCast document model.connectionDict )
+        Narrowcast sendersName document ->
+            ( model, Share.narrowCast sendersName document model.connectionDict )
 
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )

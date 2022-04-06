@@ -18,16 +18,21 @@ getSharedDocument doc =
 isSharedToMe : String -> Document.Share -> Bool
 isSharedToMe username share =
     case share of
-        Document.Private ->
+        Document.NotShared ->
             False
 
-        Document.Share { readers, editors } ->
+        Document.ShareWith { readers, editors } ->
             List.member username readers || List.member username editors
 
 
 insert : Document.Document -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 insert doc dict =
-    Dict.insert doc.id (getSharedDocument doc) dict
+    case doc.share of
+        Document.NotShared ->
+            dict
+
+        Document.ShareWith _ ->
+            Dict.insert doc.id (getSharedDocument doc) dict
 
 
 createShareDocumentDict : Types.DocumentDict -> Types.SharedDocumentDict

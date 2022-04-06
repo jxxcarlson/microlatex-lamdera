@@ -42,17 +42,17 @@ type alias Document =
 
 -}
 type Share
-    = Share { readers : List Username, editors : List Username }
-    | Private
+    = ShareWith { readers : List Username, editors : List Username }
+    | NotShared
 
 
 shareToString : Share -> String
 shareToString share =
     case share of
-        Private ->
-            "private"
+        NotShared ->
+            "not shared"
 
-        Share { readers, editors } ->
+        ShareWith { readers, editors } ->
             let
                 editors1 =
                     editors |> String.join ", "
@@ -83,10 +83,10 @@ canEditSharedDoc username doc =
 
     else
         case doc.share of
-            Private ->
+            NotShared ->
                 False
 
-            Share { editors } ->
+            ShareWith { editors } ->
                 List.member username editors
 
 
@@ -130,7 +130,7 @@ empty =
     , author = Nothing
     , currentEditor = Nothing
     , language = MicroLaTeXLang
-    , share = Private
+    , share = NotShared
     , tags = []
     }
 

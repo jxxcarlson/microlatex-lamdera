@@ -444,7 +444,8 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- SHARE
-    | Narrowcast Document -- the document will be sent to the users in the document's share list who have active connections
+    | Narrowcast String Document -- First arg is the sender's username.  Send the document
+      -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
     | RequestRefresh String
     | RequestLock Int String String -- delay, Username, DocumentId

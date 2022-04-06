@@ -56,10 +56,10 @@ getReadersAndEditors mDocument =
 
         Just doc ->
             case doc.share of
-                Document.Private ->
+                Document.NotShared ->
                     ( "", "" )
 
-                Document.Share { readers, editors } ->
+                Document.ShareWith { readers, editors } ->
                     ( readers |> String.join ", ", editors |> String.join ", " )
 
 
@@ -100,10 +100,10 @@ isSharedToMe mUser doc =
 
         Just user ->
             case doc.share of
-                Document.Private ->
+                Document.NotShared ->
                     False
 
-                Document.Share { readers, editors } ->
+                Document.ShareWith { readers, editors } ->
                     List.member user.username readers || List.member user.username editors
 
 
@@ -115,10 +115,10 @@ isSharedToMe_ mUsername doc =
 
         Just username ->
             case doc.share of
-                Document.Private ->
+                Document.NotShared ->
                     False
 
-                Document.Share { readers, editors } ->
+                Document.ShareWith { readers, editors } ->
                     List.member username readers || List.member username editors
 
 
@@ -130,10 +130,10 @@ isShared_ mUsername doc =
 
         Just username ->
             case doc.share of
-                Document.Private ->
+                Document.NotShared ->
                     False
 
-                Document.Share { readers, editors } ->
+                Document.ShareWith { readers, editors } ->
                     List.isEmpty readers && List.isEmpty editors |> not
 
 
@@ -147,7 +147,7 @@ currentDocumentAuthor mUsername mDoc =
             let
                 color =
                     if mUsername == doc.author then
-                        if doc.share == Document.Private then
+                        if doc.share == Document.NotShared then
                             -- my doc, not shared
                             Font.color (Element.rgb 0.5 0.5 1.0)
 
@@ -187,7 +187,7 @@ currentDocumentEditor mUsername mDoc =
             let
                 color =
                     if mUsername == doc.author then
-                        if doc.share == Document.Private then
+                        if doc.share == Document.NotShared then
                             -- my doc, not shared
                             Font.color (Element.rgb 0.5 0.5 1.0)
 
