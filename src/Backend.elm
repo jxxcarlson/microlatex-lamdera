@@ -228,7 +228,7 @@ updateFromFrontend sessionId clientId msg model =
                 Just doc ->
                     let
                         revisedDoc =
-                            if doc.currentEditor == Just username then
+                            if doc.currentEditor == Just username || True then
                                 -- if the currentEditor "belongs" to the current user,
                                 -- then unlock the document
                                 { doc | currentEditor = Nothing }
@@ -252,7 +252,10 @@ updateFromFrontend sessionId clientId msg model =
                     in
                     ( { model | documentDict = newDocumentDict }
                       --, Cmd.batch [ cmd, sendToFrontend clientId (SendMessage message) ]
-                    , [ cmd, sendToFrontend clientId (SendMessage message) ]
+                    , [ cmd
+                      , sendToFrontend clientId (SendMessage message)
+                      , Share.narrowCast username doc model.connectionDict
+                      ]
                     )
                         |> Util.batch
 

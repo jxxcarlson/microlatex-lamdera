@@ -356,11 +356,13 @@ type FrontendMsg
     | ToggleIndexSize
     | ToggleSideBar
     | ChangePopup PopupState
-      -- DOC
+      -- SHARE
+    | Narrow String Document
     | LockCurrentDocument
     | UnLockCurrentDocument
     | ShareDocument
     | DoShare
+      -- DOC
     | GetPinnedDocuments
     | SetLanguage Bool Language
     | Fetch String

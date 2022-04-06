@@ -388,23 +388,48 @@ update msg model =
         Help docId ->
             ( model, sendToBackend (GetDocumentByAuthorId docId) )
 
-        -- DOCUMENT
+        -- SHARE
+        Narrow username document ->
+            ( model, sendToBackend (Narrowcast username document) )
+
         LockCurrentDocument ->
             case model.currentDocument of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just doc ->
-                    Frontend.Update.requestLock doc 300 ( model, [] ) |> Util.batch
+                Just doc_ ->
+                    let
+                        currentUsername =
+                            Util.currentUsername model.currentUser
+
+                        doc =
+                            { doc_ | currentEditor = Just currentUsername }
+                    in
+                    ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+                    , Cmd.batch
+                        [ sendToBackend (SaveDocument doc)
+                        , sendToBackend (Narrowcast currentUsername doc)
+                        ]
+                    )
 
         UnLockCurrentDocument ->
             case model.currentDocument of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just _ ->
-                    Frontend.Update.requestUnlock ( model, [] ) |> Util.batch
+                Just doc_ ->
+                    let
+                        doc =
+                            { doc_ | currentEditor = Nothing }
+                    in
+                    ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+                    , Cmd.batch
+                        [ sendToBackend (SaveDocument doc)
+                        , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
+                        ]
+                    )
 
+        -- DOCUMENT
         InputReaders str ->
             ( { model | inputReaders = str }, Cmd.none )
 
@@ -651,7 +676,7 @@ updateDoc_ model doc str =
             { doc | content = safeContent, title = safeTitle }
 
         documents =
-            List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
+            Util.updateDocumentInList newDocument model.documents
     in
     ( { model
         | currentDocument = Just newDocument
@@ -659,7 +684,7 @@ updateDoc_ model doc str =
         , documents = documents
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-    , Cmd.batch [ sendToBackend (SaveDocument newDocument), sendToBackend (Narrowcast (doc.author |> Maybe.withDefault "(nobody)") doc) ]
+    , Cmd.batch [ sendToBackend (SaveDocument newDocument), sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc) ]
     )
 
 
