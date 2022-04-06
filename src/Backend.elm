@@ -31,6 +31,7 @@ import Lamdera exposing (ClientId, SessionId, sendToFrontend)
 import Message
 import Process
 import Random
+import Share
 import SharedDocument
 import Task
 import Time
@@ -135,8 +136,8 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
-        Narrowcast userList document ->
-            ( model, Cmd.none )
+        Narrowcast document ->
+            ( model, Share.narrowCast document model.connectionDict )
 
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )

@@ -12,11 +12,11 @@ type alias Username =
 
 {-| Send the document to all the users listed in document.share who have active connections.
 -}
-narrowCast : Document.Document -> Types.ConnectionDict -> List (Cmd Types.ToFrontend)
+narrowCast : Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 narrowCast document connectionDict =
     case document.share of
         Document.Private ->
-            []
+            Cmd.none
 
         Document.Share { editors, readers } ->
             let
@@ -26,7 +26,7 @@ narrowCast document connectionDict =
                 clientIds =
                     getClientIds usernames connectionDict
             in
-            List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.SendDocument Types.SystemReadOnly document)) clientIds
+            Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.SendDocument Types.SystemReadOnly document)) clientIds)
 
 
 getClientIds : List Username -> Types.ConnectionDict -> List ClientId
