@@ -13,8 +13,6 @@ module View.Button exposing
     , export
     , exportToLaTeX
     , exportToMarkown
-    , exportToMicroLaTeX
-    , exportToXMarkdown
     , getDocument
     , getDocumentByPrivateId
     , getPinnedDocs
@@ -91,12 +89,12 @@ buttonTemplate attrList msg label_ =
         ]
 
 
-buttonTemplateSmall : List (E.Attribute msg) -> msg -> String -> Element msg
-buttonTemplateSmall attrList msg label_ =
+buttonTemplateSmall : List (E.Attribute msg) -> List (E.Attribute msg) -> msg -> String -> Element msg
+buttonTemplateSmall attrList attrList2 msg label_ =
     E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ attrList)
         [ Input.button View.Style.buttonStyleSmall
             { onPress = Just msg
-            , label = E.el [ E.centerX, E.centerY, Font.size 14, E.paddingXY 4 4 ] (E.text label_)
+            , label = E.el ([ E.centerX, E.centerY, Font.size 14, E.paddingXY 4 4 ] ++ attrList2) (E.text label_)
             }
         ]
 
@@ -139,18 +137,6 @@ linkStyle =
 
 
 -- UI
-
-
-openSharedDocumentList model =
-    buttonTemplateSmall [] (SelectList SharedDocumentList) ("|" ++ String.fromChar '⇔' ++ "|")
-
-
-exportToMicroLaTeX =
-    buttonTemplate [] (ExportTo MicroLaTeXLang) "Export to MicroLaTeX"
-
-
-exportToXMarkdown =
-    buttonTemplate [] (ExportTo XMarkdownLang) "Export to XMarkdown"
 
 
 setLanguage : Bool -> Language -> Language -> String -> Element FrontendMsg
@@ -341,7 +327,7 @@ setSortModeAlpha sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0 0 0)
     in
-    buttonTemplateSmall [ bg, E.width (E.px 50), Font.size 12 ] (SetSortMode SortAlphabetically) "Alpha"
+    buttonTemplateSmall [ bg, E.width (E.px 50), Font.size 12 ] [] (SetSortMode SortAlphabetically) "Alpha"
 
 
 setSortModeMostRecent : SortMode -> Element FrontendMsg
@@ -355,19 +341,39 @@ setSortModeMostRecent sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0.5 0 0)
     in
-    buttonTemplateSmall [ bg ] (SetSortMode SortByMostRecent) "Recent"
+    buttonTemplateSmall [ bg ] [] (SetSortMode SortByMostRecent) "Recent"
+
+
+openSharedDocumentList currentDocumentList =
+    if currentDocumentList == SharedDocumentList then
+        buttonTemplateSmall [ Background.color darkRed ] [] (SelectList SharedDocumentList) "Shared"
+
+    else
+        buttonTemplateSmall [ Background.color charcoal ] [] (SelectList SharedDocumentList) "Shared"
+
+
+
+-- [ Background.color (E.rgb 0.4 0.4 0.4) ] [ Font.color (E.rgb 0.7 0.7 0.7) ]
+
+
+darkRed =
+    E.rgb 0.475 0 0
+
+
+charcoal =
+    E.rgb 0.3 0.3 0.3
 
 
 toggleDocumentList currentDocumentList =
     case currentDocumentList of
         WorkingList ->
-            buttonTemplateSmall [] (SelectList StandardList) "Work "
+            buttonTemplateSmall [ Background.color darkRed ] [] (SelectList StandardList) "Work "
 
         StandardList ->
-            buttonTemplateSmall [] (SelectList WorkingList) "Docs"
+            buttonTemplateSmall [ Background.color darkRed ] [] (SelectList WorkingList) "Docs"
 
         SharedDocumentList ->
-            buttonTemplateSmall [] (SelectList StandardList) "Shared"
+            buttonTemplateSmall [ Background.color charcoal ] [] (SelectList StandardList) "Docs"
 
 
 
@@ -478,7 +484,7 @@ doSignUp =
 
 
 getPinnedDocs =
-    buttonTemplateSmall [] GetPinnedDocuments (String.fromChar '📌')
+    buttonTemplateSmall [] [] GetPinnedDocuments (String.fromChar '📌')
 
 
 clearConnectionDict =

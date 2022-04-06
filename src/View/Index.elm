@@ -27,7 +27,13 @@ view model width_ deltaH =
                             -150
             in
             E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
-                [ E.row [ E.spacing 6 ] [ Button.getPinnedDocs, Button.openSharedDocumentList model, Button.toggleDocumentList model.documentList, Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
+                [ E.row [ E.spacing 6 ]
+                    [ Button.getPinnedDocs
+                    , Button.openSharedDocumentList model.documentList
+                    , Button.toggleDocumentList model.documentList
+                    , Button.setSortModeMostRecent model.sortMode
+                    , Button.setSortModeAlpha model.sortMode
+                    ]
                 , case model.documentList of
                     WorkingList ->
                         viewWorkingDocs model deltaH -indexShift
@@ -182,7 +188,6 @@ viewMydocs model deltaH indexShift =
             "My docs (" ++ String.fromInt (List.length docs) ++ ")"
 
         titleButton =
-            -- Button.toggleActiveDocList buttonText
             E.el [ Font.color (E.rgb 0 0 0), Font.size 16 ] (E.text buttonText)
     in
     E.column
