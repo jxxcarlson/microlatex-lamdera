@@ -297,11 +297,9 @@ removeSessionClient model sessionId clientId =
 removeSessionFromDict : SessionId -> ClientId -> ConnectionDict -> ConnectionDict
 removeSessionFromDict sessionId clientId connectionDict =
     connectionDict
-        |> Debug.log "RRXXX, dict before"
         |> Dict.toList
         |> removeSessionFromList sessionId clientId
         |> Dict.fromList
-        |> Debug.log "RRXXX, dict after"
 
 
 removeSessionFromList : SessionId -> ClientId -> List ( String, List ConnectionData ) -> List ( String, List ConnectionData )
@@ -325,9 +323,6 @@ signIn model sessionId clientId username encryptedPassword =
         Just userData ->
             if Authentication.verify username encryptedPassword model.authenticationDict then
                 let
-                    _ =
-                        Debug.log "XX, Sign in" ( username, sessionId, clientId )
-
                     newConnectionDict_ =
                         newConnectionDict username sessionId clientId model.connectionDict
                 in
@@ -470,9 +465,6 @@ newConnectionDict username sessionId clientId connectionDict =
 signUpUser : Model -> SessionId -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
 signUpUser model sessionId clientId username lang transitPassword realname email =
     let
-        _ =
-            Debug.log "XX, Sign up" ( username, sessionId, clientId )
-
         newConnectionDict_ =
             newConnectionDict username sessionId clientId model.connectionDict
 

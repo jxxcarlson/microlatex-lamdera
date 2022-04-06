@@ -50,9 +50,6 @@ view model width_ deltaH =
             let
                 indexShift =
                     150
-
-                _ =
-                    Debug.log "ACTIVE DOC LIST (2)" model.activeDocList
             in
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 8 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
