@@ -112,7 +112,16 @@ viewsShareDocuments currentDocument shareDocumentList =
 
 viewSharedDocument : Maybe Document -> ( String, Types.SharedDocument ) -> Element FrontendMsg
 viewSharedDocument currentDocument ( author, sharedDocument ) =
-    Button.getDocument sharedDocument.id (author ++ ": " ++ sharedDocument.title |> String.Extra.softEllipsis 40)
+    let
+        label =
+            author
+                ++ ": "
+                ++ sharedDocument.title
+                ++ " ("
+                ++ (sharedDocument.currentEditor |> Maybe.withDefault "Nobody")
+                ++ ")"
+    in
+    Button.getDocument sharedDocument.id (label |> String.Extra.softEllipsis 40)
 
 
 viewWorkingDocs : FrontendModel -> Int -> Int -> Element FrontendMsg

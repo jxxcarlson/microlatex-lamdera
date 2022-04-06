@@ -128,12 +128,16 @@ update msg model =
             )
 
         Tick newTime ->
-            { model | currentTime = newTime } |> updateAbstracts |> Cmd.Extra.withNoCmd
+            -- Do regular tasks
+            { model | currentTime = newTime, sharedDocumentDict = SharedDocument.createShareDocumentDict model.documentDict } |> updateAbstracts |> Cmd.Extra.withNoCmd
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
+        Narrowcast userList document ->
+            ( model, Cmd.none )
+
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )
 

@@ -443,6 +443,8 @@ type ToBackend
     | SignInBE String String
     | SignUpBE String Language String String String
     | UpdateUserWith User
+      -- SHARE
+    | Narrowcast (List String) Document -- the document will be sent to the users in (List String) who have active connections
       -- DOCUMENT
     | RequestRefresh String
     | RequestLock Int String String -- delay, Username, DocumentId

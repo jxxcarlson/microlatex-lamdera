@@ -4,8 +4,7 @@ import Document
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
-import Types exposing (FrontendModel, PopupState(..))
-import User
+import Types exposing (FrontendModel, PopupState(..), SystemDocPermissions(..))
 import View.Button as Button
 import View.Color as Color
 import View.Input
