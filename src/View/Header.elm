@@ -30,6 +30,7 @@ sharingControls model =
         [ showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) Button.share
         , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
         , View.Utility.currentDocumentEditor (Maybe.map .username model.currentUser) model.currentDocument
+        , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.sendUnlockMessage model)
         ]
 
 

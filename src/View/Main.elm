@@ -60,6 +60,7 @@ viewEditorAndRenderedText model =
             [ E.inFront (languageMenu model)
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
+            , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
             , E.centerX
             , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
@@ -142,6 +143,7 @@ viewRenderedTextOnly model =
             [ E.inFront (languageMenu model)
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
+            , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
             , E.centerX
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))

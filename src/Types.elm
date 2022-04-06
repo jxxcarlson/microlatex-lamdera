@@ -159,6 +159,7 @@ type PopupState
     = NoPopup
     | LanguageMenuPopup
     | NewDocumentPopup
+    | UserMessagePopup
     | SharePopup
 
 
@@ -335,6 +336,7 @@ type FrontendMsg
     | GoGetUserList
     | ClearConnectionDict
       -- USER
+    | SendUserMessage UserMessage.UserMessage
     | SignIn
     | SetSignupState SignupState
     | DoSignUp
@@ -359,6 +361,7 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- SHARE
+    | DismissUserMessage
     | Narrow String Document
     | LockCurrentDocument
     | UnLockCurrentDocument

@@ -29,6 +29,7 @@ import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDe
 import Url exposing (Url)
 import UrlManager
 import User
+import UserMessage
 import Util
 import View.Main
 import View.Phone
@@ -203,6 +204,12 @@ update msg model =
             )
 
         -- USER
+        DismissUserMessage ->
+            ( { model | userMessage = Nothing }, Cmd.none )
+
+        SendUserMessage message ->
+            ( { model | userMessage = Nothing }, sendToBackend (DeliverUserMessage message) )
+
         OpenSharedDocumentList ->
             ( model
             , sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))

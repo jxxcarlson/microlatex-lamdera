@@ -8,6 +8,7 @@ module View.Button exposing
     , createDocument
     , deleteDocument
     , dismissPopup
+    , dismissUserMessage
     , doShare
     , doSignUp
     , export
@@ -32,7 +33,9 @@ module View.Button exposing
     , openSharedDocumentList
     , popupNewDocumentForm
     , printToPDF
+    , reply
     , runSpecial
+    , sendUnlockMessage
     , setDocAsCurrentWithDocInfo
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
@@ -70,6 +73,8 @@ import Parser.Language exposing (Language(..))
 import String.Extra
 import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions, TagSelection(..))
 import User exposing (User)
+import UserMessage
+import Util
 import View.Color as Color
 import View.Style
 import View.Utility
@@ -137,6 +142,15 @@ linkStyle =
 
 
 -- UI
+
+
+reply : String -> UserMessage.UserMessage -> Element FrontendMsg
+reply label usermessage =
+    buttonTemplate [] (SendUserMessage usermessage) label
+
+
+dismissUserMessage =
+    buttonTemplate [ E.width (E.px 185) ] DismissUserMessage "Done"
 
 
 setLanguage : Bool -> Language -> Language -> String -> Element FrontendMsg
@@ -481,6 +495,40 @@ doSignUp =
 
 
 -- USER
+
+
+sendUnlockMessage model =
+    let
+        currentUsername_ =
+            Util.currentUsername model.currentUser
+    in
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            case doc.currentEditor of
+                Nothing ->
+                    E.none
+
+                Just username ->
+                    if username == currentUsername_ then
+                        E.none
+
+                    else
+                        sendUnlockMessage_ doc model.currentUser
+
+
+sendUnlockMessage_ doc currentUser =
+    let
+        message =
+            { from = Util.currentUsername currentUser
+            , to = doc.currentEditor |> Maybe.withDefault "anaon"
+            , subject = "Unlock?"
+            , content = "May I unlock " ++ doc.title ++ "?"
+            }
+    in
+    buttonTemplateSmall [] [] (SendUserMessage message) "Ask to unlock"
 
 
 getPinnedDocs =

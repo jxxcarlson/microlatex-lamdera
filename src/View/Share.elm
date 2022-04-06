@@ -1,10 +1,11 @@
-module View.Share exposing (view)
+module View.Share exposing (usermessage, view)
 
 import Document
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Types exposing (FrontendModel, PopupState(..), SystemDocPermissions(..))
+import UserMessage
 import View.Button as Button
 import View.Color as Color
 import View.Input
@@ -21,6 +22,43 @@ view model =
 
     else
         E.none
+
+
+usermessage : Maybe UserMessage.UserMessage -> E.Element Types.FrontendMsg
+usermessage mUserMessage =
+    case mUserMessage of
+        Nothing ->
+            E.none
+
+        Just message ->
+            E.column [ E.padding 20, E.spacing 12, E.width (E.px 300), E.height (E.px 400), Background.color Color.paleBlue ]
+                [ row "From:" message.from
+                , row "To:" message.to
+                , row "Subject:" message.subject
+                , row "Message:" message.content
+                , E.row [ E.spacing 36 ]
+                    [ Button.reply "Ok"
+                        { from = message.to
+                        , to = message.from
+                        , subject = message.subject
+                        , content = "Ok!"
+                        }
+                    , Button.reply "Not just yet"
+                        { from = message.to
+                        , to = message.from
+                        , subject = message.subject
+                        , content = "Not just yet"
+                        }
+                    ]
+                , Button.dismissUserMessage
+                ]
+
+
+row heading body =
+    E.row [ E.spacing 12, Font.size 14 ]
+        [ E.el [ Font.bold, E.width (E.px 60) ] (E.text heading)
+        , E.paragraph [ E.width (E.px 250) ] [ E.text body ]
+        ]
 
 
 viewSharingStatus : FrontendModel -> E.Element Types.FrontendMsg
