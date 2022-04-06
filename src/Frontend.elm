@@ -773,7 +773,7 @@ updateFromBackend msg model =
             )
 
         GotPublicDocuments publicDocuments ->
-            ( { model | publicDocuments = publicDocuments }, Cmd.none )
+            ( { model | publicDocuments = publicDocuments, currentDocument = List.head publicDocuments }, Cmd.none )
 
         SendMessage message ->
             let
