@@ -425,7 +425,7 @@ update msg model =
 
         -- DOCUMENT
         SetDocumentCurrent document ->
-            ( { model | currentDocument = Just document }, Cmd.none )
+            Frontend.Update.setDocumentAsCurrent model document SystemReadOnly
 
         InputReaders str ->
             ( { model | inputReaders = str }, Cmd.none )
