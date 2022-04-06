@@ -347,7 +347,7 @@ updateFromFrontend sessionId clientId msg model =
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
             -- Backend.Update.applySpecial model clientId
-            ( { model | sharedDocumentDict = SharedDocument.createShareDocumentDict model.documentDict |> Debug.log "sharedDocumentDict" }, Cmd.none )
+            ( { model | sharedDocumentDict = SharedDocument.createShareDocumentDict model.documentDict }, Cmd.none )
 
         DeleteDocumentBE doc ->
             Backend.Update.deleteDocument clientId doc model

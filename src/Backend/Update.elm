@@ -291,7 +291,7 @@ createDocument model clientId maybeCurrentUser doc_ =
 
 
 removeSessionClient model sessionId clientId =
-    ( { model | connectionDict = removeSessionFromDict (sessionId |> Debug.log "RRXXX, session") (clientId |> Debug.log "RRXXX, client") model.connectionDict }, Cmd.none ) |> Debug.log "XXX, dict"
+    ( { model | connectionDict = removeSessionFromDict sessionId clientId model.connectionDict }, Cmd.none )
 
 
 removeSessionFromDict : SessionId -> ClientId -> ConnectionDict -> ConnectionDict

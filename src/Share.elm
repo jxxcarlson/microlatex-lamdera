@@ -21,14 +21,12 @@ narrowCast sendersName document connectionDict =
         Document.ShareWith { editors, readers } ->
             let
                 usernames =
-                    (case document.author of
+                    case document.author of
                         Nothing ->
                             editors ++ readers |> List.filter (\name -> name /= sendersName && name /= "")
 
                         Just author ->
                             author :: (editors ++ readers) |> List.filter (\name -> name /= sendersName && name /= "")
-                    )
-                        |> Debug.log "NAMES"
 
                 clientIds =
                     getClientIds usernames connectionDict
