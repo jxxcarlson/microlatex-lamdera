@@ -1,5 +1,6 @@
 module View.Utility exposing
     ( canSave
+    , canSaveStrict
     , cssNode
     , currentDocumentAuthor
     , currentDocumentEditor
@@ -80,6 +81,19 @@ canSave mCurrentUser currentDocument =
             Maybe.map .username mCurrentUser == currentDocument.currentEditor || currentDocument.currentEditor == Nothing
     in
     iOwntheDocOrItIsShareToMe && iAmTheCurrentEditorOrNobodyIs
+
+
+canSaveStrict : Maybe User.User -> Document.Document -> Bool
+canSaveStrict mCurrentUser currentDocument =
+    let
+        mUsername =
+            Maybe.map .username mCurrentUser
+    in
+    if isShared_ mUsername currentDocument then
+        currentDocument.currentEditor == mUsername
+
+    else
+        iOwnThisDocument_ (mUsername |> Maybe.withDefault "((nobody))") currentDocument
 
 
 iOwnThisDocument : Maybe User.User -> Document.Document -> Bool

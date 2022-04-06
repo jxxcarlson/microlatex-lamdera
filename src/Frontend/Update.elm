@@ -31,6 +31,7 @@ module Frontend.Update exposing
     , setUserLanguage
     , setViewportForElement
     , syncLR
+    , unlockCurrentDocument
     , updateCurrentDocument
     , updateKeys
     , updateWithViewport
@@ -66,6 +67,7 @@ import Render.Settings as Settings
 import Task
 import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
 import User exposing (User)
+import Util
 import View.Utility
 
 
@@ -517,37 +519,59 @@ batch =
 -- SET DOCUMENT AS CURRENT
 
 
+unlockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+unlockCurrentDocument model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc_ ->
+            let
+                doc : Document
+                doc =
+                    { doc_ | currentEditor = Nothing }
+            in
+            ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+            , Cmd.batch
+                [ sendToBackend (SaveDocument doc)
+                , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
+                ]
+            )
+
+
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
         -- if we are not in the editor, unlock the previous current document if need be
         -- and loc the new document (doc)
-        ( model, [ requestLockCmd doc 100 model ] )
-            |> setDocumentAsCurrentAux doc permissions
+        model |> join unlockCurrentDocument (setDocumentAsCurrentAux doc permissions)
+        --model |> join (join unlockCurrentDocument (lockDocument doc)) (setDocumentAsCurrentAux doc permissions)
         -- |> requestUnlockPreviousThenLockCurrent doc permissions
 
     else
-        ( model, [ requestRefreshCmd doc.id model ] )
-            -- if we are not in the editor, refresh the document so as
-            -- to be looking at the most recent copy
-            |> setDocumentAsCurrentAux doc permissions
+        -- if we are not in the editor, refresh the document so as
+        -- to be looking at the most recent copy
+        -- model |> join (\m -> ( m, requestRefreshCmd doc.id m )) (setDocumentAsCurrentAux doc permissions)
+        setDocumentAsCurrentAux doc permissions model
 
 
-requestUnlockPreviousThenLockCurrent : Document.Document -> Int -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
-requestUnlockPreviousThenLockCurrent doc delay_ permissions ( model, cmds ) =
-    if Just doc /= model.currentDocument then
-        ( model, cmds )
-            --|> requestUnlock
-            |> requestLock doc delay_
-
-    else
-        ( model, cmds )
-            |> requestLock doc delay_
-
-
-setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrentAux doc permissions ( model, cmds ) =
+setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrentAux doc_ permissions model =
     let
+        -- For now, loc the doc in all cases
+        currentUserName_ : String
+        currentUserName_ =
+            Util.currentUsername model.currentUser
+
+        doc : Document
+        doc =
+            if model.showEditor && doc_.currentEditor == Nothing then
+                { doc_ | currentEditor = Just currentUserName_ }
+
+            else
+                doc_
+
+        newEditRecord : Compiler.DifferentialParser.EditRecord
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
@@ -581,7 +605,11 @@ setDocumentAsCurrentAux doc permissions ( model, cmds ) =
         , inputReaders = readers
         , inputEditors = editors
       }
-    , Cmd.batch (View.Utility.setViewPortToTop :: cmds)
+    , Cmd.batch
+        [ View.Utility.setViewPortToTop
+        , sendToBackend (SaveDocument doc)
+        , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
+        ]
     )
 
 
@@ -589,14 +617,83 @@ setDocumentAsCurrentAux doc permissions ( model, cmds ) =
 -- OPEN AND CLOSE EDITOR
 
 
+lockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+lockCurrentDocument model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc_ ->
+            -- if View.Utility.canSaveStrict model.currentUser doc_ then
+            if doc_.currentEditor == Nothing then
+                let
+                    currentUsername =
+                        Util.currentUsername model.currentUser
+
+                    doc =
+                        { doc_ | currentEditor = Just currentUsername }
+                in
+                ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+                , Cmd.batch
+                    [ sendToBackend (SaveDocument doc)
+                    , sendToBackend (Narrowcast currentUsername doc)
+                    ]
+                )
+
+            else
+                ( { model | messages = [ { content = "Document is locked already", status = MSError } ] }, Cmd.none )
+
+
+lockDocument : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+lockDocument doc_ model =
+    if doc_.currentEditor == Nothing then
+        let
+            currentUsername =
+                Util.currentUsername model.currentUser
+
+            doc =
+                { doc_ | currentEditor = Just currentUsername }
+        in
+        ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+        , Cmd.batch
+            [ sendToBackend (SaveDocument doc)
+            , sendToBackend (Narrowcast currentUsername doc)
+            ]
+        )
+
+    else
+        ( { model | messages = [ { content = "Document is locked already", status = MSError } ] }, Cmd.none )
+
+
+join :
+    (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+    -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+    -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+join f g =
+    \m ->
+        let
+            ( m1, cmd1 ) =
+                f m
+
+            ( m2, cmd2 ) =
+                g m1
+        in
+        ( m2, Cmd.batch [ cmd1, cmd2 ] )
+
+
 openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 openEditor doc model =
+    model |> join (openEditor_ doc) lockCurrentDocument
+
+
+openEditor_ : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+openEditor_ doc model =
     ( { model
         | showEditor = True
         , sourceText = doc.content
         , initialText = ""
       }
-    , Cmd.batch [ requestLockCmd doc 300 model, Frontend.Cmd.setInitialEditorContent 20 ]
+    , Frontend.Cmd.setInitialEditorContent 20
     )
 
 
@@ -607,13 +704,22 @@ openEditor doc model =
 --|> batch
 
 
+closeEditor : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 closeEditor model =
-    ( { model | initialText = "", popupState = NoPopup }
-    , []
-    )
-        |> requestUnlock
-        |> (\( m, cmds ) -> ( { m | showEditor = False }, cmds ))
-        |> batch
+    let
+        mCurrentEditor : Maybe String
+        mCurrentEditor =
+            model.currentDocument |> Maybe.andThen .currentEditor
+
+        mCurrentUsername : Maybe String
+        mCurrentUsername =
+            model.currentUser |> Maybe.map .username
+    in
+    if mCurrentEditor == mCurrentUsername then
+        model |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.none )) unlockCurrentDocument
+
+    else
+        ( { model | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.none )
 
 
 

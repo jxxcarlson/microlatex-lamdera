@@ -421,21 +421,7 @@ update msg model =
                     )
 
         UnLockCurrentDocument ->
-            case model.currentDocument of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just doc_ ->
-                    let
-                        doc =
-                            { doc_ | currentEditor = Nothing }
-                    in
-                    ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
-                    , Cmd.batch
-                        [ sendToBackend (SaveDocument doc)
-                        , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
-                        ]
-                    )
+            Frontend.Update.unlockCurrentDocument model
 
         -- DOCUMENT
         InputReaders str ->
@@ -656,7 +642,7 @@ updateDoc model str =
             ( model, Cmd.none )
 
         Just doc ->
-            if View.Utility.canSave model.currentUser doc then
+            if View.Utility.canSaveStrict model.currentUser doc then
                 updateDoc_ model doc str
 
             else
