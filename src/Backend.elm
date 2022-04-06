@@ -132,6 +132,22 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
+        DeliverUserMessage usermessage ->
+            let
+                clientIds : List ClientId
+                clientIds =
+                    case Dict.get usermessage.to model.connectionDict of
+                        Nothing ->
+                            []
+
+                        Just connectionData ->
+                            List.map .client connectionData
+
+                commands =
+                    List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
+            in
+            ( model, Cmd.batch commands )
+
         Narrowcast sendersName document ->
             ( model, Share.narrowCast sendersName document model.connectionDict )
 

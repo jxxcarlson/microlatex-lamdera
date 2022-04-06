@@ -60,6 +60,7 @@ import Render.Msg
 import Time
 import Url exposing (Url)
 import User exposing (User)
+import UserMessage
 
 
 type alias FrontendModel =
@@ -75,6 +76,7 @@ type alias FrontendModel =
     , shareDocumentList : List ( String, SharedDocument )
 
     -- USER
+    , userMessage : Maybe UserMessage.UserMessage
     , currentUser : Maybe User
     , inputUsername : String
     , inputPassword : String
@@ -442,6 +444,7 @@ type ToBackend
     | GetSharedDocuments String
     | ClearConnectionDictBE
       -- USER
+    | DeliverUserMessage UserMessage.UserMessage -- from, to, subject, contents
     | SignInBE String String
     | SignUpBE String Language String String String
     | UpdateUserWith User
@@ -487,7 +490,8 @@ type ToFrontend
     | GotUserList (List ( User, Int ))
     | GotConnectionList (List String)
     | GotShareDocumentList (List ( String, SharedDocument ))
-      -- USEr
+      -- USER
+    | UserMessageReceived UserMessage.UserMessage
     | UserSignedUp User
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))

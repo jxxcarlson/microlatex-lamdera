@@ -71,6 +71,7 @@ init url key =
       , shareDocumentList = []
 
       -- USER
+      , userMessage = Nothing
       , currentUser = Nothing
       , inputUsername = ""
       , inputPassword = ""
@@ -806,6 +807,9 @@ updateFromBackend msg model =
             ( { model | showEditor = flag }, Cmd.none )
 
         -- USER
+        UserMessageReceived message ->
+            ( { model | userMessage = Just message }, Cmd.none )
+
         UserSignedUp user ->
             ( { model
                 | signupState = HideSignUpForm
