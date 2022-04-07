@@ -8,6 +8,7 @@ module Backend.Update exposing
     , getDocumentById
     , getDocumentByPublicId
     , getHomePage
+    , getShareDocuments
     , getUserData
     , getUserDocuments
     , gotAtmosphericRandomNumber
@@ -36,6 +37,7 @@ import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
 import Parser.Language exposing (Language(..))
 import Random
+import Share
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, MessageStatus(..), SystemDocPermissions(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
@@ -44,6 +46,25 @@ import View.Utility
 
 type alias Model =
     BackendModel
+
+
+getShareDocuments model clientId username =
+    let
+        docList =
+            model.sharedDocumentDict
+                |> Dict.toList
+                |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
+
+        docs1 =
+            docList
+                |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
+
+        docs2 =
+            docList |> List.filter (\( _, data ) -> data.author == Just username)
+    in
+    ( model
+    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2))
+    )
 
 
 unlockDocuments : Model -> String -> ( Model, Cmd BackendMsg )

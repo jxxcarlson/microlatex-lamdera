@@ -178,16 +178,7 @@ updateFromFrontend sessionId clientId msg model =
                     Backend.Update.removeSessionClient model sessionId clientId
 
         GetSharedDocuments username ->
-            ( model
-            , sendToFrontend clientId
-                (GotShareDocumentList
-                    (model.sharedDocumentDict
-                        |> Dict.toList
-                        |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
-                        |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
-                    )
-                )
-            )
+            Backend.Update.getShareDocuments model clientId username
 
         GetUserList ->
             ( model
