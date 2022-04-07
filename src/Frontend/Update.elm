@@ -489,7 +489,7 @@ unlockCurrentDocument model =
             in
             ( { model
                 | userMessage = Nothing
-                , messages = Message.make "Documente unlocked" MSGreen
+                , messages = Message.make "Document unlocked" MSGreen
                 , currentDocument = Just doc
                 , documents = Util.updateDocumentInList doc model.documents
               }
