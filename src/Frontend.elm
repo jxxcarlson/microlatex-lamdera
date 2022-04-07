@@ -709,7 +709,7 @@ updateFromBackend msg model =
         SendDocument _ doc ->
             let
                 documents =
-                    Util.insertInListViaTitle doc model.documents
+                    Util.updateDocumentInList doc model.documents
 
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
