@@ -759,10 +759,6 @@ updateFromBackend msg model =
             ( { model | userMessage = Just message }, Cmd.none )
 
         UndeliverableMessage message ->
-            let
-                _ =
-                    Debug.log "UNDELIVERABLE MESSAGE" message
-            in
             case message.actionOnFailureToDeliver of
                 Types.FANoOp ->
                     ( model, Cmd.none )
