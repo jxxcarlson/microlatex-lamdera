@@ -62,6 +62,7 @@ import Render.LaTeX as LaTeX
 import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
+import Share
 import Task
 import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
 import User exposing (User)
@@ -188,7 +189,17 @@ inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
 
 
+inputText : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
 inputText model str =
+    if Share.canEdit model.currentUser model.currentDocument then
+        inputText_ model str
+
+    else
+        ( model, Cmd.none )
+
+
+inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
+inputText_ model str =
     let
         -- Push your values here.
         ( debounce, cmd ) =
@@ -490,6 +501,10 @@ unlockCurrentDocument model =
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
+        let
+            _ =
+                Debug.log "BRANCH" 1
+        in
         -- if we are not in the editor, unlock the previous current document if need be
         -- and loc the new document (doc)
         model |> join unlockCurrentDocument (setDocumentAsCurrentAux doc permissions)
@@ -497,6 +512,10 @@ setDocumentAsCurrent model doc permissions =
         -- |> requestUnlockPreviousThenLockCurrent doc permissions
 
     else
+        let
+            _ =
+                Debug.log "BRANCH" 2
+        in
         -- if we are not in the editor, refresh the document so as
         -- to be looking at the most recent copy
         -- model |> join (\m -> ( m, requestRefreshCmd doc.id m )) (setDocumentAsCurrentAux doc permissions)
@@ -504,20 +523,12 @@ setDocumentAsCurrent model doc permissions =
 
 
 setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrentAux doc_ permissions model =
+setDocumentAsCurrentAux doc permissions model =
     let
         -- For now, loc the doc in all cases
         currentUserName_ : String
         currentUserName_ =
             Util.currentUsername model.currentUser
-
-        doc : Document
-        doc =
-            if model.showEditor && doc_.currentEditor == Nothing then
-                { doc_ | currentEditor = Just currentUserName_ }
-
-            else
-                doc_
 
         newEditRecord : Compiler.DifferentialParser.EditRecord
         newEditRecord =

@@ -1,5 +1,6 @@
 module Share exposing
-    ( createShareDocumentDict
+    ( canEdit
+    , createShareDocumentDict
     , doShare
     , isSharedToMe
     , narrowCast
@@ -12,6 +13,7 @@ import Document
 import Lamdera exposing (ClientId, sendToBackend)
 import List.Extra
 import Types
+import User
 
 
 type alias Username =
@@ -26,6 +28,30 @@ getSharedDocument doc =
     , share = doc.share
     , currentEditor = doc.currentEditor
     }
+
+
+canEdit : Maybe User.User -> Maybe Document.Document -> Bool
+canEdit currentUser currentDocument =
+    let
+        foo =
+            1
+    in
+    case ( currentUser, currentDocument ) of
+        ( Just user, Just doc ) ->
+            isMineAndNotShared user.username doc || isSharedToMe user.username doc.share || isSharedByMe user.username doc
+
+        _ ->
+            False
+
+
+isSharedByMe : String -> Document.Document -> Bool
+isSharedByMe username doc =
+    Just username == doc.currentEditor
+
+
+isMineAndNotShared : String -> Document.Document -> Bool
+isMineAndNotShared username doc =
+    doc.share == Document.NotShared && Just username == doc.author
 
 
 isSharedToMe : String -> Document.Share -> Bool
