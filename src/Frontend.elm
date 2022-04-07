@@ -784,6 +784,10 @@ updateFromBackend msg model =
         SendDocuments documents ->
             ( { model | documents = documents }, Cmd.none )
 
+        -- CHAT
+        MessageReceived message ->
+            ( model, Cmd.none )
+
 
 view : Model -> { title : String, body : List (Html.Html FrontendMsg) }
 view model =

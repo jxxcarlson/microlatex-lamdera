@@ -7,6 +7,9 @@ module Types exposing
     , BackendModel
     , BackendMsg(..)
     , BackupOLD
+    , ChatDict
+    , ChatMessage
+    , ChatMsg(..)
     , ConnectionData
     , ConnectionDict
     , DocId
@@ -40,6 +43,7 @@ module Types exposing
     , UMButtons(..)
     , UserId
     , UserMessage
+    , Username
     , UsersDocumentsDict
     )
 
@@ -218,6 +222,10 @@ type alias BackendModel =
     , uuidCount : Int
     , randomAtmosphericInt : Maybe Int
 
+    -- CHAT
+    , chatDict : ChatDict
+    , chatGroupDict : ChatGroupDict
+
     -- USER
     , authenticationDict : AuthenticationDict
 
@@ -317,6 +325,51 @@ type alias DocId =
     String
 
 
+
+-- CHAT
+
+
+type alias ChatDict =
+    Dict GroupName (List ChatMessage)
+
+
+type alias ChatGroupDict =
+    Dict GroupName (List Username)
+
+
+type ChatMsg
+    = JoinedChat ClientId Username
+    | LeftChat ClientId Username
+    | ChatMsg ClientId ChatMessage
+
+
+type alias ChatGroup =
+    { name : String
+    , members : List Username
+    }
+
+
+type alias GroupName =
+    String
+
+
+type alias ChatMessage =
+    { sender : String
+    , group : String
+    , subject : String
+    , content : String
+    , date : Time.Posix
+    }
+
+
+type alias Username =
+    String
+
+
+
+-- USERMESSAGE
+
+
 type alias UserMessage =
     { from : String
     , to : String
@@ -326,33 +379,6 @@ type alias UserMessage =
     , action : FrontendMsg
     , actionOnFailureToDeliver : FailureAction
     }
-
-
-type ChatMsg
-    = JoinedChat ClientId UserName
-    | LeftChat ClientId UserName
-    | ChatMsg ClientId ChatMessage
-
-
-type alias ChatGroup =
-    String
-
-
-type alias ChatMessage =
-    { name : ChatName
-    , subject : String
-    , content : String
-    , date : Time.Posix
-    }
-
-
-type ChatName
-    = ChatGroup ChatGroup
-    | ChatDM UserName
-
-
-type alias UserName =
-    String
 
 
 type FailureAction
@@ -506,6 +532,8 @@ type ToBackend
     | SignInBE String String
     | SignUpBE String Language String String String
     | UpdateUserWith User
+      -- CHAT
+    | ChatMsgSubmitted ChatMessage
       -- SHARE
     | Narrowcast String Document -- First arg is the sender's username.  Send the document
     | UpdateSharedDocumentDict Document
@@ -551,6 +579,8 @@ type ToFrontend
     | UserMessageReceived UserMessage
     | UndeliverableMessage UserMessage
     | UserSignedUp User
+      -- CHAT
+    | MessageReceived ChatMsg
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))

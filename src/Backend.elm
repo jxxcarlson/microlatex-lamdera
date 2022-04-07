@@ -22,12 +22,13 @@ import Abstract exposing (Abstract)
 import Authentication
 import Backend.Cmd
 import Backend.Update
+import Chat
 import Cmd.Extra
 import Config
 import Dict exposing (Dict)
 import Docs
 import Document
-import Lamdera exposing (ClientId, SessionId, sendToFrontend)
+import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Random
 import Share
 import Time
@@ -68,6 +69,11 @@ init =
 
       -- USER
       , authenticationDict = Dict.empty
+
+      -- CHAT
+      -- CHAT
+      , chatDict = Dict.fromList []
+      , chatGroupDict = Dict.fromList [ ( "test", [ "jxxcarlson", "aristo" ] ) ]
 
       -- DATA
       , documentDict = Dict.empty
@@ -126,6 +132,20 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
+        ChatMsgSubmitted message ->
+            let
+                groupMembers =
+                    [ "jxxcarlson", "aristo" ]
+
+                clientIds =
+                    List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat
+
+                commands : List (Cmd backendMsg)
+                commands =
+                    List.map (\clientId_ -> sendToFrontend clientId_ (MessageReceived (Types.ChatMsg clientId_ message))) clientIds
+            in
+            ( { model | chatDict = Chat.insert message model.chatDict }, Cmd.batch commands )
+
         DeliverUserMessage usermessage ->
             case Dict.get usermessage.to model.connectionDict of
                 Nothing ->
