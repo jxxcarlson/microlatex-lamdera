@@ -18,7 +18,6 @@ module Frontend.Update exposing
     , nextSyncLR
     , openEditor
     , render
-    , requestLock
     , requestUnlock
     , runSpecial
     , searchText
@@ -428,32 +427,6 @@ deleteDocFromCurrentUser model doc =
 -- LOCKING AND UNLOCKING DOCUMENTS
 
 
-requestLockCmd : Document -> Int -> FrontendModel -> Cmd FrontendMsg
-requestLockCmd doc delay_ model =
-    if shouldMakeRequest model.currentUser doc model.showEditor then
-        sendToBackend (RequestLock delay_ (currentUserName model.currentUser) doc.id)
-
-    else
-        Cmd.none
-
-
-requestLock : Document -> Int -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
-requestLock doc delay_ ( model, cmds ) =
-    if shouldMakeRequest model.currentUser doc model.showEditor then
-        let
-            message =
-                { content = "Sending requestLock for " ++ currentUserName model.currentUser ++ ", " ++ doc.id, status = MSGreen }
-        in
-        ( { model | messages = message :: model.messages }, sendToBackend (RequestLock delay_ (currentUserName model.currentUser) doc.id) :: cmds )
-
-    else
-        let
-            message =
-                { content = "Not sending requestLock", status = MSGreen }
-        in
-        ( { model | messages = message :: model.messages }, cmds )
-
-
 requestRefresh : String -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
 requestRefresh docId ( model, cmds ) =
     let
@@ -461,11 +434,6 @@ requestRefresh docId ( model, cmds ) =
             { content = "Requesting refresh for " ++ docId, status = MSGreen }
     in
     ( { model | messages = message :: model.messages }, sendToBackend (RequestRefresh docId) :: cmds )
-
-
-requestRefreshCmd : String -> FrontendModel -> Cmd FrontendMsg
-requestRefreshCmd docId model =
-    sendToBackend (RequestRefresh docId)
 
 
 currentUserName : Maybe User -> String

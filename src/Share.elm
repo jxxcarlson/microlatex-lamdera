@@ -1,4 +1,9 @@
-module Share exposing (createShareDocumentDict, isSharedToMe, narrowCast)
+module Share exposing
+    ( createShareDocumentDict
+    , isSharedToMe
+    , narrowCast
+    , shareDocument
+    )
 
 import Dict
 import Document
@@ -47,8 +52,8 @@ createShareDocumentDict documentDict =
         |> List.foldl (\doc dict -> insert doc dict) Dict.empty
 
 
-share : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
-share model =
+shareDocument : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
+shareDocument model =
     case ( model.currentDocument, model.popupState ) of
         ( Nothing, _ ) ->
             ( model, Cmd.none )

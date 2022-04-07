@@ -150,66 +150,6 @@ updateFromFrontend sessionId clientId msg model =
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )
 
-        RequestLock delay_ username docId ->
-            -- TODO: WIP
-            case Dict.get docId model.documentDict of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just doc ->
-                    -- if (View.Utility.isUnlocked doc || View.Utility.iOwnThisDocument_ username doc) && Document.canEditSharedDoc username doc then
-                    if View.Utility.isUnlocked doc && Document.canEditSharedDoc username doc then
-                        let
-                            newDoc =
-                                { doc | currentEditor = Just username }
-
-                            newDocumentDict =
-                                Dict.insert docId newDoc model.documentDict
-
-                            sendDocCmd : Cmd backendMsg
-                            sendDocCmd =
-                                sendToFrontend clientId (SendDocument Types.SystemCanEdit newDoc)
-
-                            -- REPORTING
-                            oldEditor =
-                                "oldEditor: " ++ (doc.currentEditor |> Maybe.withDefault "Nobody")
-
-                            newEditor =
-                                "newEditor: " ++ (newDoc.currentEditor |> Maybe.withDefault "Nobody")
-
-                            docChanged =
-                                if newDoc == doc then
-                                    "doc unchanged"
-
-                                else
-                                    "doc changed"
-
-                            equalDicts =
-                                if model.documentDict == newDocumentDict then
-                                    "Dict unchanged"
-
-                                else
-                                    "Dict changed"
-
-                            message =
-                                { content = oldEditor ++ ", " ++ newEditor ++ ", " ++ docChanged ++ ", " ++ equalDicts ++ ", " ++ doc.title ++ " locked by " ++ username
-                                , status = Types.MSGreen
-                                }
-                        in
-                        ( { model | documentDict = newDocumentDict }
-                        , [ Util.delay (toFloat delay_) (DelaySendingDocument clientId newDoc), sendToFrontend clientId (SendMessage message) ]
-                        )
-                            |> Util.batch
-
-                    else
-                        let
-                            message =
-                                { content = doc.title ++ " -- could not lock, " ++ Maybe.withDefault "nobody" doc.currentEditor ++ " is already editing it."
-                                , status = Types.MSWarning
-                                }
-                        in
-                        ( model, sendToFrontend clientId (SendMessage message) )
-
         RequestRefresh docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->

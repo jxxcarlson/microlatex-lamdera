@@ -24,6 +24,7 @@ import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
+import Share
 import Task
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
@@ -434,24 +435,7 @@ update msg model =
             ( { model | inputEditors = str }, Cmd.none )
 
         ShareDocument ->
-            case ( model.currentDocument, model.popupState ) of
-                ( Nothing, _ ) ->
-                    ( model, Cmd.none )
-
-                ( Just doc, NoPopup ) ->
-                    let
-                        ( inputReaders, inputEditors ) =
-                            case doc.share of
-                                Document.NotShared ->
-                                    ( "", "" )
-
-                                Document.ShareWith { readers, editors } ->
-                                    ( String.join ", " readers, String.join ", " editors )
-                    in
-                    ( { model | popupState = SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
-
-                ( Just doc, _ ) ->
-                    ( { model | popupState = NoPopup }, Cmd.none )
+            Share.shareDocument model
 
         DoShare ->
             case model.currentDocument of
