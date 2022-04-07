@@ -457,7 +457,6 @@ type ToBackend
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
     | RequestRefresh String
-    | RequestUnlock String String -- Username, DocumentId
     | SignOutBE (Maybe String)
     | GetHomePage String
     | FetchDocumentById String (Maybe String)

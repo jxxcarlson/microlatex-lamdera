@@ -167,46 +167,6 @@ updateFromFrontend sessionId clientId msg model =
                         ]
                     )
 
-        RequestUnlock username docId ->
-            -- TODO: Review this
-            case Dict.get docId model.documentDict of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just doc ->
-                    let
-                        revisedDoc =
-                            if doc.currentEditor == Just username || True then
-                                -- if the currentEditor "belongs" to the current user,
-                                -- then unlock the document
-                                { doc | currentEditor = Nothing }
-
-                            else
-                                -- otherwise, do nothing
-                                doc
-
-                        newDocumentDict =
-                            Dict.insert docId revisedDoc model.documentDict
-
-                        message =
-                            { content = doc.title ++ " unlocked", status = Types.MSGreen }
-
-                        cmd : Cmd backendMsg
-                        cmd =
-                            sendToFrontend clientId (SendDocument Types.SystemCanEdit revisedDoc)
-
-                        --  Process.sleep 1 |> Task.perform (always (ChangePrintingState PrintProcessing))
-                        -- Process.sleep 300 |> Task.perform (always (sendToFrontend clientId (SendDocument Types.SystemCanEdit revisedDoc)))
-                    in
-                    ( { model | documentDict = newDocumentDict }
-                      --, Cmd.batch [ cmd, sendToFrontend clientId (SendMessage message) ]
-                    , [ cmd
-                      , sendToFrontend clientId (SendMessage message)
-                      , Share.narrowCast username doc model.connectionDict
-                      ]
-                    )
-                        |> Util.batch
-
         SignOutBE mUsername ->
             case mUsername of
                 Nothing ->

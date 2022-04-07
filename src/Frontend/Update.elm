@@ -18,7 +18,6 @@ module Frontend.Update exposing
     , nextSyncLR
     , openEditor
     , render
-    , requestUnlock
     , runSpecial
     , searchText
     , setDocumentAsCurrent
@@ -454,29 +453,6 @@ shouldMakeRequest mUser doc showEditor =
 
 
 -- && showEditor
-
-
-requestUnlock : ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
-requestUnlock ( model, cmds ) =
-    case model.currentDocument of
-        Nothing ->
-            ( model, cmds )
-
-        Just doc ->
-            let
-                mess =
-                    { content = "Sending requestUnLock", status = MSGreen }
-            in
-            if shouldMakeRequest model.currentUser doc model.showEditor then
-                -- if View.Utility.isSharedToMe model.currentUser doc || View.Utility.iOwnThisDocument model.currentUser doc then
-                ( { model | messages = mess :: model.messages }, sendToBackend (RequestUnlock (currentUserName model.currentUser) (currentDocumentId model.currentDocument)) :: cmds )
-
-            else
-                let
-                    message =
-                        { content = "I am not making an unlock request", status = MSWarning }
-                in
-                ( { model | messages = [ message ] }, cmds )
 
 
 batch =
