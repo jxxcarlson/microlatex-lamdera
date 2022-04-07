@@ -14,6 +14,7 @@ module Frontend.Update exposing
     , inputText
     , inputTitle
     , isMaster
+    , lockDocument
     , newDocument
     , nextSyncLR
     , openEditor
@@ -195,7 +196,7 @@ inputText model str =
         inputText_ model str
 
     else
-        ( model, Cmd.none )
+        ( { model | messages = Message.make "Please lock this document to edit it." MSError }, Cmd.none )
 
 
 inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
@@ -488,6 +489,7 @@ unlockCurrentDocument model =
             in
             ( { model
                 | userMessage = Nothing
+                , messages = Message.make "Documente unlocked" MSGreen
                 , currentDocument = Just doc
                 , documents = Util.updateDocumentInList doc model.documents
               }
@@ -584,7 +586,41 @@ lockCurrentDocument model =
                     doc =
                         { doc_ | currentEditor = Just currentUsername }
                 in
-                ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+                ( { model
+                    | currentDocument = Just doc
+                    , documents = Util.updateDocumentInList doc model.documents
+                    , messages = Message.make "Document locked" MSGreen
+                  }
+                , Cmd.batch
+                    [ sendToBackend (SaveDocument doc)
+                    , sendToBackend (Narrowcast currentUsername doc)
+                    ]
+                )
+
+            else
+                ( { model | messages = Message.make "Document is locked already" MSError }, Cmd.none )
+
+
+lockDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+lockDocument model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc_ ->
+            if doc_.currentEditor == Nothing then
+                let
+                    currentUsername =
+                        Util.currentUsername model.currentUser
+
+                    doc =
+                        { doc_ | currentEditor = Just currentUsername }
+                in
+                ( { model
+                    | currentDocument = Just doc
+                    , messages = Message.make "Document is locked" MSGreen
+                    , documents = Util.updateDocumentInList doc model.documents
+                  }
                 , Cmd.batch
                     [ sendToBackend (SaveDocument doc)
                     , sendToBackend (Narrowcast currentUsername doc)
@@ -595,25 +631,31 @@ lockCurrentDocument model =
                 ( { model | messages = [ { content = "Document is locked already", status = MSError } ] }, Cmd.none )
 
 
-lockDocument : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-lockDocument doc_ model =
-    if doc_.currentEditor == Nothing then
-        let
-            currentUsername =
-                Util.currentUsername model.currentUser
 
-            doc =
-                { doc_ | currentEditor = Just currentUsername }
-        in
-        ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
-        , Cmd.batch
-            [ sendToBackend (SaveDocument doc)
-            , sendToBackend (Narrowcast currentUsername doc)
-            ]
-        )
-
-    else
-        ( { model | messages = [ { content = "Document is locked already", status = MSError } ] }, Cmd.none )
+--
+--lockDocument2 : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+--lockDocument2 doc_ model =
+--    case model.currentDocument of
+--        Nothing ->
+--            ( model, Cmd.none )
+--
+--        Just doc_ ->
+--            let
+--                currentUsername =
+--                    Util.currentUsername model.currentUser
+--
+--                doc =
+--                    { doc_ | currentEditor = Just currentUsername }
+--            in
+--            ( { model
+--                | currentDocument = Just doc
+--                , documents = Util.updateDocumentInList doc model.documents
+--              }
+--            , Cmd.batch
+--                [ sendToBackend (SaveDocument doc)
+--                , sendToBackend (Narrowcast currentUsername doc)
+--                ]
+--            )
 
 
 join :

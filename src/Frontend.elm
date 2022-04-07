@@ -406,25 +406,26 @@ update msg model =
             ( model, sendToBackend (Narrowcast username document) )
 
         LockCurrentDocument ->
-            case model.currentDocument of
-                Nothing ->
-                    ( model, Cmd.none )
+            Frontend.Update.lockDocument model
 
-                Just doc_ ->
-                    let
-                        currentUsername =
-                            Util.currentUsername model.currentUser
-
-                        doc =
-                            { doc_ | currentEditor = Just currentUsername }
-                    in
-                    ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
-                    , Cmd.batch
-                        [ sendToBackend (SaveDocument doc)
-                        , sendToBackend (Narrowcast currentUsername doc)
-                        ]
-                    )
-
+        --case model.currentDocument of
+        --    Nothing ->
+        --        ( model, Cmd.none )
+        --
+        --    Just doc_ ->
+        --        let
+        --            currentUsername =
+        --                Util.currentUsername model.currentUser
+        --
+        --            doc =
+        --                { doc_ | currentEditor = Just currentUsername }
+        --        in
+        --        ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+        --        , Cmd.batch
+        --            [ sendToBackend (SaveDocument doc)
+        --            , sendToBackend (Narrowcast currentUsername doc)
+        --            ]
+        --        )
         UnLockCurrentDocument ->
             Frontend.Update.unlockCurrentDocument model
 
@@ -606,13 +607,15 @@ updateDoc model str =
             ( model, Cmd.none )
 
         Just doc ->
-            if View.Utility.canSaveStrict model.currentUser doc then
+            -- if Share.canEdit model.currentUser (Just doc) then
+            -- if View.Utility.canSaveStrict model.currentUser doc then
+            if Share.canEdit model.currentUser (Just doc) then
                 updateDoc_ model doc str
 
             else
                 let
                     m =
-                        "Can't save this document. It is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+                        "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
                 in
                 ( { model | messages = [ { content = m, status = MSWarning } ] }, Cmd.none )
 
