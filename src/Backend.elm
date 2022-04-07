@@ -33,8 +33,6 @@ import Share
 import Time
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
-import Util
-import View.Utility
 
 
 type alias Model =
@@ -143,6 +141,10 @@ updateFromFrontend sessionId clientId msg model =
                     List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
             in
             ( model, Cmd.batch commands )
+
+        -- SHARE
+        UpdateSharedDocumentDict doc ->
+            ( Share.updateSharedDocumentDict doc model, Cmd.none )
 
         Narrowcast sendersName document ->
             ( model, Share.narrowCast sendersName document model.connectionDict )

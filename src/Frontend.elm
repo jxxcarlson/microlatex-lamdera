@@ -438,34 +438,7 @@ update msg model =
             Share.shareDocument model
 
         DoShare ->
-            case model.currentDocument of
-                Nothing ->
-                    ( { model | popupState = NoPopup }, Cmd.none )
-
-                Just doc ->
-                    let
-                        readers =
-                            model.inputReaders |> String.split "," |> List.map String.trim
-
-                        editors =
-                            model.inputEditors |> String.split "," |> List.map String.trim
-
-                        share =
-                            if List.isEmpty readers && List.isEmpty editors then
-                                Document.NotShared
-
-                            else
-                                Document.ShareWith { readers = readers, editors = editors }
-
-                        newDocument =
-                            { doc | share = share }
-
-                        documents =
-                            List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
-                    in
-                    ( { model | popupState = NoPopup, currentDocument = Just newDocument, documents = documents }
-                    , sendToBackend (SaveDocument newDocument)
-                    )
+            Share.doShare model
 
         GetPinnedDocuments ->
             ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin") )

@@ -1,13 +1,16 @@
 module Share exposing
     ( createShareDocumentDict
+    , doShare
     , isSharedToMe
     , narrowCast
     , shareDocument
+    , updateSharedDocumentDict
     )
 
 import Dict
 import Document
-import Lamdera exposing (ClientId)
+import Lamdera exposing (ClientId, sendToBackend)
+import List.Extra
 import Types
 
 
@@ -50,6 +53,42 @@ createShareDocumentDict documentDict =
     documentDict
         |> Dict.values
         |> List.foldl (\doc dict -> insert doc dict) Dict.empty
+
+
+updateSharedDocumentDict : Document.Document -> Types.BackendModel -> Types.BackendModel
+updateSharedDocumentDict doc model =
+    { model | sharedDocumentDict = insert doc model.sharedDocumentDict }
+
+
+doShare model =
+    case model.currentDocument of
+        Nothing ->
+            ( { model | popupState = Types.NoPopup }, Cmd.none )
+
+        Just doc ->
+            let
+                readers =
+                    model.inputReaders |> String.split "," |> List.map String.trim
+
+                editors =
+                    model.inputEditors |> String.split "," |> List.map String.trim
+
+                share =
+                    if List.isEmpty readers && List.isEmpty editors then
+                        Document.NotShared
+
+                    else
+                        Document.ShareWith { readers = readers, editors = editors }
+
+                newDocument =
+                    { doc | share = share }
+
+                documents =
+                    List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
+            in
+            ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
+            , Cmd.batch [ sendToBackend (Types.SaveDocument newDocument), sendToBackend (Types.UpdateSharedDocumentDict newDocument) ]
+            )
 
 
 shareDocument : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
