@@ -501,10 +501,6 @@ unlockCurrentDocument model =
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
-        let
-            _ =
-                Debug.log "BRANCH" 1
-        in
         -- if we are not in the editor, unlock the previous current document if need be
         -- and loc the new document (doc)
         model |> join unlockCurrentDocument (setDocumentAsCurrentAux doc permissions)
@@ -512,10 +508,6 @@ setDocumentAsCurrent model doc permissions =
         -- |> requestUnlockPreviousThenLockCurrent doc permissions
 
     else
-        let
-            _ =
-                Debug.log "BRANCH" 2
-        in
         -- if we are not in the editor, refresh the document so as
         -- to be looking at the most recent copy
         -- model |> join (\m -> ( m, requestRefreshCmd doc.id m )) (setDocumentAsCurrentAux doc permissions)
