@@ -28,12 +28,8 @@ import Dict exposing (Dict)
 import Docs
 import Document
 import Lamdera exposing (ClientId, SessionId, sendToFrontend)
-import Message
-import Process
 import Random
 import Share
-import SharedDocument
-import Task
 import Time
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
@@ -126,7 +122,7 @@ update msg model =
 
         Tick newTime ->
             -- Do regular tasks
-            { model | currentTime = newTime, sharedDocumentDict = SharedDocument.createShareDocumentDict model.documentDict } |> updateAbstracts |> Cmd.Extra.withNoCmd
+            { model | currentTime = newTime, sharedDocumentDict = Share.createShareDocumentDict model.documentDict } |> updateAbstracts |> Cmd.Extra.withNoCmd
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
@@ -286,7 +282,7 @@ updateFromFrontend sessionId clientId msg model =
                     (model.sharedDocumentDict
                         |> Dict.toList
                         |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
-                        |> List.filter (\( _, data ) -> SharedDocument.isSharedToMe username data.share)
+                        |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
                     )
                 )
             )
@@ -359,7 +355,7 @@ updateFromFrontend sessionId clientId msg model =
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
             -- Backend.Update.applySpecial model clientId
-            ( { model | sharedDocumentDict = SharedDocument.createShareDocumentDict model.documentDict }, Cmd.none )
+            ( { model | sharedDocumentDict = Share.createShareDocumentDict model.documentDict }, Cmd.none )
 
         DeleteDocumentBE doc ->
             Backend.Update.deleteDocument clientId doc model

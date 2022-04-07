@@ -1,4 +1,4 @@
-module Share exposing (narrowCast)
+module Share exposing (createShareDocumentDict, isSharedToMe, narrowCast)
 
 import Dict
 import Document
@@ -8,6 +8,65 @@ import Types
 
 type alias Username =
     String
+
+
+getSharedDocument : Document.Document -> Types.SharedDocument
+getSharedDocument doc =
+    { title = doc.title
+    , id = doc.id
+    , author = doc.author
+    , share = doc.share
+    , currentEditor = doc.currentEditor
+    }
+
+
+isSharedToMe : String -> Document.Share -> Bool
+isSharedToMe username share_ =
+    case share_ of
+        Document.NotShared ->
+            False
+
+        Document.ShareWith { readers, editors } ->
+            List.member username readers || List.member username editors
+
+
+insert : Document.Document -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+insert doc dict =
+    case doc.share of
+        Document.NotShared ->
+            dict
+
+        Document.ShareWith _ ->
+            Dict.insert doc.id (getSharedDocument doc) dict
+
+
+createShareDocumentDict : Types.DocumentDict -> Types.SharedDocumentDict
+createShareDocumentDict documentDict =
+    documentDict
+        |> Dict.values
+        |> List.foldl (\doc dict -> insert doc dict) Dict.empty
+
+
+share : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
+share model =
+    case ( model.currentDocument, model.popupState ) of
+        ( Nothing, _ ) ->
+            ( model, Cmd.none )
+
+        ( Just doc, Types.NoPopup ) ->
+            let
+                ( inputReaders, inputEditors ) =
+                    case doc.share of
+                        Document.NotShared ->
+                            ( "", "" )
+
+                        Document.ShareWith { readers, editors } ->
+                            ( String.join ", " readers, String.join ", " editors )
+            in
+            ( { model | popupState = Types.SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
+
+        ( Just doc, _ ) ->
+            ( { model | popupState = Types.NoPopup }, Cmd.none )
 
 
 {-| Send the document to all the users listed in document.share who have active connections.
