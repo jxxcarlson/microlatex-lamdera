@@ -328,6 +328,33 @@ type alias UserMessage =
     }
 
 
+type ChatMsg
+    = JoinedChat ClientId UserName
+    | LeftChat ClientId UserName
+    | ChatMsg ClientId ChatMessage
+
+
+type alias ChatGroup =
+    String
+
+
+type alias ChatMessage =
+    { name : ChatName
+    , subject : String
+    , content : String
+    , date : Time.Posix
+    }
+
+
+type ChatName
+    = ChatGroup ChatGroup
+    | ChatDM UserName
+
+
+type alias UserName =
+    String
+
+
 type FailureAction
     = FANoOp
     | FAUnlockCurrentDocument
