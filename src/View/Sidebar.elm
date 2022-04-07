@@ -81,4 +81,4 @@ viewTagGroup list =
 
 viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg
 viewTagDictItem data =
-    E.row [ Font.size 14, E.spacing 8 ] [ E.el [] (Button.getDocument data.id (String.Extra.ellipsisWith 30 " ..." data.title)) ]
+    E.row [ Font.size 14, E.spacing 8 ] [ E.el [] (Button.getDocument data.id (String.Extra.ellipsisWith 30 " ..." data.title) False) ]

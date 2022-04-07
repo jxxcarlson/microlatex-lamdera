@@ -18,7 +18,6 @@ import Frontend.Update
 import Html
 import Keyboard
 import Lamdera exposing (sendToBackend)
-import List.Extra
 import Markup
 import Parser.Language exposing (Language(..))
 import Process
@@ -30,7 +29,6 @@ import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDe
 import Url exposing (Url)
 import UrlManager
 import User
-import UserMessage
 import Util
 import View.Main
 import View.Phone
@@ -190,6 +188,12 @@ urlIsForGuest url =
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
 update msg model =
     case msg of
+        UnlockCurrentDocument ->
+            Frontend.Update.unlockCurrentDocument model
+
+        FENoOp ->
+            ( model, Cmd.none )
+
         KeyMsg keyMsg ->
             Frontend.Update.updateKeys model keyMsg
 

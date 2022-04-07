@@ -104,12 +104,12 @@ viewSharedDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ E.el [ Font.color (E.rgb 0 0 0), Font.bold ] (E.text "Shared documents"), E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewsShareDocuments model.currentDocument model.shareDocumentList
+            :: viewShareDocuments model.currentDocument model.shareDocumentList
         )
 
 
-viewsShareDocuments : Maybe Document -> List ( String, Types.SharedDocument ) -> List (Element FrontendMsg)
-viewsShareDocuments currentDocument shareDocumentList =
+viewShareDocuments : Maybe Document -> List ( String, Types.SharedDocument ) -> List (Element FrontendMsg)
+viewShareDocuments currentDocument shareDocumentList =
     List.map (viewSharedDocument currentDocument) shareDocumentList
 
 
@@ -120,11 +120,8 @@ viewSharedDocument currentDocument ( author, sharedDocument ) =
             author
                 ++ ": "
                 ++ sharedDocument.title
-                ++ " ("
-                ++ (sharedDocument.currentEditor |> Maybe.withDefault "Nobody")
-                ++ ")"
     in
-    Button.getDocument sharedDocument.id (label |> String.Extra.softEllipsis 40)
+    Button.getDocument sharedDocument.id (label |> String.Extra.softEllipsis 40) ((Maybe.map .id currentDocument |> Maybe.withDefault "((0))") == sharedDocument.id)
 
 
 viewWorkingDocs : FrontendModel -> Int -> Int -> Element FrontendMsg

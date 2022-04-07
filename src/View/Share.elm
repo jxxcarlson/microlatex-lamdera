@@ -5,7 +5,6 @@ import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Types exposing (FrontendModel, PopupState(..), SystemDocPermissions(..))
-import UserMessage
 import View.Button as Button
 import View.Color as Color
 import View.Input
@@ -24,8 +23,57 @@ view model =
         E.none
 
 
-usermessage : Maybe UserMessage.UserMessage -> E.Element Types.FrontendMsg
+usermessage : Maybe Types.UserMessage -> E.Element Types.FrontendMsg
 usermessage mUserMessage =
+    case mUserMessage of
+        Nothing ->
+            E.none
+
+        Just message ->
+            let
+                showButton : Types.UMButtons -> E.Element Types.FrontendMsg -> E.Element Types.FrontendMsg
+                showButton umButton element =
+                    if List.member umButton message.show then
+                        element
+
+                    else
+                        E.none
+            in
+            E.column [ E.padding 20, E.spacing 12, E.width (E.px 300), E.height (E.px 400), Background.color Color.paleBlue ]
+                [ row "From:" message.from
+                , row "To:" message.to
+                , row "Subject:" message.subject
+                , row "Message:" message.content
+                , E.row [ E.spacing 36 ]
+                    [ showButton Types.UMOk <|
+                        Button.reply "Ok"
+                            { from = message.to
+                            , to = message.from
+                            , subject = message.subject
+                            , content = "Ok!"
+                            , show = [ Types.UMDismiss, Types.UMUnlock ]
+                            , action = Types.UnlockCurrentDocument
+                            }
+                    , showButton Types.UMNotYet <|
+                        Button.reply "Not just yet"
+                            { from = message.to
+                            , to = message.from
+                            , subject = message.subject
+                            , content = "Not just yet"
+                            , show = [ Types.UMDismiss ]
+                            , action = Types.FENoOp
+                            }
+                    ]
+                , if List.member Types.UMUnlock message.show then
+                    Button.unlock
+
+                  else
+                    E.none
+                ]
+
+
+usermessageReply : Maybe Types.UserMessage -> E.Element Types.FrontendMsg
+usermessageReply mUserMessage =
     case mUserMessage of
         Nothing ->
             E.none
@@ -36,20 +84,6 @@ usermessage mUserMessage =
                 , row "To:" message.to
                 , row "Subject:" message.subject
                 , row "Message:" message.content
-                , E.row [ E.spacing 36 ]
-                    [ Button.reply "Ok"
-                        { from = message.to
-                        , to = message.from
-                        , subject = message.subject
-                        , content = "Ok!"
-                        }
-                    , Button.reply "Not just yet"
-                        { from = message.to
-                        , to = message.from
-                        , subject = message.subject
-                        , content = "Not just yet"
-                        }
-                    ]
                 , Button.dismissUserMessage
                 ]
 

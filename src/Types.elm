@@ -36,7 +36,9 @@ module Types exposing
     , TagSelection(..)
     , ToBackend(..)
     , ToFrontend(..)
+    , UMButtons(..)
     , UserId
+    , UserMessage
     , UsersDocumentsDict
     )
 
@@ -60,7 +62,6 @@ import Render.Msg
 import Time
 import Url exposing (Url)
 import User exposing (User)
-import UserMessage
 
 
 type alias FrontendModel =
@@ -76,7 +77,7 @@ type alias FrontendModel =
     , shareDocumentList : List ( String, SharedDocument )
 
     -- USER
-    , userMessage : Maybe UserMessage.UserMessage
+    , userMessage : Maybe UserMessage
     , currentUser : Maybe User
     , inputUsername : String
     , inputPassword : String
@@ -315,8 +316,26 @@ type alias DocId =
     String
 
 
+type alias UserMessage =
+    { from : String
+    , to : String
+    , subject : String
+    , content : String
+    , show : List UMButtons
+    , action : FrontendMsg
+    }
+
+
+type UMButtons
+    = UMOk
+    | UMNotYet
+    | UMDismiss
+    | UMUnlock
+
+
 type FrontendMsg
-    = UrlClicked UrlRequest
+    = FENoOp
+    | UrlClicked UrlRequest
     | UrlChanged Url
     | NoOpFrontendMsg
       -- UI
@@ -336,7 +355,7 @@ type FrontendMsg
     | GoGetUserList
     | ClearConnectionDict
       -- USER
-    | SendUserMessage UserMessage.UserMessage
+    | SendUserMessage UserMessage
     | SignIn
     | SetSignupState SignupState
     | DoSignUp
@@ -361,6 +380,7 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- SHARE
+    | UnlockCurrentDocument
     | DismissUserMessage
     | Narrow String Document
     | LockCurrentDocument
@@ -448,7 +468,7 @@ type ToBackend
     | GetSharedDocuments String
     | ClearConnectionDictBE
       -- USER
-    | DeliverUserMessage UserMessage.UserMessage -- from, to, subject, contents
+    | DeliverUserMessage UserMessage -- from, to, subject, contents
     | SignInBE String String
     | SignUpBE String Language String String String
     | UpdateUserWith User
@@ -494,7 +514,7 @@ type ToFrontend
     | GotConnectionList (List String)
     | GotShareDocumentList (List ( String, SharedDocument ))
       -- USER
-    | UserMessageReceived UserMessage.UserMessage
+    | UserMessageReceived UserMessage
     | UserSignedUp User
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))

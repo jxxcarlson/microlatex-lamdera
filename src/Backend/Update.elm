@@ -8,7 +8,7 @@ module Backend.Update exposing
     , getDocumentById
     , getDocumentByPublicId
     , getHomePage
-    , getShareDocuments
+    , getSharedDocuments
     , getUserData
     , getUserDocuments
     , gotAtmosphericRandomNumber
@@ -48,7 +48,7 @@ type alias Model =
     BackendModel
 
 
-getShareDocuments model clientId username =
+getSharedDocuments model clientId username =
     let
         docList =
             model.sharedDocumentDict

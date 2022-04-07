@@ -475,7 +475,11 @@ unlockCurrentDocument model =
                 doc =
                     { doc_ | currentEditor = Nothing }
             in
-            ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
+            ( { model
+                | userMessage = Nothing
+                , currentDocument = Just doc
+                , documents = Util.updateDocumentInList doc model.documents
+              }
             , Cmd.batch
                 [ sendToBackend (SaveDocument doc)
                 , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)

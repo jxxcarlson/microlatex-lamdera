@@ -73,7 +73,6 @@ import Parser.Language exposing (Language(..))
 import String.Extra
 import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions, TagSelection(..))
 import User exposing (User)
-import UserMessage
 import Util
 import View.Color as Color
 import View.Style
@@ -114,6 +113,16 @@ buttonTemplate2 attrList msg label_ =
         ]
 
 
+buttonTemplate3b : List (E.Attribute msg) -> List (E.Attribute msg) -> msg -> String -> Element msg
+buttonTemplate3b attrList attrList2 msg label_ =
+    E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
+        [ Input.button View.Style.buttonStyle3
+            { onPress = Just msg
+            , label = E.el ([ E.centerY, Font.size 14 ] ++ attrList2) (E.text label_)
+            }
+        ]
+
+
 buttonTemplate3 : List (E.Attribute msg) -> msg -> String -> Element msg
 buttonTemplate3 attrList msg label_ =
     E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
@@ -144,7 +153,7 @@ linkStyle =
 -- UI
 
 
-reply : String -> UserMessage.UserMessage -> Element FrontendMsg
+reply : String -> Types.UserMessage -> Element FrontendMsg
 reply label usermessage =
     buttonTemplate [] (SendUserMessage usermessage) label
 
@@ -523,9 +532,11 @@ sendUnlockMessage_ doc currentUser =
     let
         message =
             { from = Util.currentUsername currentUser
-            , to = doc.currentEditor |> Maybe.withDefault "anaon"
+            , to = doc.currentEditor |> Maybe.withDefault "anon"
             , subject = "Unlock?"
             , content = "May I unlock " ++ doc.title ++ "?"
+            , show = [ Types.UMOk, Types.UMNotYet, Types.UMDismiss ]
+            , action = FENoOp
             }
     in
     buttonTemplateSmall [] [] (SendUserMessage message) "Ask to unlock"
@@ -624,9 +635,13 @@ iLink id label =
     buttonTemplate [] (Fetch id) label
 
 
-getDocument : String -> String -> Element FrontendMsg
-getDocument id title =
-    buttonTemplate3 [ Font.size 12, Font.color Color.blue ] (AskFoDocumentById id) title
+getDocument : String -> String -> Bool -> Element FrontendMsg
+getDocument id title highlighted =
+    if highlighted then
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskFoDocumentById id) title
+
+    else
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskFoDocumentById id) title
 
 
 setDocumentAsCurrent : SystemDocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg

@@ -178,7 +178,7 @@ updateFromFrontend sessionId clientId msg model =
                     Backend.Update.removeSessionClient model sessionId clientId
 
         GetSharedDocuments username ->
-            Backend.Update.getShareDocuments model clientId username
+            Backend.Update.getSharedDocuments model clientId username
 
         GetUserList ->
             ( model
