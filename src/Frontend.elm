@@ -19,6 +19,7 @@ import Html
 import Keyboard
 import Lamdera exposing (sendToBackend)
 import Markup
+import Message
 import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
@@ -408,24 +409,6 @@ update msg model =
         LockCurrentDocument ->
             Frontend.Update.lockDocument model
 
-        --case model.currentDocument of
-        --    Nothing ->
-        --        ( model, Cmd.none )
-        --
-        --    Just doc_ ->
-        --        let
-        --            currentUsername =
-        --                Util.currentUsername model.currentUser
-        --
-        --            doc =
-        --                { doc_ | currentEditor = Just currentUsername }
-        --        in
-        --        ( { model | currentDocument = Just doc, documents = Util.updateDocumentInList doc model.documents }
-        --        , Cmd.batch
-        --            [ sendToBackend (SaveDocument doc)
-        --            , sendToBackend (Narrowcast currentUsername doc)
-        --            ]
-        --        )
         UnLockCurrentDocument ->
             Frontend.Update.unlockCurrentDocument model
 
@@ -774,6 +757,18 @@ updateFromBackend msg model =
         -- USER
         UserMessageReceived message ->
             ( { model | userMessage = Just message }, Cmd.none )
+
+        UndeliverableMessage message ->
+            let
+                _ =
+                    Debug.log "UNDELIVERABLE MESSAGE" message
+            in
+            case message.actionOnFailureToDeliver of
+                Types.FANoOp ->
+                    ( model, Cmd.none )
+
+                Types.FAUnlockCurrentDocument ->
+                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "No editors for that document are online, so I am unlocking it for you" MSGreen }
 
         UserSignedUp user ->
             ( { model

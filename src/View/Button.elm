@@ -159,7 +159,7 @@ reply label usermessage =
 
 
 dismissUserMessage =
-    buttonTemplate [ E.width (E.px 185) ] DismissUserMessage "Done"
+    buttonTemplate [ E.width (E.px 38) ] DismissUserMessage "x"
 
 
 setLanguage : Bool -> Language -> Language -> String -> Element FrontendMsg
@@ -537,6 +537,7 @@ sendUnlockMessage_ doc currentUser =
             , content = "May I unlock " ++ doc.title ++ "?"
             , show = [ Types.UMOk, Types.UMNotYet, Types.UMDismiss ]
             , action = FENoOp
+            , actionOnFailureToDeliver = Types.FAUnlockCurrentDocument
             }
     in
     buttonTemplateSmall [] [] (SendUserMessage message) "Ask to unlock"

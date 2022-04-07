@@ -127,20 +127,19 @@ updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd
 updateFromFrontend sessionId clientId msg model =
     case msg of
         DeliverUserMessage usermessage ->
-            let
-                clientIds : List ClientId
-                clientIds =
-                    case Dict.get usermessage.to model.connectionDict of
-                        Nothing ->
-                            []
+            case Dict.get usermessage.to model.connectionDict of
+                Nothing ->
+                    ( model, sendToFrontend clientId (UndeliverableMessage usermessage) )
 
-                        Just connectionData ->
+                Just connectionData ->
+                    let
+                        clientIds =
                             List.map .client connectionData
 
-                commands =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
-            in
-            ( model, Cmd.batch commands )
+                        commands =
+                            List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
+                    in
+                    ( model, Cmd.batch commands )
 
         -- SHARE
         UpdateSharedDocumentDict doc ->

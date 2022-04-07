@@ -14,6 +14,7 @@ module Frontend.Update exposing
     , inputText
     , inputTitle
     , isMaster
+    , lockCurrentDocumentUnconditionally
     , lockDocument
     , newDocument
     , nextSyncLR
@@ -570,6 +571,31 @@ setDocumentAsCurrentAux doc permissions model =
 -- OPEN AND CLOSE EDITOR
 
 
+lockCurrentDocumentUnconditionally : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+lockCurrentDocumentUnconditionally model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc_ ->
+            let
+                currentUsername =
+                    Util.currentUsername model.currentUser
+
+                doc =
+                    { doc_ | currentEditor = Just currentUsername }
+            in
+            ( { model
+                | currentDocument = Just doc
+                , documents = Util.updateDocumentInList doc model.documents
+              }
+            , Cmd.batch
+                [ sendToBackend (SaveDocument doc)
+                , sendToBackend (Narrowcast currentUsername doc)
+                ]
+            )
+
+
 lockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 lockCurrentDocument model =
     case model.currentDocument of
@@ -577,7 +603,6 @@ lockCurrentDocument model =
             ( model, Cmd.none )
 
         Just doc_ ->
-            -- if View.Utility.canSaveStrict model.currentUser doc_ then
             if doc_.currentEditor == Nothing then
                 let
                     currentUsername =

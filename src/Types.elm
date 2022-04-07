@@ -15,6 +15,7 @@ module Types exposing
     , DocumentDict
     , DocumentLink
     , DocumentList(..)
+    , FailureAction(..)
     , FrontendModel
     , FrontendMsg(..)
     , MaximizedIndex(..)
@@ -323,7 +324,13 @@ type alias UserMessage =
     , content : String
     , show : List UMButtons
     , action : FrontendMsg
+    , actionOnFailureToDeliver : FailureAction
     }
+
+
+type FailureAction
+    = FANoOp
+    | FAUnlockCurrentDocument
 
 
 type UMButtons
@@ -515,6 +522,7 @@ type ToFrontend
     | GotShareDocumentList (List ( String, SharedDocument ))
       -- USER
     | UserMessageReceived UserMessage
+    | UndeliverableMessage UserMessage
     | UserSignedUp User
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))

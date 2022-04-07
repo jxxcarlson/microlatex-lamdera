@@ -53,6 +53,7 @@ usermessage mUserMessage =
                             , content = "Ok!"
                             , show = [ Types.UMDismiss, Types.UMUnlock ]
                             , action = Types.UnlockCurrentDocument
+                            , actionOnFailureToDeliver = Types.FANoOp
                             }
                     , showButton Types.UMNotYet <|
                         Button.reply "Not just yet"
@@ -62,13 +63,14 @@ usermessage mUserMessage =
                             , content = "Not just yet"
                             , show = [ Types.UMDismiss ]
                             , action = Types.FENoOp
+                            , actionOnFailureToDeliver = Types.FANoOp
                             }
                     ]
                 , if List.member Types.UMUnlock message.show then
                     Button.unlock
 
                   else
-                    E.none
+                    Button.dismissUserMessage
                 ]
 
 
