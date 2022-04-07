@@ -63,7 +63,7 @@ getShareDocuments model clientId username =
             docList |> List.filter (\( _, data ) -> data.author == Just username)
     in
     ( model
-    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2))
+    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, doc ) -> doc.title)))
     )
 
 
