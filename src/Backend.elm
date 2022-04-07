@@ -120,7 +120,7 @@ update msg model =
 
         Tick newTime ->
             -- Do regular tasks
-            { model | currentTime = newTime, sharedDocumentDict = Share.createShareDocumentDict model.documentDict } |> updateAbstracts |> Cmd.Extra.withNoCmd
+            { model | currentTime = newTime } |> updateAbstracts |> Cmd.Extra.withNoCmd
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
