@@ -154,7 +154,6 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , sendToBackend (GetPublicDocuments Nothing)
-        , sendToBackend (GetChatGroup "test")
         ]
     )
 
