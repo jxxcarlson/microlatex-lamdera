@@ -563,6 +563,7 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- CHAT
+    | GetChatHistory String
     | InsertChatGroup ChatGroup
     | GetChatGroup String
     | ChatMsgSubmitted ChatMessage

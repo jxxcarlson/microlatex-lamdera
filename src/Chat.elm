@@ -1,8 +1,24 @@
-module Chat exposing (getClients, initialGroup, insert)
+module Chat exposing (getClients, initialGroup, insert, narrowCast)
 
 import Dict
 import Lamdera
 import Types
+
+
+narrowCast : Types.BackendModel -> Types.ChatMessage -> List (Cmd backendMsg)
+narrowCast model message =
+    let
+        groupMembers =
+            Dict.get message.group model.chatGroupDict |> Maybe.map .members |> Maybe.withDefault []
+
+        clientIds =
+            List.map (\username -> getClients username model.connectionDict) groupMembers |> List.concat
+
+        commands : List (Cmd backendMsg)
+        commands =
+            List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.MessageReceived (Types.ChatMsg clientId_ message))) clientIds
+    in
+    commands
 
 
 getClients : Types.Username -> Types.ConnectionDict -> List Lamdera.ClientId

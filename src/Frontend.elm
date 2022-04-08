@@ -858,7 +858,16 @@ updateFromBackend msg model =
 
         -- CHAT
         GotChatGroup mChatGroup ->
-            ( { model | currentChatGroup = mChatGroup }, Cmd.none )
+            let
+                cmd =
+                    case mChatGroup of
+                        Nothing ->
+                            Cmd.none
+
+                        Just group ->
+                            sendToBackend (GetChatHistory group.name)
+            in
+            ( { model | currentChatGroup = mChatGroup }, cmd )
 
         MessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, Cmd.none )

@@ -29,6 +29,7 @@ import Dict exposing (Dict)
 import Docs
 import Document
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Message
 import Random
 import Share
 import Time
@@ -132,6 +133,23 @@ updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd
 updateFromFrontend sessionId clientId msg model =
     case msg of
         -- CHAT
+        GetChatHistory groupName ->
+            case Dict.get groupName model.chatGroupDict of
+                Nothing ->
+                    ( model, sendToFrontend clientId (SendMessage { content = groupName ++ ": no such group", status = Types.MSWarning }) )
+
+                Just _ ->
+                    let
+                        chatMessages : List Types.ChatMessage
+                        chatMessages =
+                            Dict.get groupName model.chatDict |> Maybe.withDefault []
+
+                        cmds : List (Cmd backendMsg)
+                        cmds =
+                            List.map (Chat.narrowCast model) chatMessages |> List.concat
+                    in
+                    ( model, Cmd.batch cmds )
+
         InsertChatGroup group ->
             ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Cmd.none )
 
@@ -139,18 +157,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 
         ChatMsgSubmitted message ->
-            let
-                groupMembers =
-                    Dict.get message.group model.chatGroupDict |> Maybe.map .members |> Maybe.withDefault []
-
-                clientIds =
-                    List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat
-
-                commands : List (Cmd backendMsg)
-                commands =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (MessageReceived (Types.ChatMsg clientId_ message))) clientIds
-            in
-            ( { model | chatDict = Chat.insert message model.chatDict }, Cmd.batch commands )
+            ( { model | chatDict = Chat.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
 
         DeliverUserMessage usermessage ->
             case Dict.get usermessage.to model.connectionDict of
