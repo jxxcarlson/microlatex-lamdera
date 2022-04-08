@@ -568,11 +568,11 @@ toggleActiveDocList name =
 
 
 clearChatHistory =
-    buttonTemplate [ Background.color Color.lightGray ] AskToClearChatHistory "Clear history"
+    buttonTemplate [ Background.color Color.medGray ] AskToClearChatHistory "Clear history"
 
 
 makeCurrentGroupPreferred =
-    buttonTemplate [ Background.color Color.lightGray ] MakeCurrentChatGroupPreferred "Make Preferred"
+    buttonTemplate [ Background.color Color.medGray ] MakeCurrentChatGroupPreferred "Make Preferred"
 
 
 getChatHistory : Element FrontendMsg

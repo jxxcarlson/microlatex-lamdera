@@ -137,7 +137,7 @@ realName model =
 
 
 group model =
-    inputFieldTemplate (E.px 210) "Group" InputChoseGroup model.inputGroup
+    inputFieldTemplate (E.px 350) "Group" InputChoseGroup model.inputGroup
 
 
 email model =

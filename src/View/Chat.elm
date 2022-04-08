@@ -30,8 +30,12 @@ view model =
                 E.none
         , case model.chatDisplay of
             Types.TCGDisplay ->
-                E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8 ]
-                    [ View.Button.makeCurrentGroupPreferred, View.Input.group model ]
+                E.column [ E.spacing 8 ]
+                    [ E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8 ]
+                        [ View.Input.group model ]
+                    , E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8, E.width (E.px 360) ]
+                        [ View.Button.makeCurrentGroupPreferred, E.el [ E.alignRight ] View.Button.clearChatHistory ]
+                    ]
 
             TCGShowInputForm ->
                 E.none
@@ -114,8 +118,7 @@ row label content =
 
 view_ : FrontendModel -> E.Element FrontendMsg
 view_ model =
-    E.column [ E.padding 10 ]
-        -- (style "padding" "10px" :: fontStyles)
+    E.column [ E.padding 10, E.spacing 8 ]
         [ model.chatMessages
             |> List.reverse
             |> List.map (viewMessage model.zone)
@@ -129,7 +132,7 @@ view_ model =
                 , E.paddingXY 6 16
                 ]
         , chatInput model MessageFieldChanged |> E.html
-        , button (onClick MessageSubmitted :: fontStyles) [ text "Send" ] |> E.html
+        , button (onClick MessageSubmitted :: style "width" "360px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
         ]
 
 
@@ -139,6 +142,7 @@ chatInput model msg =
         ([ id "message-input"
          , type_ "text"
          , onInput msg
+         , style "height" "30px"
          , onEnter Types.MessageSubmitted
          , placeholder model.chatMessageFieldContent
          , value model.chatMessageFieldContent

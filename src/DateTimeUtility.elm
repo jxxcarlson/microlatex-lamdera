@@ -8,9 +8,9 @@ toString zone time =
     monthString (Time.toMonth zone time)
         ++ "/"
         ++ (String.fromInt (Time.toDay zone time) |> String.padLeft 2 '0')
-        ++ "/"
-        ++ String.fromInt (Time.toYear zone time)
-        ++ " – "
+        --++ "/"
+        --++ String.fromInt (Time.toYear zone time)
+        ++ ", "
         ++ (String.fromInt (toHour zone time) |> String.padLeft 2 '0')
         ++ ":"
         ++ (String.fromInt (Time.toMinute zone time) |> String.padLeft 2 '0')

@@ -34,7 +34,7 @@ view model width_ =
                 (E.el
                     [ case model.chatDisplay of
                         Types.TCGDisplay ->
-                            E.moveUp 720
+                            E.moveUp 778
 
                         Types.TCGShowInputForm ->
                             E.moveUp 470
