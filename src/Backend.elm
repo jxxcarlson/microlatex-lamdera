@@ -71,7 +71,6 @@ init =
       , authenticationDict = Dict.empty
 
       -- CHAT
-      -- CHAT
       , chatDict = Dict.fromList []
       , chatGroupDict = Dict.fromList [ ( "test", [ "jxxcarlson", "aristo" ] ) ]
 
@@ -135,16 +134,16 @@ updateFromFrontend sessionId clientId msg model =
         ChatMsgSubmitted message ->
             let
                 groupMembers =
-                    [ "jxxcarlson", "aristo" ]
+                    Dict.get message.group model.chatGroupDict |> Maybe.withDefault []
 
                 clientIds =
-                    List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat
+                    List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat |> Debug.log "CLIENTS"
 
                 commands : List (Cmd backendMsg)
                 commands =
                     List.map (\clientId_ -> sendToFrontend clientId_ (MessageReceived (Types.ChatMsg clientId_ message))) clientIds
             in
-            ( { model | chatDict = Chat.insert message model.chatDict }, Cmd.batch commands )
+            ( { model | chatDict = Chat.insert message model.chatDict |> Debug.log "CHAT DICT" }, Cmd.batch commands )
 
         DeliverUserMessage usermessage ->
             case Dict.get usermessage.to model.connectionDict of

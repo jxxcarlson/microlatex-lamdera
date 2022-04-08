@@ -7,12 +7,21 @@ import Element.Font as Font
 import Message
 import Types
 import View.Button as Button
+import View.Chat
 import View.Color as Color
 import View.Style
 import View.Utility
 
 
 view model width_ =
+    let
+        dy =
+            if model.showEditor then
+                900
+
+            else
+                605
+    in
     E.row
         [ E.spacing 12
         , E.paddingXY 0 8
@@ -20,6 +29,11 @@ view model width_ =
         , Background.color Color.black
         , E.width (E.px (width_ + 7))
         , Font.size 14
+        , if model.chatVisible then
+            E.inFront (E.el [ E.moveUp 463, E.moveRight dy ] (View.Chat.view model))
+
+          else
+            E.inFront E.none
         ]
         [ -- Button.syncButton
           Button.nextSyncButton model.foundIds

@@ -73,6 +73,7 @@ type alias FrontendModel =
     { key : Browser.Navigation.Key
     , url : Url
     , messages : List Message
+    , currentTime : Time.Posix
 
     -- ADMIN
     , statusReport : List String
@@ -109,8 +110,11 @@ type alias FrontendModel =
     , signupState : SignupState
     , popupState : PopupState
 
-    -- MESSAGE
-    , messageFieldContent : String
+    -- CHAT
+    , chatMessages : List ChatMsg
+    , chatMessageFieldContent : String
+    , chatVisible : Bool
+    , inputGroup : String
 
     -- SYNC
     , foundIds : List String
@@ -450,9 +454,11 @@ type FrontendMsg
     | UnLockCurrentDocument
     | ShareDocument
     | DoShare
-      -- MESSAGE
+      -- CHAT
+    | ToggleChat
     | MessageFieldChanged String
     | MessageSubmitted
+    | InputGroup String
       -- DOC
     | SetDocumentCurrent Document
     | GetPinnedDocuments

@@ -2,6 +2,7 @@ module View.Input exposing
     ( editors
     , email
     , enterPrivateId
+    , group
     , password
     , passwordAgain
     , passwordLarge
@@ -115,6 +116,10 @@ usernameLarge model =
 
 realName model =
     inputFieldTemplate (E.px signUpInputWidth) "Real name" InputRealname model.inputRealname
+
+
+group model =
+    inputFieldTemplate (E.px 340) "Group" InputGroup model.inputGroup
 
 
 email model =

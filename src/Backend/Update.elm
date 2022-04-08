@@ -506,7 +506,7 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             , created = model.currentTime
             , modified = model.currentTime
             , docs = BoundedDeque.empty 15
-            , preferences = { language = lang }
+            , preferences = { language = lang, group = Nothing }
             }
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of

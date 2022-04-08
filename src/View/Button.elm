@@ -53,6 +53,7 @@ module View.Button exposing
     , syncLR
     , toggleActiveDocList
     , toggleAppMode
+    , toggleChat
     , toggleDocumentList
     , toggleEditor
     , toggleLock
@@ -554,6 +555,11 @@ clearConnectionDict =
 toggleActiveDocList : String -> Element FrontendMsg
 toggleActiveDocList name =
     buttonTemplate2 [] ToggleActiveDocList name
+
+
+toggleChat : Element FrontendMsg
+toggleChat =
+    buttonTemplate [] ToggleChat "Chat"
 
 
 closeCollectionsIndex : Element FrontendMsg

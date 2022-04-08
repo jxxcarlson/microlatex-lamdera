@@ -19,4 +19,4 @@ type alias User =
 
 
 type alias Preferences =
-    { language : Language }
+    { language : Language, group : Maybe String }

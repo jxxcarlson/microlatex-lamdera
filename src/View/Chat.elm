@@ -1,6 +1,8 @@
-module View.Chat exposing (..)
+module View.Chat exposing (view)
 
 import Browser.Dom as Dom
+import Element as E
+import Element.Background as Background
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
@@ -8,6 +10,35 @@ import Json.Decode as D
 import Lamdera
 import Task
 import Types exposing (..)
+import View.Color as Color
+import View.Input
+
+
+view : FrontendModel -> E.Element FrontendMsg
+view model =
+    E.column [ E.spacing 12, Background.color Color.black, E.padding 1 ]
+        [ view_ model
+        , E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 8 } ] (View.Input.group model)
+        ]
+
+
+view_ : FrontendModel -> E.Element FrontendMsg
+view_ model =
+    div (style "padding" "10px" :: fontStyles)
+        [ model.chatMessages
+            |> List.reverse
+            |> List.map viewMessage
+            |> div
+                [ id "message-box"
+                , style "height" "400px"
+                , style "overflow" "auto"
+                , style "margin-bottom" "8px"
+                , style "background-color" "#d9e2ff"
+                ]
+        , chatInput model MessageFieldChanged
+        , button (onClick MessageSubmitted :: fontStyles) [ text "Send" ]
+        ]
+        |> E.html
 
 
 chatInput : FrontendModel -> (String -> FrontendMsg) -> Html FrontendMsg
@@ -17,8 +48,8 @@ chatInput model msg =
          , type_ "text"
          , onInput msg
          , onEnter Types.MessageSubmitted
-         , placeholder model.messageFieldContent
-         , value model.messageFieldContent
+         , placeholder model.chatMessageFieldContent
+         , value model.chatMessageFieldContent
          , style "width" "300px"
          , autofocus True
          ]
@@ -37,7 +68,7 @@ viewMessage msg =
             div [ style "font-style" "italic" ] [ text <| username ++ " left the chat" ]
 
         Types.ChatMsg clientId message ->
-            div [] [ text <| "[" ++ String.left 6 clientId ++ "]: " ++ message.content ]
+            div [] [ text <| "[" ++ message.sender ++ "]: " ++ message.content ]
 
 
 fontStyles : List (Html.Attribute msg)

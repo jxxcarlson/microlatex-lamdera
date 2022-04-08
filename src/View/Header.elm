@@ -22,6 +22,7 @@ view model _ =
         , sharingControls model
         , E.el [ E.alignRight ] (wordCount model)
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
+        , Button.toggleChat
         ]
 
 

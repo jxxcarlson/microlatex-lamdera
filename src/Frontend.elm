@@ -26,6 +26,7 @@ import Render.MicroLaTeX
 import Render.XMarkdown
 import Share
 import Task
+import Time
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
@@ -63,6 +64,7 @@ init url key =
     ( { key = key
       , url = url
       , messages = [ { content = "Welcome!", status = MSNormal } ]
+      , currentTime = Time.millisToPosix 0
 
       -- ADMIN
       , statusReport = []
@@ -83,8 +85,11 @@ init url key =
       , inputLanguage = L0Lang
       , documentList = StandardList
 
-      -- MESSAGE
-      , messageFieldContent = ""
+      -- CHAT
+      , chatMessageFieldContent = ""
+      , chatMessages = []
+      , chatVisible = False
+      , inputGroup = ""
 
       -- UI
       , appMode = UserMode
@@ -213,11 +218,34 @@ update msg model =
             )
 
         -- CHAT
-        MessageFieldChanged str ->
-            ( model, Cmd.none )
+        InputGroup str ->
+            ( { model | inputGroup = str }, Cmd.none )
 
+        ToggleChat ->
+            ( { model | chatVisible = not model.chatVisible }, Cmd.none )
+
+        MessageFieldChanged str ->
+            ( { model | chatMessageFieldContent = str }, Cmd.none )
+
+        -- User has hit the Send button
         MessageSubmitted ->
-            ( model, Cmd.none )
+            let
+                chatMessage =
+                    { sender = model.currentUser |> Maybe.map .username |> Maybe.withDefault "anon"
+                    , group = "test"
+                    , subject = "Test"
+                    , content = model.chatMessageFieldContent
+                    , date = model.currentTime
+                    }
+            in
+            ( { model | chatMessageFieldContent = "", messages = model.messages }
+            , Cmd.batch
+                [ Lamdera.sendToBackend (ChatMsgSubmitted chatMessage)
+
+                --, View.Chat.focusMessageInput |> E.htmlAttribute
+                --, View.Chat.scrollChatToBottom |> E.htmlAttribute
+                ]
+            )
 
         -- USER
         DismissUserMessage ->
@@ -796,7 +824,7 @@ updateFromBackend msg model =
 
         -- CHAT
         MessageReceived message ->
-            ( model, Cmd.none )
+            ( { model | chatMessages = message :: model.chatMessages }, Cmd.none )
 
 
 view : Model -> { title : String, body : List (Html.Html FrontendMsg) }
