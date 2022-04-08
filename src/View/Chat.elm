@@ -45,7 +45,17 @@ viewChatGroup : FrontendModel -> E.Element FrontendMsg
 viewChatGroup model =
     case model.currentChatGroup of
         Nothing ->
-            E.el [ Background.color Color.veryPaleBlue, Font.size 14, E.paddingXY 12 12 ] (E.text "No group")
+            E.column
+                [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
+                , E.height (E.px 160)
+                , E.width (E.px 340)
+                , Background.color Color.veryPaleBlue
+                , Font.size 14
+                , E.spacing 12
+                ]
+                [ E.el [] (E.text "Enter a group name above or create a group")
+                , E.row [ E.spacing 18 ] [ View.Button.setChatCreate model ]
+                ]
 
         Just group ->
             E.column
