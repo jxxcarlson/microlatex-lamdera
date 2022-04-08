@@ -2,6 +2,7 @@ module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLa
 
 import Browser.Events
 import Browser.Navigation as Nav
+import Chat
 import Cmd.Extra exposing (withNoCmd)
 import Compiler.ASTTools
 import Compiler.DifferentialParser
@@ -90,7 +91,7 @@ init url key =
       , chatMessages = []
       , chatVisible = False
       , inputGroup = "test"
-      , currentChatGroup = Nothing
+      , currentChatGroup = Just Chat.initialGroup
 
       -- UI
       , appMode = UserMode
