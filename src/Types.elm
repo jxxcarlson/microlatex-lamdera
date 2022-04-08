@@ -109,6 +109,9 @@ type alias FrontendModel =
     , signupState : SignupState
     , popupState : PopupState
 
+    -- MESSAGE
+    , messageFieldContent : String
+
     -- SYNC
     , foundIds : List String
     , foundIdIndex : Int
@@ -447,6 +450,9 @@ type FrontendMsg
     | UnLockCurrentDocument
     | ShareDocument
     | DoShare
+      -- MESSAGE
+    | MessageFieldChanged String
+    | MessageSubmitted
       -- DOC
     | SetDocumentCurrent Document
     | GetPinnedDocuments

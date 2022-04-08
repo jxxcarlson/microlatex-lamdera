@@ -83,6 +83,9 @@ init url key =
       , inputLanguage = L0Lang
       , documentList = StandardList
 
+      -- MESSAGE
+      , messageFieldContent = ""
+
       -- UI
       , appMode = UserMode
       , windowWidth = 600
@@ -208,6 +211,13 @@ update msg model =
                 [ UrlManager.handleDocId url
                 ]
             )
+
+        -- CHAT
+        MessageFieldChanged str ->
+            ( model, Cmd.none )
+
+        MessageSubmitted ->
+            ( model, Cmd.none )
 
         -- USER
         DismissUserMessage ->
