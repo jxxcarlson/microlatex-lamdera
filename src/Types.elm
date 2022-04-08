@@ -56,7 +56,6 @@ import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
 import Document exposing (Document)
-import Element as Color
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)

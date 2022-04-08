@@ -89,7 +89,7 @@ init url key =
       , chatMessageFieldContent = ""
       , chatMessages = []
       , chatVisible = False
-      , inputGroup = ""
+      , inputGroup = "test"
 
       -- UI
       , appMode = UserMode
