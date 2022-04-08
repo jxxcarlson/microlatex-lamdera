@@ -10,7 +10,9 @@ import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value
 import Html.Events exposing (keyCode, on, onClick, onInput)
 import Json.Decode as D
 import Task
+import Time
 import Types exposing (..)
+import Util
 import View.Button
 import View.Color as Color
 import View.Input
@@ -116,12 +118,12 @@ view_ model =
         -- (style "padding" "10px" :: fontStyles)
         [ model.chatMessages
             |> List.reverse
-            |> List.map viewMessage
+            |> List.map (viewMessage model.zone)
             |> E.column
                 [ View.Utility.htmlId "message-box"
                 , E.height (E.px 400)
                 , E.width (E.px 360)
-                , E.spacing 8
+                , E.spacing 12
                 , E.scrollbarY
                 , Background.color Color.transparentBlue
                 , E.paddingXY 6 16
@@ -148,8 +150,8 @@ chatInput model msg =
         []
 
 
-viewMessage : ChatMsg -> E.Element msg
-viewMessage msg =
+viewMessage : Time.Zone -> ChatMsg -> E.Element msg
+viewMessage zone msg =
     case msg of
         Types.JoinedChat clientId username ->
             E.paragraph [ Font.italic ] [ E.text <| username ++ " joined the chat" ]
@@ -158,7 +160,7 @@ viewMessage msg =
             E.paragraph [ Font.italic ] [ E.text <| username ++ " left the chat" ]
 
         Types.ChatMsg clientId message ->
-            E.paragraph [ E.width (E.px 340) ] [ E.text <| "[" ++ message.sender ++ " " ++ DateTimeUtility.toUtcString message.date ++ "]: " ++ message.content ]
+            E.paragraph [ E.width (E.px 340) ] [ E.text <| "[" ++ message.sender ++ " " ++ DateTimeUtility.toString zone message.date ++ "]: " ++ message.content ]
 
 
 fontStyles : List (Html.Attribute msg)
@@ -171,6 +173,10 @@ scrollChatToBottom =
     Dom.getViewportOf "message-box"
         |> Task.andThen (\info -> Dom.setViewportOf "message-box" 0 info.scene.height)
         |> Task.attempt (\_ -> Types.FENoOp)
+
+
+
+-- |> Task.andThen (\_ -> Util.delay 100 Types.ScrollChatToBottom)
 
 
 focusMessageInput : Cmd FrontendMsg
