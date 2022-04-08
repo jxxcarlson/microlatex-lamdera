@@ -137,9 +137,11 @@ updateFromFrontend sessionId clientId msg model =
             let
                 newChatDict =
                     Dict.insert groupName [] model.chatDict
+
+                newModel =
+                    { model | chatDict = newChatDict }
             in
-            ( { model | chatDict = newChatDict }, Cmd.none )
-                |> (\( m, c ) -> ( m, Chat.sendChatHistoryCmd groupName m clientId ))
+            ( newModel, Chat.sendChatHistoryCmd groupName newModel clientId )
 
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of

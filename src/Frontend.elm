@@ -58,7 +58,7 @@ app =
 subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
-        , Time.every 100000 FETick
+        , Time.every 1000 FETick
         , Sub.map KeyMsg Keyboard.subscriptions
         ]
 
