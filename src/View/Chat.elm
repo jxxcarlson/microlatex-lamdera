@@ -120,6 +120,7 @@ view_ model =
                 [ View.Utility.htmlId "message-box"
                 , E.height (E.px 400)
                 , E.width (E.px 360)
+                , E.spacing 8
                 , Background.color Color.transparentBlue
                 , E.paddingXY 6 16
                 ]
