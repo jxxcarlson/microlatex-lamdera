@@ -8,6 +8,7 @@ module View.Utility exposing
     , getElementWithViewPort
     , getReadersAndEditors
     , hideIf
+    , htmlId
     , iOwnThisDocument
     , iOwnThisDocument_
     , isAdmin
@@ -38,6 +39,10 @@ import String.Extra
 import Task exposing (Task)
 import Types exposing (FrontendModel, FrontendMsg)
 import User
+
+
+htmlId str =
+    Element.htmlAttribute (HA.id str)
 
 
 isAdmin : FrontendModel -> Bool

@@ -33,6 +33,7 @@ import Url exposing (Url)
 import UrlManager
 import User
 import Util
+import View.Chat
 import View.Main
 import View.Phone
 import View.Utility
@@ -86,7 +87,7 @@ init url key =
       , inputLanguage = L0Lang
       , documentList = StandardList
 
-      -- CHAT
+      -- CHAT (FrontendModel)
       , chatDisplay = Types.TCGDisplay
       , inputGroupMembers = ""
       , inputGroupName = ""
@@ -223,7 +224,29 @@ update msg model =
                 ]
             )
 
-        -- CHAT
+        -- CHAT (update)
+        MakeCurrentChatGroupPreferred ->
+            case model.currentUser of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just user ->
+                    let
+                        oldPreferences =
+                            user.preferences
+
+                        revisedPreferences =
+                            if String.trim model.inputGroup == "" then
+                                { oldPreferences | group = Nothing }
+
+                            else
+                                { oldPreferences | group = Just (String.trim model.inputGroup) }
+
+                        revisedUser =
+                            { user | preferences = revisedPreferences }
+                    in
+                    ( { model | currentUser = Just revisedUser }, sendToBackend (UpdateUserWith revisedUser) )
+
         GetChatHistory ->
             ( model, sendToBackend (SendChatHistory model.inputGroup) )
 
@@ -278,9 +301,8 @@ update msg model =
             ( { model | chatMessageFieldContent = "", messages = model.messages }
             , Cmd.batch
                 [ Lamdera.sendToBackend (ChatMsgSubmitted chatMessage)
-
-                --, View.Chat.focusMessageInput |> E.htmlAttribute
-                --, View.Chat.scrollChatToBottom |> E.htmlAttribute
+                , View.Chat.focusMessageInput
+                , View.Chat.scrollChatToBottom
                 ]
             )
 
@@ -859,7 +881,7 @@ updateFromBackend msg model =
         SendDocuments documents ->
             ( { model | documents = documents }, Cmd.none )
 
-        -- CHAT
+        -- CHAT (updateFromBackend)
         GotChatGroup mChatGroup ->
             let
                 cmd =
@@ -870,10 +892,10 @@ updateFromBackend msg model =
                         Just group ->
                             sendToBackend (SendChatHistory group.name)
             in
-            ( { model | currentChatGroup = mChatGroup }, cmd )
+            ( { model | currentChatGroup = mChatGroup, inputGroup = Maybe.map .name mChatGroup |> Maybe.withDefault "" }, cmd )
 
         MessageReceived message ->
-            ( { model | chatMessages = message :: model.chatMessages }, Cmd.none )
+            ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
 
 
 view : Model -> { title : String, body : List (Html.Html FrontendMsg) }

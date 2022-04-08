@@ -28,6 +28,7 @@ module View.Button exposing
     , languageMenu
     , linkTemplate
     , lock
+    , makeCurrentGroupPreferred
     , maximizeMyDocs
     , maximizePublicDocs
     , nextSyncButton
@@ -563,6 +564,10 @@ toggleActiveDocList name =
 
 
 -- CHAT
+
+
+makeCurrentGroupPreferred =
+    buttonTemplate [ Background.color Color.darkRed ] MakeCurrentChatGroupPreferred "Make Preferred"
 
 
 getChatHistory : Element FrontendMsg

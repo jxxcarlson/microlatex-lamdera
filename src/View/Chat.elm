@@ -1,4 +1,4 @@
-module View.Chat exposing (view)
+module View.Chat exposing (focusMessageInput, scrollChatToBottom, view)
 
 import Browser.Dom as Dom
 import Element as E
@@ -13,6 +13,7 @@ import Types exposing (..)
 import View.Button
 import View.Color as Color
 import View.Input
+import View.Utility
 
 
 view : FrontendModel -> E.Element FrontendMsg
@@ -26,7 +27,8 @@ view model =
                 E.none
         , case model.chatDisplay of
             Types.TCGDisplay ->
-                E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8 ] [ View.Input.group model ]
+                E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8 ]
+                    [ View.Button.makeCurrentGroupPreferred, View.Input.group model ]
 
             TCGShowInputForm ->
                 E.none
@@ -109,22 +111,21 @@ row label content =
 
 view_ : FrontendModel -> E.Element FrontendMsg
 view_ model =
-    div (style "padding" "10px" :: fontStyles)
+    E.column [ E.padding 10 ]
+        -- (style "padding" "10px" :: fontStyles)
         [ model.chatMessages
             |> List.reverse
             |> List.map viewMessage
-            |> div
-                [ id "message-box"
-                , style "height" "400px"
-                , style "overflow" "auto"
-                , style "margin-bottom" "8px"
-                , style "background-color" "#d9e2ff"
-                , style "padding" "6px"
+            |> E.column
+                [ View.Utility.htmlId "message-box"
+                , E.height (E.px 400)
+                , E.width (E.px 360)
+                , Background.color Color.transparentBlue
+                , E.paddingXY 6 16
                 ]
-        , chatInput model MessageFieldChanged
-        , button (onClick MessageSubmitted :: fontStyles) [ text "Send" ]
+        , chatInput model MessageFieldChanged |> E.html
+        , button (onClick MessageSubmitted :: fontStyles) [ text "Send" ] |> E.html
         ]
-        |> E.html
 
 
 chatInput : FrontendModel -> (String -> FrontendMsg) -> Html FrontendMsg
@@ -136,7 +137,7 @@ chatInput model msg =
          , onEnter Types.MessageSubmitted
          , placeholder model.chatMessageFieldContent
          , value model.chatMessageFieldContent
-         , style "width" "300px"
+         , style "width" "353px"
          , autofocus True
          ]
             ++ fontStyles
@@ -144,17 +145,17 @@ chatInput model msg =
         []
 
 
-viewMessage : ChatMsg -> Html msg
+viewMessage : ChatMsg -> E.Element msg
 viewMessage msg =
     case msg of
         Types.JoinedChat clientId username ->
-            div [ style "font-style" "italic" ] [ text <| username ++ " joined the chat" ]
+            E.paragraph [ Font.italic ] [ E.text <| username ++ " joined the chat" ]
 
         Types.LeftChat clientId username ->
-            div [ style "font-style" "italic" ] [ text <| username ++ " left the chat" ]
+            E.paragraph [ Font.italic ] [ E.text <| username ++ " left the chat" ]
 
         Types.ChatMsg clientId message ->
-            div [] [ text <| "[" ++ message.sender ++ "]: " ++ message.content ]
+            E.paragraph [ E.width (E.px 340) ] [ E.text <| "[" ++ message.sender ++ "]: " ++ message.content ]
 
 
 fontStyles : List (Html.Attribute msg)

@@ -346,12 +346,21 @@ signIn model sessionId clientId username encryptedPassword =
                 let
                     newConnectionDict_ =
                         newConnectionDict username sessionId clientId model.connectionDict
+
+                    chatGroup =
+                        case userData.user.preferences.group of
+                            Nothing ->
+                                Nothing
+
+                            Just groupName ->
+                                Dict.get groupName model.chatGroupDict
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
                     [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| { content = "Signed in", status = MSNormal })
+                    , sendToFrontend clientId (GotChatGroup chatGroup)
                     ]
                 )
 

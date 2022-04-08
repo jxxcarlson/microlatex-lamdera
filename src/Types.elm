@@ -467,7 +467,8 @@ type FrontendMsg
     | UnLockCurrentDocument
     | ShareDocument
     | DoShare
-      -- CHAT
+      -- CHAT (FrontendMsg)
+    | MakeCurrentChatGroupPreferred
     | GetChatHistory
     | CreateChatGroup
     | SetChatDisplay ToggleChatGroupDisplay
