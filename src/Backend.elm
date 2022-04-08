@@ -72,7 +72,7 @@ init =
 
       -- CHAT
       , chatDict = Dict.fromList []
-      , chatGroupDict = Dict.fromList [ ( "test", [ "jxxcarlson", "aristo" ] ) ]
+      , chatGroupDict = Dict.fromList [ ( "test", [ "jxxcarlson", "aristotle", "aristo", "mario" ] ) ]
 
       -- DATA
       , documentDict = Dict.empty

@@ -20,9 +20,9 @@ view model _ =
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
         , sharingControls model
-        , E.el [ E.alignRight ] (wordCount model)
+        , E.el [ E.centerX ] (wordCount model)
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
-        , Button.toggleChat
+        , View.Utility.hideIf (model.currentUser == Nothing) Button.toggleChat
         ]
 
 

@@ -232,8 +232,8 @@ update msg model =
             let
                 chatMessage =
                     { sender = model.currentUser |> Maybe.map .username |> Maybe.withDefault "anon"
-                    , group = "test"
-                    , subject = "Test"
+                    , group = model.inputGroup
+                    , subject = ""
                     , content = model.chatMessageFieldContent
                     , date = model.currentTime
                     }
