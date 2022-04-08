@@ -28,7 +28,7 @@ viewChatGroup : Maybe Types.ChatGroup -> E.Element FrontendMsg
 viewChatGroup mGroup =
     case mGroup of
         Nothing ->
-            E.none
+            E.el [ Background.color Color.veryPaleBlue, Font.size 14 ] (E.text "No group")
 
         Just group ->
             E.column
