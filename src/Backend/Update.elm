@@ -263,7 +263,8 @@ createDocument model clientId maybeCurrentUser doc_ =
                     publicIdTokenData.token
 
                 Just user ->
-                    user.username ++ "-" ++ DateTimeUtility.toUtcSlug (String.left 1 publicIdTokenData.token) (String.slice 1 2 publicIdTokenData.token) model.currentTime
+                    -- TODO: revisit this
+                    user.username ++ "-" ++ String.slice 1 2 publicIdTokenData.token
 
         doc =
             { doc_
