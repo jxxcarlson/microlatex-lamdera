@@ -71,8 +71,8 @@ init =
       , authenticationDict = Dict.empty
 
       -- CHAT
-      , chatDict = Dict.fromList []
-      , chatGroupDict = Dict.fromList [ ( "test", Chat.initialGroup ) ]
+      , chatDict = Dict.empty
+      , chatGroupDict = Dict.empty
 
       -- DATA
       , documentDict = Dict.empty
@@ -132,6 +132,9 @@ updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd
 updateFromFrontend sessionId clientId msg model =
     case msg of
         -- CHAT
+        InsertChatGroup group ->
+            ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Cmd.none )
+
         GetChatGroup groupName ->
             ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 

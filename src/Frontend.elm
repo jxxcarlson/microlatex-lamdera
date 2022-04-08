@@ -94,8 +94,8 @@ init url key =
       , chatMessageFieldContent = ""
       , chatMessages = []
       , chatVisible = False
-      , inputGroup = "test"
-      , currentChatGroup = Just Chat.initialGroup
+      , inputGroup = ""
+      , currentChatGroup = Nothing
 
       -- UI
       , appMode = UserMode
@@ -226,7 +226,20 @@ update msg model =
 
         -- CHAT
         CreateChatGroup ->
-            ( model, Cmd.none )
+            case model.currentUser of
+                Nothing ->
+                    ( { model | chatDisplay = Types.TCGDisplay }, Cmd.none )
+
+                Just user ->
+                    let
+                        newChatGroup =
+                            { name = model.inputGroupName
+                            , owner = user.username
+                            , assistant = Just model.inputGroupAssistant
+                            , members = model.inputGroupMembers |> String.split "," |> List.map String.trim
+                            }
+                    in
+                    ( { model | chatDisplay = Types.TCGDisplay, currentChatGroup = Just newChatGroup }, sendToBackend (InsertChatGroup newChatGroup) )
 
         SetChatDisplay option ->
             ( { model | chatDisplay = option }, Cmd.none )

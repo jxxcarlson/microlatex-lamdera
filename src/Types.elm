@@ -563,6 +563,7 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- CHAT
+    | InsertChatGroup ChatGroup
     | GetChatGroup String
     | ChatMsgSubmitted ChatMessage
       -- SHARE
