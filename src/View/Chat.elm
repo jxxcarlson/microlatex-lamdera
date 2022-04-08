@@ -10,6 +10,7 @@ import Html.Events exposing (keyCode, on, onClick, onInput)
 import Json.Decode as D
 import Task
 import Types exposing (..)
+import View.Button
 import View.Color as Color
 import View.Input
 
@@ -17,15 +18,32 @@ import View.Input
 view : FrontendModel -> E.Element FrontendMsg
 view model =
     E.column [ E.spacing 12, Background.color Color.black, E.padding 1 ]
-        [ E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (view_ model)
-        , E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 0 } ] (View.Input.group model)
-        , E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 18 } ] (viewChatGroup model.currentChatGroup)
+        [ case model.chatDisplay of
+            Types.TCGDisplay ->
+                E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (view_ model)
+
+            TCGShowInputForm ->
+                E.none
+        , case model.chatDisplay of
+            Types.TCGDisplay ->
+                E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 0 } ] (View.Input.group model)
+
+            TCGShowInputForm ->
+                E.none
+        , E.el [ E.paddingXY 18 18 ]
+            (case model.chatDisplay of
+                Types.TCGDisplay ->
+                    viewChatGroup model
+
+                Types.TCGShowInputForm ->
+                    createChatGroup model
+            )
         ]
 
 
-viewChatGroup : Maybe Types.ChatGroup -> E.Element FrontendMsg
-viewChatGroup mGroup =
-    case mGroup of
+viewChatGroup : FrontendModel -> E.Element FrontendMsg
+viewChatGroup model =
+    case model.currentChatGroup of
         Nothing ->
             E.el [ Background.color Color.veryPaleBlue, Font.size 14, E.paddingXY 12 12 ] (E.text "No group")
 
@@ -42,6 +60,7 @@ viewChatGroup mGroup =
                 , row "Admin: " group.owner
                 , row "Assistant: " (Maybe.withDefault "none" group.assistant)
                 , row "Members: " (String.join ", " group.members)
+                , E.row [ E.spacing 18 ] [ View.Button.setChatDisplay model, View.Button.setChatCreate model ]
                 ]
 
 
@@ -53,23 +72,24 @@ createChatGroup model =
 
         Just user ->
             E.column
-                [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
-                , E.height (E.px 160)
+                [ E.paddingXY 12 12
+                , E.height (E.px 460)
                 , E.width (E.px 340)
                 , Background.color Color.veryPaleBlue
                 , Font.size 14
                 , E.spacing 12
                 ]
-                [ column "Group Name" (View.Input.groupName 300 model)
-                , column "Admin: " (E.el [] (E.text user.username))
-                , column "Assistant: " (View.Input.groupAssistant 300 model)
-                , column "Members: " (View.Input.groupMembers 300 150 model)
+                [ column "Group Name" (View.Input.groupName 320 model)
+                , row "Admin: " user.username
+                , column "Assistant: " (View.Input.groupAssistant 320 model)
+                , column "Members: " (View.Input.groupMembers 320 150 model)
+                , E.row [ E.spacing 18 ] [ View.Button.setChatDisplay model, View.Button.createChatGroup ]
                 ]
 
 
 column : String -> E.Element FrontendMsg -> E.Element FrontendMsg
 column label element =
-    E.paragraph [ E.width (E.px 300), E.spacing 12 ] [ E.el [ Font.bold ] (E.text label), element ]
+    E.column [ E.width (E.px 300), E.spacing 12 ] [ E.el [ Font.bold ] (E.text label), element ]
 
 
 row : String -> String -> E.Element FrontendMsg

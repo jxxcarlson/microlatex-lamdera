@@ -5,6 +5,7 @@ module View.Button exposing
     , clearConnectionDict
     , closeCollectionsIndex
     , closeEditor
+    , createChatGroup
     , createDocument
     , deleteDocument
     , dismissPopup
@@ -36,6 +37,8 @@ module View.Button exposing
     , reply
     , runSpecial
     , sendUnlockMessage
+    , setChatCreate
+    , setChatDisplay
     , setDocAsCurrentWithDocInfo
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
@@ -557,9 +560,38 @@ toggleActiveDocList name =
     buttonTemplate2 [] ToggleActiveDocList name
 
 
+
+-- CHAT
+
+
+createChatGroup : Element FrontendMsg
+createChatGroup =
+    buttonTemplate [] CreateChatGroup "Create"
+
+
 toggleChat : Element FrontendMsg
 toggleChat =
     buttonTemplate [] ToggleChat "Chat"
+
+
+setChatDisplay : FrontendModel -> Element FrontendMsg
+setChatDisplay model =
+    case model.chatDisplay of
+        Types.TCGDisplay ->
+            buttonTemplate [ Background.color Color.darkRed ] (Types.SetChatDisplay Types.TCGShowInputForm) "Display"
+
+        Types.TCGShowInputForm ->
+            buttonTemplate [] (Types.SetChatDisplay Types.TCGDisplay) "Display"
+
+
+setChatCreate : FrontendModel -> Element FrontendMsg
+setChatCreate model =
+    case model.chatDisplay of
+        Types.TCGDisplay ->
+            buttonTemplate [] (Types.SetChatDisplay Types.TCGShowInputForm) "Create"
+
+        Types.TCGShowInputForm ->
+            buttonTemplate [ Background.color Color.darkRed ] (Types.SetChatDisplay Types.TCGDisplay) "Create"
 
 
 closeCollectionsIndex : Element FrontendMsg

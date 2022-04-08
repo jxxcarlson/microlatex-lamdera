@@ -87,6 +87,7 @@ init url key =
       , documentList = StandardList
 
       -- CHAT
+      , chatDisplay = Types.TCGDisplay
       , inputGroupMembers = ""
       , inputGroupName = ""
       , inputGroupAssistant = ""
@@ -224,6 +225,12 @@ update msg model =
             )
 
         -- CHAT
+        CreateChatGroup ->
+            ( model, Cmd.none )
+
+        SetChatDisplay option ->
+            ( { model | chatDisplay = option }, Cmd.none )
+
         InputGroupName str ->
             ( { model | inputGroupName = str }, Cmd.none )
 

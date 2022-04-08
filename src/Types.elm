@@ -41,6 +41,7 @@ module Types exposing
     , TagSelection(..)
     , ToBackend(..)
     , ToFrontend(..)
+    , ToggleChatGroupDisplay(..)
     , UMButtons(..)
     , UserId
     , UserMessage
@@ -111,6 +112,7 @@ type alias FrontendModel =
     , popupState : PopupState
 
     -- CHAT
+    , chatDisplay : ToggleChatGroupDisplay
     , inputGroupMembers : String
     , inputGroupName : String
     , inputGroupAssistant : String
@@ -159,6 +161,11 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+
+type ToggleChatGroupDisplay
+    = TCGDisplay
+    | TCGShowInputForm
 
 
 type alias Message =
@@ -461,6 +468,8 @@ type FrontendMsg
     | ShareDocument
     | DoShare
       -- CHAT
+    | CreateChatGroup
+    | SetChatDisplay ToggleChatGroupDisplay
     | InputGroupMembers String
     | InputGroupName String
     | InputGroupAssistant String

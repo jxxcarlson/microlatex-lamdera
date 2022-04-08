@@ -103,7 +103,7 @@ groupName width_ model =
 
 groupAssistant : Int -> FrontendModel -> Element FrontendMsg
 groupAssistant width_ model =
-    inputFieldTemplate (E.px width_) "Group Owner" InputGroupAssistant model.inputGroupAssistant
+    inputFieldTemplate (E.px width_) "Group Assistant" InputGroupAssistant model.inputGroupAssistant
 
 
 searchDocsInput : FrontendModel -> Element FrontendMsg
