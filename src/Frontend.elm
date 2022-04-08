@@ -261,10 +261,6 @@ update msg model =
                     ( { model | currentUser = Just revisedUser }, sendToBackend (UpdateUserWith revisedUser) )
 
         GetChatHistory ->
-            let
-                _ =
-                    Debug.log "GetChatHistory" "!"
-            in
             ( model, Cmd.batch [ sendToBackend (SendChatHistory model.inputGroup) ] )
 
         ScrollChatToBottom ->
@@ -891,10 +887,6 @@ updateFromBackend msg model =
 
         -- CHAT (updateFromBackend)
         GotChatHistory ->
-            let
-                _ =
-                    Debug.log "GotChatHistory" "!"
-            in
             ( model, Util.delay 400 ScrollChatToBottom )
 
         UserMessageReceived message ->
