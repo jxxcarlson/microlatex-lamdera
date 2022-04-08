@@ -883,17 +883,16 @@ updateFromBackend msg model =
 
         -- CHAT (updateFromBackend)
         GotChatGroup mChatGroup ->
-            let
-                cmd =
-                    case mChatGroup of
-                        Nothing ->
-                            Cmd.none
+            case mChatGroup of
+                Nothing ->
+                    ( model, Cmd.none )
 
-                        Just group ->
+                Just group ->
+                    let
+                        cmd =
                             sendToBackend (SendChatHistory group.name)
-            in
-            -- ( { model | currentChatGroup = mChatGroup, inputGroup = Maybe.map .name mChatGroup |> Maybe.withDefault "??" }, cmd )
-            ( { model | currentChatGroup = mChatGroup }, cmd )
+                    in
+                    ( { model | currentChatGroup = mChatGroup, inputGroup = group.name, cmd )
 
         MessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
