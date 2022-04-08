@@ -813,6 +813,7 @@ handleSignOut model =
         , maximizedIndex = Types.MPublicDocs
         , popupState = NoPopup
         , showEditor = False
+        , chatVisible = False
       }
     , Cmd.batch
         [ Nav.pushUrl model.key "/"
