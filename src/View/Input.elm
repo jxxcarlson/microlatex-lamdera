@@ -3,6 +3,9 @@ module View.Input exposing
     , email
     , enterPrivateId
     , group
+    , groupAssistant
+    , groupMembers
+    , groupName
     , password
     , passwordAgain
     , passwordLarge
@@ -88,6 +91,21 @@ passwordTemplate width_ default msg text =
         }
 
 
+groupMembers : Int -> Int -> FrontendModel -> Element FrontendMsg
+groupMembers width_ height_ model =
+    multiLineTemplate width_ height_ "Group Members" InputGroupMembers model.inputGroupMembers
+
+
+groupName : Int -> FrontendModel -> Element FrontendMsg
+groupName width_ model =
+    inputFieldTemplate (E.px width_) "Group Name" InputGroupName model.inputGroupName
+
+
+groupAssistant : Int -> FrontendModel -> Element FrontendMsg
+groupAssistant width_ model =
+    inputFieldTemplate (E.px width_) "Group Owner" InputGroupAssistant model.inputGroupAssistant
+
+
 searchDocsInput : FrontendModel -> Element FrontendMsg
 searchDocsInput model =
     inputFieldTemplate2 [ onEnter Search |> E.htmlAttribute ] E.fill "Search for documents ..." InputSearchKey model.inputSearchKey
@@ -119,7 +137,7 @@ realName model =
 
 
 group model =
-    inputFieldTemplate (E.px 340) "Group" InputGroup model.inputGroup
+    inputFieldTemplate (E.px 340) "Group" InputChoseGroup model.inputGroup
 
 
 email model =

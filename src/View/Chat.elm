@@ -45,6 +45,33 @@ viewChatGroup mGroup =
                 ]
 
 
+createChatGroup : FrontendModel -> E.Element FrontendMsg
+createChatGroup model =
+    case model.currentUser of
+        Nothing ->
+            E.none
+
+        Just user ->
+            E.column
+                [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
+                , E.height (E.px 160)
+                , E.width (E.px 340)
+                , Background.color Color.veryPaleBlue
+                , Font.size 14
+                , E.spacing 12
+                ]
+                [ column "Group Name" (View.Input.groupName 300 model)
+                , column "Admin: " (E.el [] (E.text user.username))
+                , column "Assistant: " (View.Input.groupAssistant 300 model)
+                , column "Members: " (View.Input.groupMembers 300 150 model)
+                ]
+
+
+column : String -> E.Element FrontendMsg -> E.Element FrontendMsg
+column label element =
+    E.paragraph [ E.width (E.px 300), E.spacing 12 ] [ E.el [ Font.bold ] (E.text label), element ]
+
+
 row : String -> String -> E.Element FrontendMsg
 row label content =
     E.paragraph [ E.width (E.px 300), E.spacing 12 ] [ E.el [ Font.bold ] (E.text label), E.text content ]

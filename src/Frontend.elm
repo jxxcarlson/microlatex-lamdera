@@ -87,6 +87,9 @@ init url key =
       , documentList = StandardList
 
       -- CHAT
+      , inputGroupMembers = ""
+      , inputGroupName = ""
+      , inputGroupAssistant = ""
       , chatMessageFieldContent = ""
       , chatMessages = []
       , chatVisible = False
@@ -221,7 +224,16 @@ update msg model =
             )
 
         -- CHAT
-        InputGroup str ->
+        InputGroupName str ->
+            ( { model | inputGroupName = str }, Cmd.none )
+
+        InputGroupAssistant str ->
+            ( { model | inputGroupAssistant = str }, Cmd.none )
+
+        InputGroupMembers str ->
+            ( { model | inputGroupMembers = str }, Cmd.none )
+
+        InputChoseGroup str ->
             ( { model | inputGroup = str }, sendToBackend (GetChatGroup str) )
 
         ToggleChat ->

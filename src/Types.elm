@@ -111,6 +111,9 @@ type alias FrontendModel =
     , popupState : PopupState
 
     -- CHAT
+    , inputGroupMembers : String
+    , inputGroupName : String
+    , inputGroupAssistant : String
     , chatMessages : List ChatMsg
     , chatMessageFieldContent : String
     , chatVisible : Bool
@@ -458,10 +461,13 @@ type FrontendMsg
     | ShareDocument
     | DoShare
       -- CHAT
+    | InputGroupMembers String
+    | InputGroupName String
+    | InputGroupAssistant String
     | ToggleChat
     | MessageFieldChanged String
     | MessageSubmitted
-    | InputGroup String
+    | InputChoseGroup String
       -- DOC
     | SetDocumentCurrent Document
     | GetPinnedDocuments
