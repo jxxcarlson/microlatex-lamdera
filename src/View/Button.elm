@@ -2,6 +2,7 @@ module View.Button exposing
     ( buttonTemplate
     , cancelDeleteDocument
     , cancelSignUp
+    , clearChatHistory
     , clearConnectionDict
     , closeCollectionsIndex
     , closeEditor
@@ -566,8 +567,12 @@ toggleActiveDocList name =
 -- CHAT
 
 
+clearChatHistory =
+    buttonTemplate [ Background.color Color.lightGray ] AskToClearChatHistory "Clear history"
+
+
 makeCurrentGroupPreferred =
-    buttonTemplate [ Background.color Color.darkRed ] MakeCurrentChatGroupPreferred "Make Preferred"
+    buttonTemplate [ Background.color Color.lightGray ] MakeCurrentChatGroupPreferred "Make Preferred"
 
 
 getChatHistory : Element FrontendMsg

@@ -133,22 +133,30 @@ updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd
 updateFromFrontend sessionId clientId msg model =
     case msg of
         -- CHAT
+        ClearChatHistory groupName ->
+            let
+                newChatDict =
+                    Dict.insert groupName [] model.chatDict
+            in
+            ( { model | chatDict = newChatDict }, Cmd.none )
+
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
                 Nothing ->
                     ( model, sendToFrontend clientId (SendMessage { content = groupName ++ ": no such group", status = Types.MSWarning }) )
 
                 Just _ ->
-                    let
-                        chatMessages : List Types.ChatMessage
-                        chatMessages =
-                            Dict.get groupName model.chatDict |> Maybe.withDefault []
-
-                        cmds : List (Cmd backendMsg)
-                        cmds =
-                            List.map (Chat.narrowCast model) chatMessages |> List.concat
-                    in
-                    ( model, Cmd.batch (sendToFrontend clientId GotChatHistory :: cmds) )
+                    --let
+                    --    chatMessages : List Types.ChatMessage
+                    --    chatMessages =
+                    --        Dict.get groupName model.chatDict |> Maybe.withDefault []
+                    --
+                    --    cmds : List (Cmd backendMsg)
+                    --    cmds =
+                    --        List.map (Chat.narrowCast model) chatMessages |> List.concat
+                    --in
+                    --( model, Cmd.batch (sendToFrontend clientId GotChatHistory :: cmds) )
+                    ( model, Chat.sendChatHistoryCmd groupName model clientId )
 
         InsertChatGroup group ->
             ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Cmd.none )

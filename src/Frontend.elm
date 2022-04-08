@@ -238,6 +238,9 @@ update msg model =
             )
 
         -- CHAT (update)
+        AskToClearChatHistory ->
+            ( model, sendToBackend (ClearChatHistory model.inputGroup) )
+
         MakeCurrentChatGroupPreferred ->
             case model.currentUser of
                 Nothing ->

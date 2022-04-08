@@ -472,6 +472,7 @@ type FrontendMsg
     | ShareDocument
     | DoShare
       -- CHAT (FrontendMsg)
+    | AskToClearChatHistory
     | ScrollChatToBottom
     | MakeCurrentChatGroupPreferred
     | GetChatHistory
@@ -569,7 +570,8 @@ type ToBackend
     | SignInBE String String
     | SignUpBE String Language String String String
     | UpdateUserWith User
-      -- CHAT
+      -- CHAT (ToBackend)
+    | ClearChatHistory String
     | SendChatHistory String
     | InsertChatGroup ChatGroup
     | GetChatGroup String
