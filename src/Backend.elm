@@ -131,6 +131,7 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
+        -- CHAT
         GetChatGroup groupName ->
             ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 

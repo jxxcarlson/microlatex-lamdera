@@ -8,7 +8,6 @@ import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
 import Json.Decode as D
-import Lamdera
 import Task
 import Types exposing (..)
 import View.Color as Color
@@ -28,7 +27,7 @@ viewChatGroup : Maybe Types.ChatGroup -> E.Element FrontendMsg
 viewChatGroup mGroup =
     case mGroup of
         Nothing ->
-            E.el [ Background.color Color.veryPaleBlue, Font.size 14 ] (E.text "No group")
+            E.el [ Background.color Color.veryPaleBlue, Font.size 14, E.paddingXY 12 12 ] (E.text "No group")
 
         Just group ->
             E.column
