@@ -63,6 +63,7 @@ view_ model =
                 , style "overflow" "auto"
                 , style "margin-bottom" "8px"
                 , style "background-color" "#d9e2ff"
+                , style "padding" "6px"
                 ]
         , chatInput model MessageFieldChanged
         , button (onClick MessageSubmitted :: fontStyles) [ text "Send" ]

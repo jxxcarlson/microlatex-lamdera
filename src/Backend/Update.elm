@@ -130,7 +130,7 @@ getBadDocuments model =
 getDocumentById model clientId id =
     case Dict.get id model.documentDict of
         Nothing ->
-            ( model, sendToFrontend clientId (SendMessage { content = "No document for that docId", status = MSWarning }) )
+            ( model, sendToFrontend clientId (SendMessage { content = "No document for that docId", status = MSNormal }) )
 
         Just doc ->
             ( model
@@ -164,7 +164,7 @@ getDocumentByAuthorId model clientId authorId =
             case Dict.get docId model.documentDict of
                 Nothing ->
                     ( model
-                    , sendToFrontend clientId (SendMessage { content = "No document for that docId", status = MSWarning })
+                    , sendToFrontend clientId (SendMessage { content = "No document for that docId", status = MSNormal })
                     )
 
                 Just doc ->
