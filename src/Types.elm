@@ -620,6 +620,7 @@ type ToFrontend
     | UndeliverableMessage UserMessage
     | UserSignedUp User
       -- CHAT
+    | GotChatHistory
     | GotChatGroup (Maybe ChatGroup)
     | MessageReceived ChatMsg
       -- DOCUMENT

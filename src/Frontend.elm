@@ -58,7 +58,7 @@ app =
 subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
-        , Time.every 1000 FETick
+        , Time.every 100000 FETick
         , Sub.map KeyMsg Keyboard.subscriptions
         ]
 
@@ -261,7 +261,11 @@ update msg model =
                     ( { model | currentUser = Just revisedUser }, sendToBackend (UpdateUserWith revisedUser) )
 
         GetChatHistory ->
-            ( model, Cmd.batch [ sendToBackend (SendChatHistory model.inputGroup), Util.delay 800 ScrollChatToBottom ] )
+            let
+                _ =
+                    Debug.log "GetChatHistory" "!"
+            in
+            ( model, Cmd.batch [ sendToBackend (SendChatHistory model.inputGroup) ] )
 
         ScrollChatToBottom ->
             ( model, View.Chat.scrollChatToBottom )
@@ -298,7 +302,7 @@ update msg model =
             ( { model | inputGroup = str }, sendToBackend (GetChatGroup str) )
 
         ToggleChat ->
-            ( { model | chatVisible = not model.chatVisible }, Cmd.none )
+            ( { model | chatVisible = not model.chatVisible }, Util.delay 100 ScrollChatToBottom )
 
         MessageFieldChanged str ->
             ( { model | chatMessageFieldContent = str }, Cmd.none )
@@ -886,6 +890,13 @@ updateFromBackend msg model =
             ( { model | documents = documents }, Cmd.none )
 
         -- CHAT (updateFromBackend)
+        GotChatHistory ->
+            let
+                _ =
+                    Debug.log "GotChatHistory" "!"
+            in
+            ( model, Util.delay 400 ScrollChatToBottom )
+
         UserMessageReceived message ->
             ( { model | userMessage = Just message }, View.Chat.scrollChatToBottom )
 

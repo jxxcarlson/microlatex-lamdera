@@ -148,7 +148,7 @@ updateFromFrontend sessionId clientId msg model =
                         cmds =
                             List.map (Chat.narrowCast model) chatMessages |> List.concat
                     in
-                    ( model, Cmd.batch cmds )
+                    ( model, Cmd.batch (sendToFrontend clientId GotChatHistory :: cmds) )
 
         InsertChatGroup group ->
             ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Cmd.none )
