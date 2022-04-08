@@ -892,7 +892,7 @@ updateFromBackend msg model =
                         cmd =
                             sendToBackend (SendChatHistory group.name)
                     in
-                    ( { model | currentChatGroup = mChatGroup, inputGroup = group.name, cmd )
+                    ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )
 
         MessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
