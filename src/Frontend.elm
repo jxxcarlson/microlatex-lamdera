@@ -224,6 +224,9 @@ update msg model =
             )
 
         -- CHAT
+        GetChatHistory ->
+            ( model, sendToBackend (SendChatHistory model.inputGroup) )
+
         CreateChatGroup ->
             case model.currentUser of
                 Nothing ->
@@ -865,7 +868,7 @@ updateFromBackend msg model =
                             Cmd.none
 
                         Just group ->
-                            sendToBackend (GetChatHistory group.name)
+                            sendToBackend (SendChatHistory group.name)
             in
             ( { model | currentChatGroup = mChatGroup }, cmd )
 

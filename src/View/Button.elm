@@ -15,6 +15,7 @@ module View.Button exposing
     , export
     , exportToLaTeX
     , exportToMarkown
+    , getChatHistory
     , getDocument
     , getDocumentByPrivateId
     , getPinnedDocs
@@ -562,6 +563,11 @@ toggleActiveDocList name =
 
 
 -- CHAT
+
+
+getChatHistory : Element FrontendMsg
+getChatHistory =
+    buttonTemplate [] GetChatHistory "History"
 
 
 createChatGroup : Element FrontendMsg

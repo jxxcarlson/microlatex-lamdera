@@ -26,7 +26,7 @@ view model =
                 E.none
         , case model.chatDisplay of
             Types.TCGDisplay ->
-                E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 0 } ] (View.Input.group model)
+                E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8 ] [ View.Input.group model ]
 
             TCGShowInputForm ->
                 E.none

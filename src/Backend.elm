@@ -133,7 +133,7 @@ updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd
 updateFromFrontend sessionId clientId msg model =
     case msg of
         -- CHAT
-        GetChatHistory groupName ->
+        SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
                 Nothing ->
                     ( model, sendToFrontend clientId (SendMessage { content = groupName ++ ": no such group", status = Types.MSWarning }) )

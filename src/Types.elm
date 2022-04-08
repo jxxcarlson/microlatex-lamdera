@@ -468,6 +468,7 @@ type FrontendMsg
     | ShareDocument
     | DoShare
       -- CHAT
+    | GetChatHistory
     | CreateChatGroup
     | SetChatDisplay ToggleChatGroupDisplay
     | InputGroupMembers String
@@ -563,7 +564,7 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- CHAT
-    | GetChatHistory String
+    | SendChatHistory String
     | InsertChatGroup ChatGroup
     | GetChatGroup String
     | ChatMsgSubmitted ChatMessage
