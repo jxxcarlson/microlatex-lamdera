@@ -75,6 +75,7 @@ type alias FrontendModel =
     , url : Url
     , messages : List Message
     , currentTime : Time.Posix
+    , zone : Time.Zone
 
     -- ADMIN
     , statusReport : List String
@@ -419,6 +420,7 @@ type FrontendMsg
     | UrlChanged Url
     | NoOpFrontendMsg
     | FETick Time.Posix
+    | AdjustTimeZone Time.Zone
     | GotTime Time.Posix
       -- UI
     | OpenSharedDocumentList
@@ -470,6 +472,7 @@ type FrontendMsg
     | ShareDocument
     | DoShare
       -- CHAT (FrontendMsg)
+    | ScrollChatToBottom
     | MakeCurrentChatGroupPreferred
     | GetChatHistory
     | CreateChatGroup

@@ -50,7 +50,7 @@ app =
         , onUrlChange = UrlChanged
         , update = update
         , updateFromBackend = updateFromBackend
-        , subscriptions = \_ -> Sub.map KeyMsg Keyboard.subscriptions
+        , subscriptions = subscriptions
         , view = view
         }
 
@@ -59,6 +59,7 @@ subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
         , Time.every 1000 FETick
+        , Sub.map KeyMsg Keyboard.subscriptions
         ]
 
 
@@ -68,6 +69,7 @@ init url key =
       , url = url
       , messages = [ { content = "Welcome!", status = MSNormal } ]
       , currentTime = Time.millisToPosix 0
+      , zone = Time.utc
 
       -- ADMIN
       , statusReport = []
@@ -156,6 +158,7 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , sendToBackend (GetPublicDocuments Nothing)
+        , Task.perform AdjustTimeZone Time.here
         ]
     )
 
@@ -208,8 +211,11 @@ update msg model =
         FENoOp ->
             ( model, Cmd.none )
 
-        FETick t ->
-            ( { model | currentTime = t }, Cmd.none )
+        FETick newTime ->
+            ( { model | currentTime = newTime }, Cmd.none )
+
+        AdjustTimeZone newZone ->
+            ( { model | zone = newZone }, Cmd.none )
 
         GotTime timeNow ->
             ( model, Cmd.none )
@@ -255,7 +261,10 @@ update msg model =
                     ( { model | currentUser = Just revisedUser }, sendToBackend (UpdateUserWith revisedUser) )
 
         GetChatHistory ->
-            ( model, sendToBackend (SendChatHistory model.inputGroup) )
+            ( model, Cmd.batch [ sendToBackend (SendChatHistory model.inputGroup), Util.delay 800 ScrollChatToBottom ] )
+
+        ScrollChatToBottom ->
+            ( model, View.Chat.scrollChatToBottom )
 
         CreateChatGroup ->
             case model.currentUser of
