@@ -1,4 +1,4 @@
-module Chat exposing (getClients, insert)
+module Chat exposing (getClients, initialGroup, insert)
 
 import Dict
 import Lamdera
@@ -18,3 +18,12 @@ insert message chatDict =
 
         Just messages ->
             Dict.insert message.group (message :: messages) chatDict
+
+
+initialGroup : Types.ChatGroup
+initialGroup =
+    { name = "test"
+    , members = [ "jxxcarlson", "mario", "aristotle" ]
+    , owner = "jxxcarlson"
+    , assistant = Nothing
+    }

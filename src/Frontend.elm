@@ -90,6 +90,7 @@ init url key =
       , chatMessages = []
       , chatVisible = False
       , inputGroup = "test"
+      , currentChatGroup = Nothing
 
       -- UI
       , appMode = UserMode
@@ -148,6 +149,7 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , sendToBackend (GetPublicDocuments Nothing)
+        , sendToBackend (GetChatGroup "test")
         ]
     )
 
@@ -219,7 +221,7 @@ update msg model =
 
         -- CHAT
         InputGroup str ->
-            ( { model | inputGroup = str }, Cmd.none )
+            ( { model | inputGroup = str }, sendToBackend (GetChatGroup str) )
 
         ToggleChat ->
             ( { model | chatVisible = not model.chatVisible }, Cmd.none )
@@ -823,6 +825,9 @@ updateFromBackend msg model =
             ( { model | documents = documents }, Cmd.none )
 
         -- CHAT
+        GotChatGroup mChatGroup ->
+            ( { model | currentChatGroup = mChatGroup }, Cmd.none )
+
         MessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, Cmd.none )
 

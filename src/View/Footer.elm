@@ -30,7 +30,7 @@ view model width_ =
         , E.width (E.px (width_ + 7))
         , Font.size 14
         , if model.chatVisible then
-            E.inFront (E.el [ E.moveUp 463, E.moveRight dy ] (View.Chat.view model))
+            E.inFront (E.el [ E.moveUp 685, E.moveRight dy ] (View.Chat.view model))
 
           else
             E.inFront E.none

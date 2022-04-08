@@ -3,6 +3,7 @@ module View.Chat exposing (view)
 import Browser.Dom as Dom
 import Element as E
 import Element.Background as Background
+import Element.Font as Font
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
@@ -17,9 +18,37 @@ import View.Input
 view : FrontendModel -> E.Element FrontendMsg
 view model =
     E.column [ E.spacing 12, Background.color Color.black, E.padding 1 ]
-        [ view_ model
-        , E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 8 } ] (View.Input.group model)
+        [ E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (view_ model)
+        , E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 0 } ] (View.Input.group model)
+        , E.el [ E.paddingEach { left = 18, right = 0, top = 0, bottom = 18 } ] (viewChatGroup model.currentChatGroup)
         ]
+
+
+viewChatGroup : Maybe Types.ChatGroup -> E.Element FrontendMsg
+viewChatGroup mGroup =
+    case mGroup of
+        Nothing ->
+            E.none
+
+        Just group ->
+            E.column
+                [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
+                , E.height (E.px 160)
+                , E.width (E.px 340)
+                , Background.color Color.veryPaleBlue
+                , Font.size 14
+                , E.spacing 12
+                ]
+                [ row "Group name: " group.name
+                , row "Admin: " group.owner
+                , row "Assistant: " (Maybe.withDefault "none" group.assistant)
+                , row "Members: " (String.join ", " group.members)
+                ]
+
+
+row : String -> String -> E.Element FrontendMsg
+row label content =
+    E.paragraph [ E.width (E.px 300), E.spacing 12 ] [ E.el [ Font.bold ] (E.text label), E.text content ]
 
 
 view_ : FrontendModel -> E.Element FrontendMsg

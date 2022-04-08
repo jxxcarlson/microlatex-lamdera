@@ -8,6 +8,7 @@ module Types exposing
     , BackendMsg(..)
     , BackupOLD
     , ChatDict
+    , ChatGroup
     , ChatMessage
     , ChatMsg(..)
     , ConnectionData
@@ -114,6 +115,7 @@ type alias FrontendModel =
     , chatMessageFieldContent : String
     , chatVisible : Bool
     , inputGroup : String
+    , currentChatGroup : Maybe ChatGroup
 
     -- SYNC
     , foundIds : List String
@@ -340,19 +342,21 @@ type alias ChatDict =
 
 
 type alias ChatGroupDict =
-    Dict GroupName (List Username)
+    Dict GroupName ChatGroup
+
+
+type alias ChatGroup =
+    { name : String
+    , members : List Username
+    , owner : Username
+    , assistant : Maybe Username
+    }
 
 
 type ChatMsg
     = JoinedChat ClientId Username
     | LeftChat ClientId Username
     | ChatMsg ClientId ChatMessage
-
-
-type alias ChatGroup =
-    { name : String
-    , members : List Username
-    }
 
 
 type alias GroupName =
@@ -544,6 +548,7 @@ type ToBackend
     | SignUpBE String Language String String String
     | UpdateUserWith User
       -- CHAT
+    | GetChatGroup String
     | ChatMsgSubmitted ChatMessage
       -- SHARE
     | Narrowcast String Document -- First arg is the sender's username.  Send the document
@@ -591,6 +596,7 @@ type ToFrontend
     | UndeliverableMessage UserMessage
     | UserSignedUp User
       -- CHAT
+    | GotChatGroup (Maybe ChatGroup)
     | MessageReceived ChatMsg
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))

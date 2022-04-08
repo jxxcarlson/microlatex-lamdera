@@ -72,7 +72,7 @@ init =
 
       -- CHAT
       , chatDict = Dict.fromList []
-      , chatGroupDict = Dict.fromList [ ( "test", [ "jxxcarlson", "aristotle", "aristo", "mario" ] ) ]
+      , chatGroupDict = Dict.fromList [ ( "test", Chat.initialGroup ) ]
 
       -- DATA
       , documentDict = Dict.empty
@@ -131,10 +131,13 @@ update msg model =
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
+        GetChatGroup groupName ->
+            ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
+
         ChatMsgSubmitted message ->
             let
                 groupMembers =
-                    Dict.get message.group model.chatGroupDict |> Maybe.withDefault []
+                    Dict.get message.group model.chatGroupDict |> Maybe.map .members |> Maybe.withDefault []
 
                 clientIds =
                     List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat |> Debug.log "CLIENTS"
