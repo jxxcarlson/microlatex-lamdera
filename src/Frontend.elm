@@ -892,7 +892,7 @@ updateFromBackend msg model =
                         Just group ->
                             sendToBackend (SendChatHistory group.name)
             in
-            ( { model | currentChatGroup = mChatGroup, inputGroup = Maybe.map .name mChatGroup |> Maybe.withDefault "" }, cmd )
+            ( { model | currentChatGroup = mChatGroup, inputGroup = Maybe.map .name mChatGroup |> Maybe.withDefault "??" }, cmd )
 
         MessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
