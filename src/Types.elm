@@ -418,6 +418,8 @@ type FrontendMsg
     | UrlClicked UrlRequest
     | UrlChanged Url
     | NoOpFrontendMsg
+    | FETick Time.Posix
+    | GotTime Time.Posix
       -- UI
     | OpenSharedDocumentList
     | SetAppMode AppMode

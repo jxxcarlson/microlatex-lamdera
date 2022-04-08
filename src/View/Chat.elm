@@ -1,6 +1,7 @@
 module View.Chat exposing (focusMessageInput, scrollChatToBottom, view)
 
 import Browser.Dom as Dom
+import DateTimeUtility
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
@@ -121,6 +122,7 @@ view_ model =
                 , E.height (E.px 400)
                 , E.width (E.px 360)
                 , E.spacing 8
+                , E.scrollbarY
                 , Background.color Color.transparentBlue
                 , E.paddingXY 6 16
                 ]
@@ -156,7 +158,7 @@ viewMessage msg =
             E.paragraph [ Font.italic ] [ E.text <| username ++ " left the chat" ]
 
         Types.ChatMsg clientId message ->
-            E.paragraph [ E.width (E.px 340) ] [ E.text <| "[" ++ message.sender ++ "]: " ++ message.content ]
+            E.paragraph [ E.width (E.px 340) ] [ E.text <| "[" ++ message.sender ++ " " ++ DateTimeUtility.toUtcString message.date ++ "]: " ++ message.content ]
 
 
 fontStyles : List (Html.Attribute msg)

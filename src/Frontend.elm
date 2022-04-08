@@ -58,6 +58,7 @@ app =
 subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
+        , Time.every 1000 FETick
         ]
 
 
@@ -204,11 +205,17 @@ urlIsForGuest url =
 update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
 update msg model =
     case msg of
-        UnlockCurrentDocument ->
-            Frontend.Update.unlockCurrentDocument model
-
         FENoOp ->
             ( model, Cmd.none )
+
+        FETick t ->
+            ( { model | currentTime = t }, Cmd.none )
+
+        GotTime timeNow ->
+            ( model, Cmd.none )
+
+        UnlockCurrentDocument ->
+            Frontend.Update.unlockCurrentDocument model
 
         KeyMsg keyMsg ->
             Frontend.Update.updateKeys model keyMsg
@@ -851,18 +858,6 @@ updateFromBackend msg model =
         SetShowEditor flag ->
             ( { model | showEditor = flag }, Cmd.none )
 
-        -- USER
-        UserMessageReceived message ->
-            ( { model | userMessage = Just message }, Cmd.none )
-
-        UndeliverableMessage message ->
-            case message.actionOnFailureToDeliver of
-                Types.FANoOp ->
-                    ( model, Cmd.none )
-
-                Types.FAUnlockCurrentDocument ->
-                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "No editors for that document are online, so I am unlocking it for you" MSGreen }
-
         UserSignedUp user ->
             ( { model
                 | signupState = HideSignUpForm
@@ -882,6 +877,17 @@ updateFromBackend msg model =
             ( { model | documents = documents }, Cmd.none )
 
         -- CHAT (updateFromBackend)
+        UserMessageReceived message ->
+            ( { model | userMessage = Just message }, View.Chat.scrollChatToBottom )
+
+        UndeliverableMessage message ->
+            case message.actionOnFailureToDeliver of
+                Types.FANoOp ->
+                    ( model, Cmd.none )
+
+                Types.FAUnlockCurrentDocument ->
+                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "No editors for that document are online, so I am unlocking it for you" MSGreen }
+
         GotChatGroup mChatGroup ->
             case mChatGroup of
                 Nothing ->

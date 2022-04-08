@@ -1,6 +1,17 @@
-module DateTimeUtility exposing (toUtcSlug)
+module DateTimeUtility exposing (toUtcSlug, toUtcString)
 
 import Time exposing (Month(..), toDay, toHour, toMonth, toYear, utc)
+
+
+toUtcString : Time.Posix -> String
+toUtcString time =
+    monthString (Time.toMonth utc time)
+        ++ "/"
+        ++ String.fromInt (Time.toDay utc time)
+        ++ ":"
+        ++ String.fromInt (toHour utc time)
+        ++ ":"
+        ++ String.fromInt (Time.toMinute utc time)
 
 
 toUtcSlug : String -> String -> Time.Posix -> String
