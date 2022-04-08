@@ -140,13 +140,13 @@ updateFromFrontend sessionId clientId msg model =
                     Dict.get message.group model.chatGroupDict |> Maybe.map .members |> Maybe.withDefault []
 
                 clientIds =
-                    List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat |> Debug.log "CLIENTS"
+                    List.map (\username -> Chat.getClients username model.connectionDict) groupMembers |> List.concat
 
                 commands : List (Cmd backendMsg)
                 commands =
                     List.map (\clientId_ -> sendToFrontend clientId_ (MessageReceived (Types.ChatMsg clientId_ message))) clientIds
             in
-            ( { model | chatDict = Chat.insert message model.chatDict |> Debug.log "CHAT DICT" }, Cmd.batch commands )
+            ( { model | chatDict = Chat.insert message model.chatDict }, Cmd.batch commands )
 
         DeliverUserMessage usermessage ->
             case Dict.get usermessage.to model.connectionDict of
