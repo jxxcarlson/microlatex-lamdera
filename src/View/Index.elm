@@ -192,7 +192,12 @@ viewMydocs model deltaH indexShift =
                 " [" ++ model.actualSearchKey ++ "]"
 
         buttonText =
-            "My docs" ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
+            case model.currentUser of
+                Nothing ->
+                    "Startup docs"
+
+                Just _ ->
+                    "My docs" ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
 
         titleButton =
             E.el [ Font.color (E.rgb 0 0 0), Font.size 16 ] (E.text buttonText)
