@@ -186,7 +186,7 @@ viewMydocs model deltaH indexShift =
 
         searchKey =
             if model.actualSearchKey == "" then
-                ""
+                "[most recent]"
 
             else
                 ", " ++ model.actualSearchKey
