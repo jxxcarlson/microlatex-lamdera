@@ -6,6 +6,7 @@ module Compiler.ASTTools exposing
     , filterBlocksByArgs
     , filterBlocksOnName
     , filterExpressionsOnName
+    , filterForestForExpressionsWithName
     , getText
     , matchingIdsInAST
     , normalize
@@ -32,6 +33,11 @@ normalize exprs =
 
         _ ->
             exprs
+
+
+filterForestForExpressionsWithName : String -> Forest Expr -> List Expr
+filterForestForExpressionsWithName name forest =
+    filterExpressionsOnName name (List.map Tree.flatten forest |> List.concat)
 
 
 filterExpressionsOnName : String -> List Expr -> List Expr

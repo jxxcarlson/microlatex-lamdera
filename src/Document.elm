@@ -6,6 +6,7 @@ module Document exposing
     , currentAuthor
     , defaultSettings
     , empty
+    , setTags
     , shareToString
     , toDocInfo
     , wordCount
@@ -44,6 +45,39 @@ type alias Document =
 type Share
     = ShareWith { readers : List Username, editors : List Username }
     | NotShared
+
+
+{-| Find tags in the text of the document and set them in the tag field
+-}
+setTags : Document -> Document
+setTags doc =
+    let
+        tagLines =
+            case doc.language of
+                L0Lang ->
+                    String.lines doc.content
+                        |> List.filter (\line -> String.contains "[tags " line)
+                        |> List.map (\s -> s |> String.replace "[tags " "" |> String.replace "]" "")
+
+                MicroLaTeXLang ->
+                    String.lines doc.content
+                        |> List.filter (\line -> String.contains "\\tags{" line)
+                        |> List.map (\s -> s |> String.replace "\\tags{" "" |> String.replace "}" "")
+
+                XMarkdownLang ->
+                    String.lines doc.content
+                        |> List.filter (\line -> String.contains "@[tags" line)
+                        |> List.map (\s -> s |> String.replace "@[tags" "" |> String.replace "]" "")
+
+                PlainTextLang ->
+                    String.lines doc.content
+                        |> List.filter (\line -> String.contains "[tags " line)
+                        |> List.map (\s -> s |> String.replace "[tags " "" |> String.replace "]" "")
+
+        tags =
+            List.map (String.split ", ") tagLines |> List.concat |> List.map String.trim
+    in
+    { doc | tags = tags }
 
 
 shareToString : Share -> String

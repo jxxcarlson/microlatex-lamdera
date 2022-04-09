@@ -126,7 +126,7 @@ update msg model =
 
         Tick newTime ->
             -- Do regular tasks
-            { model | currentTime = newTime } |> updateAbstracts |> Cmd.Extra.withNoCmd
+            { model | currentTime = newTime } |> updateAbstracts |> Backend.Update.updateDocumentTags |> Cmd.Extra.withNoCmd
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )

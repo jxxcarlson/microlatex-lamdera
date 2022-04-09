@@ -170,7 +170,7 @@ urlAction path =
         prefix =
             String.left 3 path
 
-        id =
+        segment =
             String.dropLeft 3 path
     in
     if prefix == "/" then
@@ -178,19 +178,17 @@ urlAction path =
 
     else
         case prefix of
-            --"/p/" ->
-            --    sendToBackend (GetDocumentByPublicId id)
             "/i/" ->
-                sendToBackend (GetDocumentById id)
+                sendToBackend (GetDocumentById segment)
 
             "/a/" ->
-                sendToBackend (GetDocumentByAuthorId id)
+                sendToBackend (GetDocumentByAuthorId segment)
 
             "/s/" ->
-                sendToBackend (SearchForDocuments Nothing id)
+                sendToBackend (SearchForDocuments Nothing segment)
 
             "/h/" ->
-                sendToBackend (GetHomePage id)
+                sendToBackend (GetHomePage segment)
 
             _ ->
                 --Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))

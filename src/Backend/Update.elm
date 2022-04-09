@@ -16,12 +16,12 @@ module Backend.Update exposing
     , removeSessionFromDict
     , saveDocument
     , searchForDocuments
-    , searchForDocuments_
     , searchForPublicDocuments
     , signIn
     , signUpUser
     , unlockDocuments
     , updateAbstracts
+    , updateDocumentTags
     )
 
 import Abstract
@@ -384,6 +384,25 @@ searchForDocuments model clientId maybeUsername key =
     )
 
 
+searchForDocumentsByAuthor model clientId maybeUsername key =
+    case String.split "/" key of
+        [] ->
+            ( model, Cmd.none )
+
+        author :: [] ->
+            searchForDocuments model clientId maybeUsername author
+
+        author :: keys ->
+            searchForDocuments model clientId maybeUsername author
+
+
+
+-- |> filterByKeys keys
+--filterByKeys : AbstractDict -> List String -> List Document.Document -> List Document.Document
+--filterByKeys dict keys docs =
+--
+
+
 searchForPublicDocuments : Maybe String -> String -> Model -> List Document.Document
 searchForPublicDocuments mUsername key model =
     searchForDocuments_ key model |> List.filter (\doc -> doc.public || View.Utility.isSharedToMe_ mUsername doc)
@@ -605,3 +624,13 @@ updateAbstractById id docDict abstractDict =
 updateAbstracts : DocumentDict -> AbstractDict -> AbstractDict
 updateAbstracts documentDict abstractDict =
     List.foldl (\id acc -> updateAbstractById id documentDict acc) abstractDict (Dict.keys documentDict)
+
+
+updateDocumentTagsInDict : DocumentDict -> DocumentDict
+updateDocumentTagsInDict dict =
+    List.foldl (\doc dict_ -> Dict.insert doc.id (Document.setTags doc) dict_) dict (Dict.values dict)
+
+
+updateDocumentTags : Model -> Model
+updateDocumentTags model =
+    { model | documentDict = updateDocumentTagsInDict model.documentDict }
