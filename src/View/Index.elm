@@ -5,6 +5,7 @@ import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
+import Frontend.Update
 import String.Extra
 import Time
 import Types exposing (ActiveDocList(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..), SystemDocPermissions(..))
@@ -83,7 +84,7 @@ viewSharedDocs model deltaH indexShift =
                     []
 
                 Just user_ ->
-                    user_.docs |> BoundedDeque.toList |> sort
+                    user_.docs |> BoundedDeque.toList
 
         buttonText =
             "Working docs (" ++ String.fromInt (List.length docInfoList) ++ ")"

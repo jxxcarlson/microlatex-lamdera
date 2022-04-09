@@ -30,6 +30,7 @@ module Frontend.Update exposing
     , setPublicDocumentAsCurrentById
     , setUserLanguage
     , setViewportForElement
+    , sortDocuments
     , syncLR
     , unlockCurrentDocument
     , updateCurrentDocument
@@ -65,7 +66,9 @@ import Render.Markup
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings as Settings
 import Share
+import String.Extra
 import Task
+import Time
 import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
 import User exposing (User)
 import Util
@@ -959,3 +962,21 @@ newDocument model =
 updateCurrentDocument : Document -> FrontendModel -> FrontendModel
 updateCurrentDocument doc model =
     { model | currentDocument = Just doc }
+
+
+
+-- SORT
+
+
+sortDocuments : Types.SortMode -> List Document -> List Document
+sortDocuments sortMode documents =
+    let
+        sort_ =
+            case sortMode of
+                Types.SortAlphabetically ->
+                    List.sortBy (\doc -> doc.title)
+
+                Types.SortByMostRecent ->
+                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+    in
+    sort_ documents

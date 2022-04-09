@@ -875,12 +875,16 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
-        ReceivedDocuments documents ->
-            case List.head documents of
+        ReceivedDocuments documents_ ->
+            case List.head documents_ of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just doc ->
+                    let
+                        documents =
+                            Frontend.Update.sortDocuments model.sortMode documents_
+                    in
                     ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
 
         -- CHAT (updateFromBackend)
