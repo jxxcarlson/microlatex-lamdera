@@ -852,11 +852,12 @@ updateFromBackend msg model =
                 Just doc ->
                     let
                         cmd =
-                            if model.actualSearchKey == Config.publicDocumentStartupSearchKey then
-                                Cmd.none
+                            case model.currentUser of
+                                Nothing ->
+                                    Cmd.none
 
-                            else
-                                Util.delay 40 (SetDocumentCurrent doc)
+                                Just _ ->
+                                    Util.delay 40 (SetDocumentCurrent doc)
                     in
                     ( { model | publicDocuments = publicDocuments }, Util.delay 40 (SetDocumentCurrent doc) )
 
