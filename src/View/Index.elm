@@ -221,7 +221,7 @@ viewPublicDocs model deltaH indexShift =
     let
         searchKey =
             if model.actualSearchKey == "" then
-                Config.publicDocumentSearchKey
+                Config.publicDocumentStartupSearchKey
 
             else
                 model.actualSearchKey

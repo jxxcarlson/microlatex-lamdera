@@ -12,7 +12,7 @@ module Config exposing
     , masterDocLoadedPageId
     , maxDocSearchLimit
     , pdfServer
-    , publicDocumentSearchKey
+    , publicDocumentStartupSearchKey
     , startupHelpDocumentId
     , titleSize
     , transitKey
@@ -54,7 +54,7 @@ maxDocSearchLimit =
     30
 
 
-publicDocumentSearchKey =
+publicDocumentStartupSearchKey =
     "system:startup"
 
 

@@ -142,7 +142,7 @@ init url key =
       , inputSearchKey = ""
       , actualSearchKey = ""
       , inputSearchTagsKey = ""
-      , publicDocumentSearchKey = Config.publicDocumentSearchKey
+      , publicDocumentSearchKey = Config.publicDocumentStartupSearchKey
       , authorId = ""
       , documents = []
       , currentDocument = Just Docs.notSignedIn
@@ -850,6 +850,14 @@ updateFromBackend msg model =
                     ( { model | publicDocuments = publicDocuments }, Cmd.none )
 
                 Just doc ->
+                    let
+                        cmd =
+                            if model.actualSearchKey == Config.publicDocumentStartupSearchKey then
+                                Cmd.none
+
+                            else
+                                Util.delay 40 (SetDocumentCurrent doc)
+                    in
                     ( { model | publicDocuments = publicDocuments }, Util.delay 40 (SetDocumentCurrent doc) )
 
         SendMessage message ->
