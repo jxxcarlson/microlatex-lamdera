@@ -129,6 +129,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , publicDocumentSearchKey = "system:startup"
       , lineNumber = 0
       , permissions = SystemReadOnly
       , initialText = Config.loadingText

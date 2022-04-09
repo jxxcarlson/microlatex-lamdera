@@ -207,7 +207,7 @@ viewMydocs model deltaH indexShift =
 viewPublicDocs model deltaH indexShift =
     let
         buttonText =
-            "Published docs (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
+            "Published, " ++ model.publicDocumentSearchKey ++ " (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
 
         titleButton =
             Button.toggleActiveDocList buttonText

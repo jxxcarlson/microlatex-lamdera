@@ -132,6 +132,7 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , publicDocumentSearchKey : String
     , docLoaded : DocLoaded
     , documentsCreatedCounter : Int
     , initialText : String
