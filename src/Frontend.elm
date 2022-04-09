@@ -807,9 +807,6 @@ updateFromBackend msg model =
 
         SendDocument _ doc ->
             let
-                documents =
-                    Util.updateDocumentInList doc model.documents
-
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
 
@@ -824,12 +821,10 @@ updateFromBackend msg model =
                 | editRecord = editRecord
                 , title = Compiler.ASTTools.title editRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-
-                -- , showEditor = showEditor
+                , documents = Util.insertInListOrUpdate doc model.documents
                 , currentDocument = Just doc
                 , sourceText = doc.content
                 , currentMasterDocument = currentMasterDocument
-                , documents = documents
                 , counter = model.counter + 1
               }
             , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]

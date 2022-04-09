@@ -1,9 +1,7 @@
 module Util exposing
-    ( batch
-    , currentUsername
+    ( currentUsername
     , delay
-    , insertInList
-    , insertInListViaTitle
+    , insertInListOrUpdate
     , updateDocumentInList
     )
 
@@ -17,15 +15,6 @@ import User
 currentUsername : Maybe User.User -> String
 currentUsername currentUser =
     Maybe.map .username currentUser |> Maybe.withDefault "(nobody)"
-
-
-insertInList : a -> List a -> List a
-insertInList a list =
-    if List.Extra.notMember a list then
-        a :: list
-
-    else
-        list
 
 
 batch =
@@ -42,10 +31,19 @@ updateDocumentInList doc list =
     List.Extra.setIf (\d -> d.id == doc.id) doc list
 
 
-insertInListViaTitle : Document -> List Document -> List Document
-insertInListViaTitle doc list =
-    if List.Extra.notMember doc.title (List.map .title list) then
+insertInListOrUpdate : Document -> List Document -> List Document
+insertInListOrUpdate doc list =
+    if List.Extra.notMember doc list then
         doc :: list
+
+    else
+        updateDocumentInList doc list
+
+
+insertInList : a -> List a -> List a
+insertInList a list =
+    if List.Extra.notMember a list then
+        a :: list
 
     else
         list
