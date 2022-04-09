@@ -10,6 +10,7 @@ module Config exposing
     , loadingId
     , loadingText
     , masterDocLoadedPageId
+    , maxDocSearchLimit
     , pdfServer
     , startupHelpDocumentId
     , titleSize
@@ -48,8 +49,8 @@ backendTickSeconds =
             60
 
 
-welcomeDocLocalId =
-    "id-da833-rp359"
+maxDocSearchLimit =
+    20
 
 
 loadingId =

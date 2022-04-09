@@ -585,7 +585,7 @@ type ToBackend
     | SignOutBE (Maybe String)
     | GetHomePage String
     | FetchDocumentById String (Maybe String)
-    | GetPublicDocuments (Maybe String)
+    | GetPublicDocuments SortMode (Maybe String)
     | SaveDocument Document
     | SearchForDocumentsWithAuthorAndKey String
     | GetDocumentByPublicId String

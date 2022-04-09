@@ -33,6 +33,7 @@ import Config
 import DateTimeUtility
 import Dict
 import Document
+import DocumentTools
 import Hex
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
@@ -362,8 +363,8 @@ signIn model sessionId clientId username encryptedPassword =
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
-                    [ sendToFrontend clientId (ReceivedDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
-                    , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments (Just userData.user.username) "startup" model))
+                    [ sendToFrontend clientId (ReceivedDocuments <| getUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
+                    , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| { content = "Signed in", status = MSNormal })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
@@ -382,7 +383,7 @@ searchForDocuments model clientId maybeUsername key =
     ( model
     , Cmd.batch
         [ sendToFrontend clientId (ReceivedDocuments (searchForUserDocuments maybeUsername key model))
-        , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments maybeUsername key model))
+        , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
         ]
     )
 
@@ -426,9 +427,12 @@ getUserDocumentsForAuthor author model =
 --
 
 
-searchForPublicDocuments : Maybe String -> String -> Model -> List Document.Document
-searchForPublicDocuments mUsername key model =
-    searchForDocuments_ key model |> List.filter (\doc -> doc.public || View.Utility.isSharedToMe_ mUsername doc)
+searchForPublicDocuments : Types.SortMode -> Int -> Maybe String -> String -> Model -> List Document.Document
+searchForPublicDocuments sortMode limit mUsername key model =
+    searchForDocuments_ key model
+        |> List.filter (\doc -> doc.public || View.Utility.isSharedToMe_ mUsername doc)
+        |> DocumentTools.sort sortMode
+        |> List.take Config.maxDocSearchLimit
 
 
 searchForDocuments_ : String -> Model -> List Document.Document
@@ -577,8 +581,8 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             )
 
 
-getUserDocuments : User -> UsersDocumentsDict -> DocumentDict -> List Document.Document
-getUserDocuments user usersDocumentsDict documentDict =
+getUserDocuments : Types.SortMode -> Int -> User -> UsersDocumentsDict -> DocumentDict -> List Document.Document
+getUserDocuments sortMode limit user usersDocumentsDict documentDict =
     case Dict.get user.id usersDocumentsDict of
         Nothing ->
             []

@@ -30,7 +30,6 @@ module Frontend.Update exposing
     , setPublicDocumentAsCurrentById
     , setUserLanguage
     , setViewportForElement
-    , sortDocuments
     , syncLR
     , unlockCurrentDocument
     , updateCurrentDocument
@@ -817,13 +816,14 @@ handleSignOut model =
         , popupState = NoPopup
         , showEditor = False
         , chatVisible = False
+        , sortMode = Types.SortByMostRecent
       }
     , Cmd.batch
         [ Nav.pushUrl model.key "/"
         , cmd
         , sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
         , sendToBackend (GetDocumentById Config.welcomeDocId)
-        , sendToBackend (GetPublicDocuments Nothing)
+        , sendToBackend (GetPublicDocuments Types.SortByMostRecent Nothing)
         ]
     )
 
@@ -966,17 +966,3 @@ updateCurrentDocument doc model =
 
 
 -- SORT
-
-
-sortDocuments : Types.SortMode -> List Document -> List Document
-sortDocuments sortMode documents =
-    let
-        sort_ =
-            case sortMode of
-                Types.SortAlphabetically ->
-                    List.sortBy (\doc -> doc.title)
-
-                Types.SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
-    in
-    sort_ documents

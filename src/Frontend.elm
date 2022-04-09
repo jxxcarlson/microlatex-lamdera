@@ -11,6 +11,7 @@ import Debounce
 import Dict
 import Docs
 import Document
+import DocumentTools
 import Element
 import File.Download as Download
 import Frontend.Cmd
@@ -149,7 +150,7 @@ init url key =
       , publicDocuments = []
       , deleteDocumentState = WaitingForDeleteAction
       , sortMode = SortAlphabetically
-      , language = MicroLaTeXLang
+      , language = Config.initialLanguage
       , inputTitle = ""
       , inputReaders = ""
       , inputEditors = ""
@@ -878,7 +879,7 @@ updateFromBackend msg model =
         ReceivedDocuments documents_ ->
             let
                 documents =
-                    Frontend.Update.sortDocuments model.sortMode documents_
+                    DocumentTools.sort model.sortMode documents_
             in
             case List.head documents of
                 Nothing ->

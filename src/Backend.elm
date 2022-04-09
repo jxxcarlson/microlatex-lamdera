@@ -279,8 +279,8 @@ updateFromFrontend sessionId clientId msg model =
         GetDocumentById id ->
             Backend.Update.getDocumentById model clientId id
 
-        GetPublicDocuments mUsername ->
-            ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments mUsername "startup" model)) )
+        GetPublicDocuments sortMode mUsername ->
+            ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
