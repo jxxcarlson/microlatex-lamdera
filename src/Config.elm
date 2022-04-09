@@ -15,16 +15,17 @@ module Config exposing
     , welcomeDocId
     )
 
+import Env
 import Parser.Language
 
 
 welcomeDocId =
-    "id-gv236-po313"
+    case Env.mode of
+        Env.Production ->
+            "id-gv236-po313"
 
-
-
---welcomeDocId =
---    "id-da833-rp359"
+        Env.Development ->
+            "id-da833-rp359"
 
 
 welcomeDocLocalId =
