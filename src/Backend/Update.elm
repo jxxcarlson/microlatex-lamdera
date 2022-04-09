@@ -399,10 +399,6 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model
 
         author :: firstKey :: rest ->
-            let
-                _ =
-                    Debug.log "(author, firstKey)" ( author, firstKey )
-            in
             getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member firstKey doc.tags)
 
 
@@ -410,36 +406,14 @@ getUserDocumentsForAuthor : String -> Model -> List Document.Document
 getUserDocumentsForAuthor author model =
     case Authentication.userIdFromUserName author model.authenticationDict of
         Nothing ->
-            let
-                _ =
-                    Debug.log "BRANCH" 1
-            in
             []
 
         Just userId ->
-            let
-                _ =
-                    Debug.log "userId" userId
-
-                _ =
-                    Debug.log "usersDocumentsDict" model.usersDocumentsDict
-            in
             case Dict.get userId model.usersDocumentsDict of
                 Nothing ->
-                    let
-                        _ =
-                            Debug.log "BRANCH" 2
-                    in
                     []
 
                 Just usersDocIds ->
-                    let
-                        _ =
-                            Debug.log "BRANCH" 3
-
-                        _ =
-                            Debug.log "usersDocIds" usersDocIds
-                    in
                     List.map (\id -> Dict.get id model.documentDict) usersDocIds |> Maybe.Extra.values
 
 
