@@ -185,14 +185,14 @@ viewMydocs model deltaH indexShift =
             sort model.documents
 
         searchKey =
-            if model.inputSearchKey == "" then
-                "--"
+            if model.actualSearchKey == "" then
+                ""
 
             else
-                model.inputSearchKey
+                ", " ++ model.actualSearchKey
 
         buttonText =
-            "My docs, " ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
+            "My docs" ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
 
         titleButton =
             E.el [ Font.color (E.rgb 0 0 0), Font.size 16 ] (E.text buttonText)
@@ -215,11 +215,11 @@ viewMydocs model deltaH indexShift =
 viewPublicDocs model deltaH indexShift =
     let
         searchKey =
-            if model.inputSearchKey == "" then
+            if model.actualSearchKey == "" then
                 Config.publicDocumentSearchKey
 
             else
-                model.inputSearchKey
+                model.actualSearchKey
 
         buttonText =
             "Public, " ++ searchKey ++ " (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"

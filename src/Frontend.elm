@@ -140,6 +140,7 @@ init url key =
       , debounce = Debounce.init
       , counter = 0
       , inputSearchKey = ""
+      , actualSearchKey = ""
       , inputSearchTagsKey = ""
       , publicDocumentSearchKey = Config.publicDocumentSearchKey
       , authorId = ""
@@ -568,7 +569,13 @@ update msg model =
             updateDoc model str
 
         Search ->
-            ( { model | documentList = StandardList, currentMasterDocument = Nothing }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) model.inputSearchKey) )
+            ( { model
+                | actualSearchKey = model.inputSearchKey
+                , documentList = StandardList
+                , currentMasterDocument = Nothing
+              }
+            , sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) model.inputSearchKey)
+            )
 
         SearchText ->
             Frontend.Update.searchText model

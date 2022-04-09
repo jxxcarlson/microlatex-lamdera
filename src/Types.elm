@@ -153,6 +153,7 @@ type alias FrontendModel =
     , documents : List Document
     , publicDocuments : List Document
     , inputSearchKey : String
+    , actualSearchKey : String
     , inputSearchTagsKey : String
     , inputReaders : String
     , inputEditors : String
