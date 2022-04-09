@@ -189,7 +189,7 @@ viewMydocs model deltaH indexShift =
                 " [most recent]"
 
             else
-                ", " ++ model.actualSearchKey
+                " [" ++ model.actualSearchKey ++ "]"
 
         buttonText =
             "My docs" ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
