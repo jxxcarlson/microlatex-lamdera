@@ -586,7 +586,7 @@ update msg model =
         InputAuthorId str ->
             ( { model | authorId = str }, Cmd.none )
 
-        AskFoDocumentById id ->
+        AskForDocumentById id ->
             ( model, sendToBackend (GetDocumentById id) )
 
         AskForDocumentByAuthorId ->

@@ -509,7 +509,7 @@ type FrontendMsg
     | NewDocument
     | SetDocumentAsCurrent SystemDocPermissions Document
     | SetPublic Document Bool
-    | AskFoDocumentById String
+    | AskForDocumentById String
     | AskForDocumentByAuthorId
     | DeleteDocument
     | SetDeleteDocumentState DocumentDeleteState

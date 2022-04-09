@@ -35,6 +35,7 @@ import Document
 import Hex
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
+import Message
 import Parser.Language exposing (Language(..))
 import Random
 import Share
@@ -130,13 +131,15 @@ getBadDocuments model =
 getDocumentById model clientId id =
     case Dict.get id model.documentDict of
         Nothing ->
-            ( model, sendToFrontend clientId (SendMessage { content = "No document for that docId", status = MSNormal }) )
+            ( model, sendToFrontend clientId (SendMessage { content = "No document for that docId", status = MSError }) )
 
         Just doc ->
             ( model
             , Cmd.batch
                 [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
-                , sendToFrontend clientId (SetShowEditor False)
+
+                --, sendToFrontend clientId (SetShowEditor False)
+                , sendToFrontend clientId (SendMessage { content = "Sending doc " ++ id, status = MSGreen })
                 ]
             )
 

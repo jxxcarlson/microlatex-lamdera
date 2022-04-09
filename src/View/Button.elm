@@ -687,16 +687,16 @@ home =
 
 
 iLink id label =
-    buttonTemplate [] (Fetch id) label
+    buttonTemplate [] (AskForDocumentById id) label
 
 
 getDocument : String -> String -> Bool -> Element FrontendMsg
 getDocument id title highlighted =
     if highlighted then
-        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskFoDocumentById id) title
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskForDocumentById id) title
 
     else
-        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskFoDocumentById id) title
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskForDocumentById id) title
 
 
 setDocumentAsCurrent : SystemDocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
