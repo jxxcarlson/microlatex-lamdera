@@ -32,7 +32,7 @@ type alias AuthenticationDict =
 
 userIdFromUserName : String -> AuthenticationDict -> Maybe String
 userIdFromUserName username authDict =
-    Dict.get username authDict |> Debug.log "(AUTH)" |> Maybe.map (.user >> .id)
+    Dict.get username authDict |> Maybe.map (.user >> .id)
 
 
 updateUser : User -> AuthenticationDict -> AuthenticationDict
