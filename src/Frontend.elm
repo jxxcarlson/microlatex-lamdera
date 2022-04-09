@@ -854,7 +854,7 @@ updateFromBackend msg model =
                         cmd =
                             case model.currentUser of
                                 Nothing ->
-                                    if model.activeDocList == "system:startup" then
+                                    if model.actualSearchKey == "system:startup" then
                                         Cmd.none
 
                                     else
