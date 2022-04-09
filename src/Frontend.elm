@@ -854,7 +854,11 @@ updateFromBackend msg model =
                         cmd =
                             case model.currentUser of
                                 Nothing ->
-                                    Cmd.none
+                                    if model.activeDocList == "system:startup" then
+                                        Cmd.none
+
+                                    else
+                                        Util.delay 40 (SetDocumentCurrent doc)
 
                                 Just _ ->
                                     Util.delay 40 (SetDocumentCurrent doc)
