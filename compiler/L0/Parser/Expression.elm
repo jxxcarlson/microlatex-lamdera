@@ -279,11 +279,11 @@ eval lineNumber tokens =
 
             Nothing ->
                 -- this happens with input of "[]"
-                [ errorMessageInvisible lineNumber "[ ] not legal - you need something between the brackets", errorMessage "[?? (1)]" ]
+                [ errorMessage "[ ]" ]
 
             _ ->
                 -- [ errorMessageInvisible lineNumber "•••", errorMessage <| "[" ++ Token.toString args ++ "??(2) ]" ]
-                [ errorMessage "••••" ]
+                [ errorMessage "[••••]" ]
 
     else
         []
@@ -320,7 +320,7 @@ evalList lineNumber tokens =
 
 errorMessageInvisible : Int -> String -> Expr
 errorMessageInvisible lineNumber message =
-    Expr "invisible" [ Text (message ++ "(X)") dummyLocWithId ] dummyLocWithId
+    Expr "invisible" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 errorMessage : String -> Expr
@@ -335,7 +335,7 @@ errorMessageBold message =
 
 errorMessage2 : String -> Expr
 errorMessage2 message =
-    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
+    Expr "violet" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 addErrorMessage : String -> State -> State

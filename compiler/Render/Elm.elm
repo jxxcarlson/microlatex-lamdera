@@ -109,6 +109,11 @@ markupDict =
 
         --
         , ( "dollarSign", \_ _ _ _ -> Element.el [] (Element.text "$") )
+        , ( "brackets", \g acc s exprList -> brackets g acc s exprList )
+        , ( "rb", \g acc s exprList -> rightBracket g acc s exprList )
+        , ( "lb", \g acc s exprList -> leftBracket g acc s exprList )
+        , ( "bt", \g acc s exprList -> backTick g acc s exprList )
+        , ( "ds", \_ _ _ _ -> Element.el [] (Element.text "$") )
         , ( "bs", \g acc s exprList -> Element.paragraph [] (Element.text "\\" :: List.map (render g acc s) exprList) )
         , ( "texarg", \g acc s exprList -> Element.paragraph [] ((Element.text "{" :: List.map (render g acc s) exprList) ++ [ Element.text " }" ]) )
         , ( "backTick", \_ _ _ _ -> Element.el [] (Element.text "`") )
@@ -373,6 +378,22 @@ syspar _ _ _ _ =
 
 strong g acc s exprList =
     simpleElement [ Font.bold ] g acc s exprList
+
+
+brackets g acc s exprList =
+    Element.paragraph [ Element.spacing 8 ] [ Element.text "[", simpleElement [] g acc s exprList, Element.text " ]" ]
+
+
+rightBracket g acc s exprList =
+    Element.text "]"
+
+
+leftBracket g acc s exprList =
+    Element.text "["
+
+
+backTick g acc s exprList =
+    Element.text "`"
 
 
 italic g acc s exprList =
