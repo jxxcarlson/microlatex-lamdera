@@ -1,6 +1,7 @@
 module View.Index exposing (view, viewDocuments)
 
 import BoundedDeque
+import Config
 import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Background as Background
@@ -183,8 +184,15 @@ viewMydocs model deltaH indexShift =
         docs =
             sort model.documents
 
+        searchKey =
+            if model.inputSearchKey == "" then
+                "--"
+
+            else
+                model.inputSearchKey
+
         buttonText =
-            "My docs (" ++ String.fromInt (List.length docs) ++ ")"
+            "My docs, " ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
 
         titleButton =
             E.el [ Font.color (E.rgb 0 0 0), Font.size 16 ] (E.text buttonText)
@@ -206,8 +214,15 @@ viewMydocs model deltaH indexShift =
 
 viewPublicDocs model deltaH indexShift =
     let
+        searchKey =
+            if model.inputSearchKey == "" then
+                Config.publicDocumentSearchKey
+
+            else
+                model.inputSearchKey
+
         buttonText =
-            "Published, " ++ model.publicDocumentSearchKey ++ " (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
+            "Public, " ++ searchKey ++ " (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
 
         titleButton =
             Button.toggleActiveDocList buttonText

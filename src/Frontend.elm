@@ -129,7 +129,6 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
-      , publicDocumentSearchKey = "system:startup"
       , lineNumber = 0
       , permissions = SystemReadOnly
       , initialText = Config.loadingText
@@ -142,6 +141,7 @@ init url key =
       , counter = 0
       , inputSearchKey = ""
       , inputSearchTagsKey = ""
+      , publicDocumentSearchKey = Config.publicDocumentSearchKey
       , authorId = ""
       , documents = []
       , currentDocument = Just Docs.notSignedIn

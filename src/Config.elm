@@ -12,6 +12,7 @@ module Config exposing
     , masterDocLoadedPageId
     , maxDocSearchLimit
     , pdfServer
+    , publicDocumentSearchKey
     , startupHelpDocumentId
     , titleSize
     , transitKey
@@ -50,7 +51,11 @@ backendTickSeconds =
 
 
 maxDocSearchLimit =
-    20
+    30
+
+
+publicDocumentSearchKey =
+    "system:startup"
 
 
 loadingId =
