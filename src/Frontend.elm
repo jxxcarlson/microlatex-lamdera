@@ -168,10 +168,10 @@ urlAction : String -> Cmd FrontendMsg
 urlAction path =
     let
         prefix =
-            String.left 3 path |> Debug.log "XYZ, PREFIX"
+            String.left 3 path
 
         id =
-            String.dropLeft 3 path |> Debug.log "XYZ, ID"
+            String.dropLeft 3 path
     in
     if prefix == "/" then
         sendToBackend (GetDocumentById Config.welcomeDocId)
