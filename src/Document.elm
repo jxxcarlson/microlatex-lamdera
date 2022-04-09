@@ -8,6 +8,7 @@ module Document exposing
     , empty
     , setTags
     , shareToString
+    , testDoc
     , toDocInfo
     , wordCount
     )
@@ -167,6 +168,10 @@ empty =
     , share = NotShared
     , tags = []
     }
+
+
+testDoc =
+    { empty | content = "| title\nHo ho ho\n\n[tags one, two, three]\n\n", language = L0Lang }
 
 
 wordCount : Document -> Int

@@ -33,6 +33,7 @@ import Message
 import Random
 import Share
 import Time
+import Tools
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
 
@@ -54,7 +55,7 @@ subscriptions model =
     Sub.batch
         [ Lamdera.onConnect ClientConnected
         , Lamdera.onDisconnect ClientDisconnected
-        , Time.every (30 * 1000) Tick
+        , Time.every (Config.backendTickSeconds * 1000) Tick
         ]
 
 
@@ -126,7 +127,10 @@ update msg model =
 
         Tick newTime ->
             -- Do regular tasks
-            { model | currentTime = newTime } |> updateAbstracts |> Backend.Update.updateDocumentTags |> Cmd.Extra.withNoCmd
+            { model | currentTime = newTime }
+                |> updateAbstracts
+                |> Backend.Update.updateDocumentTags
+                |> Cmd.Extra.withNoCmd
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
@@ -269,8 +273,8 @@ updateFromFrontend sessionId clientId msg model =
         GetHomePage username ->
             Backend.Update.getHomePage model clientId username
 
-        GetDocumentByAuthorId authorId ->
-            Backend.Update.getDocumentByAuthorId model clientId authorId
+        SearchForDocumentsWithAuthorAndKey segment ->
+            Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
 
         GetDocumentById id ->
             Backend.Update.getDocumentById model clientId id
@@ -281,7 +285,8 @@ updateFromFrontend sessionId clientId msg model =
         ApplySpecial _ _ ->
             -- stealId user id model |> Cmd.Extra.withNoCmd
             -- Backend.Update.applySpecial model clientId
-            ( { model | sharedDocumentDict = Share.createShareDocumentDict model.documentDict }, Cmd.none )
+            --( { model | sharedDocumentDict = Share.createShareDocumentDict model.documentDict }, Cmd.none )
+            ( model, Cmd.none )
 
         DeleteDocumentBE doc ->
             Backend.Update.deleteDocument clientId doc model

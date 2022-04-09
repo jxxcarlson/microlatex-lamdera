@@ -4,6 +4,7 @@ module Authentication exposing
     , encryptForTransit
     , insert
     , updateUser
+    , userIdFromUserName
     , userList
     , users
     , verify
@@ -27,6 +28,11 @@ type alias UserData =
 
 type alias AuthenticationDict =
     Dict Username UserData
+
+
+userIdFromUserName : String -> AuthenticationDict -> Maybe String
+userIdFromUserName username authDict =
+    Dict.get username authDict |> Debug.log "(AUTH)" |> Maybe.map (.user >> .id)
 
 
 updateUser : User -> AuthenticationDict -> AuthenticationDict

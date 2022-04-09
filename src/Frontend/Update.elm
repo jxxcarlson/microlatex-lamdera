@@ -877,7 +877,7 @@ handleUrlRequest model urlRequest =
 
                         Nothing ->
                             --if String.left 3 url.path == "/a/" then
-                            sendToBackend (GetDocumentByAuthorId (String.dropLeft 3 url.path))
+                            sendToBackend (SearchForDocumentsWithAuthorAndKey (String.dropLeft 3 url.path))
 
                 --
                 --else if String.left 3 url.path == "/p/" then

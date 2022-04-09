@@ -587,7 +587,7 @@ type ToBackend
     | FetchDocumentById String (Maybe String)
     | GetPublicDocuments (Maybe String)
     | SaveDocument Document
-    | GetDocumentByAuthorId String
+    | SearchForDocumentsWithAuthorAndKey String
     | GetDocumentByPublicId String
     | GetDocumentById String
     | CreateDocument (Maybe User) Document
@@ -629,7 +629,7 @@ type ToFrontend
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | SendDocument SystemDocPermissions Document
-    | SendDocuments (List Document)
+    | ReceivedDocuments (List Document)
     | SendMessage Message
     | StatusReport (List String)
     | SetShowEditor Bool

@@ -1,7 +1,9 @@
 module Config exposing
     ( appName
     , appUrl
+    , backendTickSeconds
     , documentDeletedNotice
+    , frontendTickSeconds
     , helpDocumentId
     , indentationQuantum
     , initialLanguage
@@ -26,6 +28,24 @@ welcomeDocId =
 
         Env.Development ->
             "id-da833-rp359"
+
+
+frontendTickSeconds =
+    case Env.mode of
+        Env.Production ->
+            1
+
+        Env.Development ->
+            60
+
+
+backendTickSeconds =
+    case Env.mode of
+        Env.Production ->
+            30
+
+        Env.Development ->
+            60
 
 
 welcomeDocLocalId =

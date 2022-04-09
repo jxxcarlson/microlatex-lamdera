@@ -16,6 +16,7 @@ module Backend.Update exposing
     , removeSessionFromDict
     , saveDocument
     , searchForDocuments
+    , searchForDocumentsByAuthorAndKey
     , searchForPublicDocuments
     , signIn
     , signUpUser
@@ -361,7 +362,7 @@ signIn model sessionId clientId username encryptedPassword =
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
-                    [ sendToFrontend clientId (SendDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
+                    [ sendToFrontend clientId (ReceivedDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| { content = "Signed in", status = MSNormal })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
@@ -375,28 +376,75 @@ signIn model sessionId clientId username encryptedPassword =
             ( model, sendToFrontend clientId (SendMessage <| { content = "Sorry, password and username don't match", status = MSNormal }) )
 
 
+searchForDocuments : Model -> ClientId -> Maybe String -> String -> ( Model, Cmd backendMsg )
 searchForDocuments model clientId maybeUsername key =
     ( model
     , Cmd.batch
-        [ sendToFrontend clientId (SendDocuments (searchForUserDocuments maybeUsername key model))
+        [ sendToFrontend clientId (ReceivedDocuments (searchForUserDocuments maybeUsername key model))
         , sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments maybeUsername key model))
         ]
     )
 
 
-searchForDocumentsByAuthor model clientId maybeUsername key =
+searchForDocumentsByAuthorAndKey model clientId key =
+    ( model, sendToFrontend clientId (ReceivedDocuments (searchForDocumentsByAuthorAndKey_ model clientId key)) )
+
+
+searchForDocumentsByAuthorAndKey_ model clientId key =
     case String.split "/" key of
         [] ->
-            ( model, Cmd.none )
+            []
 
         author :: [] ->
-            searchForDocuments model clientId maybeUsername author
+            getUserDocumentsForAuthor author model
 
-        author :: keys ->
-            searchForDocuments model clientId maybeUsername author
+        author :: firstKey :: rest ->
+            let
+                _ =
+                    Debug.log "(author, firstKey)" ( author, firstKey )
+            in
+            getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member firstKey doc.tags)
+
+
+getUserDocumentsForAuthor : String -> Model -> List Document.Document
+getUserDocumentsForAuthor author model =
+    case Authentication.userIdFromUserName author model.authenticationDict of
+        Nothing ->
+            let
+                _ =
+                    Debug.log "BRANCH" 1
+            in
+            []
+
+        Just userId ->
+            let
+                _ =
+                    Debug.log "userId" userId
+
+                _ =
+                    Debug.log "usersDocumentsDict" model.usersDocumentsDict
+            in
+            case Dict.get userId model.usersDocumentsDict of
+                Nothing ->
+                    let
+                        _ =
+                            Debug.log "BRANCH" 2
+                    in
+                    []
+
+                Just usersDocIds ->
+                    let
+                        _ =
+                            Debug.log "BRANCH" 3
+
+                        _ =
+                            Debug.log "usersDocIds" usersDocIds
+                    in
+                    List.map (\id -> Dict.get id model.documentDict) usersDocIds |> Maybe.Extra.values
 
 
 
+--|> List.filter (\doc -> List.member firstKey doc.tags)
 -- |> filterByKeys keys
 --filterByKeys : AbstractDict -> List String -> List Document.Document -> List Document.Document
 --filterByKeys dict keys docs =

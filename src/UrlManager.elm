@@ -22,7 +22,7 @@ handleDocId url =
             sendToBackend (GetHomePage str)
 
         DocUrl slug ->
-            sendToBackend (GetDocumentByAuthorId slug)
+            sendToBackend (SearchForDocumentsWithAuthorAndKey slug)
 
 
 

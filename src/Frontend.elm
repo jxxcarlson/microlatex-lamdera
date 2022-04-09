@@ -58,7 +58,7 @@ app =
 subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
-        , Time.every 1000 FETick
+        , Time.every (Config.frontendTickSeconds * 1000) FETick
         , Sub.map KeyMsg Keyboard.subscriptions
         ]
 
@@ -182,7 +182,7 @@ urlAction path =
                 sendToBackend (GetDocumentById segment)
 
             "/a/" ->
-                sendToBackend (GetDocumentByAuthorId segment)
+                sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
 
             "/s/" ->
                 sendToBackend (SearchForDocuments Nothing segment)
@@ -511,7 +511,7 @@ update msg model =
                     Frontend.Update.openEditor doc model
 
         Help docId ->
-            ( model, sendToBackend (GetDocumentByAuthorId docId) )
+            ( model, sendToBackend (SearchForDocumentsWithAuthorAndKey docId) )
 
         -- SHARE
         Narrow username document ->
@@ -588,7 +588,7 @@ update msg model =
             ( model, sendToBackend (GetDocumentById id) )
 
         AskForDocumentByAuthorId ->
-            ( model, sendToBackend (GetDocumentByAuthorId model.authorId) )
+            ( model, sendToBackend (SearchForDocumentsWithAuthorAndKey model.authorId) )
 
         InputSearchKey str ->
             ( { model | inputSearchKey = str }, Cmd.none )
@@ -875,8 +875,13 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
-        SendDocuments documents ->
-            ( { model | documents = documents }, Cmd.none )
+        ReceivedDocuments documents ->
+            case List.head documents of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
 
         -- CHAT (updateFromBackend)
         GotChatHistory ->
