@@ -150,6 +150,7 @@ type alias FrontendModel =
     , currentDocument : Maybe Document
     , currentMasterDocument : Maybe Document
     , documents : List Document
+    , publicDocuments : List Document
     , inputSearchKey : String
     , inputSearchTagsKey : String
     , inputReaders : String
@@ -157,7 +158,6 @@ type alias FrontendModel =
     , printingState : PrintingState
     , documentDeleteState : DocumentDeleteState
     , counter : Int
-    , publicDocuments : List Document
     , deleteDocumentState : DocumentDeleteState
     , sortMode : SortMode
     , language : Language
@@ -255,11 +255,11 @@ type alias BackendModel =
     , publicIdDict : PublicIdDict
     , abstractDict : AbstractDict
     , usersDocumentsDict : UsersDocumentsDict
-    , publicDocuments : List Document
     , connectionDict : ConnectionDict
 
     -- DOCUMENT
     , documents : List Document
+    , publicDocuments : List Document
     }
 
 
@@ -630,10 +630,10 @@ type ToFrontend
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | SendDocument SystemDocPermissions Document
     | ReceivedDocuments (List Document)
+    | ReceivedPublicDocuments (List Document)
     | SendMessage Message
     | StatusReport (List String)
     | SetShowEditor Bool
-    | GotPublicDocuments (List Document)
 
 
 type SystemDocPermissions

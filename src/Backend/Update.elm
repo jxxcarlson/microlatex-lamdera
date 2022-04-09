@@ -363,6 +363,7 @@ signIn model sessionId clientId username encryptedPassword =
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
                     [ sendToFrontend clientId (ReceivedDocuments <| getUserDocuments userData.user model.usersDocumentsDict model.documentDict)
+                    , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments (Just userData.user.username) "startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| { content = "Signed in", status = MSNormal })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
@@ -381,7 +382,7 @@ searchForDocuments model clientId maybeUsername key =
     ( model
     , Cmd.batch
         [ sendToFrontend clientId (ReceivedDocuments (searchForUserDocuments maybeUsername key model))
-        , sendToFrontend clientId (GotPublicDocuments (searchForPublicDocuments maybeUsername key model))
+        , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments maybeUsername key model))
         ]
     )
 

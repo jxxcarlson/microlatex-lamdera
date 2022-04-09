@@ -828,7 +828,7 @@ updateFromBackend msg model =
             , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
             )
 
-        GotPublicDocuments publicDocuments ->
+        ReceivedPublicDocuments publicDocuments ->
             case List.head publicDocuments of
                 Nothing ->
                     ( { model | publicDocuments = publicDocuments }, Cmd.none )
