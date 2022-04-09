@@ -363,7 +363,7 @@ signIn model sessionId clientId username encryptedPassword =
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
-                    [ sendToFrontend clientId (ReceivedDocuments <| getUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
+                    [ sendToFrontend clientId (ReceivedDocuments <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| { content = "Signed in", status = MSNormal })
@@ -592,6 +592,20 @@ getUserDocuments sortMode limit user usersDocumentsDict documentDict =
                 |> Maybe.Extra.values
                 |> DocumentTools.sort sortMode
                 |> List.take limit
+
+
+getMostRecentUserDocuments : Types.SortMode -> Int -> User -> UsersDocumentsDict -> DocumentDict -> List Document.Document
+getMostRecentUserDocuments sortMode limit user usersDocumentsDict documentDict =
+    case Dict.get user.id usersDocumentsDict of
+        Nothing ->
+            []
+
+        Just docIds ->
+            List.foldl (\id acc -> Dict.get id documentDict :: acc) [] docIds
+                |> Maybe.Extra.values
+                |> DocumentTools.sort Types.SortByMostRecent
+                |> List.take limit
+                |> DocumentTools.sort sortMode
 
 
 numberOfUserDocuments : User -> UsersDocumentsDict -> DocumentDict -> Int
