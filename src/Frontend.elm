@@ -859,7 +859,7 @@ updateFromBackend msg model =
                                 Just _ ->
                                     Util.delay 40 (SetDocumentCurrent doc)
                     in
-                    ( { model | publicDocuments = publicDocuments }, Util.delay 40 (SetDocumentCurrent doc) )
+                    ( { model | publicDocuments = publicDocuments }, cmd )
 
         SendMessage message ->
             let
