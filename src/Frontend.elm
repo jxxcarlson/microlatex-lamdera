@@ -740,11 +740,19 @@ updateDoc_ model doc str =
 
         documents =
             Util.updateDocumentInList newDocument model.documents
+
+        publicDocuments =
+            if newDocument.public then
+                Util.updateDocumentInList newDocument model.publicDocuments
+
+            else
+                model.publicDocuments
     in
     ( { model
         | currentDocument = Just newDocument
         , counter = model.counter + 1
         , documents = documents
+        , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
     , Cmd.batch [ sendToBackend (SaveDocument newDocument), sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc) ]
