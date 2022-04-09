@@ -28,12 +28,16 @@ view model width_ deltaH =
                             -150
             in
             E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
-                [ E.row [ E.spacing 6 ]
-                    [ Button.getPinnedDocs
-                    , Button.openSharedDocumentList model.documentList
-                    , Button.toggleDocumentList model.documentList
-                    , Button.setSortModeMostRecent model.sortMode
-                    , Button.setSortModeAlpha model.sortMode
+                [ E.row [ E.spacing 18 ]
+                    [ E.row [ E.spacing 6, E.alignLeft ]
+                        [ Button.getPinnedDocs
+                        , Button.openSharedDocumentList model.documentList
+                        , Button.toggleDocumentList model.documentList
+                        ]
+                    , E.row [ E.spacing 6, E.alignRight ]
+                        [ Button.setSortModeMostRecent model.sortMode
+                        , Button.setSortModeAlpha model.sortMode
+                        ]
                     ]
                 , case model.documentList of
                     WorkingList ->

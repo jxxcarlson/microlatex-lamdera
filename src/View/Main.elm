@@ -69,7 +69,7 @@ viewEditorAndRenderedText model =
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
                 , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
-                , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) deltaH
+                , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) (deltaH + 10)
                 , Sidebar.view model
                 ]
             , Footer.view model (Geometry.appWidth model.sidebarState (model.windowWidth - 80))
