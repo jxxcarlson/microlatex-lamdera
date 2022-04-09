@@ -809,6 +809,8 @@ handleSignOut model =
         , documents = []
         , messages = [ { content = "Signed out", status = MSNormal } ]
         , inputSearchKey = ""
+        , actualSearchKey = ""
+        , inputTitle = ""
         , inputUsername = ""
         , inputPassword = ""
         , documentList = StandardList
@@ -954,7 +956,12 @@ newDocument model =
                 , language = model.language
             }
     in
-    ( { model | showEditor = True, documentsCreatedCounter = documentsCreatedCounter, popupState = NoPopup }
+    ( { model
+        | showEditor = True
+        , inputTitle = ""
+        , documentsCreatedCounter = documentsCreatedCounter
+        , popupState = NoPopup
+      }
     , Cmd.batch [ sendToBackend (CreateDocument model.currentUser doc) ]
     )
 
