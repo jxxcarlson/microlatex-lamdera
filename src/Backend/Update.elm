@@ -364,7 +364,7 @@ signIn model sessionId clientId username encryptedPassword =
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
                     [ sendToFrontend clientId (ReceivedDocuments <| getUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
-                    , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "startup" model))
+                    , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (SendMessage <| { content = "Signed in", status = MSNormal })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
@@ -588,7 +588,10 @@ getUserDocuments sortMode limit user usersDocumentsDict documentDict =
             []
 
         Just docIds ->
-            List.foldl (\id acc -> Dict.get id documentDict :: acc) [] docIds |> Maybe.Extra.values
+            List.foldl (\id acc -> Dict.get id documentDict :: acc) [] docIds
+                |> Maybe.Extra.values
+                |> DocumentTools.sort sortMode
+                |> List.take limit
 
 
 numberOfUserDocuments : User -> UsersDocumentsDict -> DocumentDict -> Int
