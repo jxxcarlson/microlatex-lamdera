@@ -157,7 +157,8 @@ init url key =
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
-        , sendToBackend (GetPublicDocuments Nothing)
+
+        --, sendToBackend (GetPublicDocuments Nothing)
         , Task.perform AdjustTimeZone Time.here
         ]
     )
@@ -167,10 +168,10 @@ urlAction : String -> Cmd FrontendMsg
 urlAction path =
     let
         prefix =
-            String.left 3 path
+            String.left 3 path |> Debug.log "XYZ, PREFIX"
 
         id =
-            String.dropLeft 3 path
+            String.dropLeft 3 path |> Debug.log "XYZ, ID"
     in
     if prefix == "/" then
         sendToBackend (GetDocumentById Config.welcomeDocId)
