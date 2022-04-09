@@ -172,7 +172,7 @@ urlAction path =
         id =
             String.dropLeft 3 path
     in
-    if prefix == "" then
+    if prefix == "/" then
         sendToBackend (GetDocumentById Config.welcomeDocId)
 
     else
