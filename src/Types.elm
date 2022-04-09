@@ -588,11 +588,11 @@ type ToBackend
     | GetPublicDocuments SortMode (Maybe String)
     | SaveDocument Document
     | SearchForDocumentsWithAuthorAndKey String
+    | SearchForDocuments (Maybe String) String
     | GetDocumentByPublicId String
     | GetDocumentById String
     | CreateDocument (Maybe User) Document
     | ApplySpecial User String
-    | SearchForDocuments (Maybe String) String
     | DeleteDocumentBE Document
     | GetUserTagsFromBE String
     | GetPublicTagsFromBE

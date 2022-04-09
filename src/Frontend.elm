@@ -158,8 +158,7 @@ init url key =
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
-
-        --, sendToBackend (GetPublicDocuments Nothing)
+        , sendToBackend (SearchForDocuments Nothing "system:startup")
         , Task.perform AdjustTimeZone Time.here
         ]
     )
