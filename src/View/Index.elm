@@ -186,7 +186,7 @@ viewMydocs model deltaH indexShift =
 
         searchKey =
             if model.actualSearchKey == "" then
-                "[most recent]"
+                " [most recent]"
 
             else
                 ", " ++ model.actualSearchKey
@@ -222,7 +222,7 @@ viewPublicDocs model deltaH indexShift =
                 model.actualSearchKey
 
         buttonText =
-            "Public, " ++ searchKey ++ " (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
+            "Public [" ++ searchKey ++ "] (" ++ String.fromInt (List.length model.publicDocuments) ++ ")"
 
         titleButton =
             Button.toggleActiveDocList buttonText
