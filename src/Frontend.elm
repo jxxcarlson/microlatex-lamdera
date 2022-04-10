@@ -114,7 +114,7 @@ init url key =
       , activeDocList = Both
       , maximizedIndex = MPublicDocs
       , sidebarState = SidebarIn
-      , tagSelection = TagNeither
+      , tagSelection = TagPublic
       , signupState = HideSignUpForm
       , popupState = NoPopup
 
