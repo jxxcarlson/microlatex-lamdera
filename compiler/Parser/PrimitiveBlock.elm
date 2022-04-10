@@ -372,10 +372,6 @@ elaborate lang line pb =
 
 addCurrentLine_ : Line -> PrimitiveBlock -> PrimitiveBlock
 addCurrentLine_ ({ prefix, content, indent } as line) block =
-    let
-        _ =
-            Debug.log "(blockType, prefix)" ( block.blockType, prefix )
-    in
     if block.blockType == PBVerbatim then
         if block.name == Just "math" then
             { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }

@@ -78,9 +78,7 @@ toPrimitiveBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.parse lang isVerbatimLine
-        |> Debug.log "PBF (1)"
         |> List.map (Compiler.Transform.transform lang)
-        |> Debug.log "PBF (2)"
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []
 
