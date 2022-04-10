@@ -1,5 +1,6 @@
 module Parser.Helpers exposing
     ( Step(..)
+    , getFirstOccurrence
     , loop
     , prependMessage
     )
@@ -20,21 +21,25 @@ loop s f =
             b
 
 
+getFirstOccurrence : (a -> Bool) -> List a -> Maybe a
+getFirstOccurrence predicate list =
+    loop list (nextStep predicate)
+
+
+nextStep : (a -> Bool) -> List a -> Step (List a) (Maybe a)
+nextStep predicate list =
+    case List.head list of
+        Nothing ->
+            Done Nothing
+
+        Just item ->
+            if predicate item then
+                Done (Just item)
+
+            else
+                Loop (List.drop 1 list)
+
+
 prependMessage : Int -> String -> List String -> List String
 prependMessage lineNumber message messages =
     (message ++ " (line " ++ String.fromInt (lineNumber + 2) ++ ")") :: List.take 2 messages
-
-
-
---prependMessage : Int -> String -> List String -> List String
---prependMessage lineNumber message messages =
---    case messages of
---        first :: rest ->
---            if message == first then
---                messages
---
---            else
---                (message ++ "(line " ++ String.fromInt lineNumber ++ ")") :: messages
---
---        _ ->
---            message :: messages

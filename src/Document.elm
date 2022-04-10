@@ -13,6 +13,8 @@ module Document exposing
     , wordCount
     )
 
+import List.Extra
+import Parser.Helpers
 import Parser.Language exposing (Language(..))
 import Render.Settings
 import Time
@@ -57,26 +59,26 @@ setTags doc =
             case doc.language of
                 L0Lang ->
                     String.lines doc.content
-                        |> List.filter (\line -> String.contains "[tags " line)
-                        |> List.map (\s -> s |> String.replace "[tags " "" |> String.replace "]" "")
+                        |> Parser.Helpers.getFirstOccurrence (\line -> String.contains "[tags " line)
+                        |> Maybe.map (\s -> s |> String.replace "[tags " "" |> String.replace "]" "")
 
                 MicroLaTeXLang ->
                     String.lines doc.content
-                        |> List.filter (\line -> String.contains "\\tags{" line)
-                        |> List.map (\s -> s |> String.replace "\\tags{" "" |> String.replace "}" "")
+                        |> Parser.Helpers.getFirstOccurrence (\line -> String.contains "\\tags{" line)
+                        |> Maybe.map (\s -> s |> String.replace "\\tags{" "" |> String.replace "}" "")
 
                 XMarkdownLang ->
                     String.lines doc.content
-                        |> List.filter (\line -> String.contains "@[tags" line)
-                        |> List.map (\s -> s |> String.replace "@[tags" "" |> String.replace "]" "")
+                        |> Parser.Helpers.getFirstOccurrence (\line -> String.contains "@[tags" line)
+                        |> Maybe.map (\s -> s |> String.replace "@[tags" "" |> String.replace "]" "")
 
                 PlainTextLang ->
                     String.lines doc.content
-                        |> List.filter (\line -> String.contains "[tags " line)
-                        |> List.map (\s -> s |> String.replace "[tags " "" |> String.replace "]" "")
+                        |> Parser.Helpers.getFirstOccurrence (\line -> String.contains "[tags " line)
+                        |> Maybe.map (\s -> s |> String.replace "[tags " "" |> String.replace "]" "")
 
         tags =
-            List.map (String.split ", ") tagLines |> List.concat |> List.map String.trim
+            tagLines |> Maybe.withDefault "" |> String.split ", " |> List.map String.trim
     in
     { doc | tags = tags }
 
