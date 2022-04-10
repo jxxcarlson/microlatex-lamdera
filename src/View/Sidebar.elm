@@ -76,7 +76,7 @@ viewTagGroup list =
             E.none
 
         Just headItem ->
-            E.column [ E.spacing 2, E.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ] (E.el [ E.paddingXY 6 0, Font.size 14 ] (E.text headItem.tag) :: List.map viewTagDictItem list)
+            E.column [ E.spacing 2, E.paddingEach { top = 8, bottom = 0, left = 0, right = 0 } ] (E.el [ E.paddingXY 6 0, Font.size 14 ] (E.text headItem.tag) :: List.map viewTagDictItem (List.reverse list))
 
 
 viewTagDictItem : { tag : String, id : String, title : String } -> Element FrontendMsg
