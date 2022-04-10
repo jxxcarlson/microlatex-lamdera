@@ -638,7 +638,7 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             ( { model | connectionDict = newConnectionDict_, randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
             , Cmd.batch
                 [ sendToFrontend clientId (UserSignedUp user)
-                , sendToFrontend clientId (MessageReceived { content = "Success! You have set up your account", status = MSNormal })
+                , sendToFrontend clientId (MessageReceived { content = "Success! Your account is set up.", status = MSGreen })
                 ]
             )
 
