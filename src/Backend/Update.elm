@@ -368,7 +368,7 @@ signIn model sessionId clientId username encryptedPassword =
                     [ sendToFrontend clientId (ReceivedDocuments <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
-                    , sendToFrontend clientId (MessageReceived <| { content = "Signed in", status = MSGreen })
+                    , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
                     ]
                 )

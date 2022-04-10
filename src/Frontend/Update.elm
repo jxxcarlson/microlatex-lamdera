@@ -553,7 +553,6 @@ setDocumentAsCurrentAux doc permissions model =
         , title =
             Compiler.ASTTools.title newEditRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-        , messages = []
         , permissions = setPermissions model.currentUser permissions doc
         , counter = model.counter + 1
         , language = doc.language
