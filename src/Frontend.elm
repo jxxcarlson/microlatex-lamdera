@@ -822,7 +822,7 @@ updateFromBackend msg model =
         AcceptPublicTags tagDict ->
             ( { model | publicTagDict = tagDict }, Cmd.none )
 
-        SendDocument _ doc ->
+        ReceivedDocument _ doc ->
             let
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
@@ -844,7 +844,7 @@ updateFromBackend msg model =
                 , currentMasterDocument = currentMasterDocument
                 , counter = model.counter + 1
               }
-            , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
+            , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
             )
 
         ReceivedPublicDocuments publicDocuments ->

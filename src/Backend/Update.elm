@@ -140,7 +140,7 @@ getDocumentById model clientId id =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
 
                 --, sendToFrontend clientId (SetShowEditor False)
                 , sendToFrontend clientId (SendMessage { content = "Sending doc " ++ id, status = MSGreen })
@@ -155,7 +155,7 @@ getDocumentByCmdId model clientId id =
 
         Just doc ->
             Cmd.batch
-                [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
 
@@ -177,7 +177,7 @@ getDocumentByAuthorId model clientId authorId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
+                        [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -195,7 +195,7 @@ getHomePage model clientId username =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
             )
@@ -214,7 +214,7 @@ getDocumentByPublicId model clientId publicId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
+                        [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -230,7 +230,7 @@ fetchDocumentById model clientId docId maybeUserName =
                 ( model
                 , Cmd.batch
                     [ -- sendToFrontend clientId (SendDocument ReadOnly document)
-                      sendToFrontend clientId (SendDocument SystemCanEdit document)
+                      sendToFrontend clientId (ReceivedDocument SystemCanEdit document)
 
                     --, sendToFrontend clientId (SetShowEditor True)
                     ]
@@ -314,7 +314,7 @@ createDocument model clientId maybeCurrentUser doc_ =
         , usersDocumentsDict = usersDocumentsDict
     }
         |> Cmd.Extra.withCmds
-            [ sendToFrontend clientId (SendDocument SystemCanEdit doc)
+            [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
             , sendToFrontend clientId (SendMessage { content = message, status = MSNormal })
             ]
 

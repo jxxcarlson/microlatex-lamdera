@@ -115,7 +115,7 @@ update msg model =
         DelaySendingDocument clientId doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (SendDocument Types.SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument Types.SystemCanEdit doc)
                 , sendToFrontend clientId
                     (SendMessage
                         { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
@@ -201,7 +201,7 @@ updateFromFrontend sessionId clientId msg model =
                     in
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (SendDocument Types.SystemCanEdit doc)
+                        [ sendToFrontend clientId (ReceivedDocument Types.SystemCanEdit doc)
                         , sendToFrontend clientId (SendMessage message)
                         ]
                     )
