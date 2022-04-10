@@ -507,6 +507,7 @@ searchForUserDocuments maybeUsername key model =
     List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids
         |> Maybe.Extra.values
         |> List.filter (\doc -> doc.author /= Just "" && doc.author == maybeUsername)
+        |> List.take Config.maxDocSearchLimit
 
 
 

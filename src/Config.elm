@@ -47,7 +47,7 @@ backendTickSeconds =
             30
 
         Env.Development ->
-            60
+            3
 
 
 maxDocSearchLimit =
