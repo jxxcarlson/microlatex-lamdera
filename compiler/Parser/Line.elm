@@ -1,4 +1,14 @@
-module Parser.Line exposing (Line, PrimitiveBlockType(..), classify, getNameAndArgs, isEmpty, isNonEmptyBlank, prefixLength, prefixLengths)
+module Parser.Line exposing
+    ( Line
+    , PrimitiveBlockType(..)
+    , classify
+    , getBlockType
+    , getNameAndArgs
+    , isEmpty
+    , isNonEmptyBlank
+    , prefixLength
+    , prefixLengths
+    )
 
 import Compiler.Util
 import Parser exposing ((|.), (|=), Parser)
@@ -45,7 +55,68 @@ classify position lineNumber str =
             result
 
 
-getNameAndArgs : Language -> Line -> ( PrimitiveBlockType, Maybe String, List String )
+getBlockType : Language -> String -> PrimitiveBlockType
+getBlockType lang line_ =
+    let
+        line =
+            String.trim line_
+    in
+    case lang of
+        L0Lang ->
+            case String.left 2 line of
+                "||" ->
+                    PBVerbatim
+
+                "|" ->
+                    PBOrdinary
+
+                _ ->
+                    PBParagraph
+
+        MicroLaTeXLang ->
+            let
+                name =
+                    case Compiler.Util.getMicroLaTeXItem "begin" line of
+                        Just str ->
+                            Just str
+
+                        Nothing ->
+                            if line == "$$" then
+                                Just "math"
+
+                            else
+                                Nothing
+            in
+            if name == Nothing then
+                PBParagraph
+
+            else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || line == "$$" then
+                PBVerbatim
+
+            else
+                PBOrdinary
+
+        PlainTextLang ->
+            PBParagraph
+
+        XMarkdownLang ->
+            if String.left 3 line == "```" then
+                PBVerbatim
+
+            else if String.left 3 line == "|| " then
+                PBVerbatim
+
+            else if String.left 2 line == "$$" then
+                PBVerbatim
+
+            else if String.left 2 line == "| " then
+                PBOrdinary
+
+            else
+                PBParagraph
+
+
+getNameAndArgs : Language -> Line -> ( Maybe String, List String )
 getNameAndArgs lang line =
     case lang of
         MicroLaTeXLang ->
@@ -64,18 +135,8 @@ getNameAndArgs lang line =
 
                             else
                                 Nothing
-
-                bt =
-                    if name == Nothing then
-                        PBParagraph
-
-                    else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || normalizedLine == "$$" then
-                        PBVerbatim
-
-                    else
-                        PBOrdinary
             in
-            ( bt, name, Compiler.Util.getBracketedItems normalizedLine )
+            ( name, Compiler.Util.getBracketedItems normalizedLine )
 
         L0Lang ->
             let
@@ -95,7 +156,7 @@ getNameAndArgs lang line =
                     args =
                         List.drop 1 words
                 in
-                ( PBVerbatim, Just name, args )
+                ( Just name, args )
 
             else if String.left 1 normalizedLine == "|" then
                 let
@@ -108,32 +169,32 @@ getNameAndArgs lang line =
                     args =
                         List.drop 1 words
                 in
-                ( PBOrdinary, Just name, args )
+                ( Just name, args )
 
             else if String.left 2 line.content == "$$" then
-                ( PBVerbatim, Just "math", [] )
+                ( Just "math", [] )
 
             else
-                ( PBParagraph, Nothing, [] )
+                ( Nothing, [] )
 
         PlainTextLang ->
-            ( PBParagraph, Nothing, [] )
+            ( Nothing, [] )
 
         XMarkdownLang ->
             if String.left 3 line.content == "```" then
-                ( PBVerbatim, Just "code", [] )
+                ( Just "code", [] )
 
             else if String.left 3 line.content == "|| " then
-                ( PBVerbatim, Just (String.dropLeft 3 line.content |> String.trimRight), [] )
+                ( Just (String.dropLeft 3 line.content |> String.trimRight), [] )
 
             else if String.left 2 line.content == "$$" then
-                ( PBVerbatim, Just "math", [] )
+                ( Just "math", [] )
 
             else if String.left 2 line.content == "| " then
-                ( PBOrdinary, Just (String.dropLeft 2 line.content |> String.trimRight), [] )
+                ( Just (String.dropLeft 2 line.content |> String.trimRight), [] )
 
             else
-                ( PBParagraph, Nothing, [] )
+                ( Nothing, [] )
 
 
 prefixLength : Int -> Int -> String -> Int
