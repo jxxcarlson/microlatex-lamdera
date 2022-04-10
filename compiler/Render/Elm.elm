@@ -109,6 +109,7 @@ markupDict =
 
         --
         , ( "dollarSign", \_ _ _ _ -> Element.el [] (Element.text "$") )
+        , ( "dollar", \_ _ _ _ -> Element.el [] (Element.text "$") )
         , ( "brackets", \g acc s exprList -> brackets g acc s exprList )
         , ( "rb", \g acc s exprList -> rightBracket g acc s exprList )
         , ( "lb", \g acc s exprList -> leftBracket g acc s exprList )

@@ -409,7 +409,12 @@ update msg model =
             in
             case model.sidebarState of
                 SidebarIn ->
-                    ( { model | tagSelection = tagSelection, sidebarState = SidebarOut }, Cmd.none )
+                    ( { model | tagSelection = tagSelection, sidebarState = SidebarOut }
+                    , Cmd.batch
+                        [ sendToBackend GetPublicTagsFromBE
+                        , sendToBackend (GetUserTagsFromBE (model.currentUser |> Maybe.map .username |> Maybe.withDefault "((nobody))"))
+                        ]
+                    )
 
                 SidebarOut ->
                     ( { model | tagSelection = tagSelection, sidebarState = SidebarIn }, Cmd.none )
@@ -545,10 +550,10 @@ update msg model =
             ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin") )
 
         GetUserTags author ->
-            ( { model | tagSelection = TagUser }, sendToBackend (GetUserTagsFromBE author) )
+            ( { model | tagSelection = TagUser }, Cmd.none )
 
         GetPublicTags ->
-            ( { model | tagSelection = TagPublic }, sendToBackend GetPublicTagsFromBE )
+            ( { model | tagSelection = TagPublic }, Cmd.none )
 
         SetLanguage dismiss lang ->
             Frontend.Update.setLanguage dismiss lang model
