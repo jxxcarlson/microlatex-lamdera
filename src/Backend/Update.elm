@@ -186,7 +186,7 @@ getDocumentByAuthorId model clientId authorId =
 getHomePage model clientId username =
     let
         docs =
-            searchForDocuments_ ("home:" ++ username) model
+            searchForDocuments_ ("home" ++ username) model
     in
     case List.head docs of
         Nothing ->
