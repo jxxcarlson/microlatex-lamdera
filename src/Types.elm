@@ -94,6 +94,7 @@ type alias FrontendModel =
     , inputEmail : String
     , inputLanguage : Language
     , tagDict : Dict String (List { id : String, title : String })
+    , publicTagDict : Dict String (List { id : String, title : String })
     , documentList : DocumentList
 
     -- UI
@@ -518,7 +519,7 @@ type FrontendMsg
     | Render Render.Msg.MarkupMsg
     | SetSortMode SortMode
     | SelectList DocumentList
-    | GetUserTags String
+    | GetUserTags
     | GetPublicTags
       -- Export
     | ExportToMarkdown

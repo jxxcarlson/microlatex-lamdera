@@ -1,14 +1,11 @@
 module Abstract exposing
     ( Abstract
     , AbstractOLD
-    , authorTagDict
     , empty
     , get
-    , getAuthorTags
     , getBlockContents
     , getElement
     , getItem
-    , publicTagDict
     , str1
     , str2
     , str3
@@ -27,64 +24,6 @@ type alias Abstract =
 
 type alias AbstractOLD =
     { title : String, author : String, abstract : String, tags : String }
-
-
-getAuthorTags : String -> Dict String Abstract -> List { id : String, title : String, tags : List String }
-getAuthorTags author dict =
-    dict
-        |> Dict.toList
-        |> List.filter (\( _, ab ) -> ab.author == author)
-        |> List.map (\( id2, ab2 ) -> { id = id2, title = ab2.title, tags = String.words ab2.tags |> List.map (String.trim >> String.replace "," "") })
-
-
-getAllTags : Dict String Abstract -> List { id : String, title : String, tags : List String }
-getAllTags dict =
-    dict
-        |> Dict.toList
-        |> List.map (\( id2, ab2 ) -> { id = id2, title = ab2.title, tags = String.words ab2.tags |> List.map (String.trim >> String.replace "," "") })
-
-
-makeTagDict : List { id : String, title : String, tags : List String } -> Dict String (List { id : String, title : String })
-makeTagDict tagData =
-    tagData
-        |> unroll
-        |> List.foldl insertIf Dict.empty
-
-
-authorTagDict : String -> Dict String Abstract -> Dict String (List { id : String, title : String })
-authorTagDict author abstractDict =
-    getAuthorTags author abstractDict |> makeTagDict
-
-
-publicTagDict : Dict String Document -> Dict String Abstract -> Dict String (List { id : String, title : String })
-publicTagDict documentDict abstractDict =
-    getAllTags abstractDict
-        |> List.filter (\{ id } -> Maybe.map .public (Dict.get id documentDict) == Just True)
-        |> makeTagDict
-
-
-insertIf : { a | id : b, title : c, tag : String } -> Dict String (List { id : b, title : c }) -> Dict String (List { id : b, title : c })
-insertIf { id, title, tag } dict =
-    if tag == "" then
-        dict
-
-    else
-        case Dict.get tag dict of
-            Nothing ->
-                Dict.insert tag [ { id = id, title = title } ] dict
-
-            Just ids ->
-                Dict.insert tag ({ id = id, title = title } :: ids) dict
-
-
-unroll_ : { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
-unroll_ { id, title, tags } =
-    List.map (\tag -> { id = id, title = title, tag = tag }) tags
-
-
-unroll : List { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
-unroll list =
-    List.map unroll_ list |> List.concat
 
 
 toString : Abstract -> String

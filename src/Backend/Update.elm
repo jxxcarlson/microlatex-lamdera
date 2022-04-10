@@ -1,5 +1,6 @@
 module Backend.Update exposing
     ( applySpecial
+    , authorTags
     , createDocument
     , deleteDocument
     , fetchDocumentById
@@ -12,6 +13,7 @@ module Backend.Update exposing
     , getUserData
     , getUserDocuments
     , gotAtmosphericRandomNumber
+    , publicTags
     , removeSessionClient
     , removeSessionFromDict
     , saveDocument
@@ -404,6 +406,60 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member firstKey doc.tags)
 
 
+authorTags : String -> Model -> Dict.Dict String (List { id : String, title : String })
+authorTags authorName model =
+    makeTagDict (getUserDocumentsForAuthor authorName model)
+
+
+publicTags : Model -> Dict.Dict String (List { id : String, title : String })
+publicTags model =
+    let
+        publicDocs =
+            model.documentDict
+                |> Dict.toList
+                |> List.map (\( _, doc ) -> doc)
+                |> List.filter (\doc -> doc.public)
+    in
+    makeTagDict publicDocs
+
+
+tagsOfDocList : List Document.Document -> List { id : String, title : String, tags : List String }
+tagsOfDocList docs =
+    List.map (\doc -> { id = doc.id, title = doc.title, tags = doc.tags }) docs
+
+
+makeTagDict : List Document.Document -> Dict.Dict String (List { id : String, title : String })
+makeTagDict docs =
+    docs
+        |> tagsOfDocList
+        |> unroll
+        |> List.foldl insertIf Dict.empty
+
+
+unroll_ : { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
+unroll_ { id, title, tags } =
+    List.map (\tag -> { id = id, title = title, tag = tag }) tags
+
+
+unroll : List { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
+unroll list =
+    List.map unroll_ list |> List.concat
+
+
+insertIf : { a | id : b, title : c, tag : String } -> Dict.Dict String (List { id : b, title : c }) -> Dict.Dict String (List { id : b, title : c })
+insertIf { id, title, tag } dict =
+    if tag == "" then
+        dict
+
+    else
+        case Dict.get tag dict of
+            Nothing ->
+                Dict.insert tag [ { id = id, title = title } ] dict
+
+            Just ids ->
+                Dict.insert tag ({ id = id, title = title } :: ids) dict
+
+
 getUserDocumentsForAuthor : String -> Model -> List Document.Document
 getUserDocumentsForAuthor author model =
     case Authentication.userIdFromUserName author model.authenticationDict of
@@ -417,14 +473,6 @@ getUserDocumentsForAuthor author model =
 
                 Just usersDocIds ->
                     List.map (\id -> Dict.get id model.documentDict) usersDocIds |> Maybe.Extra.values
-
-
-
---|> List.filter (\doc -> List.member firstKey doc.tags)
--- |> filterByKeys keys
---filterByKeys : AbstractDict -> List String -> List Document.Document -> List Document.Document
---filterByKeys dict keys docs =
---
 
 
 searchForPublicDocuments : Types.SortMode -> Int -> Maybe String -> String -> Model -> List Document.Document

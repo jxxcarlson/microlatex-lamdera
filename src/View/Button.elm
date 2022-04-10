@@ -635,7 +635,7 @@ getUserTags tagSelection user =
                     else
                         []
             in
-            buttonTemplate style (GetUserTags user_.username) "Tags"
+            buttonTemplate style GetUserTags "Tags"
 
 
 getPublicTags : TagSelection -> Element FrontendMsg

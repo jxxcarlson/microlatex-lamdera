@@ -88,6 +88,7 @@ init url key =
       , inputEmail = ""
       , inputRealname = ""
       , tagDict = Dict.empty
+      , publicTagDict = Dict.empty
       , inputLanguage = L0Lang
       , documentList = StandardList
 
@@ -398,27 +399,6 @@ update msg model =
         ChangePopup popupState ->
             ( { model | popupState = popupState }, Cmd.none )
 
-        ToggleSideBar ->
-            let
-                tagSelection =
-                    if Dict.isEmpty model.tagDict then
-                        TagNeither
-
-                    else
-                        model.tagSelection
-            in
-            case model.sidebarState of
-                SidebarIn ->
-                    ( { model | tagSelection = tagSelection, sidebarState = SidebarOut }
-                    , Cmd.batch
-                        [ sendToBackend GetPublicTagsFromBE
-                        , sendToBackend (GetUserTagsFromBE (model.currentUser |> Maybe.map .username |> Maybe.withDefault "((nobody))"))
-                        ]
-                    )
-
-                SidebarOut ->
-                    ( { model | tagSelection = tagSelection, sidebarState = SidebarIn }, Cmd.none )
-
         ToggleIndexSize ->
             case model.maximizedIndex of
                 MMyDocs ->
@@ -549,11 +529,33 @@ update msg model =
         GetPinnedDocuments ->
             ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin") )
 
-        GetUserTags author ->
+        -- TAGS
+        GetUserTags ->
             ( { model | tagSelection = TagUser }, Cmd.none )
 
         GetPublicTags ->
             ( { model | tagSelection = TagPublic }, Cmd.none )
+
+        ToggleSideBar ->
+            let
+                tagSelection =
+                    if Dict.isEmpty model.tagDict then
+                        TagNeither
+
+                    else
+                        model.tagSelection
+            in
+            case model.sidebarState of
+                SidebarIn ->
+                    ( { model | tagSelection = tagSelection, sidebarState = SidebarOut }
+                    , Cmd.batch
+                        [ sendToBackend GetPublicTagsFromBE
+                        , sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
+                        ]
+                    )
+
+                SidebarOut ->
+                    ( { model | tagSelection = tagSelection, sidebarState = SidebarIn }, Cmd.none )
 
         SetLanguage dismiss lang ->
             Frontend.Update.setLanguage dismiss lang model
@@ -822,7 +824,7 @@ updateFromBackend msg model =
             ( { model | tagDict = tagDict }, Cmd.none )
 
         AcceptPublicTags tagDict ->
-            ( { model | tagDict = tagDict }, Cmd.none )
+            ( { model | publicTagDict = tagDict }, Cmd.none )
 
         SendDocument _ doc ->
             let

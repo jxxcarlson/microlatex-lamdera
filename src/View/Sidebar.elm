@@ -27,7 +27,8 @@ view model =
                 , E.paddingXY 8 0
                 , Background.color Color.lightGray
                 ]
-                [ E.row [ E.spacing 12, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ] [ Button.getUserTags model.tagSelection model.currentUser, Button.getPublicTags model.tagSelection ]
+                [ E.row [ E.spacing 12, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
+                    [ Button.getUserTags model.tagSelection model.currentUser, Button.getPublicTags model.tagSelection ]
                 , search model
                 , viewTagDict model
                 ]
@@ -36,7 +37,15 @@ view model =
 viewTagDict model =
     let
         dictItems =
-            Dict.toList model.tagDict
+            case model.tagSelection of
+                Types.TagPublic ->
+                    Dict.toList model.publicTagDict
+
+                Types.TagUser ->
+                    Dict.toList model.tagDict
+
+                Types.TagNeither ->
+                    []
 
         header =
             E.el [ Font.size 14, E.paddingXY 2 4 ] (E.text <| "Tags: " ++ (List.length dictItems |> String.fromInt))

@@ -253,10 +253,10 @@ updateFromFrontend sessionId clientId msg model =
 
         -- DOCUMENTS
         GetUserTagsFromBE author ->
-            ( model, sendToFrontend clientId (AcceptUserTags (Abstract.authorTagDict author model.abstractDict)) )
+            ( model, sendToFrontend clientId (AcceptUserTags (Backend.Update.authorTags author model)) )
 
         GetPublicTagsFromBE ->
-            ( model, sendToFrontend clientId (AcceptPublicTags (Abstract.publicTagDict model.documentDict model.abstractDict)) )
+            ( model, sendToFrontend clientId (AcceptPublicTags (Backend.Update.publicTags model)) )
 
         CreateDocument maybeCurrentUser doc_ ->
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
