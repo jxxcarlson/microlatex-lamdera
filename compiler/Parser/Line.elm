@@ -66,6 +66,9 @@ getBlockType lang line_ =
             if String.left 2 line == "||" then
                 PBVerbatim
 
+            else if String.left 2 line == "$$" then
+                PBVerbatim
+
             else if
                 String.left 1 line
                     == "|"
