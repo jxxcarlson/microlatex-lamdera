@@ -1,9 +1,11 @@
-module PrimitiveBlock exposing (aIN, aTRANS, bIN, bTRANS, bll, bllc, cIN, eIN, eTRANS, err1, p1, p2, p2Indented, p3, p3Indented, p4Indented, s1, suite, suite3, test_, x2, x2Indent, xIN)
+module PrimitiveBlock exposing (suiteMicroLaTeX)
 
+import Compiler.Transform
 import Expect exposing (..)
 import Markup
 import Parser.Language exposing (Language(..))
-import Parser.PrimitiveBlock exposing (parse)
+import Parser.Line exposing (PrimitiveBlockType(..))
+import Parser.PrimitiveBlock exposing (PrimitiveBlock, parse)
 import Test exposing (..)
 
 
@@ -17,6 +19,14 @@ bllc str =
 
 test_ label expr expectedOutput =
     test label <| \_ -> equal expr expectedOutput
+
+
+toPrimitiveBlocks : Language -> String -> List PrimitiveBlock
+toPrimitiveBlocks lang str =
+    str
+        |> String.lines
+        |> Parser.PrimitiveBlock.parse lang Markup.isVerbatimLine
+        |> List.map (Compiler.Transform.transform lang)
 
 
 
@@ -40,27 +50,36 @@ suite =
         ]
 
 
-
---suite2 : Test
---suite2 =
---    describe "indenter and transformer 2"
---        [ test_ "simple block" (indent_ aIN) (String.lines aIN)
---        , test_ "simple block, transformed" (transform aIN) (String.lines aTRANS)
---        , test_ "block + paragraph" (indent_ bIN) (String.lines bIN)
---        , test_ "block + paragraph, transformed" (transform bIN) (String.lines bTRANS)
---        , test_ "nested microLaTeX blocks" (indent_ cIN) (String.lines cIN)
---        , test_ "nested microLaTeX blocks, transform" (transform cIN) [ "| theorem", "  abc", "", "  $$", "  x^2", "  $$", "", "  def", "" ]
---        , test_ "code block, transform" (transform eIN) (String.lines eTRANS)
---        , test_ "p1" (indent_ p1) (String.lines p1)
---        , test_ "p2" (indent_ p2) (String.lines p2Indented)
---        ]
-
-
-suite3 : Test
-suite3 =
-    describe "indenter and transformer"
-        [ test_ "foo" 1 1
+suiteL0 : Test
+suiteL0 =
+    describe "parsing primitive blocks for L0"
+        [ test_ "paragraphs" (toPrimitiveBlocks L0Lang "abc\ndef\n\nghi\njkl") [ { args = [], blockType = PBParagraph, content = [ "abc", "def" ], indent = 0, lineNumber = 1, name = Nothing, named = True, position = 0, sourceText = "abc\ndef" }, { args = [], blockType = PBParagraph, content = [ "ghi", "jkl" ], indent = 0, lineNumber = 4, name = Nothing, named = True, position = 6, sourceText = "ghi\njkl" } ]
+        , test_ "ordinary block" (toPrimitiveBlocks L0Lang "| theorem\nabc\ndef\n\n") [ { args = [], blockType = PBOrdinary, content = [ "| theorem", "abc", "def" ], indent = 0, lineNumber = 1, name = Just "theorem", named = True, position = 0, sourceText = "| theorem\nabc\ndef" } ]
+        , test_ "code block" (toPrimitiveBlocks L0Lang "|| code\nabc\ndef\n\n") [ { args = [], blockType = PBVerbatim, content = [ "|| code", "abc", "def" ], indent = 0, lineNumber = 1, name = Just "code", named = True, position = 0, sourceText = "|| code\nabc\ndef" } ]
+        , test_ "item block" (toPrimitiveBlocks L0Lang "| item\nho ho ho!\n\n") [ { args = [], blockType = PBOrdinary, content = [ "| item", "ho ho ho!" ], indent = 0, lineNumber = 1, name = Just "item", named = True, position = 0, sourceText = "| item\nho ho ho!" } ]
+        , test_ "math block" (toPrimitiveBlocks L0Lang "$$\nx^2\n\n") [ { args = [], blockType = PBVerbatim, content = [ "$$", "x^2" ], indent = 0, lineNumber = 1, name = Just "math", named = True, position = 0, sourceText = "$$\nx^2" } ]
         ]
+
+
+suiteMicroLaTeX : Test
+suiteMicroLaTeX =
+    describe "parsing primitive blocks for MicroLaTeX"
+        [ test_ "paragraphs" (toPrimitiveBlocks MicroLaTeXLang "abc\ndef\n\nghi\njkl") [ { args = [], blockType = PBParagraph, content = [ "abc", "def" ], indent = 0, lineNumber = 1, name = Nothing, named = True, position = 0, sourceText = "abc\ndef" }, { args = [], blockType = PBParagraph, content = [ "ghi", "jkl" ], indent = 0, lineNumber = 4, name = Nothing, named = True, position = 6, sourceText = "ghi\njkl" } ]
+        , test_ "theorem block" (toPrimitiveBlocks MicroLaTeXLang "\\begin{theorem}\nabc\ndef\n\\end{theorem}\n") [ { args = [], blockType = PBOrdinary, content = [ "| theorem", "abc", "def" ], indent = 0, lineNumber = 1, name = Just "theorem", named = True, position = 0, sourceText = "| theorem\nabc\ndef" } ]
+        , test_ "code block" (toPrimitiveBlocks MicroLaTeXLang codeBlock) [ { args = [], blockType = PBVerbatim, content = [ "|| code", "# Multiplication table", "for x in range(1, 11):", "    for y in range(1, 11):", "        print('%d * %d = %d' % (x, y, x*y))" ], indent = 0, lineNumber = 1, name = Just "code", named = True, position = 0, sourceText = "|| code\n# Multiplication table\nfor x in range(1, 11):\n    for y in range(1, 11):\n        print('%d * %d = %d' % (x, y, x*y))" } ]
+        , test_ "item block" (toPrimitiveBlocks MicroLaTeXLang "\\item\nho ho ho!\n\n") [ { args = [], blockType = PBOrdinary, content = [ "| item", "ho ho ho!" ], indent = 0, lineNumber = 1, name = Just "item", named = True, position = 0, sourceText = "| item\nho ho ho!" } ]
+        , test_ "math block" (toPrimitiveBlocks L0Lang "$$\nx^2$$\n\n") [ { args = [], blockType = PBVerbatim, content = [ "$$", "x^2$$" ], indent = 0, lineNumber = 1, name = Just "math", named = True, position = 0, sourceText = "$$\nx^2$$" } ]
+        ]
+
+
+codeBlock =
+    """\\begin{code}
+# Multiplication table
+for x in range(1, 11):
+    for y in range(1, 11):
+        print('%d * %d = %d' % (x, y, x*y))
+\\end{code}
+"""
 
 
 err1 =

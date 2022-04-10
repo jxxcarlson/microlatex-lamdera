@@ -79,28 +79,45 @@ getBlockType lang line_ =
                 PBParagraph
 
         MicroLaTeXLang ->
-            let
-                name =
-                    case Compiler.Util.getMicroLaTeXItem "begin" line of
-                        Just str ->
-                            Just str
-
-                        Nothing ->
-                            if line == "$$" then
-                                Just "math"
-
-                            else
-                                Nothing
-            in
-            if name == Nothing then
-                PBParagraph
-
-            else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || line == "$$" then
+            if String.left 2 line == "||" then
                 PBVerbatim
 
-            else
+            else if String.left 2 line == "$$" then
+                PBVerbatim
+
+            else if
+                String.left 1 line
+                    == "|"
+            then
                 PBOrdinary
 
+            else
+                PBParagraph
+
+        --let
+        --    name =
+        --        case Compiler.Util.getMicroLaTeXItem "begin" line of
+        --            Just str ->
+        --                Just str
+        --
+        --            Nothing ->
+        --                if line == "$$" then
+        --                    Just "math"
+        --
+        --                else
+        --                    Nothing
+        --
+        --    _ =
+        --        Debug.log "(NAME, line)" ( name, line )
+        --in
+        --if name == Nothing then
+        --    PBParagraph
+        --
+        --else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || line == "$$" then
+        --    PBVerbatim
+        --
+        --else
+        --    PBOrdinary
         PlainTextLang ->
             PBParagraph
 
