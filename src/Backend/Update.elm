@@ -406,6 +406,10 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member firstKey doc.tags)
 
 
+
+-- TAGS
+
+
 authorTags : String -> Model -> Dict.Dict String (List { id : String, title : String })
 authorTags authorName model =
     makeTagDict (getUserDocumentsForAuthor authorName model)
