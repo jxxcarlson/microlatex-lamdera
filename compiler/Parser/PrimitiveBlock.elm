@@ -183,10 +183,9 @@ blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
     , args = []
     , named = False
     , sourceText = ""
-    , blockType = Line.getBlockType lang line.content |> Debug.log "BT"
+    , blockType = Line.getBlockType lang line.content
     }
         |> elaborate lang line
-        |> Debug.log "CREATE"
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
