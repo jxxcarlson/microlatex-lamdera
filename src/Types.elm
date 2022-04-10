@@ -192,8 +192,7 @@ type PopupState
 
 
 type TagSelection
-    = TagNeither
-    | TagPublic
+    = TagPublic
     | TagUser
 
 

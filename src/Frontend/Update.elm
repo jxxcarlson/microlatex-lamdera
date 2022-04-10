@@ -811,6 +811,7 @@ handleSignOut model =
         , inputSearchKey = ""
         , actualSearchKey = ""
         , inputTitle = ""
+        , tagSelection = Types.TagPublic
         , inputUsername = ""
         , inputPassword = ""
         , documentList = StandardList

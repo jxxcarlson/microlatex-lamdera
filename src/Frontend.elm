@@ -539,15 +539,11 @@ update msg model =
         ToggleSideBar ->
             let
                 tagSelection =
-                    if Dict.isEmpty model.tagDict then
-                        TagNeither
-
-                    else
-                        model.tagSelection
+                    model.tagSelection
             in
             case model.sidebarState of
                 SidebarIn ->
-                    ( { model | tagSelection = tagSelection, sidebarState = SidebarOut }
+                    ( { model | sidebarState = SidebarOut }
                     , Cmd.batch
                         [ sendToBackend GetPublicTagsFromBE
                         , sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
@@ -904,6 +900,7 @@ updateFromBackend msg model =
                 , inputRealname = ""
                 , inputEmail = ""
                 , inputUsername = ""
+                , tagSelection = TagUser
                 , inputPassword = ""
                 , inputPasswordAgain = ""
                 , language = user.preferences.language

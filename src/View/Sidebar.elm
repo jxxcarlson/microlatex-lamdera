@@ -44,9 +44,6 @@ viewTagDict model =
                 Types.TagUser ->
                     Dict.toList model.tagDict
 
-                Types.TagNeither ->
-                    []
-
         header =
             E.el [ Font.size 14, E.paddingXY 2 4 ] (E.text <| "Tags: " ++ (List.length dictItems |> String.fromInt))
     in
