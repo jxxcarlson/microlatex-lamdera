@@ -22,7 +22,7 @@ narrowCast model message =
 
         commands : List (Cmd backendMsg)
         commands =
-            List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.MessageReceived (Types.ChatMsg clientId_ message))) clientIds
+            List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.ChatMessageReceived (Types.ChatMsg clientId_ message))) clientIds
     in
     commands
 

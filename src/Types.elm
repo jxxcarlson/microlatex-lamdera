@@ -626,14 +626,14 @@ type ToFrontend
       -- CHAT
     | GotChatHistory
     | GotChatGroup (Maybe ChatGroup)
-    | MessageReceived ChatMsg
+    | ChatMessageReceived ChatMsg
       -- DOCUMENT
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | ReceivedDocument SystemDocPermissions Document
     | ReceivedDocuments (List Document)
     | ReceivedPublicDocuments (List Document)
-    | SendMessage Message
+    | MessageReceived Message
     | StatusReport (List String)
     | SetShowEditor Bool
 

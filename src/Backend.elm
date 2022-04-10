@@ -117,7 +117,7 @@ update msg model =
             , Cmd.batch
                 [ sendToFrontend clientId (ReceivedDocument Types.SystemCanEdit doc)
                 , sendToFrontend clientId
-                    (SendMessage
+                    (MessageReceived
                         { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
                         , status = Types.MSWarning
                         }
@@ -150,7 +150,7 @@ updateFromFrontend sessionId clientId msg model =
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
                 Nothing ->
-                    ( model, sendToFrontend clientId (SendMessage { content = groupName ++ ": no such group", status = Types.MSWarning }) )
+                    ( model, sendToFrontend clientId (MessageReceived { content = groupName ++ ": no such group", status = Types.MSWarning }) )
 
                 Just _ ->
                     ( model, Chat.sendChatHistoryCmd groupName model clientId )
@@ -202,7 +202,7 @@ updateFromFrontend sessionId clientId msg model =
                     ( model
                     , Cmd.batch
                         [ sendToFrontend clientId (ReceivedDocument Types.SystemCanEdit doc)
-                        , sendToFrontend clientId (SendMessage message)
+                        , sendToFrontend clientId (MessageReceived message)
                         ]
                     )
 

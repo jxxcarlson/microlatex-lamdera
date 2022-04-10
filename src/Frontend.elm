@@ -868,17 +868,14 @@ updateFromBackend msg model =
                     in
                     ( { model | publicDocuments = publicDocuments }, cmd )
 
-        SendMessage message ->
+        MessageReceived message ->
             let
                 newMessages =
-                    if List.member message.status [ Types.MSError, Types.MSWarning ] then
+                    if List.member message.status [ Types.MSError, Types.MSWarning, Types.MSGreen ] then
                         [ message ]
 
-                    else if List.member message.status [ Types.MSGreen ] then
-                        List.take 5 <| message :: model.messages
-
                     else
-                        List.take 5 <| model.messages
+                        model.messages
             in
             ( { model | messages = newMessages }, Cmd.none )
 
@@ -947,7 +944,7 @@ updateFromBackend msg model =
                     in
                     ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )
 
-        MessageReceived message ->
+        ChatMessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
 
 
