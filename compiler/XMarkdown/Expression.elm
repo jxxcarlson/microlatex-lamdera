@@ -12,6 +12,7 @@ import L0.Parser.Expression
 import List.Extra
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
+import Parser.Meta as Meta
 import Tools
 import XMarkdown.Match as M
 import XMarkdown.Symbol as Symbol exposing (Symbol(..))
@@ -202,7 +203,16 @@ reduceState state =
                 handleCodeSymbol symbols state
 
             Just SBold ->
-                handleBoldSymbol symbols state
+                let
+                    _ =
+                        Debug.log "SYMBOLS" symbols
+                in
+                case symbols of
+                    [ SBold, SItalic, SItalic, SBold ] ->
+                        handleBoldItalic symbols state
+
+                    _ ->
+                        handleBoldSymbol symbols state
 
             Just SItalic ->
                 handleItalicSymbol symbols state
@@ -394,6 +404,24 @@ handleBoldSymbol symbols state =
 
     else
         state
+
+
+handleBoldItalic : List Symbol -> State -> State
+handleBoldItalic symbols state =
+    let
+        _ =
+            Debug.log "SYMBOLS (2)" symbols
+
+        content =
+            state.stack |> takeMiddle |> takeMiddle |> Token.toString2
+
+        meta =
+            { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+
+        expr =
+            Expr "bold" [ Expr "italic" [ Text content meta ] meta ] meta
+    in
+    { state | stack = [], committed = expr :: state.committed }
 
 
 handleMathSymbol : List Symbol -> State -> State
@@ -621,7 +649,7 @@ recoverFromError state =
                 }
 
         _ ->
-            Done state
+            Done { state | committed = Expr "red" [ Text (Token.toString (List.reverse state.stack)) Meta.dummy ] Meta.dummy :: state.committed, stack = [] }
 
 
 makeId : Int -> Int -> String
