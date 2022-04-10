@@ -203,10 +203,6 @@ reduceState state =
                 handleCodeSymbol symbols state
 
             Just SBold ->
-                let
-                    _ =
-                        Debug.log "SYMBOLS" symbols
-                in
                 case symbols of
                     [ SBold, SItalic, SItalic, SBold ] ->
                         handleBoldItalic symbols state
@@ -409,9 +405,6 @@ handleBoldSymbol symbols state =
 handleBoldItalic : List Symbol -> State -> State
 handleBoldItalic symbols state =
     let
-        _ =
-            Debug.log "SYMBOLS (2)" symbols
-
         content =
             state.stack |> takeMiddle |> takeMiddle |> Token.toString2
 

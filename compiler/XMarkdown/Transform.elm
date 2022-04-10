@@ -1,6 +1,7 @@
 module XMarkdown.Transform exposing (transform)
 
 import Compiler.Util
+import List.Extra
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 
@@ -50,7 +51,17 @@ handleNumberedItem block firstLine rest =
 
 handleVerbatim : PrimitiveBlock -> List String -> PrimitiveBlock
 handleVerbatim block rest =
-    { block | name = Just "code", named = True, blockType = PBVerbatim, content = Compiler.Util.dropLast block.content }
+    { block
+        | name = Just "code"
+        , named = True
+        , blockType = PBVerbatim
+        , content =
+            if Maybe.map String.trim (List.Extra.last rest) == Just "```" then
+                Compiler.Util.dropLast block.content
+
+            else
+                block.content
+    }
 
 
 handleMath : PrimitiveBlock -> List String -> PrimitiveBlock
