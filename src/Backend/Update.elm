@@ -186,7 +186,7 @@ getDocumentByAuthorId model clientId authorId =
 getHomePage model clientId username =
     let
         docs =
-            searchForDocuments_ ("home" ++ username) model
+            searchForDocuments_ ("home:" ++ username) model
     in
     case List.head docs of
         Nothing ->
@@ -442,12 +442,21 @@ makeTagDict docs =
 
 unroll_ : { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
 unroll_ { id, title, tags } =
-    List.map (\tag -> { id = id, title = title, tag = tag }) tags
+    List.map (\tag -> { id = id, title = title, tag = fixIfHomeTag tag }) tags
 
 
 unroll : List { id : String, title : String, tags : List String } -> List { id : String, title : String, tag : String }
 unroll list =
     List.map unroll_ list |> List.concat
+
+
+fixIfHomeTag : String -> String
+fixIfHomeTag str =
+    if String.left 5 str == "home:" then
+        "home"
+
+    else
+        str
 
 
 insertIf : { a | id : b, title : c, tag : String } -> Dict.Dict String (List { id : b, title : c }) -> Dict.Dict String (List { id : b, title : c })
