@@ -1,4 +1,4 @@
-module PrimitiveBlock exposing (suiteMicroLaTeX)
+module PrimitiveBlock exposing (suite, suiteL0, suiteMicroLaTeX, suiteXMarkdown)
 
 import Compiler.Transform
 import Expect exposing (..)
@@ -72,6 +72,34 @@ suiteMicroLaTeX =
         ]
 
 
+suiteXMarkdown : Test
+suiteXMarkdown =
+    describe "parsing primitive blocks for XMarkdown"
+        [ test_ "paragraphs" (toPrimitiveBlocks XMarkdownLang "abc\ndef\n\nghi\njkl") [ { args = [], blockType = PBParagraph, content = [ "abc", "def" ], indent = 0, lineNumber = 1, name = Nothing, named = True, position = 0, sourceText = "abc\ndef" }, { args = [], blockType = PBParagraph, content = [ "ghi", "jkl" ], indent = 0, lineNumber = 4, name = Nothing, named = True, position = 6, sourceText = "ghi\njkl" } ]
+        , test_ "section" (toPrimitiveBlocks XMarkdownLang "# Intro\n") [ { args = [ "1" ], blockType = PBOrdinary, content = [ "| section 1", "Intro" ], indent = 0, lineNumber = 1, name = Just "section", named = True, position = 0, sourceText = "# Intro" } ]
+        , test_ "code, L0 style" (toPrimitiveBlocks XMarkdownLang codeBlock2) [ { args = [], blockType = PBVerbatim, content = [ "```", "# Multiplication table", "for x in range(1, 11):", "    for y in range(1, 11):", "        print('%d * %d = %d' % (x, y, x*y))" ], indent = 0, lineNumber = 1, name = Just "code", named = True, position = 0, sourceText = "```\n# Multiplication table\nfor x in range(1, 11):\n    for y in range(1, 11):\n        print('%d * %d = %d' % (x, y, x*y))\n```" } ]
+        , test_ "item block" (toPrimitiveBlocks XMarkdownLang itemBlock) [ { args = [], blockType = PBOrdinary, content = [ "| item", "One" ], indent = 0, lineNumber = 2, name = Just "item", named = True, position = 1, sourceText = "- One" }, { args = [], blockType = PBOrdinary, content = [ "| item", "Two" ], indent = 0, lineNumber = 4, name = Just "item", named = True, position = 6, sourceText = "- Two" } ]
+        , test_ "numbered block" (toPrimitiveBlocks XMarkdownLang numberedBlock) [ { args = [], blockType = PBOrdinary, content = [ "| numbered", "One" ], indent = 0, lineNumber = 2, name = Just "numbered", named = True, position = 1, sourceText = ". One" }, { args = [], blockType = PBOrdinary, content = [ "| numbered", "Two" ], indent = 0, lineNumber = 4, name = Just "numbered", named = True, position = 6, sourceText = ". Two" } ]
+        , test_ "math block" (toPrimitiveBlocks XMarkdownLang "$$\nx^2$$\n\n") [ { args = [], blockType = PBVerbatim, content = [ "$$", "x^2$$" ], indent = 0, lineNumber = 1, name = Just "math", named = True, position = 0, sourceText = "$$\nx^2$$" } ]
+        ]
+
+
+itemBlock =
+    """
+- One
+
+- Two
+"""
+
+
+numberedBlock =
+    """
+. One
+
+. Two
+"""
+
+
 codeBlock =
     """\\begin{code}
 # Multiplication table
@@ -79,6 +107,16 @@ for x in range(1, 11):
     for y in range(1, 11):
         print('%d * %d = %d' % (x, y, x*y))
 \\end{code}
+"""
+
+
+codeBlock2 =
+    """```
+# Multiplication table
+for x in range(1, 11):
+    for y in range(1, 11):
+        print('%d * %d = %d' % (x, y, x*y))
+```
 """
 
 
