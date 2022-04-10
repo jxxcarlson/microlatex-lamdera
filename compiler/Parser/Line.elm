@@ -63,15 +63,17 @@ getBlockType lang line_ =
     in
     case lang of
         L0Lang ->
-            case String.left 2 line of
-                "||" ->
-                    PBVerbatim
+            if String.left 2 line == "||" then
+                PBVerbatim
 
-                "|" ->
-                    PBOrdinary
+            else if
+                String.left 1 line
+                    == "|"
+            then
+                PBOrdinary
 
-                _ ->
-                    PBParagraph
+            else
+                PBParagraph
 
         MicroLaTeXLang ->
             let
