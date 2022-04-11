@@ -485,9 +485,8 @@ setDocumentAsCurrent model doc permissions =
     if model.showEditor then
         -- if we are not in the editor, unlock the previous current document if need be
         -- and loc the new document (doc)
-        model |> join unlockCurrentDocument (setDocumentAsCurrentAux doc permissions)
-        --model |> join (join unlockCurrentDocument (lockDocument doc)) (setDocumentAsCurrentAux doc permissions)
-        -- |> requestUnlockPreviousThenLockCurrent doc permissions
+        -- model |> join unlockCurrentDocument (setDocumentAsCurrentAux doc permissions)
+        model |> setDocumentAsCurrentAux doc permissions
 
     else
         -- if we are not in the editor, refresh the document so as
