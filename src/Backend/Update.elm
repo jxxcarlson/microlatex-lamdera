@@ -301,10 +301,6 @@ createDocument model clientId maybeCurrentUser doc_ =
                             Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
                     in
                     Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
-
-        message =
-            --  "userIds : " ++ String.fromInt (List.length list)
-            "Author link: " ++ Config.appUrl ++ "/a/au-" ++ authorIdTokenData.token ++ ", Public link:" ++ Config.appUrl ++ "/p/pu-" ++ humanFriendlyPublicId
     in
     { model
         | randomSeed = publicIdTokenData.seed
@@ -314,8 +310,7 @@ createDocument model clientId maybeCurrentUser doc_ =
         , usersDocumentsDict = usersDocumentsDict
     }
         |> Cmd.Extra.withCmds
-            [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
-            , sendToFrontend clientId (MessageReceived { content = message, status = MSNormal })
+            [ sendToFrontend clientId (ReceivedNewDocument SystemCanEdit doc)
             ]
 
 

@@ -673,33 +673,6 @@ lockDocument model =
                 ( { model | messages = [ { content = "Document is locked already", status = MSError } ] }, Cmd.none )
 
 
-
---
---lockDocument2 : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
---lockDocument2 doc_ model =
---    case model.currentDocument of
---        Nothing ->
---            ( model, Cmd.none )
---
---        Just doc_ ->
---            let
---                currentUsername =
---                    Util.currentUsername model.currentUser
---
---                doc =
---                    { doc_ | currentEditor = Just currentUsername }
---            in
---            ( { model
---                | currentDocument = Just doc
---                , documents = Util.updateDocumentInList doc model.documents
---              }
---            , Cmd.batch
---                [ sendToBackend (SaveDocument doc)
---                , sendToBackend (Narrowcast currentUsername doc)
---                ]
---            )
-
-
 join :
     (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
     -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
@@ -964,6 +937,9 @@ newDocument model =
                 _ ->
                     "| title\n" ++ model.inputTitle ++ "\n\n"
 
+        editRecord =
+            Compiler.DifferentialParser.init doc.language doc.content
+
         doc =
             { emptyDoc
                 | title = title
@@ -975,6 +951,10 @@ newDocument model =
     ( { model
         | showEditor = True
         , inputTitle = ""
+        , title = Compiler.ASTTools.title editRecord.parsed
+
+        --, editRecord = editRecord
+        -- , documents = doc::model.documents
         , documentsCreatedCounter = documentsCreatedCounter
         , popupState = NoPopup
       }

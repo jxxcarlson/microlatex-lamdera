@@ -630,6 +630,7 @@ type ToFrontend
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | ReceivedDocument SystemDocPermissions Document
+    | ReceivedNewDocument SystemDocPermissions Document
     | ReceivedDocuments (List Document)
     | ReceivedPublicDocuments (List Document)
     | MessageReceived Message
