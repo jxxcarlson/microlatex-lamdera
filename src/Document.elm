@@ -1,5 +1,6 @@
 module Document exposing
     ( Document
+    , DocumentId
     , DocumentInfo
     , Share(..)
     , canEditSharedDoc
@@ -48,6 +49,10 @@ type alias Document =
 type Share
     = ShareWith { readers : List Username, editors : List Username }
     | NotShared
+
+
+type alias DocumentId =
+    String
 
 
 {-| Find tags in the text of the document and set them in the tag field
