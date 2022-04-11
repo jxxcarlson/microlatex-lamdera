@@ -124,7 +124,7 @@ applySpecial model clientId =
     ( newModel
     , sendToFrontend clientId
         (MessageReceived
-            { content = "Bad docs: " ++ String.fromInt (List.length badDocs), status = MSError }
+            { content = "Bad docs: " ++ String.fromInt (List.length badDocs), status = MSRed }
         )
     )
 
@@ -136,7 +136,7 @@ getBadDocuments model =
 getDocumentById model clientId id =
     case Dict.get id model.documentDict of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSError }) )
+            ( model, sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSRed }) )
 
         Just doc ->
             ( model
@@ -165,14 +165,14 @@ getDocumentByAuthorId model clientId authorId =
     case Dict.get authorId model.authorIdDict of
         Nothing ->
             ( model
-            , sendToFrontend clientId (MessageReceived { content = "GetDocumentByAuthorId, No docId for that authorId", status = MSWarning })
+            , sendToFrontend clientId (MessageReceived { content = "GetDocumentByAuthorId, No docId for that authorId", status = MSYellow })
             )
 
         Just docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
                     ( model
-                    , sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSNormal })
+                    , sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSWhite })
                     )
 
                 Just doc ->
@@ -191,7 +191,7 @@ getHomePage model clientId username =
     in
     case List.head docs of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { content = "home page not found", status = MSNormal }) )
+            ( model, sendToFrontend clientId (MessageReceived { content = "home page not found", status = MSWhite }) )
 
         Just doc ->
             ( model
@@ -205,12 +205,12 @@ getHomePage model clientId username =
 getDocumentByPublicId model clientId publicId =
     case Dict.get publicId model.publicIdDict of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { content = "GetDocumentByPublicId, No docId for that publicId", status = MSNormal }) )
+            ( model, sendToFrontend clientId (MessageReceived { content = "GetDocumentByPublicId, No docId for that publicId", status = MSWhite }) )
 
         Just docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
-                    ( model, sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSNormal }) )
+                    ( model, sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSWhite }) )
 
                 Just doc ->
                     ( model
@@ -224,7 +224,7 @@ getDocumentByPublicId model clientId publicId =
 fetchDocumentById model clientId docId maybeUserName =
     case Dict.get docId model.documentDict of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { content = "Couldn't find that document", status = MSNormal }) )
+            ( model, sendToFrontend clientId (MessageReceived { content = "Couldn't find that document", status = MSWhite }) )
 
         Just document ->
             if document.public || document.author == maybeUserName then
@@ -240,7 +240,7 @@ fetchDocumentById model clientId docId maybeUserName =
             else
                 ( model
                 , Cmd.batch
-                    [ sendToFrontend clientId (MessageReceived { content = "Sorry, that document is not accessible", status = MSNormal })
+                    [ sendToFrontend clientId (MessageReceived { content = "Sorry, that document is not accessible", status = MSWhite })
                     ]
                 )
 
@@ -422,10 +422,10 @@ signIn model sessionId clientId username encryptedPassword =
                 )
 
             else
-                ( model, sendToFrontend clientId (MessageReceived <| { content = "Sorry, password and username don't match", status = MSError }) )
+                ( model, sendToFrontend clientId (MessageReceived <| { content = "Sorry, password and username don't match", status = MSRed }) )
 
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived <| { content = "Sorry, password and username don't match", status = MSWarning }) )
+            ( model, sendToFrontend clientId (MessageReceived <| { content = "Sorry, password and username don't match", status = MSYellow }) )
 
 
 searchForDocuments : Model -> ClientId -> Maybe String -> String -> ( Model, Cmd backendMsg )
@@ -618,7 +618,7 @@ gotAtmosphericRandomNumber model result =
         Ok str ->
             case String.toInt (String.trim str) of
                 Nothing ->
-                    ( model, broadcast (MessageReceived { content = "Could not get atomospheric integer", status = MSNormal }) )
+                    ( model, broadcast (MessageReceived { content = "Could not get atomospheric integer", status = MSWhite }) )
 
                 Just rn ->
                     let
@@ -629,7 +629,7 @@ gotAtmosphericRandomNumber model result =
                         | randomAtmosphericInt = Just rn
                         , randomSeed = newRandomSeed
                       }
-                    , broadcast (MessageReceived { content = "Got atmospheric integer " ++ String.fromInt rn, status = MSNormal })
+                    , broadcast (MessageReceived { content = "Got atmospheric integer " ++ String.fromInt rn, status = MSWhite })
                     )
 
         Err _ ->
@@ -680,7 +680,7 @@ signUpUser model sessionId clientId username lang transitPassword realname email
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
         Err str ->
-            ( { model | randomSeed = tokenData.seed }, sendToFrontend clientId (MessageReceived { content = "Error: " ++ str, status = MSError }) )
+            ( { model | randomSeed = tokenData.seed }, sendToFrontend clientId (MessageReceived { content = "Error: " ++ str, status = MSRed }) )
 
         Ok authDict ->
             ( { model | connectionDict = newConnectionDict_, randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }

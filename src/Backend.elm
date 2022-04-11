@@ -119,7 +119,7 @@ update msg model =
                 , sendToFrontend clientId
                     (MessageReceived
                         { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
-                        , status = Types.MSWarning
+                        , status = Types.MSYellow
                         }
                     )
                 ]
@@ -150,7 +150,7 @@ updateFromFrontend sessionId clientId msg model =
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
                 Nothing ->
-                    ( model, sendToFrontend clientId (MessageReceived { content = groupName ++ ": no such group", status = Types.MSWarning }) )
+                    ( model, sendToFrontend clientId (MessageReceived { content = groupName ++ ": no such group", status = Types.MSYellow }) )
 
                 Just _ ->
                     ( model, Chat.sendChatHistoryCmd groupName model clientId )

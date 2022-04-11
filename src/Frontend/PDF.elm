@@ -22,7 +22,7 @@ print model =
             ( model, Cmd.none )
 
         Just doc ->
-            ( { model | messages = [ { content = "printToPDF", status = MSNormal } ] }
+            ( { model | messages = [ { content = "printToPDF", status = MSWhite } ] }
             , Cmd.batch
                 [ generatePdf doc
                 , Process.sleep 1 |> Task.perform (always (ChangePrintingState PrintProcessing))

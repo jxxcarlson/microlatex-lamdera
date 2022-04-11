@@ -68,7 +68,7 @@ init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init url key =
     ( { key = key
       , url = url
-      , messages = [ { content = "Welcome!", status = MSNormal } ]
+      , messages = [ { content = "Welcome!", status = MSWhite } ]
       , currentTime = Time.millisToPosix 0
       , zone = Time.utc
 
@@ -459,7 +459,7 @@ update msg model =
             ( { model | searchSourceText = str, foundIdIndex = 0 }, Cmd.none )
 
         GetSelection str ->
-            ( { model | messages = [ { content = "Selection: " ++ str, status = MSNormal } ] }, Cmd.none )
+            ( { model | messages = [ { content = "Selection: " ++ str, status = MSWhite } ] }, Cmd.none )
 
         -- SYNC
         SelectedText str ->
@@ -489,7 +489,7 @@ update msg model =
         OpenEditor ->
             case model.currentDocument of
                 Nothing ->
-                    ( { model | messages = [ { content = "No document to open in editor", status = MSNormal } ] }, Cmd.none )
+                    ( { model | messages = [ { content = "No document to open in editor", status = MSWhite } ] }, Cmd.none )
 
                 Just doc ->
                     Frontend.Update.openEditor doc model
@@ -719,7 +719,7 @@ updateDoc model str =
                     m =
                         "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
                 in
-                ( { model | messages = [ { content = m, status = MSWarning } ] }, Cmd.none )
+                ( { model | messages = [ { content = m, status = MSYellow } ] }, Cmd.none )
 
 
 updateDoc_ model doc str =
@@ -814,10 +814,10 @@ updateFromBackend msg model =
 
         -- DOCUMENT
         SmartUnLockCurrentDocument ->
-            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSError }
+            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
 
         UnlockDocument docId ->
-            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSError }
+            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
 
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
@@ -899,7 +899,7 @@ updateFromBackend msg model =
         MessageReceived message ->
             let
                 newMessages =
-                    if List.member message.status [ Types.MSError, Types.MSWarning, Types.MSGreen ] then
+                    if List.member message.status [ Types.MSRed, Types.MSYellow, Types.MSGreen ] then
                         [ message ]
 
                     else
@@ -909,7 +909,7 @@ updateFromBackend msg model =
 
         -- ADMIN
         SendBackupData data ->
-            ( { model | messages = [ { content = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSNormal } ] }, Download.string "l0-lab-demo    .json" "text/json" data )
+            ( { model | messages = [ { content = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSWhite } ] }, Download.string "l0-lab-demo    .json" "text/json" data )
 
         StatusReport items ->
             ( { model | statusReport = items }, Cmd.none )
@@ -958,7 +958,7 @@ updateFromBackend msg model =
                     ( model, Cmd.none )
 
                 Types.FAUnlockCurrentDocument ->
-                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSError }
+                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
 
         GotChatGroup mChatGroup ->
             case mChatGroup of

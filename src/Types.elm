@@ -177,10 +177,10 @@ type alias Message =
 
 
 type MessageStatus
-    = MSNormal
-    | MSWarning
+    = MSWhite
+    | MSYellow
     | MSGreen
-    | MSError
+    | MSRed
 
 
 type PopupState

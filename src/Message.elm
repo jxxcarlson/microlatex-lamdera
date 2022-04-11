@@ -19,14 +19,14 @@ make str status =
 handleMessage : Types.Message -> Element msg
 handleMessage { content, status } =
     case status of
-        Types.MSNormal ->
+        Types.MSWhite ->
             E.el (style []) (E.text content)
 
-        Types.MSWarning ->
+        Types.MSYellow ->
             E.el (style [ Font.color View.Color.yellow ]) (E.text content)
 
         Types.MSGreen ->
             E.el (style [ Font.color (E.rgb 0 0.7 0) ]) (E.text content)
 
-        Types.MSError ->
+        Types.MSRed ->
             E.el (style [ Font.color View.Color.white, Background.color View.Color.red, E.paddingXY 4 4 ]) (E.text content)

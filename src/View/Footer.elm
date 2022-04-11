@@ -93,4 +93,4 @@ messageRow model =
         , View.Style.fgGray 1.0
         , E.spacing 12
         ]
-        (model.messages |> List.filter (\m -> List.member m.status [ Types.MSGreen, Types.MSWarning, Types.MSError ]) |> List.map Message.handleMessage)
+        (model.messages |> List.filter (\m -> List.member m.status [ Types.MSGreen, Types.MSYellow, Types.MSRed ]) |> List.map Message.handleMessage)
