@@ -52,7 +52,7 @@ canEdit currentUser currentDocument =
     in
     case ( currentUser, currentDocument ) of
         ( Just user, Just doc ) ->
-            isMineAndNotShared user.username doc || isSharedToMe user.username doc.share || isSharedByMe user.username doc
+            isMineAndNotShared user.username doc || isSharedToMeStrict user.username doc || isSharedByMe user.username doc
 
         _ ->
             False
@@ -66,6 +66,16 @@ isSharedByMe username doc =
 isMineAndNotShared : String -> Document.Document -> Bool
 isMineAndNotShared username doc =
     doc.share == Document.NotShared && Just username == doc.author
+
+
+isSharedToMeStrict : String -> Document.Document -> Bool
+isSharedToMeStrict username doc =
+    case doc.share of
+        Document.NotShared ->
+            False
+
+        Document.ShareWith { readers, editors } ->
+            List.member username editors && doc.currentEditor == Just username
 
 
 isSharedToMe : String -> Document.Share -> Bool
