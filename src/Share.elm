@@ -1,10 +1,13 @@
 module Share exposing
-    ( canEdit
+    ( activeDocumentIdsSharedByMe
+    , canEdit
     , createShareDocumentDict
     , doShare
+    , isCurrentlyShared
     , isSharedToMe
     , narrowCast
     , shareDocument
+    , unshare
     , updateSharedDocumentDict
     )
 
@@ -176,3 +179,18 @@ addClientIdsForUser username dict clientIdList =
 
         Just data ->
             List.map .client data ++ clientIdList
+
+
+isCurrentlyShared : Document.DocumentId -> Types.SharedDocumentDict -> Maybe Types.Username
+isCurrentlyShared docId dict =
+    Dict.get docId dict |> Maybe.andThen .currentEditor
+
+
+activeDocumentIdsSharedByMe : Types.Username -> Types.SharedDocumentDict -> List Types.SharedDocument
+activeDocumentIdsSharedByMe username dict =
+    dict |> Dict.toList |> List.filter (\( _, data ) -> data.currentEditor == Just username) |> List.map Tuple.second
+
+
+unshare : Document.Document -> Document.Document
+unshare doc =
+    { doc | currentEditor = Nothing }

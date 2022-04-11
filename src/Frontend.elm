@@ -813,6 +813,12 @@ updateFromBackend msg model =
             ( { model | connectedUsers = connectedUsers }, Cmd.none )
 
         -- DOCUMENT
+        SmartUnLockCurrentDocument ->
+            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSError }
+
+        UnlockDocument docId ->
+            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSError }
+
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
 
@@ -952,7 +958,7 @@ updateFromBackend msg model =
                     ( model, Cmd.none )
 
                 Types.FAUnlockCurrentDocument ->
-                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "No editors for that document are online, so I am unlocking it for you" MSGreen }
+                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSError }
 
         GotChatGroup mChatGroup ->
             case mChatGroup of

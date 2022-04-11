@@ -38,6 +38,7 @@ import Document
 import DocumentTools
 import Hex
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import List.Extra
 import Maybe.Extra
 import Message
 import Parser.Language exposing (Language(..))
@@ -314,8 +315,60 @@ createDocument model clientId maybeCurrentUser doc_ =
             ]
 
 
+getConnectedUser : ClientId -> ConnectionDict -> Maybe Types.Username
+getConnectedUser clientId dict =
+    let
+        connectionData =
+            dict |> Dict.toList |> List.map (\( username, data ) -> ( username, List.map .client data ))
+
+        usernames =
+            connectionData
+                |> List.filter (\( _, data ) -> List.member clientId data)
+                |> List.map (\( a, b ) -> a)
+                |> List.Extra.unique
+    in
+    List.head usernames
+
+
+resetCurrentEditorForUser : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+resetCurrentEditorForUser username dict =
+    Dict.map (\user shareDocInfo -> resetUser username shareDocInfo) dict
+
+
+resetUser : Types.Username -> Types.SharedDocument -> Types.SharedDocument
+resetUser username sharedDocument =
+    if Just username == sharedDocument.currentEditor then
+        { sharedDocument | currentEditor = Nothing }
+
+    else
+        sharedDocument
+
+
 removeSessionClient model sessionId clientId =
-    ( { model | connectionDict = removeSessionFromDict sessionId clientId model.connectionDict }, Cmd.none )
+    case getConnectedUser clientId model.connectionDict of
+        Nothing ->
+            ( { model | connectionDict = removeSessionFromDict sessionId clientId model.connectionDict }, Cmd.none )
+
+        Just username ->
+            let
+                connectionDict =
+                    removeSessionFromDict sessionId clientId model.connectionDict
+
+                activeSharedDocIds =
+                    Share.activeDocumentIdsSharedByMe username model.sharedDocumentDict |> List.map .id
+
+                documents : List Document.Document
+                documents =
+                    List.foldl (\id list -> Dict.get id model.documentDict :: list) [] activeSharedDocIds
+                        |> Maybe.Extra.values
+                        |> List.map (\doc -> Share.unshare doc)
+            in
+            ( { model
+                | sharedDocumentDict = Dict.map resetUser model.sharedDocumentDict
+                , connectionDict = connectionDict
+              }
+            , Cmd.batch (List.map (\doc -> Share.narrowCast username doc connectionDict) documents)
+            )
 
 
 removeSessionFromDict : SessionId -> ClientId -> ConnectionDict -> ConnectionDict

@@ -399,6 +399,7 @@ type alias UserMessage =
     , subject : String
     , content : String
     , show : List UMButtons
+    , info : String -- e.g., "docId:abc1234uji"
     , action : FrontendMsg
     , actionOnFailureToDeliver : FailureAction
     }
@@ -466,10 +467,10 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- SHARE
-    | UnLockCurrentDocument
     | DismissUserMessage
     | Narrow String Document
     | LockCurrentDocument
+    | UnLockCurrentDocument
     | ShareDocument
     | DoShare
       -- CHAT (FrontendMsg)
@@ -627,6 +628,7 @@ type ToFrontend
     | GotChatGroup (Maybe ChatGroup)
     | ChatMessageReceived ChatMsg
       -- DOCUMENT
+    | SmartUnLockCurrentDocument
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | ReceivedDocument SystemDocPermissions Document
@@ -636,6 +638,7 @@ type ToFrontend
     | MessageReceived Message
     | StatusReport (List String)
     | SetShowEditor Bool
+    | UnlockDocument Document.DocumentId
 
 
 type SystemDocPermissions

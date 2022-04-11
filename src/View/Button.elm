@@ -557,6 +557,7 @@ sendUnlockMessage_ doc currentUser =
             , subject = "Unlock?"
             , content = "May I unlock " ++ doc.title ++ "?"
             , show = [ Types.UMOk, Types.UMNotYet, Types.UMDismiss ]
+            , info = doc.id
             , action = FENoOp
             , actionOnFailureToDeliver = Types.FAUnlockCurrentDocument
             }
