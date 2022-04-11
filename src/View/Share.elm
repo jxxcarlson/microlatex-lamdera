@@ -52,7 +52,7 @@ usermessage mUserMessage =
                             , subject = message.subject
                             , content = "Ok!"
                             , show = [ Types.UMDismiss, Types.UMUnlock ]
-                            , action = Types.UnlockCurrentDocument
+                            , action = Types.UnLockCurrentDocument
                             , actionOnFailureToDeliver = Types.FANoOp
                             }
                     , showButton Types.UMNotYet <|

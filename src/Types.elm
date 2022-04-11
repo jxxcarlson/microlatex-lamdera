@@ -466,11 +466,10 @@ type FrontendMsg
     | ToggleSideBar
     | ChangePopup PopupState
       -- SHARE
-    | UnlockCurrentDocument
+    | UnLockCurrentDocument
     | DismissUserMessage
     | Narrow String Document
     | LockCurrentDocument
-    | UnLockCurrentDocument
     | ShareDocument
     | DoShare
       -- CHAT (FrontendMsg)

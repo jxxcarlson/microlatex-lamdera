@@ -218,9 +218,6 @@ update msg model =
         GotTime timeNow ->
             ( model, Cmd.none )
 
-        UnlockCurrentDocument ->
-            Frontend.Update.unlockCurrentDocument model
-
         KeyMsg keyMsg ->
             Frontend.Update.updateKeys model keyMsg
 
