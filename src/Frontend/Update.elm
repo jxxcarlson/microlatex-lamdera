@@ -200,6 +200,9 @@ inputText model str =
     if Share.canEdit model.currentUser model.currentDocument then
         inputText_ model str
 
+    else if Maybe.map .share model.currentDocument == Just Document.NotShared then
+        ( model, Cmd.none )
+
     else
         ( { model | messages = Message.make "Please lock this document to edit it." MSRed }, Cmd.none )
 
