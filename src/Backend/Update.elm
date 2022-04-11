@@ -332,16 +332,7 @@ getConnectedUser clientId dict =
 
 resetCurrentEditorForUser : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 resetCurrentEditorForUser username dict =
-    Dict.map (\user shareDocInfo -> resetUser username shareDocInfo) dict
-
-
-resetUser : Types.Username -> Types.SharedDocument -> Types.SharedDocument
-resetUser username sharedDocument =
-    if Just username == sharedDocument.currentEditor then
-        { sharedDocument | currentEditor = Nothing }
-
-    else
-        sharedDocument
+    Dict.map (\user shareDocInfo -> Share.resetUser username shareDocInfo) dict
 
 
 removeSessionClient model sessionId clientId =
@@ -364,7 +355,7 @@ removeSessionClient model sessionId clientId =
                         |> List.map (\doc -> Share.unshare doc)
             in
             ( { model
-                | sharedDocumentDict = Dict.map resetUser model.sharedDocumentDict
+                | sharedDocumentDict = Dict.map Share.resetUser model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
             , Cmd.batch (List.map (\doc -> Share.narrowCast username doc connectionDict) documents)

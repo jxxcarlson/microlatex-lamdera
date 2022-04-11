@@ -189,7 +189,7 @@ updateFromFrontend sessionId clientId msg model =
             ( Share.updateSharedDocumentDict doc model, Cmd.none )
 
         Narrowcast sendersName document ->
-            ( model, Share.narrowCast sendersName document model.connectionDict )
+            ( { model | sharedDocumentDict = Share.insert document model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
 
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )

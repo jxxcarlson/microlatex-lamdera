@@ -3,9 +3,11 @@ module Share exposing
     , canEdit
     , createShareDocumentDict
     , doShare
+    , insert
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
+    , resetUser
     , shareDocument
     , unshare
     , updateSharedDocumentDict
@@ -21,6 +23,15 @@ import User
 
 type alias Username =
     String
+
+
+resetUser : Types.Username -> Types.SharedDocument -> Types.SharedDocument
+resetUser username sharedDocument =
+    if Just username == sharedDocument.currentEditor then
+        { sharedDocument | currentEditor = Nothing }
+
+    else
+        sharedDocument
 
 
 getSharedDocument : Document.Document -> Types.SharedDocument

@@ -49,6 +49,7 @@ import Compiler.Acc
 import Compiler.DifferentialParser
 import Config
 import Debounce
+import Dict
 import Docs
 import Document exposing (Document)
 import File.Download as Download
@@ -57,6 +58,7 @@ import Keyboard
 import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
+import Maybe.Extra
 import Message
 import Parser.Language exposing (Language(..))
 import Process
@@ -802,6 +804,12 @@ handleSignOut model =
         , sendToBackend (GetPublicDocuments Types.SortByMostRecent Nothing)
         ]
     )
+
+
+
+-- |> join (unshare (Util.currentUsername model.currentUser))
+-- narrowCast : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
+--     , Cmd.batch (narrowCastDocs model username documents)
 
 
 handleSignIn model =
