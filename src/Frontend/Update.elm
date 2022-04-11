@@ -678,7 +678,8 @@ join f g =
 
 openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 openEditor doc model =
-    model |> join (openEditor_ doc) lockCurrentDocument
+    -- model |> join (openEditor_ doc) lockCurrentDocument
+    openEditor_ doc model
 
 
 openEditor_ : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
