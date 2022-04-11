@@ -502,13 +502,25 @@ update msg model =
             ( model, sendToBackend (Narrowcast username document) )
 
         LockCurrentDocument ->
+            let
+                _ =
+                    Debug.log "clause" "LockCurrentDocument"
+            in
             Frontend.Update.lockDocument model
 
         UnLockCurrentDocument ->
+            let
+                _ =
+                    Debug.log "clause" "UnLockCurrentDocument"
+            in
             Frontend.Update.unlockCurrentDocument model
 
         -- DOCUMENT
         SetDocumentCurrent document ->
+            let
+                _ =
+                    Debug.log "clause" "SetDocumentCurrent"
+            in
             Frontend.Update.setDocumentAsCurrent model document SystemCanEdit
 
         InputReaders str ->
@@ -821,6 +833,9 @@ updateFromBackend msg model =
 
         ReceivedDocument _ doc ->
             let
+                _ =
+                    Debug.log "clause" "ReceivedDocument"
+
                 editRecord =
                     Compiler.DifferentialParser.init doc.language doc.content
 

@@ -184,6 +184,10 @@ updateFromFrontend sessionId clientId msg model =
             ( Share.updateSharedDocumentDict doc model, Cmd.none )
 
         Narrowcast sendersName document ->
+            let
+                _ =
+                    Debug.log "clause" "Narrowcast"
+            in
             ( model, Share.narrowCast sendersName document model.connectionDict )
 
         ClearConnectionDictBE ->

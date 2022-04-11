@@ -478,31 +478,6 @@ batch =
 -- SET DOCUMENT AS CURRENT
 
 
-unlockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-unlockCurrentDocument model =
-    case model.currentDocument of
-        Nothing ->
-            ( model, Cmd.none )
-
-        Just doc_ ->
-            let
-                doc : Document
-                doc =
-                    { doc_ | currentEditor = Nothing }
-            in
-            ( { model
-                | userMessage = Nothing
-                , messages = Message.make "Document unlocked" MSGreen
-                , currentDocument = Just doc
-                , documents = Util.updateDocumentInList doc model.documents
-              }
-            , Cmd.batch
-                [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
-                ]
-            )
-
-
 setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
@@ -563,7 +538,8 @@ setDocumentAsCurrentAux doc permissions model =
     , Cmd.batch
         [ View.Utility.setViewPortToTop
         , sendToBackend (SaveDocument doc)
-        , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
+
+        --, sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
         ]
     )
 
@@ -601,9 +577,17 @@ lockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 lockCurrentDocument model =
     case model.currentDocument of
         Nothing ->
+            let
+                _ =
+                    Debug.log "LOCK" 1
+            in
             ( model, Cmd.none )
 
         Just doc_ ->
+            let
+                _ =
+                    Debug.log "LOCK" 2
+            in
             if doc_.currentEditor == Nothing then
                 let
                     currentUsername =
@@ -625,6 +609,38 @@ lockCurrentDocument model =
 
             else
                 ( { model | messages = Message.make "Document is locked already" MSError }, Cmd.none )
+
+
+unlockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+unlockCurrentDocument model =
+    case model.currentDocument of
+        Nothing ->
+            let
+                _ =
+                    Debug.log "UNLOCK" 1
+            in
+            ( model, Cmd.none )
+
+        Just doc_ ->
+            let
+                _ =
+                    Debug.log "UNLOCK" 2
+
+                doc : Document
+                doc =
+                    { doc_ | currentEditor = Nothing }
+            in
+            ( { model
+                | userMessage = Nothing
+                , messages = Message.make "Document unlocked" MSGreen
+                , currentDocument = Just doc
+                , documents = Util.updateDocumentInList doc model.documents
+              }
+            , Cmd.batch
+                [ sendToBackend (SaveDocument doc)
+                , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
+                ]
+            )
 
 
 lockDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )

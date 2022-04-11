@@ -221,6 +221,20 @@ languageMenu popupState lang =
 
 
 -- DOCUMENT
+--toggleLock : Maybe Document.Document -> Element FrontendMsg
+--toggleLock mDoc =
+--    case mDoc of
+--        Nothing ->
+--            E.none
+--
+--        Just doc ->
+--            if doc.currentEditor == Nothing then
+--                -- document is unlocked
+--                buttonTemplate [ Font.color Color.white ] FENoOp (String.fromChar '🔓')
+--
+--            else
+--                -- document is locked
+--                buttonTemplate [ Font.color Color.white ] FENoOp (String.fromChar '🔒')
 
 
 toggleLock : Maybe Document.Document -> Element FrontendMsg
