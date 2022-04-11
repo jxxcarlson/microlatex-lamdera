@@ -577,17 +577,9 @@ lockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 lockCurrentDocument model =
     case model.currentDocument of
         Nothing ->
-            let
-                _ =
-                    Debug.log "LOCK" 1
-            in
             ( model, Cmd.none )
 
         Just doc_ ->
-            let
-                _ =
-                    Debug.log "LOCK" 2
-            in
             if doc_.currentEditor == Nothing then
                 let
                     currentUsername =
@@ -615,17 +607,10 @@ unlockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 unlockCurrentDocument model =
     case model.currentDocument of
         Nothing ->
-            let
-                _ =
-                    Debug.log "UNLOCK" 1
-            in
             ( model, Cmd.none )
 
         Just doc_ ->
             let
-                _ =
-                    Debug.log "UNLOCK" 2
-
                 doc : Document
                 doc =
                     { doc_ | currentEditor = Nothing }
