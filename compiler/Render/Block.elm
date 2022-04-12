@@ -495,12 +495,21 @@ renderCode _ _ _ _ id str =
             [ Font.typeface "Inconsolata"
             , Font.monospace
             ]
-        , Element.spacing 8
+
+        --, Element.spacing 8
         , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
         , Events.onClick (SendId id)
         , Render.Utility.elementAttribute "id" id
         ]
-        (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
+        (List.map renderVerbatimLine (String.lines (String.trim str)))
+
+
+renderVerbatimLine str =
+    if String.trim str == "" then
+        Element.el [ Element.height (Element.px 11) ] (Element.text "")
+
+    else
+        Element.el [ Element.height (Element.px 22) ] (Element.text str)
 
 
 renderVerbatim : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
@@ -515,7 +524,7 @@ renderVerbatim _ _ _ _ id str =
         , Events.onClick (SendId id)
         , Render.Utility.elementAttribute "id" id
         ]
-        (List.map (\t -> Element.el [] (Element.text t)) (String.lines (String.trim str)))
+        (List.map renderVerbatimLine (String.lines (String.trim str)))
 
 
 item count acc settings args id exprs =
