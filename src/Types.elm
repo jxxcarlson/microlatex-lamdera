@@ -493,6 +493,7 @@ type FrontendMsg
     | InputChoseGroup String
       -- DOC
     | SetDocumentCurrent Document
+    | SetDocumentCurrentViaId Document.DocumentId
     | GetPinnedDocuments
     | SetLanguage Bool Language
     | Fetch String

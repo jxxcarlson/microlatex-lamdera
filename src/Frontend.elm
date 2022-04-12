@@ -227,12 +227,15 @@ update msg model =
             Frontend.Update.handleUrlRequest model urlRequest
 
         UrlChanged url ->
-            -- ( model, Cmd.none )
-            ( { model | url = url |> Debug.log "URL, frag" }
-            , Cmd.batch
-                [ UrlManager.handleDocId url
-                ]
-            )
+            let
+                cmd =
+                    if String.left 3 url.path == "/c/" then
+                        Util.delay 1 (SetDocumentCurrentViaId (String.dropLeft 3 url.path))
+
+                    else
+                        UrlManager.handleDocId url
+            in
+            ( { model | url = url }, cmd )
 
         -- CHAT (update)
         AskToClearChatHistory ->
@@ -628,6 +631,14 @@ update msg model =
 
         SetDocumentAsCurrent permissions doc ->
             Frontend.Update.setDocumentAsCurrent model doc permissions
+
+        SetDocumentCurrentViaId id ->
+            case Document.documentFromListViaId id model.documents of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    ( Frontend.Update.currentDocumentPostProcess doc model, Cmd.none )
 
         SetPublic doc public ->
             Frontend.Update.setPublic model doc public

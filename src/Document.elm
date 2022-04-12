@@ -6,6 +6,7 @@ module Document exposing
     , canEditSharedDoc
     , currentAuthor
     , defaultSettings
+    , documentFromListViaId
     , empty
     , setTags
     , shareToString
@@ -53,6 +54,11 @@ type Share
 
 type alias DocumentId =
     String
+
+
+documentFromListViaId : DocumentId -> List Document -> Maybe Document
+documentFromListViaId id docs =
+    docs |> List.filter (\doc -> doc.id == id) |> List.head
 
 
 {-| Find tags in the text of the document and set them in the tag field

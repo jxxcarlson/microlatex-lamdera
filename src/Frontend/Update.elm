@@ -2,6 +2,7 @@ module Frontend.Update exposing
     ( addDocToCurrentUser
     , adjustId
     , closeEditor
+    , currentDocumentPostProcess
     , debounceMsg
     , deleteDocument
     , exportToLaTeX
@@ -579,11 +580,36 @@ setDocumentAsCurrentAux doc permissions model =
     , Cmd.batch
         [ View.Utility.setViewPortToTop
         , sendToBackend (SaveDocument doc)
-        , Nav.pushUrl model.key ("/i/" ++ doc.id)
+        , Nav.pushUrl model.key ("/c/" ++ doc.id)
 
         --, sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
         ]
     )
+
+
+currentDocumentPostProcess : Document.Document -> FrontendModel -> FrontendModel
+currentDocumentPostProcess doc model =
+    let
+        newEditRecord : Compiler.DifferentialParser.EditRecord
+        newEditRecord =
+            Compiler.DifferentialParser.init doc.language doc.content
+
+        ( readers, editors ) =
+            View.Utility.getReadersAndEditors (Just doc)
+    in
+    { model
+        | currentDocument = Just doc
+        , sourceText = doc.content
+        , initialText = doc.content
+        , editRecord = newEditRecord
+        , title =
+            Compiler.ASTTools.title newEditRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
+        , counter = model.counter + 1
+        , language = doc.language
+        , inputReaders = readers
+        , inputEditors = editors
+    }
 
 
 
