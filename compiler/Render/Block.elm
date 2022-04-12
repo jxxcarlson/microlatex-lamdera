@@ -618,16 +618,76 @@ indentationScale =
 
 index _ acc _ _ _ _ =
     let
-        termList =
+        indexGroups =
             acc.terms
                 |> Dict.toList
+                |> List.map (\( name, item_ ) -> ( String.trim name, item_ ))
                 |> List.sortBy (\( name, _ ) -> name)
+                |> List.Extra.groupWhile (\a b -> String.left 1 (Tuple.first a) == String.left 1 (Tuple.first b))
+                |> List.map (\thing -> group thing)
+                |> List.map (List.map indexItem)
+                |> List.concat
+                |> List.Extra.greedyGroupsOf 20
     in
-    -- Element.column [ Element.spacing 6 ] (Element.el [ Font.bold ] (Element.text "Index") :: List.map indexItem termList)
-    Element.column [ Element.spacing 6 ] (List.map indexItem termList)
+    -- Element.row [ Element.spaceEvenly ] (List.map (\group_ -> Element.column [ Element.spacing 6, Element.width (Element.px 150) ] group_) indexGroups)
+    -- Element.row [ Element.spaceEvenly ] (List.map (\group_ -> renderGroup group_) indexGroups)
+    Element.row [ Element.spacing 18 ] (List.map (\group_ -> Element.column [ Element.spacing 6, Element.width (Element.px 150) ] group_) indexGroups)
 
 
-indexItem : ( String, { begin : Int, end : Int, id : String } ) -> Element MarkupMsg
-indexItem ( name, loc ) =
+normalize gp =
+    case List.head gp of
+        Just GBlankLine ->
+            List.drop 1 gp
+
+        Just (GItem _) ->
+            gp
+
+        Nothing ->
+            gp
+
+
+
+--renderGroup gp =
+--    let
+--        group_ =
+--            case List.head gp of
+--                Just GBlankLine ->
+--                    List.drop 1 gp
+--
+--                Just (GItem _) ->
+--                    gp
+--
+--                Nothing ->
+--                    gp
+--    in
+--    Element.column [ Element.spacing 6, Element.width (Element.px 150) ] gp
+
+
+group : ( Item, List Item ) -> List GroupItem
+group ( item_, list ) =
+    GBlankLine :: GItem item_ :: List.map GItem list
+
+
+type GroupItem
+    = GBlankLine
+    | GItem Item
+
+
+type alias Item =
+    ( String, { begin : Int, end : Int, id : String } )
+
+
+indexItem : GroupItem -> Element MarkupMsg
+indexItem groupItem =
+    case groupItem of
+        GBlankLine ->
+            Element.el [ Element.height (Element.px 8) ] (Element.text "")
+
+        GItem item_ ->
+            indexItem_ item_
+
+
+indexItem_ : Item -> Element MarkupMsg
+indexItem_ ( name, loc ) =
     Element.link [ Font.color (Element.rgb 0 0 0.8), Events.onClick (SelectId loc.id) ]
         { url = Render.Utility.internalLink loc.id, label = Element.el [] (Element.text (String.toLower name)) }
