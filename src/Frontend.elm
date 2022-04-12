@@ -390,7 +390,22 @@ update msg model =
         ToggleCheatsheet ->
             case model.popupState of
                 NoPopup ->
-                    ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0CheetsheetId) )
+                    let
+                        id =
+                            case model.language of
+                                L0Lang ->
+                                    Config.l0CheetsheetId
+
+                                MicroLaTeXLang ->
+                                    Config.microLaTeXCheetsheetId
+
+                                XMarkdownLang ->
+                                    Config.xmarkdownCheetsheetId
+
+                                PlainTextLang ->
+                                    Config.plainTextCheetsheetId
+                    in
+                    ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet id) )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )

@@ -15,10 +15,6 @@ import Render.TOC
 import Types exposing (DocumentHandling(..), FrontendModel, FrontendMsg(..), PopupState(..))
 import View.Button as Button
 import View.Color as Color
-import View.Geometry as Geometry
-import View.Input
-import View.Style as Style
-import View.Utility
 
 
 view : FrontendModel -> E.Element Types.FrontendMsg
@@ -39,10 +35,10 @@ viewCheatSheet model =
                     Compiler.DifferentialParser.init doc.language doc.content
 
                 w =
-                    model.windowWidth // 3
+                    max (model.windowWidth // 3) 500
 
                 h =
-                    model.windowHeight - 300
+                    model.windowHeight - 166
             in
             E.column (style2 ++ [ Font.size 14, E.width (E.px w), E.height (E.px h), E.scrollbarY, E.paddingEach { left = 18, right = 18, top = 36, bottom = 36 } ])
                 (viewDocument w h model.counter "--" editRecord)

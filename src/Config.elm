@@ -12,12 +12,15 @@ module Config exposing
     , loadingText
     , masterDocLoadedPageId
     , maxDocSearchLimit
+    , microLaTeXCheetsheetId
     , pdfServer
+    , plainTextCheetsheetId
     , publicDocumentStartupSearchKey
     , startupHelpDocumentId
     , titleSize
     , transitKey
     , welcomeDocId
+    , xmarkdownCheetsheetId
     )
 
 import Env
@@ -63,6 +66,33 @@ l0CheetsheetId =
     case Env.mode of
         Env.Production ->
             "id-go206-ak343"
+
+        Env.Development ->
+            "id-qt254-wn754"
+
+
+microLaTeXCheetsheetId =
+    case Env.mode of
+        Env.Production ->
+            "id-vv682-nv513"
+
+        Env.Development ->
+            "id-qt254-wn754"
+
+
+xmarkdownCheetsheetId =
+    case Env.mode of
+        Env.Production ->
+            "id-nv791-ih252"
+
+        Env.Development ->
+            "id-qt254-wn754"
+
+
+plainTextCheetsheetId =
+    case Env.mode of
+        Env.Production ->
+            "id-cm181-zs282"
 
         Env.Development ->
             "id-qt254-wn754"
