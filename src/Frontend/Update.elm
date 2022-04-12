@@ -303,7 +303,7 @@ render model msg_ =
 
         Render.Msg.SendId line ->
             -- TODO: the below (using id also for line number) is not a great idea.
-            ( { model | messages = [ { content = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSWhite } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
+            ( { model | messages = [ { content = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSRed } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
         Render.Msg.SelectId id ->
             let

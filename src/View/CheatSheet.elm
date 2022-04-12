@@ -51,7 +51,7 @@ viewCheatSheet model =
                        , View.Utility.htmlId "__CHEATSHEET_RENDERED_TEXT__"
                        ]
                 )
-                (viewDocument w h model.counter "--" editRecord)
+                (viewDocument w h model.counter model.selectedId editRecord)
 
         Nothing ->
             E.none
