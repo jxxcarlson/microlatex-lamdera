@@ -36,7 +36,7 @@ viewCheatSheet model =
                     Compiler.DifferentialParser.init doc.language doc.content
 
                 w =
-                    max (model.windowWidth // 3) 500
+                    min (model.windowWidth // 3) 450
 
                 h =
                     model.windowHeight - 166
