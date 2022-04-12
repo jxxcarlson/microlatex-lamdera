@@ -65,7 +65,7 @@ l0CheetsheetId =
             "id-go206-ak343"
 
         Env.Development ->
-            "id-pu157-zz849"
+            "id-qt254-wn754"
 
 
 loadingId =

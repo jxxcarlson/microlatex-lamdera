@@ -4,6 +4,7 @@ import Browser.Events
 import Browser.Navigation as Nav
 import Chat
 import Cmd.Extra exposing (withNoCmd)
+import Collab
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
@@ -71,6 +72,7 @@ init url key =
       , messages = [ { content = "Welcome!", status = MSWhite } ]
       , currentTime = Time.millisToPosix 0
       , zone = Time.utc
+      , networkModel = Collab.init ""
 
       -- ADMIN
       , statusReport = []
@@ -228,7 +230,7 @@ update msg model =
 
         UrlChanged url ->
             -- ( model, Cmd.none )
-            ( { model | url = url }
+            ( { model | url = url |> Debug.log "URL, frag" }
             , Cmd.batch
                 [ UrlManager.handleDocId url
                 ]

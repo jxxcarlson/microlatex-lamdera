@@ -54,6 +54,7 @@ import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation
+import Collab
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
@@ -76,6 +77,7 @@ type alias FrontendModel =
     , messages : List Message
     , currentTime : Time.Posix
     , zone : Time.Zone
+    , networkModel : Collab.NetworkModel String String
 
     -- ADMIN
     , statusReport : List String
