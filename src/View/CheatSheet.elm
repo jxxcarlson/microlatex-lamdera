@@ -48,7 +48,7 @@ viewCheatSheet model =
                        , E.height (E.px h)
                        , E.scrollbarY
                        , E.paddingEach { left = 18, right = 18, top = 36, bottom = 36 }
-                       , View.Utility.htmlId "__CHEATSHEET_RENDERED_TEXT__"
+                       , View.Utility.htmlId Config.cheatSheetRenderedTextId
                        ]
                 )
                 (viewDocument w h model.counter model.selectedId editRecord)

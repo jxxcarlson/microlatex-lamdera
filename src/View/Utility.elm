@@ -29,6 +29,7 @@ module View.Utility exposing
     )
 
 import Browser.Dom as Dom
+import Config
 import Document
 import Element exposing (Element)
 import Element.Font as Font
@@ -301,10 +302,10 @@ viewId : Types.PopupState -> String
 viewId popupState =
     case popupState of
         Types.CheatSheetPopup ->
-            "__CHEATESHEET_RENDERED_TEXT__"
+            Config.cheatSheetRenderedTextId
 
         _ ->
-            "__RENDERED_TEXT__"
+            Config.renderedTextId
 
 
 setViewportForElement : String -> String -> Cmd FrontendMsg
@@ -318,10 +319,10 @@ setViewPortToTop : Types.PopupState -> Cmd FrontendMsg
 setViewPortToTop popupState =
     case popupState of
         Types.CheatSheetPopup ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__CHEATSHEET_RENDERED_TEXT__" 0 0)
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 0)
 
         _ ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 0)
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.renderedTextId 0 0)
 
 
 setViewPortForSelectedLine : Types.PopupState -> Dom.Element -> Dom.Viewport -> Cmd FrontendMsg
@@ -333,10 +334,10 @@ setViewPortForSelectedLine popupState element viewport =
     in
     case popupState of
         Types.CheatSheetPopup ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__CHEATSHEET_RENDERED_TEXT__" 0 y)
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 y)
 
         _ ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 y)
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.renderedTextId 0 y)
 
 
 getElementWithViewPort : Dom.Viewport -> String -> Task Dom.Error ( Dom.Element, Dom.Viewport )

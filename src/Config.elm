@@ -2,6 +2,7 @@ module Config exposing
     ( appName
     , appUrl
     , backendTickSeconds
+    , cheatSheetRenderedTextId
     , documentDeletedNotice
     , frontendTickSeconds
     , helpDocumentId
@@ -16,6 +17,7 @@ module Config exposing
     , pdfServer
     , plainTextCheetsheetId
     , publicDocumentStartupSearchKey
+    , renderedTextId
     , startupHelpDocumentId
     , titleSize
     , transitKey
@@ -193,9 +195,12 @@ Nicholas Yang, Matt Griffith, and Rob Simmons and team at Brilliant.org.
 """
 
 
+cheatSheetRenderedTextId =
+    "__CHEATSHEET_RENDERED_TEXT__"
 
--- "id-kl117-ej494"
--- "id-gv236-po313"
+
+renderedTextId =
+    "__RENDERED_TEXT__"
 
 
 documentDeletedNotice =
@@ -208,7 +213,7 @@ appName =
 
 appUrl =
     -- "localhost/8000"
-    "https://microlatex.lamdera.app"
+    "https://scripta.io"
 
 
 pdfServer =

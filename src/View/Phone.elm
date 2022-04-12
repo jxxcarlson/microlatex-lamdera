@@ -1,5 +1,6 @@
 module View.Phone exposing (view)
 
+import Config
 import Document exposing (Document)
 import Element as E exposing (Element)
 import Element.Font as Font
@@ -84,7 +85,7 @@ viewRendered model width_ =
                 , E.alignTop
                 , E.scrollbarY
                 , E.clipX
-                , View.Utility.elementAttribute "id" "__RENDERED_TEXT__"
+                , View.Utility.elementAttribute "id" Config.renderedTextId
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px width_), E.paddingXY 16 32 ]

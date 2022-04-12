@@ -306,10 +306,6 @@ render model msg_ =
             ( { model | messages = [ { content = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSRed } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
         Render.Msg.SelectId id ->
-            let
-                _ =
-                    Debug.log "Render.Msg.SelectId" id
-            in
             -- the element with this id will be highlighted
             ( { model | selectedId = id }, View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id )
 
@@ -426,10 +422,6 @@ adjustId str =
 setViewportForElement model result =
     case result of
         Ok ( element, viewport ) ->
-            let
-                _ =
-                    Debug.log "VIEWPORT (SET)" viewport
-            in
             ( { model | messages = [] }
               -- [ { content = model.message ++ ", setting viewport", status = MSNormal } ] }
             , View.Utility.setViewPortForSelectedLine model.popupState element viewport
