@@ -45,7 +45,7 @@ import Parser.Language exposing (Language(..))
 import Random
 import Share
 import Token
-import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, MessageStatus(..), SystemDocPermissions(..), ToFrontend(..), UsersDocumentsDict)
+import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
 import View.Utility
 
@@ -141,7 +141,7 @@ getDocumentById model clientId id =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
 
                 --, sendToFrontend clientId (SetShowEditor False)
                 , sendToFrontend clientId (MessageReceived { content = "Sending doc " ++ id, status = MSGreen })
@@ -156,7 +156,7 @@ getDocumentByCmdId model clientId id =
 
         Just doc ->
             Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
 
@@ -178,7 +178,7 @@ getDocumentByAuthorId model clientId authorId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
+                        [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -196,7 +196,7 @@ getHomePage model clientId username =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
             )
@@ -215,34 +215,23 @@ getDocumentByPublicId model clientId publicId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument SystemCanEdit doc)
+                        [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
 
 
-fetchDocumentById model clientId docId maybeUserName =
+fetchDocumentById model clientId docId documentHandling =
     case Dict.get docId model.documentDict of
         Nothing ->
             ( model, sendToFrontend clientId (MessageReceived { content = "Couldn't find that document", status = MSWhite }) )
 
         Just document ->
-            if document.public || document.author == maybeUserName then
-                ( model
-                , Cmd.batch
-                    [ -- sendToFrontend clientId (SendDocument ReadOnly document)
-                      sendToFrontend clientId (ReceivedDocument SystemCanEdit document)
-
-                    --, sendToFrontend clientId (SetShowEditor True)
-                    ]
-                )
-
-            else
-                ( model
-                , Cmd.batch
-                    [ sendToFrontend clientId (MessageReceived { content = "Sorry, that document is not accessible", status = MSWhite })
-                    ]
-                )
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (ReceivedDocument documentHandling document)
+                ]
+            )
 
 
 saveDocument model document =
@@ -311,7 +300,7 @@ createDocument model clientId maybeCurrentUser doc_ =
         , usersDocumentsDict = usersDocumentsDict
     }
         |> Cmd.Extra.withCmds
-            [ sendToFrontend clientId (ReceivedNewDocument SystemCanEdit doc)
+            [ sendToFrontend clientId (ReceivedNewDocument HandleAsCheatSheet doc)
             ]
 
 

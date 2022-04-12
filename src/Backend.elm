@@ -115,7 +115,7 @@ update msg model =
         DelaySendingDocument clientId doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument Types.SystemCanEdit doc)
+                [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
                 , sendToFrontend clientId
                     (MessageReceived
                         { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
@@ -206,7 +206,7 @@ updateFromFrontend sessionId clientId msg model =
                     in
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument Types.SystemCanEdit doc)
+                        [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
                         , sendToFrontend clientId (MessageReceived message)
                         ]
                     )
@@ -269,8 +269,11 @@ updateFromFrontend sessionId clientId msg model =
         SaveDocument document ->
             Backend.Update.saveDocument model document
 
-        FetchDocumentById docId maybeCurrentUserId ->
-            Backend.Update.fetchDocumentById model clientId docId maybeCurrentUserId
+        GetCheatSheetDocument ->
+            Backend.Update.fetchDocumentById model clientId Config.l0CheetsheetId Types.HandleAsCheatSheet
+
+        FetchDocumentById documentHandling docId ->
+            Backend.Update.fetchDocumentById model clientId docId documentHandling
 
         GetDocumentByPublicId publicId ->
             Backend.Update.getDocumentByPublicId model clientId publicId

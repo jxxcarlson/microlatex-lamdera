@@ -29,7 +29,7 @@ import Render.XMarkdown
 import Share
 import Task
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import User
@@ -131,7 +131,7 @@ init url key =
 
       -- DOCUMENT
       , lineNumber = 0
-      , permissions = SystemReadOnly
+      , permissions = StandardHandling
       , initialText = Config.loadingText
       , documentsCreatedCounter = 0
       , sourceText = Config.loadingText
@@ -147,6 +147,7 @@ init url key =
       , authorId = ""
       , documents = []
       , currentDocument = Just Docs.notSignedIn
+      , currentCheatsheet = Nothing
       , currentMasterDocument = Nothing
       , printingState = PrintWaiting
       , documentDeleteState = WaitingForDeleteAction
@@ -163,6 +164,7 @@ init url key =
         , urlAction url.path
         , sendToBackend (SearchForDocuments Nothing "system:startup")
         , Task.perform AdjustTimeZone Time.here
+        , sendToBackend GetCheatSheetDocument
         ]
     )
 
@@ -382,6 +384,14 @@ update msg model =
             ( { model | inputEmail = str }, Cmd.none )
 
         -- UI
+        ToggleCheatsheet ->
+            case model.popupState of
+                NoPopup ->
+                    ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0CheetsheetId) )
+
+                _ ->
+                    ( { model | popupState = NoPopup }, Cmd.none )
+
         SelectList list ->
             let
                 cmd =
@@ -509,7 +519,7 @@ update msg model =
 
         -- DOCUMENT
         SetDocumentCurrent document ->
-            Frontend.Update.setDocumentAsCurrent model document SystemCanEdit
+            Frontend.Update.setDocumentAsCurrent model document HandleAsCheatSheet
 
         InputReaders str ->
             ( { model | inputReaders = str }, Cmd.none )
@@ -560,7 +570,7 @@ update msg model =
             Frontend.Update.render model msg_
 
         Fetch id ->
-            ( model, sendToBackend (FetchDocumentById id (Maybe.map .username model.currentUser)) )
+            ( model, sendToBackend (FetchDocumentById StandardHandling id) )
 
         DebounceMsg msg_ ->
             Frontend.Update.debounceMsg model msg_
@@ -825,30 +835,13 @@ updateFromBackend msg model =
         AcceptPublicTags tagDict ->
             ( { model | publicTagDict = tagDict }, Cmd.none )
 
-        ReceivedDocument _ doc ->
-            let
-                editRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
+        ReceivedDocument documentHandling doc ->
+            case documentHandling of
+                StandardHandling ->
+                    Frontend.Update.handleAsStandardReceivedDocument model doc
 
-                currentMasterDocument =
-                    if Frontend.Update.isMaster editRecord then
-                        Just doc
-
-                    else
-                        model.currentMasterDocument
-            in
-            ( { model
-                | editRecord = editRecord
-                , title = Compiler.ASTTools.title editRecord.parsed
-                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
-                , currentDocument = Just doc
-                , sourceText = doc.content
-                , currentMasterDocument = currentMasterDocument
-                , counter = model.counter + 1
-              }
-            , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
-            )
+                HandleAsCheatSheet ->
+                    Frontend.Update.handleReceivedDocumentAsCheatsheet model doc
 
         ReceivedNewDocument _ doc ->
             let

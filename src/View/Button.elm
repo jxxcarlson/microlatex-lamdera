@@ -60,6 +60,7 @@ module View.Button exposing
     , toggleActiveDocList
     , toggleAppMode
     , toggleChat
+    , toggleCheatSheet
     , toggleDocumentList
     , toggleEditor
     , toggleLock
@@ -78,7 +79,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
 import String.Extra
-import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), SystemDocPermissions, TagSelection(..))
+import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentHandling, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import Util
 import View.Color as Color
@@ -158,6 +159,11 @@ linkStyle =
 
 
 -- UI
+
+
+toggleCheatSheet : Element FrontendMsg
+toggleCheatSheet =
+    buttonTemplate [] ToggleCheatsheet "Cheat Sheet"
 
 
 reply : String -> Types.UserMessage -> Element FrontendMsg
@@ -714,7 +720,7 @@ getDocument id title highlighted =
         buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskForDocumentById id) title
 
 
-setDocumentAsCurrent : SystemDocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
+setDocumentAsCurrent : DocumentHandling -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
 setDocumentAsCurrent docPermissions currentDocument document =
     let
         fg =
@@ -783,7 +789,7 @@ showTOCInPhone =
         }
 
 
-setDocumentInPhoneAsCurrent : SystemDocPermissions -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
+setDocumentInPhoneAsCurrent : DocumentHandling -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
 setDocumentInPhoneAsCurrent docPermissions currentDocument document =
     let
         fg =

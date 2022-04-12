@@ -184,7 +184,7 @@ narrowCast sendersName document connectionDict =
                 clientIds =
                     getClientIds usernames connectionDict
             in
-            Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.SystemCanEdit document)) clientIds)
+            Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.HandleAsCheatSheet document)) clientIds)
 
 
 getClientIds : List Username -> Types.ConnectionDict -> List ClientId

@@ -7,6 +7,8 @@ module Frontend.Update exposing
     , exportToLaTeX
     , exportToMarkdown
     , firstSyncLR
+    , handleAsStandardReceivedDocument
+    , handleReceivedDocumentAsCheatsheet
     , handleSignIn
     , handleSignOut
     , handleSignUp
@@ -70,10 +72,45 @@ import Share
 import String.Extra
 import Task
 import Time
-import Types exposing (DocumentDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), SystemDocPermissions(..), ToBackend(..))
+import Types exposing (DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), ToBackend(..))
 import User exposing (User)
 import Util
 import View.Utility
+
+
+handleReceivedDocumentAsCheatsheet model doc =
+    ( { model
+        | currentCheatsheet = Just doc
+        , counter = model.counter + 1
+      }
+    , Cmd.none
+    )
+
+
+handleAsStandardReceivedDocument model doc =
+    let
+        editRecord =
+            Compiler.DifferentialParser.init doc.language doc.content
+
+        currentMasterDocument =
+            if isMaster editRecord then
+                Just doc
+
+            else
+                model.currentMasterDocument
+    in
+    ( { model
+        | editRecord = editRecord
+        , title = Compiler.ASTTools.title editRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
+        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , currentDocument = Just doc
+        , sourceText = doc.content
+        , currentMasterDocument = currentMasterDocument
+        , counter = model.counter + 1
+      }
+    , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
+    )
 
 
 exportToLaTeX model =
@@ -272,7 +309,7 @@ render model msg_ =
             ( { model | selectedId = id }, View.Utility.setViewportForElement id )
 
         GetPublicDocument id ->
-            ( model, sendToBackend (FetchDocumentById id (Maybe.map .username model.currentUser)) )
+            ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
 
 
 setLanguage dismiss lang model =
@@ -483,7 +520,7 @@ batch =
 -- SET DOCUMENT AS CURRENT
 
 
-setDocumentAsCurrent : FrontendModel -> Document.Document -> SystemDocPermissions -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent : FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent model doc permissions =
     if model.showEditor then
         -- if we are not in the editor, unlock the previous current document if need be
@@ -498,7 +535,7 @@ setDocumentAsCurrent model doc permissions =
         setDocumentAsCurrentAux doc permissions model
 
 
-setDocumentAsCurrentAux : Document.Document -> SystemDocPermissions -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrentAux : Document.Document -> DocumentHandling -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrentAux doc permissions model =
     let
         -- For now, loc the doc in all cases
@@ -731,7 +768,7 @@ setPermissions currentUser permissions document =
 
         Just author ->
             if Just author == Maybe.map .username currentUser then
-                SystemCanEdit
+                HandleAsCheatSheet
 
             else
                 permissions

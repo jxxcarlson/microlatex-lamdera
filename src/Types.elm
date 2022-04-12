@@ -17,6 +17,7 @@ module Types exposing
     , DocLoaded(..)
     , DocumentDeleteState(..)
     , DocumentDict
+    , DocumentHandling(..)
     , DocumentLink
     , DocumentList(..)
     , FailureAction(..)
@@ -37,7 +38,6 @@ module Types exposing
     , SidebarState(..)
     , SignupState(..)
     , SortMode(..)
-    , SystemDocPermissions(..)
     , TagSelection(..)
     , ToBackend(..)
     , ToFrontend(..)
@@ -147,9 +147,10 @@ type alias FrontendModel =
     , searchCount : Int
     , searchSourceText : String
     , lineNumber : Int
-    , permissions : SystemDocPermissions
+    , permissions : DocumentHandling
     , debounce : Debounce String
     , currentDocument : Maybe Document
+    , currentCheatsheet : Maybe Document
     , currentMasterDocument : Maybe Document
     , documents : List Document
     , publicDocuments : List Document
@@ -188,6 +189,7 @@ type PopupState
     | LanguageMenuPopup
     | NewDocumentPopup
     | UserMessagePopup
+    | CheatSheetPopup
     | SharePopup
 
 
@@ -426,6 +428,7 @@ type FrontendMsg
     | AdjustTimeZone Time.Zone
     | GotTime Time.Posix
       -- UI
+    | ToggleCheatsheet
     | OpenSharedDocumentList
     | SetAppMode AppMode
     | GotNewWindowDimensions Int Int
@@ -494,7 +497,7 @@ type FrontendMsg
     | Fetch String
     | SetPublicDocumentAsCurrentById String
     | SetInitialEditorContent
-    | SetDocumentInPhoneAsCurrent SystemDocPermissions Document
+    | SetDocumentInPhoneAsCurrent DocumentHandling Document
     | ShowTOCInPhone
     | InputSearchSource String
     | InputText String
@@ -509,7 +512,7 @@ type FrontendMsg
     | SearchText
     | InputAuthorId String
     | NewDocument
-    | SetDocumentAsCurrent SystemDocPermissions Document
+    | SetDocumentAsCurrent DocumentHandling Document
     | SetPublic Document Bool
     | AskForDocumentById String
     | AskForDocumentByAuthorId
@@ -583,10 +586,11 @@ type ToBackend
     | UpdateSharedDocumentDict Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
+    | GetCheatSheetDocument
     | RequestRefresh String
     | SignOutBE (Maybe String)
     | GetHomePage String
-    | FetchDocumentById String (Maybe String)
+    | FetchDocumentById DocumentHandling Document.DocumentId
     | GetPublicDocuments SortMode (Maybe String)
     | SaveDocument Document
     | SearchForDocumentsWithAuthorAndKey String
@@ -631,8 +635,8 @@ type ToFrontend
     | SmartUnLockCurrentDocument
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
-    | ReceivedDocument SystemDocPermissions Document
-    | ReceivedNewDocument SystemDocPermissions Document
+    | ReceivedDocument DocumentHandling Document
+    | ReceivedNewDocument DocumentHandling Document
     | ReceivedDocuments (List Document)
     | ReceivedPublicDocuments (List Document)
     | MessageReceived Message
@@ -641,9 +645,9 @@ type ToFrontend
     | UnlockDocument Document.DocumentId
 
 
-type SystemDocPermissions
-    = SystemReadOnly
-    | SystemCanEdit
+type DocumentHandling
+    = StandardHandling
+    | HandleAsCheatSheet
 
 
 type alias BackupOLD =

@@ -7,6 +7,7 @@ module Config exposing
     , helpDocumentId
     , indentationQuantum
     , initialLanguage
+    , l0CheetsheetId
     , loadingId
     , loadingText
     , masterDocLoadedPageId
@@ -56,6 +57,15 @@ maxDocSearchLimit =
 
 publicDocumentStartupSearchKey =
     "system:startup"
+
+
+l0CheetsheetId =
+    case Env.mode of
+        Env.Production ->
+            "id-go206-ak343"
+
+        Env.Development ->
+            "id-pu157-zz849"
 
 
 loadingId =
