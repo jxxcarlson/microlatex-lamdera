@@ -25,6 +25,7 @@ module View.Utility exposing
     , showIf
     , softTruncateLimit
     , truncateString
+    , viewId
     )
 
 import Browser.Dom as Dom
@@ -296,8 +297,25 @@ hideIf condition element =
         element
 
 
-setViewportForElement : String -> Cmd FrontendMsg
-setViewportForElement id =
+viewId : Types.PopupState -> String
+viewId popupState =
+    case popupState of
+        Types.CheatSheetPopup ->
+            "__CHEATESHEET_RENDERED_TEXT__"
+
+        _ ->
+            "__RENDERED_TEXT__"
+
+
+setViewportForElement : String -> String -> Cmd FrontendMsg
+setViewportForElement viewId_ elementId =
+    Dom.getViewportOf viewId_
+        |> Task.andThen (\vp -> getElementWithViewPort vp elementId)
+        |> Task.attempt Types.SetViewPortForElement
+
+
+setViewportForElementInCheatSheet : String -> Cmd FrontendMsg
+setViewportForElementInCheatSheet id =
     Dom.getViewportOf "__RENDERED_TEXT__"
         |> Task.andThen (\vp -> getElementWithViewPort vp id)
         |> Task.attempt Types.SetViewPortForElement
@@ -312,7 +330,7 @@ setViewPortForSelectedLine : Dom.Element -> Dom.Viewport -> Cmd FrontendMsg
 setViewPortForSelectedLine element viewport =
     let
         y =
-            -- viewport.viewport.y + element.element.y - element.element.height - 100
+            -- viewport.viewport.y + element.element.y - element.element.height - 380
             viewport.viewport.y + element.element.y - element.element.height - 380
     in
     Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 y)

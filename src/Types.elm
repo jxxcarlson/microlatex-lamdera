@@ -428,6 +428,7 @@ type FrontendMsg
     | FETick Time.Posix
     | AdjustTimeZone Time.Zone
     | GotTime Time.Posix
+    | Render Render.Msg.MarkupMsg
       -- UI
     | ToggleCheatsheet
     | OpenSharedDocumentList
@@ -520,7 +521,6 @@ type FrontendMsg
     | AskForDocumentByAuthorId
     | DeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
-    | Render Render.Msg.MarkupMsg
     | SetSortMode SortMode
     | SelectList DocumentList
     | GetUserTags

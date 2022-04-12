@@ -42,7 +42,7 @@ frontendTickSeconds =
             1
 
         Env.Development ->
-            5
+            60
 
 
 backendTickSeconds =

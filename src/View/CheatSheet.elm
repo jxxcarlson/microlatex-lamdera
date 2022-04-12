@@ -15,6 +15,7 @@ import Render.TOC
 import Types exposing (DocumentHandling(..), FrontendModel, FrontendMsg(..), PopupState(..))
 import View.Button as Button
 import View.Color as Color
+import View.Utility
 
 
 view : FrontendModel -> E.Element Types.FrontendMsg
@@ -40,7 +41,16 @@ viewCheatSheet model =
                 h =
                     model.windowHeight - 166
             in
-            E.column (style2 ++ [ Font.size 14, E.width (E.px w), E.height (E.px h), E.scrollbarY, E.paddingEach { left = 18, right = 18, top = 36, bottom = 36 } ])
+            E.column
+                (style2
+                    ++ [ Font.size 14
+                       , E.width (E.px w)
+                       , E.height (E.px h)
+                       , E.scrollbarY
+                       , E.paddingEach { left = 18, right = 18, top = 36, bottom = 36 }
+                       , View.Utility.htmlId "__CHEATSHEET_RENDERED_TEXT__"
+                       ]
+                )
                 (viewDocument w h model.counter "--" editRecord)
 
         Nothing ->
@@ -89,8 +99,6 @@ row heading body =
 
 style2 =
     [ E.spacing 18
-    , E.width (E.px 500)
-    , E.height (E.px 800)
     , E.padding 25
     , Font.size 14
     , Border.width 1

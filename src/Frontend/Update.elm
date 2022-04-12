@@ -219,7 +219,7 @@ searchText model =
                     ( Cmd.none, "(none)" )
 
                 Just id_ ->
-                    ( View.Utility.setViewportForElement id_, id_ )
+                    ( View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_, id_ )
     in
     ( { model | selectedId = id, searchCount = model.searchCount + 1, messages = [ { content = "ids: " ++ String.join ", " ids, status = MSWhite } ] }, cmd )
 
@@ -306,8 +306,12 @@ render model msg_ =
             ( { model | messages = [ { content = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSWhite } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
         Render.Msg.SelectId id ->
+            let
+                _ =
+                    Debug.log "Render.Msg.SelectId" id
+            in
             -- the element with this id will be highlighted
-            ( { model | selectedId = id }, View.Utility.setViewportForElement id )
+            ( { model | selectedId = id }, View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id )
 
         GetPublicDocument id ->
             ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
@@ -337,7 +341,7 @@ firstSyncLR model searchSourceText =
             in
             { foundIds = foundIds_
             , foundIdIndex = 1
-            , cmd = View.Utility.setViewportForElement id_
+            , cmd = View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_
             , selectedId = id_
             , searchCount = 0
             }
@@ -364,7 +368,7 @@ nextSyncLR model =
         , searchCount = model.searchCount + 1
         , messages = [ { content = ("[" ++ adjustId id_ ++ "]") :: List.map adjustId model.foundIds |> String.join ", ", status = MSWhite } ]
       }
-    , View.Utility.setViewportForElement id_
+    , View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_
     )
 
 
@@ -381,7 +385,7 @@ syncLR model =
                 in
                 { foundIds = foundIds_
                 , foundIdIndex = 1
-                , cmd = View.Utility.setViewportForElement id_
+                , cmd = View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_
                 , selectedId = id_
                 , searchCount = 0
                 }
@@ -393,7 +397,7 @@ syncLR model =
                 in
                 { foundIds = model.foundIds
                 , foundIdIndex = modBy (List.length model.foundIds) (model.foundIdIndex + 1)
-                , cmd = View.Utility.setViewportForElement id_
+                , cmd = View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_
                 , selectedId = id_
                 , searchCount = model.searchCount + 1
                 }
@@ -422,6 +426,10 @@ adjustId str =
 setViewportForElement model result =
     case result of
         Ok ( element, viewport ) ->
+            let
+                _ =
+                    Debug.log "VIEWPORT (SET)" viewport
+            in
             ( { model | messages = [] }
               -- [ { content = model.message ++ ", setting viewport", status = MSNormal } ] }
             , View.Utility.setViewPortForSelectedLine element viewport
@@ -927,7 +935,7 @@ handleUrlRequest model urlRequest =
                     case .fragment url of
                         Just internalId ->
                             -- internalId is the part after '#', if present
-                            View.Utility.setViewportForElement internalId
+                            View.Utility.setViewportForElement (View.Utility.viewId model.popupState) internalId
 
                         Nothing ->
                             --if String.left 3 url.path == "/a/" then
