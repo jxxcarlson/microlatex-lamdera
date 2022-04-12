@@ -110,7 +110,7 @@ handleAsStandardReceivedDocument model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop ]
+    , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
     )
 
 
@@ -170,7 +170,7 @@ setPublicDocumentAsCurrentById model id =
                 , messages = [ { content = "id = " ++ doc.id, status = MSWhite } ]
                 , counter = model.counter + 1
               }
-            , Cmd.batch [ View.Utility.setViewPortToTop ]
+            , Cmd.batch [ View.Utility.setViewPortToTop model.popupState ]
             )
 
 
@@ -432,7 +432,7 @@ setViewportForElement model result =
             in
             ( { model | messages = [] }
               -- [ { content = model.message ++ ", setting viewport", status = MSNormal } ] }
-            , View.Utility.setViewPortForSelectedLine element viewport
+            , View.Utility.setViewPortForSelectedLine model.popupState element viewport
             )
 
         Err _ ->
@@ -586,7 +586,7 @@ setDocumentAsCurrentAux doc permissions model =
         , inputEditors = editors
       }
     , Cmd.batch
-        [ View.Utility.setViewPortToTop
+        [ View.Utility.setViewPortToTop model.popupState
         , sendToBackend (SaveDocument doc)
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
 
@@ -825,7 +825,7 @@ setDocumentInPhoneAsCurrent model doc permissions =
         , counter = model.counter + 1
         , phoneMode = PMShowDocument
       }
-    , View.Utility.setViewPortToTop
+    , View.Utility.setViewPortToTop model.popupState
     )
 
 

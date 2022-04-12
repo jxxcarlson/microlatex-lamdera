@@ -68,7 +68,7 @@ l0CheetsheetId =
             "id-go206-ak343"
 
         Env.Development ->
-            "id-qt254-wn754"
+            "id-da833-rp359"
 
 
 microLaTeXCheetsheetId =
@@ -77,7 +77,7 @@ microLaTeXCheetsheetId =
             "id-vv682-nv513"
 
         Env.Development ->
-            "id-qt254-wn754"
+            "--"
 
 
 xmarkdownCheetsheetId =
@@ -86,7 +86,7 @@ xmarkdownCheetsheetId =
             "id-nv791-ih252"
 
         Env.Development ->
-            "id-qt254-wn754"
+            "--"
 
 
 plainTextCheetsheetId =
@@ -95,7 +95,7 @@ plainTextCheetsheetId =
             "id-cm181-zs282"
 
         Env.Development ->
-            "id-qt254-wn754"
+            "--"
 
 
 loadingId =

@@ -314,26 +314,29 @@ setViewportForElement viewId_ elementId =
         |> Task.attempt Types.SetViewPortForElement
 
 
-setViewportForElementInCheatSheet : String -> Cmd FrontendMsg
-setViewportForElementInCheatSheet id =
-    Dom.getViewportOf "__RENDERED_TEXT__"
-        |> Task.andThen (\vp -> getElementWithViewPort vp id)
-        |> Task.attempt Types.SetViewPortForElement
+setViewPortToTop : Types.PopupState -> Cmd FrontendMsg
+setViewPortToTop popupState =
+    case popupState of
+        Types.CheatSheetPopup ->
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__CHEATSHEET_RENDERED_TEXT__" 0 0)
+
+        _ ->
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 0)
 
 
-setViewPortToTop : Cmd FrontendMsg
-setViewPortToTop =
-    Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 0)
-
-
-setViewPortForSelectedLine : Dom.Element -> Dom.Viewport -> Cmd FrontendMsg
-setViewPortForSelectedLine element viewport =
+setViewPortForSelectedLine : Types.PopupState -> Dom.Element -> Dom.Viewport -> Cmd FrontendMsg
+setViewPortForSelectedLine popupState element viewport =
     let
         y =
             -- viewport.viewport.y + element.element.y - element.element.height - 380
             viewport.viewport.y + element.element.y - element.element.height - 380
     in
-    Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 y)
+    case popupState of
+        Types.CheatSheetPopup ->
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__CHEATSHEET_RENDERED_TEXT__" 0 y)
+
+        _ ->
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf "__RENDERED_TEXT__" 0 y)
 
 
 getElementWithViewPort : Dom.Viewport -> String -> Task Dom.Error ( Dom.Element, Dom.Viewport )

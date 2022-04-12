@@ -33,7 +33,7 @@ view model width_ =
                 , Font.size 14
                 , E.alignTop
                 , E.scrollbarY
-                , View.Utility.elementAttribute "id" "__RENDERED_TEXT__"
+                , View.Utility.elementAttribute "id" (View.Utility.viewId model.popupState)
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
