@@ -618,20 +618,31 @@ indentationScale =
 
 index _ acc _ _ _ _ =
     let
-        indexGroups =
+        groupItemList : List GroupItem
+        groupItemList =
             acc.terms
                 |> Dict.toList
                 |> List.map (\( name, item_ ) -> ( String.trim name, item_ ))
                 |> List.sortBy (\( name, _ ) -> name)
                 |> List.Extra.groupWhile (\a b -> String.left 1 (Tuple.first a) == String.left 1 (Tuple.first b))
                 |> List.map (\thing -> group thing)
-                |> List.map (List.map indexItem)
                 |> List.concat
-                |> List.Extra.greedyGroupsOf 20
+
+        ngroupItemList =
+            List.length groupItemList
+
+        groupItemListList : List (List GroupItem)
+        groupItemListList =
+            groupItemList
+                |> List.Extra.greedyGroupsOf 30
+                |> List.map normalize
     in
-    -- Element.row [ Element.spaceEvenly ] (List.map (\group_ -> Element.column [ Element.spacing 6, Element.width (Element.px 150) ] group_) indexGroups)
-    -- Element.row [ Element.spaceEvenly ] (List.map (\group_ -> renderGroup group_) indexGroups)
-    Element.row [ Element.spacing 18 ] (List.map (\group_ -> Element.column [ Element.spacing 6, Element.width (Element.px 150) ] group_) indexGroups)
+    Element.row [ Element.spacing 18 ] (List.map renderGroup groupItemListList)
+
+
+renderGroup : List GroupItem -> Element MarkupMsg
+renderGroup groupItems =
+    Element.column [ Element.alignTop, Element.spacing 6, Element.width (Element.px 150) ] (List.map indexItem groupItems)
 
 
 normalize gp =
@@ -644,23 +655,6 @@ normalize gp =
 
         Nothing ->
             gp
-
-
-
---renderGroup gp =
---    let
---        group_ =
---            case List.head gp of
---                Just GBlankLine ->
---                    List.drop 1 gp
---
---                Just (GItem _) ->
---                    gp
---
---                Nothing ->
---                    gp
---    in
---    Element.column [ Element.spacing 6, Element.width (Element.px 150) ] gp
 
 
 group : ( Item, List Item ) -> List GroupItem
