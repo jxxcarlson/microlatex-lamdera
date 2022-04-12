@@ -46,7 +46,6 @@ import BoundedDeque exposing (BoundedDeque)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
-import Collab
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
@@ -260,14 +259,10 @@ inputText_ model str =
         messages =
             Render.Markup.getMessages
                 editRecord.parsed
-
-        networkModel =
-            Collab.updateFromUser str model.networkModel
     in
     ( { model
         | sourceText = str
         , editRecord = editRecord
-        , networkModel = networkModel |> Debug.log "XX, NETWORK MODEL"
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , messages = [ { content = String.join ", " messages, status = MSWhite } ]

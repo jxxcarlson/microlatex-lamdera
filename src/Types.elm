@@ -77,7 +77,6 @@ type alias FrontendModel =
     , messages : List Message
     , currentTime : Time.Posix
     , zone : Time.Zone
-    , networkModel : Collab.NetworkModel String String
 
     -- ADMIN
     , statusReport : List String
