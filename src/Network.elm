@@ -1,4 +1,4 @@
-module Collab exposing (NetworkModel, init, updateFromBackend, updateFromUser)
+module Network exposing (NetworkModel, init, updateFromBackend, updateFromUser)
 
 import List.Extra
 

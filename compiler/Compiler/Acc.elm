@@ -456,7 +456,7 @@ getTerms : String -> Either String (List Expr) -> List TermData
 getTerms id content_ =
     case content_ of
         Right expressionList ->
-            Compiler.ASTTools.filterExpressionsOnName "term" expressionList
+            Compiler.ASTTools.filterExpressionsOnName_ "term" expressionList
                 |> List.map (extract id)
                 |> Maybe.Extra.values
 
@@ -473,6 +473,9 @@ extract : String -> Expr -> Maybe TermData
 extract id expr =
     case expr of
         Expr "term" [ Text name { begin, end } ] _ ->
+            Just { term = name, loc = { begin = begin, end = end, id = id } }
+
+        Expr "term_" [ Text name { begin, end } ] _ ->
             Just { term = name, loc = { begin = begin, end = end, id = id } }
 
         _ ->

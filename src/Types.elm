@@ -54,7 +54,6 @@ import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation
-import Collab
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
@@ -62,6 +61,7 @@ import Document exposing (Document)
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
+import Network
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random

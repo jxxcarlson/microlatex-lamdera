@@ -6,6 +6,7 @@ module Compiler.ASTTools exposing
     , filterBlocksByArgs
     , filterBlocksOnName
     , filterExpressionsOnName
+    , filterExpressionsOnName_
     , filterForestForExpressionsWithName
     , getText
     , matchingIdsInAST
@@ -45,6 +46,11 @@ filterExpressionsOnName name exprs =
     List.filter (matchExprOnName name) exprs
 
 
+filterExpressionsOnName_ : String -> List Expr -> List Expr
+filterExpressionsOnName_ name exprs =
+    List.filter (matchExprOnName_ name) exprs
+
+
 filterBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
 filterBlocksOnName name blocks =
     List.filter (matchBlockName name) blocks
@@ -63,6 +69,19 @@ matchExprOnName name expr =
 
         Verbatim name2 _ _ ->
             name == name2
+
+        _ ->
+            False
+
+
+matchExprOnName_ : String -> Expr -> Bool
+matchExprOnName_ name expr =
+    case expr of
+        Expr name2 _ _ ->
+            String.startsWith name name2
+
+        Verbatim name2 _ _ ->
+            String.startsWith name name2
 
         _ ->
             False
