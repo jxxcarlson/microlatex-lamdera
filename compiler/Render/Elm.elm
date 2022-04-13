@@ -544,7 +544,7 @@ underline g acc s exprList =
 
 
 errorHighlight g acc s exprList =
-    simpleElement [ Background.color (Element.rgb255 255 200 200), Element.paddingXY 2 2 ] g acc s exprList
+    simpleElement [ Background.color (Element.rgb255 255 200 200), Element.paddingXY 4 2 ] g acc s exprList
 
 
 

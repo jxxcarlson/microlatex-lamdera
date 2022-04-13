@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , f, g, h, isVerbatimLine, parsePlainText, toPrimitiveBlockForest, x1, x2
+    , f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -62,6 +62,17 @@ parse lang sourceText =
     sourceText
         |> toPrimitiveBlockForest lang
         |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlock parser))
+        |> List.map (Debug.log "PARSED")
+
+
+messagesFromTree : Tree.Tree ExpressionBlock -> List String
+messagesFromTree tree =
+    List.map Parser.BlockUtil.getMessages (Tree.flatten tree) |> List.concat
+
+
+messagesFromForest : Forest ExpressionBlock -> List String
+messagesFromForest forest =
+    List.map messagesFromTree forest |> List.concat
 
 
 parsePlainText : Int -> String -> List Parser.Expr.Expr

@@ -4,8 +4,6 @@ module Parser.BlockUtil exposing
     , toExpressionBlock
     )
 
--- import Parser.Expression
-
 import Compiler.Util
 import Either exposing (Either(..))
 import MicroLaTeX.Parser.Expression

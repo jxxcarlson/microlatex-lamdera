@@ -27,12 +27,12 @@ init lang str =
         ( newAccumulator, parsed ) =
             (List.map (parser lang) >> Compiler.Acc.transformAcccumulate lang) chunks
     in
-    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
+    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator, messages = Markup.messagesFromForest parsed |> Debug.log "MESSAGES (2)" }
 
 
 update : EditRecord -> String -> EditRecord
 update editRecord text =
-    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Compiler.Acc.transformAcccumulate editRecord text
+    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Markup.messagesFromForest Compiler.Acc.transformAcccumulate editRecord text
 
 
 chunker : Language -> String -> List (Tree PrimitiveBlock)

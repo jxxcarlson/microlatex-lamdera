@@ -548,6 +548,10 @@ setDocumentAsCurrentAux doc permissions model =
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
+
         currentMasterDocument =
             if isMaster newEditRecord then
                 Just doc
@@ -576,6 +580,7 @@ setDocumentAsCurrentAux doc permissions model =
         , currentUser = newCurrentUser
         , inputReaders = readers
         , inputEditors = editors
+        , messages = errorMessages |> Debug.log "ERRORS"
       }
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState

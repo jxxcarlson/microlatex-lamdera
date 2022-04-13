@@ -335,7 +335,7 @@ errorMessageBold message =
 
 errorMessage2 : String -> Expr
 errorMessage2 message =
-    Expr "violet" [ Text message dummyLocWithId ] dummyLocWithId
+    Expr "errorHighlight" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 addErrorMessage : String -> State -> State
