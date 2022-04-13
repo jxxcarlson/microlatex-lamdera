@@ -217,6 +217,10 @@ reduceState state =
         in
         case List.head symbols of
             Just B ->
+                let
+                    _ =
+                        Debug.log "!! PROBLEM STACK !!" (state.stack |> List.reverse |> Token.toString2)
+                in
                 case eval state.lineNumber (state.stack |> List.reverse) of
                     (Expr "??(3)" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
