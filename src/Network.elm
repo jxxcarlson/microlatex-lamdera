@@ -7,10 +7,13 @@ import List.Extra
 
 
 type alias NetworkModel =
-    AbstractNetwork.NetworkModel NetworkMessage Model
+    AbstractNetwork.NetworkModel NetworkMessage Data
+
+generateDiffMessage : String -> String -> NetworkMessage
+generateDiffMessage oldString newString =
 
 
-type alias Model =
+type alias Data =
     List String
 
 
@@ -30,12 +33,12 @@ updateFromUser msg localModel =
     }
 
 
-updateFunc : NetworkMessage -> Model -> Model
+updateFunc : NetworkMessage -> Data -> Data
 updateFunc =
     Diff.Change.reconcileList
 
 
-localState : NetworkModel -> Model
+localState : NetworkModel -> Data
 localState localModel =
     List.foldl updateFunc localModel.serverState localModel.localMsgs
 
