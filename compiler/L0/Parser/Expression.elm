@@ -284,8 +284,7 @@ eval lineNumber tokens =
                 [ errorMessage "[ ]" ]
 
             _ ->
-                -- [ errorMessageInvisible lineNumber "•••", errorMessage <| "[" ++ Token.toString args ++ "??(2) ]" ]
-                [ errorMessage "[••••]" ]
+                [ errorMessage "[••]" ]
 
     else
         []
@@ -314,7 +313,7 @@ evalList lineNumber tokens =
                             expr :: evalList lineNumber (List.drop 1 tokens)
 
                         Nothing ->
-                            [ errorMessageInvisible lineNumber "Error converting token", Text "error converting Token" dummyLocWithId ]
+                            [ errorMessage ("Line " ++ String.fromInt lineNumber ++ ", error converting token"), Text "error converting Token" dummyLocWithId ]
 
         _ ->
             []
@@ -327,16 +326,6 @@ errorMessageInvisible lineNumber message =
 
 errorMessage : String -> Expr
 errorMessage message =
-    Expr "red" [ Text message dummyLocWithId ] dummyLocWithId
-
-
-errorMessageBold : String -> Expr
-errorMessageBold message =
-    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
-
-
-errorMessage2 : String -> Expr
-errorMessage2 message =
     Expr "errorHighlight" [ Text message dummyLocWithId ] dummyLocWithId
 
 
@@ -376,7 +365,7 @@ recoverFromError state =
         (LB _) :: (S fName meta) :: rest ->
             Loop
                 { state
-                    | committed = errorMessage (errorSuffix rest) :: errorMessage2 ("[" ++ fName) :: state.committed
+                    | committed = errorMessage (errorSuffix rest) :: errorMessage ("[" ++ fName) :: state.committed
                     , stack = []
                     , tokenIndex = meta.index + 1
                     , messages = Helpers.prependMessage state.lineNumber "Missing right bracket" state.messages
@@ -450,7 +439,7 @@ recoverFromError state =
             in
             Loop
                 { state
-                    | committed = errorMessageBold message :: state.committed
+                    | committed = errorMessage message :: state.committed
                     , stack = []
                     , tokenIndex = meta.index + 1
                     , numberOfTokens = 0
