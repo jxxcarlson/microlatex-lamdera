@@ -44,10 +44,14 @@ renderVerbatim name generation acc settings meta str =
 renderMarked name generation acc settings exprList =
     case Dict.get name markupDict of
         Nothing ->
-            Element.paragraph [ spacing 8 ] (Element.el [ Font.color errorColor, Font.bold ] (Element.text name) :: List.map (render generation acc settings) exprList)
+            Element.paragraph [ spacing 8 ] (Element.el [ Background.color errorBackgroundColor, Element.paddingXY 4 2 ] (Element.text name) :: List.map (render generation acc settings) exprList)
 
         Just f ->
             f generation acc settings exprList
+
+
+errorBackgroundColor =
+    Element.rgb 1 0.8 0.8
 
 
 
