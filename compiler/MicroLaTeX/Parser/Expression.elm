@@ -93,6 +93,10 @@ run state =
 
 nextStep : State -> Step State State
 nextStep state =
+    let
+        _ =
+            Debug.log "nextStep, STACK" state.stack
+    in
     case List.Extra.getAt state.tokenIndex state.tokens of
         Nothing ->
             if List.isEmpty state.stack then
@@ -323,10 +327,17 @@ evalList macroName lineNumber tokens =
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
                         Nothing ->
+                            let
+                                _ =
+                                    Debug.log "CASE" 8
+                            in
                             errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
                         Just k ->
                             let
+                                _ =
+                                    Debug.log "CASE" 9
+
                                 ( a, b ) =
                                     M.splitAt (k + 1) tokens
 
@@ -339,9 +350,17 @@ evalList macroName lineNumber tokens =
                 _ ->
                     case exprOfToken token of
                         Just expr ->
+                            let
+                                _ =
+                                    Debug.log "CASE" 10
+                            in
                             expr :: evalList Nothing lineNumber (List.drop 1 tokens)
 
                         Nothing ->
+                            let
+                                _ =
+                                    Debug.log "CASE" 11
+                            in
                             [ errorMessage "•••?(7)" ]
 
         _ ->
@@ -421,6 +440,10 @@ recoverFromError state =
 
         -- consecutive left brackets
         (LB _) :: (LB meta) :: _ ->
+            let
+                _ =
+                    Debug.log "CASE" 12
+            in
             Loop
                 { state
                     | committed = errorMessage "[" :: state.committed
@@ -431,6 +454,10 @@ recoverFromError state =
 
         -- missing right bracket // OK
         (LB _) :: (S fName meta) :: rest ->
+            let
+                _ =
+                    Debug.log "CASE" 13
+            in
             Loop
                 { state
                     | committed = errorMessage (errorSuffix rest) :: errorMessage2 ("[" ++ fName) :: state.committed
@@ -441,6 +468,10 @@ recoverFromError state =
 
         -- space after left bracket // OK
         (LB _) :: (W " " meta) :: _ ->
+            let
+                _ =
+                    Debug.log "CASE" 14
+            in
             Loop
                 { state
                     | committed = errorMessage "[ - can't have space after the bracket " :: state.committed
@@ -451,6 +482,10 @@ recoverFromError state =
 
         -- left bracket with nothing after it.  // OK
         (LB _) :: [] ->
+            let
+                _ =
+                    Debug.log "CASE" 15
+            in
             Done
                 { state
                     | committed = errorMessage "[...?" :: state.committed
@@ -462,6 +497,10 @@ recoverFromError state =
 
         -- extra right bracket
         (RB meta) :: _ ->
+            let
+                _ =
+                    Debug.log "CASE" 16
+            in
             Loop
                 { state
                     | committed = errorMessage " extra ]?" :: state.committed
@@ -473,6 +512,9 @@ recoverFromError state =
         -- dollar sign with no closing dollar sign
         (MathToken meta) :: rest ->
             let
+                _ =
+                    Debug.log "CASE" 17
+
                 content =
                     Token.toString rest
 
@@ -495,6 +537,9 @@ recoverFromError state =
         -- backtick with no closing backtick
         (CodeToken meta) :: rest ->
             let
+                _ =
+                    Debug.log "CASE" 18
+
                 content =
                     Token.toString rest
 
@@ -515,6 +560,10 @@ recoverFromError state =
                 }
 
         _ ->
+            let
+                _ =
+                    Debug.log "CASE" 19
+            in
             recoverFromError1 state
 
 
@@ -556,6 +605,10 @@ recoverFromError1 state =
             M.reducible newSymbols
     in
     if reducible then
+        let
+            _ =
+                Debug.log "CASE" 20
+        in
         Done <|
             addErrorMessage " ]? " <|
                 reduceState <|
@@ -568,6 +621,10 @@ recoverFromError1 state =
                     }
 
     else
+        let
+            _ =
+                Debug.log "CASE" 21
+        in
         Done
             { state
                 | committed =
