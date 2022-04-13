@@ -585,7 +585,7 @@ setDocumentAsCurrentAux doc permissions model =
         , currentUser = newCurrentUser
         , inputReaders = readers
         , inputEditors = editors
-        , messages = errorMessages |> Debug.log "ERRORS"
+        , messages = errorMessages
       }
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState
