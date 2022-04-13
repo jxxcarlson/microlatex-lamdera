@@ -66,11 +66,13 @@ initWithTokens lineNumber tokens =
 -- Exposed functions
 
 
-parse : Int -> String -> List Expr
+parse : Int -> String -> ( List Expr, List String )
 parse lineNumber str =
-    str
-        |> Token.run
-        |> parseTokenList lineNumber
+    let
+        state =
+            parseToState lineNumber str
+    in
+    ( state.committed, state.messages )
 
 
 parseToState : Int -> String -> State

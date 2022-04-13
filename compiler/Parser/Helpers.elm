@@ -42,5 +42,4 @@ nextStep predicate list =
 
 prependMessage : Int -> String -> List String -> List String
 prependMessage lineNumber message messages =
-    -- (message ++ " (line " ++ String.fromInt (lineNumber + 2) ++ ")") :: List.take 2 messages
-    [ "BAD STUFF!" ]
+    (message ++ " (line " ++ String.fromInt lineNumber ++ ")") :: List.take 2 messages

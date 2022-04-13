@@ -48,16 +48,16 @@ parse lang sourceText =
         parser =
             case lang of
                 MicroLaTeXLang ->
-                    MicroLaTeX.Parser.Expression.parse
+                    \i s -> ( MicroLaTeX.Parser.Expression.parse i s, [] )
 
                 L0Lang ->
                     L0.Parser.Expression.parse
 
                 PlainTextLang ->
-                    parsePlainText
+                    \i s -> ( parsePlainText i s, [] )
 
                 XMarkdownLang ->
-                    XMarkdown.Expression.parse
+                    \i s -> ( XMarkdown.Expression.parse i s, [] )
     in
     sourceText
         |> toPrimitiveBlockForest lang
