@@ -52,7 +52,7 @@ import Compiler.Acc
 import Compiler.DifferentialParser
 import Config
 import Debounce
-import Dict
+import Diff
 import Docs
 import Document exposing (Document)
 import File.Download as Download
@@ -253,8 +253,14 @@ inputText_ model str =
             Debounce.push debounceConfig str model.debounce
     in
     let
+        _ =
+            Debug.log "(EXP, OLD, NEW)" ( model.sourceText, str )
+
+        _ =
+            Debug.log "EXP, DIFF" (Diff.diffLines model.sourceText str)
+
         editRecord =
-            Compiler.DifferentialParser.update model.editRecord str
+            Compiler.DifferentialParser.update model.editRecord (Debug.log "INPUT" str)
 
         messages : List String
         messages =
