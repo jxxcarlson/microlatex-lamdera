@@ -43,7 +43,7 @@ render count acc settings (ExpressionBlock { name, args, blockType, content, id,
                                 Background.color (Element.rgb 0.9 0.9 1.0)
 
                             else
-                                Background.color (Element.rgb 1 1 1)
+                                Background.color settings.backgroundColor
                     in
                     List.map (Render.Elm.render count acc settings) exprs
                         |> (\x -> Element.paragraph [ color, Events.onClick (SendId id), htmlId id ] x)
