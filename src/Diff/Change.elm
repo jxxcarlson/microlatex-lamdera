@@ -1,4 +1,4 @@
-module Diff.Change exposing (changes, reconcile, reconcileChange, reconcileChanges, reconcileList)
+module Diff.Change exposing (changes, changesP, reconcile, reconcileChange, reconcileChanges, reconcileList)
 
 import Diff
 
@@ -10,6 +10,21 @@ type alias Change =
 changes : String -> String -> List (List (Diff.Change String))
 changes a b =
     List.map2 Diff.diffLines (String.lines a) (String.lines b)
+
+
+changesP : String -> String -> List (List (Diff.Change String))
+changesP a b =
+    let
+        lines1 =
+            String.lines a
+
+        lines2 =
+            String.lines b
+
+        added =
+            List.drop (List.length lines1) lines2
+    in
+    List.map2 Diff.diffLines (String.lines a) (String.lines b) ++ List.map (\item -> [ Diff.NoChange item ]) added
 
 
 reconcileChange : Diff.Change String -> String -> String
