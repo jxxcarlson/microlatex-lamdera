@@ -1,4 +1,4 @@
-module Network exposing (..)
+module Network exposing (NetworkModel, init, localState, updateFromBackend, updateFromUser)
 
 import AbstractNetwork
 import Diff
@@ -28,13 +28,6 @@ updateFromUser msg localModel =
     { localMsgs = localModel.localMsgs ++ [ msg ]
     , serverState = localModel.serverState
     }
-
-
-
---
---localState_ : (NetworkMessage -> Model -> Model) -> NetworkModel -> Model
---localState_ updateFunc_ localModel =
---    List.foldl updateFunc_ localModel.serverState localModel.localMsgs
 
 
 updateFunc : NetworkMessage -> Model -> Model
