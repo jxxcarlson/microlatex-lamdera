@@ -6,6 +6,7 @@ module MicroLaTeX.Parser.Token exposing
     , init
     , run
     , toString
+    , toString2
     , type_
     )
 
@@ -180,9 +181,42 @@ stringValue token =
             "tokenError"
 
 
+stringValue2 : Token -> String
+stringValue2 token =
+    case token of
+        BS m ->
+            "BS:" ++ String.fromInt m.index
+
+        LB m ->
+            "LB:" ++ String.fromInt m.index
+
+        RB m ->
+            "RB:" ++ String.fromInt m.index
+
+        S str m ->
+            "S " ++ str ++ ": " ++ String.fromInt m.index
+
+        W str m ->
+            "W:" ++ String.fromInt m.index
+
+        MathToken m ->
+            "$:" ++ String.fromInt m.index
+
+        CodeToken m ->
+            "C:" ++ String.fromInt m.index
+
+        TokenError _ m ->
+            "tokenError:" ++ String.fromInt m.index
+
+
 toString : List Token -> String
 toString tokens =
     List.map stringValue tokens |> String.join ""
+
+
+toString2 : List Token -> String
+toString2 tokens =
+    List.map stringValue2 tokens |> String.join "; "
 
 
 length : Token -> Int
