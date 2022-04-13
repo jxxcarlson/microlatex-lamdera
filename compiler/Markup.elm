@@ -48,7 +48,7 @@ parse lang sourceText =
         parser =
             case lang of
                 MicroLaTeXLang ->
-                    \i s -> ( MicroLaTeX.Parser.Expression.parse i s, [] )
+                    MicroLaTeX.Parser.Expression.parse
 
                 L0Lang ->
                     L0.Parser.Expression.parse
