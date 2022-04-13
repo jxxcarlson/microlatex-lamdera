@@ -55,6 +55,9 @@ class CodemirrorEditor extends HTMLElement {
             function sendText(editor) {
                 const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
                 editor.dom.dispatchEvent(event);
+                // console.log("position (a)",  editor.state.selection.main.head, editor.state.line(editor.state.selection.main.head))
+                console.log("position",  editor.state.selection.main.head)
+
              }
 
             let panelTheme = EditorView.theme({
@@ -162,4 +165,5 @@ class CodemirrorEditor extends HTMLElement {
 
 customElements.define("codemirror-editor", CodemirrorEditor); // (2)
 
-
+//console.log("CURSOR", state.lineAt(state.selection.main.head)); // JC
+//console.log("HI THERE!")  // JC
