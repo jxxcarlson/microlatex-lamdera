@@ -293,30 +293,61 @@ reduceState state =
 
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
+    let
+        _ =
+            Debug.log "TOK" tokens
+    in
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
         (S t m1) :: (BS m2) :: rest ->
+            let
+                _ =
+                    Debug.log "CASE" 1
+            in
             Text t m1 :: eval lineNumber (BS m2 :: rest)
 
         (S t m2) :: rest ->
+            let
+                _ =
+                    Debug.log "CASE" 2
+            in
             Text t m2 :: evalList Nothing lineNumber rest
 
-        (BS m1) :: (S name _) :: rest ->
+        (BS m1) :: (S name m2) :: rest ->
             let
+                _ =
+                    Debug.log "CASE" 3
+
                 ( a, b ) =
                     split rest
             in
             if b == [] then
-                [ Expr name (evalList (Just name) lineNumber rest) m1 ]
+                let
+                    _ =
+                        Debug.log "CASE" 4
+                in
+                [ Expr name (evalList (Just name) lineNumber rest) m1 ] |> Debug.log "CASE 4.1"
 
             else if List.head b |> isLBToken then
+                let
+                    _ =
+                        Debug.log "CASE" 5
+                in
                 [ Expr name (evalList (Just name) lineNumber a ++ evalList (Just name) lineNumber b) m1 ]
 
             else
+                let
+                    _ =
+                        Debug.log "CASE" 6
+                in
                 [ Expr name (evalList (Just name) lineNumber a) m1 ] ++ evalList (Just name) lineNumber b
 
         _ ->
-            errorMessage2Part lineNumber "\\" "{??}(5)"
+            let
+                _ =
+                    Debug.log "CASE" 7
+            in
+            [ errorMessage1Part "{??}" ]
 
 
 evalList : Maybe String -> Int -> List Token -> List Expr
