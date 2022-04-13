@@ -1,6 +1,5 @@
 module ReconcileChanges exposing (suite)
 
-import Diff
 import Diff.Change
 import Expect exposing (..)
 import Test exposing (..)
@@ -8,18 +7,7 @@ import Test exposing (..)
 
 reconcile : String -> String -> String
 reconcile original modified =
-    let
-        originalLines =
-            String.lines original
-
-        modifiedLines =
-            String.lines modified
-
-        changes : List (List (Diff.Change String))
-        changes =
-            List.map2 Diff.diffLines originalLines modifiedLines
-    in
-    Diff.Change.reconcileList changes originalLines |> String.join "\n"
+    Diff.Change.reconcile (Diff.Change.changes original modified) original
 
 
 test_ label original modified =

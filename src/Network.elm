@@ -1,31 +1,54 @@
-module Network exposing (NetworkModel, init, updateFromBackend, updateFromUser)
+module Network exposing (..)
 
+import AbstractNetwork
+import Diff
+import Diff.Change
 import List.Extra
 
 
-type alias NetworkModel msg model =
-    { localMsgs : List msg, serverState : model }
+type alias NetworkModel =
+    AbstractNetwork.NetworkModel NetworkMessage Model
 
 
-init : model -> NetworkModel msg model
-init model =
-    { localMsgs = [], serverState = model }
+type alias Model =
+    List String
 
 
-updateFromUser : msg -> NetworkModel msg model -> NetworkModel msg model
+type alias NetworkMessage =
+    List (List (Diff.Change String))
+
+
+init : List String -> NetworkModel
+init =
+    AbstractNetwork.init
+
+
+updateFromUser : NetworkMessage -> NetworkModel -> NetworkModel
 updateFromUser msg localModel =
     { localMsgs = localModel.localMsgs ++ [ msg ]
     , serverState = localModel.serverState
     }
 
 
-localState : (msg -> model -> model) -> NetworkModel msg model -> model
-localState updateFunc localModel =
+
+--
+--localState_ : (NetworkMessage -> Model -> Model) -> NetworkModel -> Model
+--localState_ updateFunc_ localModel =
+--    List.foldl updateFunc_ localModel.serverState localModel.localMsgs
+
+
+updateFunc : NetworkMessage -> Model -> Model
+updateFunc =
+    Diff.Change.reconcileList
+
+
+localState : NetworkModel -> Model
+localState localModel =
     List.foldl updateFunc localModel.serverState localModel.localMsgs
 
 
-updateFromBackend : (msg -> model -> model) -> msg -> NetworkModel msg model -> NetworkModel msg model
-updateFromBackend updateFunc msg localModel =
+updateFromBackend : NetworkMessage -> NetworkModel -> NetworkModel
+updateFromBackend msg localModel =
     { localMsgs = List.Extra.remove msg localModel.localMsgs
     , serverState = updateFunc msg localModel.serverState
     }

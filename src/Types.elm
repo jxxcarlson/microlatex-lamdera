@@ -50,6 +50,7 @@ module Types exposing
     )
 
 import Abstract exposing (Abstract, AbstractOLD)
+import AbstractNetwork
 import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
@@ -61,7 +62,6 @@ import Document exposing (Document)
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
-import Network
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
