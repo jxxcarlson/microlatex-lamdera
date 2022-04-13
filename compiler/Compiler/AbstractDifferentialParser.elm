@@ -63,7 +63,7 @@ update chunker parser getMessages accMaker editRecord text =
             accMaker editRecord.lang parsed_
     in
     -- TODO: real update of accumulator
-    { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator, messages = getMessages (parsed |> Debug.log "DP update, parsed") |> Debug.log "DP update MESSAGES (2)" }
+    { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator, messages = getMessages parsed }
 
 
 differentialParser :
