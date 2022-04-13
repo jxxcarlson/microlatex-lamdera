@@ -222,6 +222,11 @@ reduceState state =
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
 
                     whatever ->
+                        let
+                            _ =
+                                Debug.log "STACK (whatever)" state.stack
+                        in
+                        -- state TODO: think about this line
                         { state | stack = [], committed = whatever ++ state.committed }
 
             Just M ->
@@ -409,19 +414,24 @@ split tokens =
             M.splitAt (k + 1) tokens
 
 
+errorMessage1Part : String -> Expr
+errorMessage1Part a =
+    Expr "errorHighlight" [ Text a dummyLocWithId ] dummyLocWithId
+
+
 errorMessage2Part : Int -> String -> String -> List Expr
 errorMessage2Part lineNumber a b =
-    [ Expr "red" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
+    [ Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
 
 
 errorMessage3Part : Int -> String -> String -> String -> List Expr
 errorMessage3Part lineNumber a b c =
-    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text b dummyLocWithId ] dummyLocWithId, Expr "red" [ Text c dummyLocWithId ] dummyLocWithId ]
+    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text c dummyLocWithId ] dummyLocWithId ]
 
 
 errorMessage : String -> Expr
 errorMessage message =
-    Expr "red" [ Expr "underline" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
+    Expr "errorHighlight" [ Text message dummyLocWithId ] dummyLocWithId
 
 
 errorMessageBold : String -> Expr
@@ -458,9 +468,36 @@ isReducible tokens =
 
 recoverFromError : State -> Step State State
 recoverFromError state =
+    let
+        _ =
+            Debug.log "STACK (recover)" state.stack
+    in
     case List.reverse state.stack of
-        -- brackets with no intervening text
+        (BS m1) :: (S fname m2) :: (LB m3) :: rest ->
+            let
+                _ =
+                    Debug.log "STACK !!" ( List.length state.stack, state.stack |> List.reverse |> Token.toString2 )
+
+                tail =
+                    List.drop (m3.index + 1) state.tokens
+
+                _ =
+                    Debug.log "TOKENS !!" ( List.length tail, tail |> Token.toString2 )
+            in
+            Loop
+                { state
+                    | committed = errorMessage ("\\" ++ fname ++ "{") :: state.committed
+                    , stack = []
+                    , tokenIndex = m3.index + 1
+                    , messages = Helpers.prependMessage state.lineNumber ("Missing right brace, column " ++ String.fromInt m3.begin) state.messages
+                }
+
+        -- braces with no intervening text
         (LB _) :: (RB meta) :: _ ->
+            let
+                _ =
+                    Debug.log "CASE" 11
+            in
             Loop
                 { state
                     | committed = errorMessage "[?]" :: state.committed
