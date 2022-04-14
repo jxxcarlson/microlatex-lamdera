@@ -210,6 +210,7 @@ reduceState state =
         peek =
             List.Extra.getAt state.tokenIndex state.tokens
     in
+    -- the peek clause is needed to parse macros with more than one argument
     if isReducible state.stack && not (Maybe.map Token.type_ peek == Just TLB) then
         let
             symbols =
