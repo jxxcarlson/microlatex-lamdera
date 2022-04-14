@@ -14,6 +14,7 @@ import MicroLaTeX.Parser.Token as Token exposing (Token(..), TokenType(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
 import Parser.Match as M
+import Parser.Meta
 
 
 
@@ -222,16 +223,13 @@ reduceState state =
                         Debug.log "!! PROBLEM STACK !!" (state.stack |> List.reverse |> Token.toString2)
                 in
                 case eval state.lineNumber (state.stack |> List.reverse) of
-                    (Expr "??(3)" [ Text message _ ] _) :: rest ->
+                    (Expr "ERROR" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
 
-                    whatever ->
-                        let
-                            _ =
-                                Debug.log "STACK (whatever)" state.stack
-                        in
-                        -- state TODO: think about this line
-                        { state | stack = [], committed = whatever ++ state.committed }
+                    exprs ->
+                        -- Function eval has reduced the stack, producing a list of expressiosn.  Push
+                        -- them onto the list of committed expressions and clear the stack
+                        { state | stack = [], committed = exprs ++ state.committed }
 
             Just M ->
                 let
@@ -304,28 +302,28 @@ eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
     let
         _ =
-            Debug.log "TOK" tokens
+            Debug.log "!! TOK" tokens
     in
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
         (S t m1) :: (BS m2) :: rest ->
             let
                 _ =
-                    Debug.log "CASE" 1
+                    Debug.log "!! CASE" 1
             in
             Text t m1 :: eval lineNumber (BS m2 :: rest)
 
         (S t m2) :: rest ->
             let
                 _ =
-                    Debug.log "CASE" 2
+                    Debug.log "!! CASE" 2
             in
             Text t m2 :: evalList Nothing lineNumber rest
 
         (BS m1) :: (S name m2) :: rest ->
             let
                 _ =
-                    Debug.log "CASE" 3
+                    Debug.log "!! CASE" 3
 
                 ( a, b ) =
                     split rest
@@ -333,28 +331,28 @@ eval lineNumber tokens =
             if b == [] then
                 let
                     _ =
-                        Debug.log "CASE" 4
+                        Debug.log "!! CASE" 4
                 in
-                [ Expr name (evalList (Just name) lineNumber rest) m1 ] |> Debug.log "CASE 4.1"
+                [ Expr name (evalList (Just name) lineNumber rest) m1 ] |> Debug.log "!! CASE 4.1"
 
             else if List.head b |> isLBToken then
                 let
                     _ =
-                        Debug.log "CASE" 5
+                        Debug.log "!! CASE" 5
                 in
                 [ Expr name (evalList (Just name) lineNumber a ++ evalList (Just name) lineNumber b) m1 ]
 
             else
                 let
                     _ =
-                        Debug.log "CASE" 6
+                        Debug.log "!! CASE" 6
                 in
                 [ Expr name (evalList (Just name) lineNumber a) m1 ] ++ evalList (Just name) lineNumber b
 
         _ ->
             let
                 _ =
-                    Debug.log "CASE" 7
+                    Debug.log "!! CASE" 7
             in
             [ errorMessage1Part "{??}" ]
 
@@ -366,17 +364,20 @@ evalList macroName lineNumber tokens =
             case Token.type_ token of
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
+                        -- there was no match for the left brace;
+                        -- this is an error
                         Nothing ->
                             let
                                 _ =
-                                    Debug.log "CASE" 8
+                                    Debug.log "!! CASE" 8
                             in
                             errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
                         Just k ->
+                            -- there are k matching tokens
                             let
                                 _ =
-                                    Debug.log "CASE" 9
+                                    Debug.log "!! CASE" 9
 
                                 ( a, b ) =
                                     M.splitAt (k + 1) tokens
@@ -392,14 +393,14 @@ evalList macroName lineNumber tokens =
                         Just expr ->
                             let
                                 _ =
-                                    Debug.log "CASE" 10
+                                    Debug.log "!! CASE" 10
                             in
                             expr :: evalList Nothing lineNumber (List.drop 1 tokens)
 
                         Nothing ->
                             let
                                 _ =
-                                    Debug.log "CASE" 11
+                                    Debug.log "!! CASE" 11
                             in
                             [ errorMessage "•••?(7)" ]
 
@@ -500,7 +501,7 @@ recoverFromError state =
         (LB _) :: (RB meta) :: _ ->
             let
                 _ =
-                    Debug.log "CASE" 11
+                    Debug.log "!! CASE" 11
             in
             Loop
                 { state
@@ -514,7 +515,7 @@ recoverFromError state =
         (LB _) :: (LB meta) :: _ ->
             let
                 _ =
-                    Debug.log "CASE" 12
+                    Debug.log "!! CASE" 12
             in
             Loop
                 { state
@@ -528,7 +529,7 @@ recoverFromError state =
         (LB _) :: (S fName meta) :: rest ->
             let
                 _ =
-                    Debug.log "CASE" 13
+                    Debug.log "!! CASE" 13
             in
             Loop
                 { state
@@ -542,7 +543,7 @@ recoverFromError state =
         (LB _) :: (W " " meta) :: _ ->
             let
                 _ =
-                    Debug.log "CASE" 14
+                    Debug.log "!! CASE" 14
             in
             Loop
                 { state
@@ -556,7 +557,7 @@ recoverFromError state =
         (LB _) :: [] ->
             let
                 _ =
-                    Debug.log "CASE" 15
+                    Debug.log "!! CASE" 15
             in
             Done
                 { state
@@ -571,7 +572,7 @@ recoverFromError state =
         (RB meta) :: _ ->
             let
                 _ =
-                    Debug.log "CASE" 16
+                    Debug.log "!! CASE" 16
             in
             Loop
                 { state
@@ -585,7 +586,7 @@ recoverFromError state =
         (MathToken meta) :: rest ->
             let
                 _ =
-                    Debug.log "CASE" 17
+                    Debug.log "!! CASE" 17
 
                 content =
                     Token.toString rest
@@ -610,7 +611,7 @@ recoverFromError state =
         (CodeToken meta) :: rest ->
             let
                 _ =
-                    Debug.log "CASE" 18
+                    Debug.log "!! CASE" 18
 
                 content =
                     Token.toString rest
@@ -634,7 +635,7 @@ recoverFromError state =
         _ ->
             let
                 _ =
-                    Debug.log "CASE" 19
+                    Debug.log "!! CASE" 19
             in
             recoverFromError1 state
 
@@ -679,7 +680,7 @@ recoverFromError1 state =
     if reducible then
         let
             _ =
-                Debug.log "CASE" 20
+                Debug.log "!! CASE" 20
         in
         Done <|
             addErrorMessage " ]? " <|
@@ -695,7 +696,7 @@ recoverFromError1 state =
     else
         let
             _ =
-                Debug.log "CASE" 21
+                Debug.log "!! CASE" 21
         in
         Done
             { state
