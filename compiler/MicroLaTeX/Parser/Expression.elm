@@ -15,6 +15,7 @@ import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
 import Parser.Match as M
 import Parser.Meta
+import Tools
 
 
 
@@ -97,17 +98,22 @@ nextStep state =
     case List.Extra.getAt state.tokenIndex state.tokens of
         Nothing ->
             if List.isEmpty state.stack then
-                Done state
+                Done (state |> Tools.forklogCyan "Done" 12 show)
 
             else
                 -- the stack is not empty, so we need to handle the parse error
-                recoverFromError state
+                recoverFromError (state |> Tools.forklogCyan "Recover" 12 show)
 
         Just token ->
             pushToken token { state | tokenIndex = state.tokenIndex + 1 }
                 |> reduceState
                 |> (\st -> { st | step = st.step + 1 })
+                |> Tools.forklogCyan "Push-Reduce" 12 show
                 |> Loop
+
+
+show state =
+    ( state.stack |> List.reverse |> Token.toString2, state.committed |> List.map Parser.Expr.simplify )
 
 
 
@@ -203,11 +209,8 @@ reduceState state =
         peek : Maybe Token
         peek =
             List.Extra.getAt state.tokenIndex state.tokens
-
-        reducible1 =
-            isReducible state.stack
     in
-    if isReducible state.stack then
+    if isReducible state.stack && not (Maybe.map Token.type_ peek == Just TLB) then
         let
             symbols =
                 state.stack |> Symbol.convertTokens |> List.reverse

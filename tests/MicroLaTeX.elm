@@ -1,4 +1,4 @@
-module MicroLaTeX exposing (f, item, section, suite, suite2, test_, x1, x2)
+module MicroLaTeX exposing (suite, suite3)
 
 import Expect exposing (..)
 import MicroLaTeX.Parser.Expression exposing (parse)
@@ -41,9 +41,16 @@ suite2 =
         , test_ "one macro" (p "\\italic{stuff}") ( [ Expr "italic" [ Text "stuff" { begin = 8, end = 12, id = "8.3", index = 3 } ] { begin = 0, end = 0, id = "0.0", index = 0 } ], [] )
         , test_ "nested" (p "\\italic{\\bold{stuff}}") ( [ Expr "italic" [ Expr "bold" [ Text "stuff" { begin = 14, end = 18, id = "14.6", index = 6 } ] { begin = 8, end = 8, id = "8.3", index = 3 } ] { begin = 0, end = 0, id = "0.0", index = 0 } ], [] )
         , test_ "text + macro" (p "foo \\italic{stuff} bar") ( [ Text "foo " { begin = 0, end = 3, id = "0.3", index = 0 }, Expr "italic" [ Text "stuff" { begin = 12, end = 16, id = "12.4", index = 4 } ] { begin = 4, end = 4, id = "4.0", index = 1 }, Text " bar" { begin = 18, end = 21, id = "18.21", index = 6 } ], [] )
-        , Test.skip <| test_ "two arguments" (p "\\f{x}{y}") ( [ Expr "f" [ Text "x" { begin = 3, end = 3, id = "3.3", index = 3 }, Text "y" { begin = 6, end = 6, id = "6.6", index = 6 } ] { begin = 0, end = 0, id = "0.0", index = 0 } ], [] )
+        , test_ "two arguments" (p "\\f{x}{y}") ( [ Expr "f" [ Text "x" { begin = 3, end = 3, id = "3.3", index = 3 }, Text "y" { begin = 6, end = 6, id = "6.6", index = 6 } ] { begin = 0, end = 0, id = "0.0", index = 0 } ], [] )
         , test_ "error, unclosed argument" (p "\\italic{") ( [ Expr "errorHighlight" [ Text "\\italic{" { begin = 0, end = 0, id = "dummy (3)", index = 0 } ] { begin = 0, end = 0, id = "dummy (3)", index = 0 } ], [ "Missing right brace, column 7 (line 0)" ] )
         , test_ "error, unclosed argument abc" (p "\\italic{abc") ( [ Expr "errorHighlight" [ Text "\\italic{" { begin = 0, end = 0, id = "dummy (3)", index = 0 } ] { begin = 0, end = 0, id = "dummy (3)", index = 0 }, Text "abc" { begin = 8, end = 10, id = "8.3", index = 3 } ], [ "Missing right brace, column 7 (line 0)" ] )
+        ]
+
+
+suite3 : Test
+suite3 =
+    describe "MicroLaTeX Parser"
+        [ test_ "two arguments" (p "\\f{x}{y}") ( [ Expr "f" [ Text "x" { begin = 3, end = 3, id = "3.3", index = 3 }, Text "y" { begin = 6, end = 6, id = "6.6", index = 6 } ] { begin = 0, end = 0, id = "0.0", index = 0 } ], [] )
         ]
 
 
