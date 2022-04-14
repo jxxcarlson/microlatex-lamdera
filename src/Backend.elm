@@ -284,8 +284,8 @@ updateFromFrontend sessionId clientId msg model =
         SearchForDocumentsWithAuthorAndKey segment ->
             Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
 
-        GetDocumentById id ->
-            Backend.Update.getDocumentById model clientId id
+        GetDocumentById documentHandling id ->
+            Backend.Update.getDocumentById model clientId documentHandling id
 
         GetPublicDocuments sortMode mUsername ->
             ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )

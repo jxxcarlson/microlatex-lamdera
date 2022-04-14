@@ -133,7 +133,7 @@ getBadDocuments model =
     model.documentDict |> Dict.toList |> List.filter (\( _, doc ) -> doc.title == "")
 
 
-getDocumentById model clientId id =
+getDocumentById model clientId documentHandling id =
     case Dict.get id model.documentDict of
         Nothing ->
             ( model, sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSRed }) )
@@ -141,7 +141,7 @@ getDocumentById model clientId id =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
+                [ sendToFrontend clientId (ReceivedDocument documentHandling doc)
 
                 --, sendToFrontend clientId (SetShowEditor False)
                 , sendToFrontend clientId (MessageReceived { content = "Sending doc " ++ id, status = MSGreen })

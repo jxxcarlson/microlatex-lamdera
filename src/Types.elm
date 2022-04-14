@@ -517,7 +517,7 @@ type FrontendMsg
     | NewDocument
     | SetDocumentAsCurrent DocumentHandling Document
     | SetPublic Document Bool
-    | AskForDocumentById String
+    | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId
     | DeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
@@ -598,7 +598,7 @@ type ToBackend
     | SearchForDocumentsWithAuthorAndKey String
     | SearchForDocuments (Maybe String) String
     | GetDocumentByPublicId String
-    | GetDocumentById String
+    | GetDocumentById DocumentHandling String
     | CreateDocument (Maybe User) Document
     | ApplySpecial User String
     | DeleteDocumentBE Document

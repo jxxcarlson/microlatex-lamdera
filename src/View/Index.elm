@@ -127,7 +127,7 @@ viewSharedDocument currentDocument ( author, sharedDocument ) =
                 ++ ": "
                 ++ sharedDocument.title
     in
-    Button.getDocument sharedDocument.id (label |> String.Extra.softEllipsis 40) ((Maybe.map .id currentDocument |> Maybe.withDefault "((0))") == sharedDocument.id)
+    Button.getDocument StandardHandling sharedDocument.id (label |> String.Extra.softEllipsis 40) ((Maybe.map .id currentDocument |> Maybe.withDefault "((0))") == sharedDocument.id)
 
 
 viewWorkingDocs : FrontendModel -> Int -> Int -> Element FrontendMsg

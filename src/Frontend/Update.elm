@@ -882,7 +882,7 @@ handleSignOut model =
         [ Nav.pushUrl model.key "/"
         , cmd
         , sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
-        , sendToBackend (GetDocumentById Config.welcomeDocId)
+        , sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
         , sendToBackend (GetPublicDocuments Types.SortByMostRecent Nothing)
         ]
     )

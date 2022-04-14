@@ -179,12 +179,12 @@ urlAction path =
             String.dropLeft 3 path
     in
     if prefix == "/" then
-        sendToBackend (GetDocumentById Config.welcomeDocId)
+        sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
 
     else
         case prefix of
             "/i/" ->
-                sendToBackend (GetDocumentById segment)
+                sendToBackend (GetDocumentById Types.StandardHandling segment)
 
             "/a/" ->
                 sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
@@ -197,7 +197,7 @@ urlAction path =
 
             _ ->
                 --Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
-                sendToBackend (GetDocumentById Config.welcomeDocId)
+                sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
 
 
 urlIsForGuest : Url -> Bool
@@ -454,7 +454,7 @@ update msg model =
                             ( { model | activeDocList = PrivateDocsList }, Cmd.none )
 
         Home ->
-            ( model, sendToBackend (GetDocumentById Config.welcomeDocId) )
+            ( model, sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId) )
 
         ShowTOCInPhone ->
             ( { model | phoneMode = PMShowDocumentList }, Cmd.none )
@@ -620,8 +620,8 @@ update msg model =
         InputAuthorId str ->
             ( { model | authorId = str }, Cmd.none )
 
-        AskForDocumentById id ->
-            ( model, sendToBackend (GetDocumentById id) )
+        AskForDocumentById documentHandling id ->
+            ( model, sendToBackend (GetDocumentById documentHandling id) )
 
         AskForDocumentByAuthorId ->
             ( model, sendToBackend (SearchForDocumentsWithAuthorAndKey model.authorId) )

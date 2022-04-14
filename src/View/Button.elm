@@ -707,17 +707,17 @@ home =
     buttonTemplate [] Home "Home"
 
 
-iLink id label =
-    buttonTemplate [] (AskForDocumentById id) label
+iLink documentHandling id label =
+    buttonTemplate [] (AskForDocumentById documentHandling id) label
 
 
-getDocument : String -> String -> Bool -> Element FrontendMsg
-getDocument id title highlighted =
+getDocument : DocumentHandling -> String -> String -> Bool -> Element FrontendMsg
+getDocument documentHandling id title highlighted =
     if highlighted then
-        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskForDocumentById id) title
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskForDocumentById documentHandling id) title
 
     else
-        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskForDocumentById id) title
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskForDocumentById documentHandling id) title
 
 
 setDocumentAsCurrent : DocumentHandling -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
