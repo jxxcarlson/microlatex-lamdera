@@ -94,10 +94,6 @@ run state =
 
 nextStep : State -> Step State State
 nextStep state =
-    let
-        _ =
-            Debug.log "nextStep, STACK" state.stack
-    in
     case List.Extra.getAt state.tokenIndex state.tokens of
         Nothing ->
             if List.isEmpty state.stack then
@@ -210,31 +206,14 @@ reduceState state =
 
         reducible1 =
             isReducible state.stack
-
-        _ =
-            Debug.log "!! reduceState (?,stack)" ( reducible1, state.stack |> List.reverse |> Token.toString2 )
-
-        _ =
-            Debug.log "(no more tokens, reducible1, not (isLBToken peek))" ( state.tokenIndex >= state.numberOfTokens, reducible1, not (isLBToken peek) )
     in
-    -- if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
     if isReducible state.stack then
         let
             symbols =
                 state.stack |> Symbol.convertTokens |> List.reverse
-
-            _ =
-                Debug.log "REDUCE, BR!!" ( 1, symbols )
         in
         case List.head symbols of
             Just B ->
-                let
-                    _ =
-                        Debug.log "!! REDUCE, STACK !!" (state.stack |> List.reverse |> Token.toString2)
-
-                    _ =
-                        Debug.log "!!!! eval, STACK" (eval state.lineNumber (state.stack |> List.reverse))
-                in
                 case eval state.lineNumber (state.stack |> List.reverse) of
                     (Expr "ERROR" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
@@ -242,10 +221,6 @@ reduceState state =
                     exprs ->
                         -- Function eval has reduced the stack, producing a list of expressiosn.  Push
                         -- them onto the list of committed expressions and clear the stack
-                        let
-                            _ =
-                                Debug.log "!! exprs, STACK" (state.stack |> List.reverse |> Token.toString2)
-                        in
                         { state | stack = [], committed = exprs ++ state.committed }
 
             Just M ->
@@ -255,22 +230,10 @@ reduceState state =
                 handleCode state
 
             _ ->
-                handleTheRest state
+                state
 
     else
-        let
-            _ =
-                Debug.log "BR!!" 2
-        in
         state
-
-
-handleTheRest state =
-    let
-        _ =
-            Debug.log "!! handleTheRest, STACK" (state.stack |> List.reverse |> Token.toString2)
-    in
-    state
 
 
 handleMath : State -> State
@@ -339,60 +302,29 @@ handleCode state =
 
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
-    let
-        _ =
-            Debug.log "!! TOK" tokens
-    in
     case tokens of
         -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
         (S t m1) :: (BS m2) :: rest ->
-            let
-                _ =
-                    Debug.log "!! CASE" 1
-            in
             Text t m1 :: eval lineNumber (BS m2 :: rest)
 
         (S t m2) :: rest ->
-            let
-                _ =
-                    Debug.log "!! CASE" 2
-            in
             Text t m2 :: evalList Nothing lineNumber rest
 
         (BS m1) :: (S name m2) :: rest ->
             let
-                _ =
-                    Debug.log "!! CASE" 3
-
                 ( a, b ) =
                     split rest
             in
             if b == [] then
-                let
-                    _ =
-                        Debug.log "!! CASE" 4
-                in
-                [ Expr name (evalList (Just name) lineNumber rest) m1 ] |> Debug.log "!! CASE 4.1"
+                [ Expr name (evalList (Just name) lineNumber rest) m1 ]
 
             else if List.head b |> isLBToken then
-                let
-                    _ =
-                        Debug.log "!! CASE" 5
-                in
                 [ Expr name (evalList (Just name) lineNumber a ++ evalList (Just name) lineNumber b) m1 ]
 
             else
-                let
-                    _ =
-                        Debug.log "!! CASE" 6
-                in
                 [ Expr name (evalList (Just name) lineNumber a) m1 ] ++ evalList (Just name) lineNumber b
 
         _ ->
-            let
-                _ =
-                    Debug.log "!! CASE" 7
-            in
             [ errorMessage1Part "{??}" ]
 
 
@@ -406,18 +338,11 @@ evalList macroName lineNumber tokens =
                         -- there was no match for the left brace;
                         -- this is an error
                         Nothing ->
-                            let
-                                _ =
-                                    Debug.log "!! CASE" 8
-                            in
                             errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
                         Just k ->
                             -- there are k matching tokens
                             let
-                                _ =
-                                    Debug.log "!! CASE" 9
-
                                 ( a, b ) =
                                     M.splitAt (k + 1) tokens
 
@@ -430,17 +355,9 @@ evalList macroName lineNumber tokens =
                 _ ->
                     case exprOfToken token of
                         Just expr ->
-                            let
-                                _ =
-                                    Debug.log "!! CASE" 10
-                            in
                             expr :: evalList Nothing lineNumber (List.drop 1 tokens)
 
                         Nothing ->
-                            let
-                                _ =
-                                    Debug.log "!! CASE" 11
-                            in
                             [ errorMessage "•••?(7)" ]
 
         _ ->
@@ -473,21 +390,11 @@ isReducible tokens =
 
 recoverFromError : State -> Step State State
 recoverFromError state =
-    let
-        _ =
-            Debug.log "!!recover, STACK" state.stack
-    in
     case List.reverse state.stack of
         (BS m1) :: (S fname m2) :: (LB m3) :: rest ->
             let
-                _ =
-                    Debug.log "STACK !!" ( List.length state.stack, state.stack |> List.reverse |> Token.toString2 )
-
                 tail =
                     List.drop (m3.index + 1) state.tokens
-
-                _ =
-                    Debug.log "TOKENS !!" ( List.length tail, tail |> Token.toString2 )
             in
             Loop
                 { state
@@ -499,10 +406,6 @@ recoverFromError state =
 
         -- braces with no intervening text
         (LB _) :: (RB meta) :: _ ->
-            let
-                _ =
-                    Debug.log "!! CASE" 11
-            in
             Loop
                 { state
                     | committed = errorMessage "[?]" :: state.committed
@@ -513,10 +416,6 @@ recoverFromError state =
 
         -- consecutive left brackets
         (LB _) :: (LB meta) :: _ ->
-            let
-                _ =
-                    Debug.log "!! CASE" 12
-            in
             Loop
                 { state
                     | committed = errorMessage "[" :: state.committed
@@ -527,10 +426,6 @@ recoverFromError state =
 
         -- missing right bracket // OK
         (LB _) :: (S fName meta) :: rest ->
-            let
-                _ =
-                    Debug.log "!! CASE" 13
-            in
             Loop
                 { state
                     | committed = errorMessage (errorSuffix rest) :: errorMessage2 ("[" ++ fName) :: state.committed
@@ -541,10 +436,6 @@ recoverFromError state =
 
         -- space after left bracket // OK
         (LB _) :: (W " " meta) :: _ ->
-            let
-                _ =
-                    Debug.log "!! CASE" 14
-            in
             Loop
                 { state
                     | committed = errorMessage "[ - can't have space after the bracket " :: state.committed
@@ -555,10 +446,6 @@ recoverFromError state =
 
         -- left bracket with nothing after it.  // OK
         (LB _) :: [] ->
-            let
-                _ =
-                    Debug.log "!! CASE" 15
-            in
             Done
                 { state
                     | committed = errorMessage "[...?" :: state.committed
@@ -570,10 +457,6 @@ recoverFromError state =
 
         -- extra right bracket
         (RB meta) :: _ ->
-            let
-                _ =
-                    Debug.log "!! CASE" 16
-            in
             Loop
                 { state
                     | committed = errorMessage " extra ]?" :: state.committed
@@ -585,9 +468,6 @@ recoverFromError state =
         -- dollar sign with no closing dollar sign
         (MathToken meta) :: rest ->
             let
-                _ =
-                    Debug.log "!! CASE" 17
-
                 content =
                     Token.toString rest
 
@@ -610,9 +490,6 @@ recoverFromError state =
         -- backtick with no closing backtick
         (CodeToken meta) :: rest ->
             let
-                _ =
-                    Debug.log "!! CASE" 18
-
                 content =
                     Token.toString rest
 
@@ -633,10 +510,6 @@ recoverFromError state =
                 }
 
         _ ->
-            let
-                _ =
-                    Debug.log "!! CASE" 19
-            in
             recoverFromError1 state
 
 
@@ -678,10 +551,6 @@ recoverFromError1 state =
             M.reducible newSymbols
     in
     if reducible then
-        let
-            _ =
-                Debug.log "!! CASE" 20
-        in
         Done <|
             addErrorMessage " ]? " <|
                 reduceState <|
@@ -694,10 +563,6 @@ recoverFromError1 state =
                     }
 
     else
-        let
-            _ =
-                Debug.log "!! CASE" 21
-        in
         Done
             { state
                 | committed =
