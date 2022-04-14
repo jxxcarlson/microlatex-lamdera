@@ -563,7 +563,9 @@ recoverFromError1 state =
                         , tokenIndex = 0
                         , numberOfTokens = List.length newStack
                         , committed = errorMessage "[" :: state.committed
-                        , messages = Helpers.prependMessage state.lineNumber ("Unmatched brackets: added " ++ String.fromInt k ++ " right brackets") state.messages
+
+                        -- TODO: the below supresses spurious error messages. But it might supress others as well.
+                        --, messages = Helpers.prependMessage state.lineNumber ("Unmatched brackets: added " ++ String.fromInt k ++ " right brackets") state.messages
                     }
 
     else
