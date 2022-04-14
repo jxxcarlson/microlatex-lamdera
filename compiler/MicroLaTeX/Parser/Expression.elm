@@ -210,17 +210,30 @@ reduceState state =
 
         reducible1 =
             isReducible state.stack
+
+        _ =
+            Debug.log "!! reduceState (?,stack)" ( reducible1, state.stack |> List.reverse |> Token.toString2 )
+
+        _ =
+            Debug.log "(no more tokens, reducible1, not (isLBToken peek))" ( state.tokenIndex >= state.numberOfTokens, reducible1, not (isLBToken peek) )
     in
-    if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
+    -- if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
+    if isReducible state.stack then
         let
             symbols =
                 state.stack |> Symbol.convertTokens |> List.reverse
+
+            _ =
+                Debug.log "REDUCE, BR!!" ( 1, symbols )
         in
         case List.head symbols of
             Just B ->
                 let
                     _ =
-                        Debug.log "!! PROBLEM STACK !!" (state.stack |> List.reverse |> Token.toString2)
+                        Debug.log "!! REDUCE, STACK !!" (state.stack |> List.reverse |> Token.toString2)
+
+                    _ =
+                        Debug.log "!!!! eval, STACK" (eval state.lineNumber (state.stack |> List.reverse))
                 in
                 case eval state.lineNumber (state.stack |> List.reverse) of
                     (Expr "ERROR" [ Text message _ ] _) :: rest ->
@@ -229,73 +242,99 @@ reduceState state =
                     exprs ->
                         -- Function eval has reduced the stack, producing a list of expressiosn.  Push
                         -- them onto the list of committed expressions and clear the stack
+                        let
+                            _ =
+                                Debug.log "!! exprs, STACK" (state.stack |> List.reverse |> Token.toString2)
+                        in
                         { state | stack = [], committed = exprs ++ state.committed }
 
             Just M ->
-                let
-                    content =
-                        state.stack |> List.reverse |> Token.toString
-
-                    trailing =
-                        String.right 1 content
-
-                    committed =
-                        if trailing == "$" && content == "$" then
-                            let
-                                ( first_, rest_ ) =
-                                    case state.committed of
-                                        first :: rest ->
-                                            ( first, rest )
-
-                                        _ ->
-                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-                            in
-                            first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
-
-                        else if trailing == "$" then
-                            Verbatim "math" (String.replace "$" "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
-
-                        else
-                            Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
-                                :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
-                                :: state.committed
-                in
-                { state | stack = [], committed = committed }
+                handleMath state
 
             Just C ->
-                let
-                    content =
-                        state.stack |> List.reverse |> Token.toString
-
-                    trailing =
-                        String.right 1 content
-
-                    committed =
-                        if trailing == "`" && content == "`" then
-                            let
-                                ( first_, rest_ ) =
-                                    case state.committed of
-                                        first :: rest ->
-                                            ( first, rest )
-
-                                        _ ->
-                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-                            in
-                            first_ :: Expr "red" [ Text "`" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId :: rest_
-
-                        else if trailing == "`" then
-                            Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
-
-                        else
-                            Expr "red" [ Text "`" dummyLocWithId ] dummyLocWithId :: Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
-                in
-                { state | stack = [], committed = committed }
+                handleCode state
 
             _ ->
-                state
+                handleTheRest state
 
     else
+        let
+            _ =
+                Debug.log "BR!!" 2
+        in
         state
+
+
+handleTheRest state =
+    let
+        _ =
+            Debug.log "!! handleTheRest, STACK" (state.stack |> List.reverse |> Token.toString2)
+    in
+    state
+
+
+handleMath : State -> State
+handleMath state =
+    let
+        content =
+            state.stack |> List.reverse |> Token.toString
+
+        trailing =
+            String.right 1 content
+
+        committed =
+            if trailing == "$" && content == "$" then
+                let
+                    ( first_, rest_ ) =
+                        case state.committed of
+                            first :: rest ->
+                                ( first, rest )
+
+                            _ ->
+                                ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
+                in
+                first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
+
+            else if trailing == "$" then
+                Verbatim "math" (String.replace "$" "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
+
+            else
+                Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
+                    :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+                    :: state.committed
+    in
+    { state | stack = [], committed = committed }
+
+
+handleCode : State -> State
+handleCode state =
+    let
+        content =
+            state.stack |> List.reverse |> Token.toString
+
+        trailing =
+            String.right 1 content
+
+        committed =
+            if trailing == "`" && content == "`" then
+                let
+                    ( first_, rest_ ) =
+                        case state.committed of
+                            first :: rest ->
+                                ( first, rest )
+
+                            _ ->
+                                ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
+                in
+                first_ :: Expr "red" [ Text "`" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId :: rest_
+
+            else if trailing == "`" then
+                Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
+
+            else
+                Expr "red" [ Text "`" dummyLocWithId ] dummyLocWithId :: Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
+    in
+    { state | stack = [], committed = committed }
 
 
 eval : Int -> List Token -> List Expr
@@ -419,45 +458,6 @@ split tokens =
             M.splitAt (k + 1) tokens
 
 
-errorMessage1Part : String -> Expr
-errorMessage1Part a =
-    Expr "errorHighlight" [ Text a dummyLocWithId ] dummyLocWithId
-
-
-errorMessage2Part : Int -> String -> String -> List Expr
-errorMessage2Part lineNumber a b =
-    [ Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
-
-
-errorMessage3Part : Int -> String -> String -> String -> List Expr
-errorMessage3Part lineNumber a b c =
-    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text c dummyLocWithId ] dummyLocWithId ]
-
-
-errorMessage : String -> Expr
-errorMessage message =
-    Expr "errorHighlight" [ Text message dummyLocWithId ] dummyLocWithId
-
-
-errorMessageBold : String -> Expr
-errorMessageBold message =
-    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
-
-
-errorMessage2 : String -> Expr
-errorMessage2 message =
-    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
-
-
-addErrorMessage : String -> State -> State
-addErrorMessage message state =
-    let
-        committed =
-            errorMessage message :: state.committed
-    in
-    { state | committed = committed }
-
-
 isReducible : List Token -> Bool
 isReducible tokens =
     let
@@ -475,7 +475,7 @@ recoverFromError : State -> Step State State
 recoverFromError state =
     let
         _ =
-            Debug.log "STACK (recover)" state.stack
+            Debug.log "!!recover, STACK" state.stack
     in
     case List.reverse state.stack of
         (BS m1) :: (S fname m2) :: (LB m3) :: rest ->
@@ -732,6 +732,49 @@ bracketErrorAsString k =
 
     else
         "Too many left brackets (" ++ String.fromInt k ++ ")"
+
+
+
+-- ERROR MESSAGES
+
+
+errorMessage1Part : String -> Expr
+errorMessage1Part a =
+    Expr "errorHighlight" [ Text a dummyLocWithId ] dummyLocWithId
+
+
+errorMessage2Part : Int -> String -> String -> List Expr
+errorMessage2Part lineNumber a b =
+    [ Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
+
+
+errorMessage3Part : Int -> String -> String -> String -> List Expr
+errorMessage3Part lineNumber a b c =
+    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text c dummyLocWithId ] dummyLocWithId ]
+
+
+errorMessage : String -> Expr
+errorMessage message =
+    Expr "errorHighlight" [ Text message dummyLocWithId ] dummyLocWithId
+
+
+errorMessageBold : String -> Expr
+errorMessageBold message =
+    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
+
+
+errorMessage2 : String -> Expr
+errorMessage2 message =
+    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
+
+
+addErrorMessage : String -> State -> State
+addErrorMessage message state =
+    let
+        committed =
+            errorMessage message :: state.committed
+    in
+    { state | committed = committed }
 
 
 
