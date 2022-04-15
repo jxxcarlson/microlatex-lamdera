@@ -14,6 +14,7 @@ module Config exposing
     , masterDocLoadedPageId
     , maxDocSearchLimit
     , microLaTeXCheetsheetId
+    , notFoundDocId
     , pdfServer
     , plainTextCheetsheetId
     , publicDocumentStartupSearchKey
@@ -62,6 +63,10 @@ maxDocSearchLimit =
 
 publicDocumentStartupSearchKey =
     "system:startup"
+
+
+notFoundDocId =
+    "id-sr565-tf824"
 
 
 l0CheetsheetId =
