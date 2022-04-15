@@ -3,9 +3,10 @@
 // BRACKETS: https://stackoverflow.com/questions/70758962/how-to-configure-custom-brackets-for-markdown-for-codemirror-closebrackets
 // BRACKETS: https://bl.ocks.org/curran/d8de41605fa68b627defa9906183b92f
 
-import {EditorState,basicSetup} from "@codemirror/basic-setup"
+import {EditorState, basicSetup} from "@codemirror/basic-setup"
 import {EditorView, keymap} from "@codemirror/view"
 // import {search} from "@codemirror/search"
+// import {EditorState} from "@codemirrror/state"
 import {indentWithTab} from "@codemirror/commands"
 import {javascript} from "@codemirror/lang-javascript"
 
@@ -55,8 +56,8 @@ class CodemirrorEditor extends HTMLElement {
             function sendText(editor) {
                 const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
                 editor.dom.dispatchEvent(event);
-                // console.log("position (a)",  editor.state.selection.main.head, editor.state.line(editor.state.selection.main.head))
-                console.log("position",  editor.state.selection.main.head)
+                console.log("position (a)",  editor.state.selection.main.head, editor.state.lineAt(editor.state.selection.main.head))
+                // console.log("position",  editor.state.selection.main.head)
 
              }
 
