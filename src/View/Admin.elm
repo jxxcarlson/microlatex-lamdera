@@ -20,7 +20,7 @@ view model =
         [ E.column
             [ E.spacing 12
             , E.centerX
-            , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.windowWidth)
+            , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
             ]
             [ adminHeader model
@@ -43,7 +43,7 @@ adminBody model =
     E.column
         [ E.spacing 12
         , E.centerX
-        , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.windowWidth)
+        , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
         , E.height (E.px (Geometry.appHeight_ model - 150))
         , Background.color View.Color.white
         , Font.size 14

@@ -37,7 +37,7 @@ view model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.75 -650 (Geometry.panelWidth2_ model.sidebarExtrasState model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.75 -650 (Geometry.panelWidth2_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -88,7 +88,7 @@ viewForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.8 0 (Geometry.panelWidth_ model.sidebarExtrasState model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument (affine 1.8 0 (Geometry.panelWidth_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth)) model.counter model.selectedId model.editRecord)
                 ]
 
 
