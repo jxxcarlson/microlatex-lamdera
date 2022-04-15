@@ -224,19 +224,23 @@ updateFromFrontend sessionId clientId msg model =
 
         GetUserList ->
             let
-                connectedUsers =
-                    Backend.Update.getConnectedUsers model
+                isConnected username =
+                    case Dict.get username model.connectionDict of
+                        Nothing ->
+                            False
+
+                        Just _ ->
+                            True
             in
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (GotUserList (Backend.Update.getUserData model))
+                [ sendToFrontend clientId (GotUserList (List.map (\( u, n ) -> ( u, isConnected u.username, n )) (Backend.Update.getUserData model)))
                 , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
                 , sendToFrontend clientId
                     (GotShareDocumentList
                         (model.sharedDocumentDict
                             |> Dict.toList
-                            |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
-                            |> List.map (\( username_, data ) -> ( username_, List.member username_ connectedUsers, data ))
+                            |> List.map (\( username_, data ) -> ( data.author |> Maybe.withDefault "(anon)", isConnected username_, data ))
                         )
                     )
                 ]
