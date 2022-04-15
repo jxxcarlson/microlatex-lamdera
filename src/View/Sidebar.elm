@@ -55,10 +55,6 @@ isOnline isOnline_ =
 
 viewTags : FrontendModel -> Element FrontendMsg
 viewTags model =
-    let
-        _ =
-            Debug.log "sidebarTagsState" model.sidebarTagsState
-    in
     case model.sidebarTagsState of
         SidebarTagsIn ->
             E.none
