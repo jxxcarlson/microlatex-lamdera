@@ -565,7 +565,7 @@ update msg model =
         ToggleExtrasSidebar ->
             case model.sidebarExtrasState of
                 SidebarExtrasIn ->
-                    ( { model | sidebarExtrasState = SidebarExtrasOut }
+                    ( { model | sidebarExtrasState = SidebarExtrasOut, sidebarTagsState = SidebarTagsIn }
                     , Cmd.none
                     )
 
@@ -579,7 +579,7 @@ update msg model =
             in
             case model.sidebarTagsState of
                 SidebarTagsIn ->
-                    ( { model | messages = Message.make "Tags out" MSYellow, sidebarTagsState = SidebarTagsOut }
+                    ( { model | sidebarExtrasState = SidebarExtrasIn, sidebarTagsState = SidebarTagsOut }
                     , Cmd.batch
                         [ sendToBackend GetPublicTagsFromBE
                         , sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
