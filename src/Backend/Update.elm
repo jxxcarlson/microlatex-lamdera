@@ -411,9 +411,6 @@ signIn model sessionId clientId username encryptedPassword =
 
                             Just groupName ->
                                 Dict.get groupName model.chatGroupDict
-
-                    me =
-                        ( userData.user.username, True )
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
@@ -422,7 +419,7 @@ signIn model sessionId clientId username encryptedPassword =
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
-                    , broadcast (GotUsersWithOnlineStatus (me :: getUsersAndOnlineStatus model))
+                    , broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict newConnectionDict_))
                     ]
                 )
 
@@ -447,16 +444,21 @@ type alias UserData =
 
 getUsersAndOnlineStatus : Model -> List ( String, Bool )
 getUsersAndOnlineStatus model =
+    getUsersAndOnlineStatus_ model.authenticationDict model.connectionDict
+
+
+getUsersAndOnlineStatus_ : Authentication.AuthenticationDict -> ConnectionDict -> List ( String, Bool )
+getUsersAndOnlineStatus_ authenticationDict connectionDict =
     let
         isConnected username =
-            case Dict.get username model.connectionDict of
+            case Dict.get username connectionDict of
                 Nothing ->
                     False
 
                 Just _ ->
                     True
     in
-    List.map (\u -> ( u, isConnected u )) (Dict.keys model.authenticationDict)
+    List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
 
 
 searchForDocuments : Model -> ClientId -> Maybe String -> String -> ( Model, Cmd backendMsg )
