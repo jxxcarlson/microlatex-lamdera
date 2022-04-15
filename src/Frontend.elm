@@ -967,9 +967,6 @@ updateFromBackend msg model =
             let
                 documents =
                     DocumentTools.sort model.sortMode documents_
-
-                _ =
-                    Debug.log "Received docs: " (List.length documents)
             in
             case List.head documents of
                 Nothing ->
