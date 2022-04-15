@@ -98,12 +98,12 @@ adminFooter model =
         ]
 
 
-viewUserList : List ( User.User, Bool, Int ) -> Element FrontendMsg
+viewUserList : List ( String, Bool ) -> Element FrontendMsg
 viewUserList users =
     E.column [ E.spacing 8 ]
-        (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _, _ ) -> u.username) users))
+        (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _ ) -> u) users))
 
 
-viewUser : ( User.User, Bool, Int ) -> Element FrontendMsg
-viewUser ( user, isOnline_, k ) =
-    E.row [ E.spacing 8, E.width (E.px 150) ] [ E.el [ E.width (E.px 50) ] (E.text <| user.username ++ isOnline isOnline_), E.el [ E.width (E.px 20), E.alignRight ] (E.text (String.fromInt k)) ]
+viewUser : ( String, Bool ) -> Element FrontendMsg
+viewUser ( username, isOnline_ ) =
+    E.row [ E.spacing 8, E.width (E.px 150) ] [ E.el [ E.width (E.px 50) ] (E.text <| username ++ isOnline isOnline_) ]

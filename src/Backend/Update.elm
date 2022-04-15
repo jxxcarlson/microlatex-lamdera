@@ -13,6 +13,7 @@ module Backend.Update exposing
     , getSharedDocuments
     , getUserData
     , getUserDocuments
+    , getUsersAndOnlineStatus
     , gotAtmosphericRandomNumber
     , publicTags
     , removeSessionClient
@@ -45,6 +46,7 @@ import Message
 import Parser.Language exposing (Language(..))
 import Random
 import Share
+import Time
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
@@ -417,6 +419,7 @@ signIn model sessionId clientId username encryptedPassword =
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
+                    , broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus model))
                     ]
                 )
 
@@ -425,6 +428,32 @@ signIn model sessionId clientId username encryptedPassword =
 
         Nothing ->
             ( model, sendToFrontend clientId (MessageReceived <| { content = "Sorry, password and username don't match", status = MSYellow }) )
+
+
+type alias UserData =
+    { username : String
+    , id : String
+    , realname : String
+    , email : String
+    , created : Time.Posix
+    , modified : Time.Posix
+    , docs : BoundedDeque.BoundedDeque Document.DocumentInfo
+    , preferences : User.Preferences
+    }
+
+
+getUsersAndOnlineStatus : Model -> List ( String, Bool )
+getUsersAndOnlineStatus model =
+    let
+        isConnected username =
+            case Dict.get username model.connectionDict of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+    in
+    List.map (\u -> ( u, isConnected u )) (Dict.keys model.authenticationDict)
 
 
 searchForDocuments : Model -> ClientId -> Maybe String -> String -> ( Model, Cmd backendMsg )

@@ -222,19 +222,10 @@ updateFromFrontend sessionId clientId msg model =
         GetSharedDocuments username ->
             Backend.Update.getSharedDocuments model clientId username
 
-        GetActiveUsers ->
-            let
-                isConnected username =
-                    case Dict.get username model.connectionDict of
-                        Nothing ->
-                            False
-
-                        Just _ ->
-                            True
-            in
+        GetUsersWithOnlineStatus ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (GotUserList (List.map (\( u, n ) -> ( u, isConnected u.username, n )) (Backend.Update.getUserData model)))
+                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
                 ]
             )
 
@@ -250,7 +241,7 @@ updateFromFrontend sessionId clientId msg model =
             in
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (GotUserList (List.map (\( u, n ) -> ( u, isConnected u.username, n )) (Backend.Update.getUserData model)))
+                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
                 , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
                 , sendToFrontend clientId
                     (GotShareDocumentList

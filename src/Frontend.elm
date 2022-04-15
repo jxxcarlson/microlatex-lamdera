@@ -566,7 +566,7 @@ update msg model =
             case model.sidebarExtrasState of
                 SidebarExtrasIn ->
                     ( { model | sidebarExtrasState = SidebarExtrasOut, sidebarTagsState = SidebarTagsIn }
-                    , sendToBackend GetActiveUsers
+                    , sendToBackend GetUsersWithOnlineStatus
                     )
 
                 SidebarExtrasOut ->
@@ -853,7 +853,7 @@ updateFromBackend msg model =
         GotShareDocumentList sharedDocList ->
             ( { model | sharedDocumentList = sharedDocList }, Cmd.none )
 
-        GotUserList userData ->
+        GotUsersWithOnlineStatus userData ->
             ( { model | userList = userData }, Cmd.none )
 
         GotConnectionList connectedUsers ->
