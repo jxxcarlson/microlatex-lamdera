@@ -20,7 +20,7 @@ view model _ =
         , View.Utility.showIf (model.currentUser == Nothing) (View.Input.username model)
         , View.Utility.showIf (model.currentUser == Nothing) (View.Input.password model)
         , Button.signOut model
-        , E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (Button.toggleExtrasSidebar model.sidebarExtrasState)
+        , View.Utility.hideIf (model.currentUser == Nothing) (E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (Button.toggleExtrasSidebar model.sidebarExtrasState))
         ]
 
 

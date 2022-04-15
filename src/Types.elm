@@ -578,6 +578,7 @@ type ToBackend
       RunTask
     | GetStatus
     | GetUserList
+    | GetActiveUsers
     | GetSharedDocuments String
     | ClearConnectionDictBE
       -- USER

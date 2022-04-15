@@ -566,7 +566,7 @@ update msg model =
             case model.sidebarExtrasState of
                 SidebarExtrasIn ->
                     ( { model | sidebarExtrasState = SidebarExtrasOut, sidebarTagsState = SidebarTagsIn }
-                    , Cmd.none
+                    , sendToBackend GetActiveUsers
                     )
 
                 SidebarExtrasOut ->

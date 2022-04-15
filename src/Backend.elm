@@ -222,6 +222,22 @@ updateFromFrontend sessionId clientId msg model =
         GetSharedDocuments username ->
             Backend.Update.getSharedDocuments model clientId username
 
+        GetActiveUsers ->
+            let
+                isConnected username =
+                    case Dict.get username model.connectionDict of
+                        Nothing ->
+                            False
+
+                        Just _ ->
+                            True
+            in
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (GotUserList (List.map (\( u, n ) -> ( u, isConnected u.username, n )) (Backend.Update.getUserData model)))
+                ]
+            )
+
         GetUserList ->
             let
                 isConnected username =

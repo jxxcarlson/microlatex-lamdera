@@ -6,6 +6,7 @@ import Element.Background as Background
 import Element.Font as Font
 import String.Extra
 import Types exposing (FrontendModel, FrontendMsg, SidebarExtrasState(..), SidebarTagsState(..))
+import User
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry
@@ -24,11 +25,32 @@ viewExtras model =
                 [ E.width (E.px Geometry.sidebarWidth)
                 , E.spacing 4
                 , E.height (E.px (Geometry.appHeight_ model - 110))
-                , E.paddingXY 8 0
+                , E.paddingXY 12 12
+                , Font.size 14
                 , Background.color Color.lightGray
                 ]
-                [ E.text "Extras"
+                [ viewUserList model.userList
                 ]
+
+
+viewUserList : List ( User.User, Bool, Int ) -> Element FrontendMsg
+viewUserList users =
+    E.column [ E.spacing 8 ]
+        (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _, _ ) -> u.username) users))
+
+
+viewUser : ( User.User, Bool, Int ) -> Element FrontendMsg
+viewUser ( user, isOnline_, k ) =
+    E.row [ E.spacing 8, E.width (E.px 150) ] [ E.el [ E.width (E.px 50) ] (E.text <| user.username ++ isOnline isOnline_) ]
+
+
+isOnline : Bool -> String
+isOnline isOnline_ =
+    if isOnline_ then
+        " (online)"
+
+    else
+        ""
 
 
 viewTags : FrontendModel -> Element FrontendMsg
