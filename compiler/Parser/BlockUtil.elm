@@ -4,8 +4,6 @@ module Parser.BlockUtil exposing
     , toExpressionBlock
     )
 
--- import Parser.Expression
-
 import Compiler.Util
 import Either exposing (Either(..))
 import MicroLaTeX.Parser.Expression
@@ -37,7 +35,7 @@ getMessages ((ExpressionBlock { messages }) as block) =
     messages
 
 
-toExpressionBlock : (Int -> String -> List Expr) -> PrimitiveBlock -> ExpressionBlock
+toExpressionBlock : (Int -> String -> ( List Expr, List String )) -> PrimitiveBlock -> ExpressionBlock
 toExpressionBlock parse { name, args, indent, lineNumber, blockType, content, sourceText } =
     let
         blockType_ =
@@ -50,6 +48,9 @@ toExpressionBlock parse { name, args, indent, lineNumber, blockType, content, so
 
                 _ ->
                     List.drop 1 content
+
+        ( exprs, messages ) =
+            mapContent parse lineNumber blockType_ (String.join "\n" content_)
     in
     ExpressionBlock
         { name = name
@@ -60,20 +61,29 @@ toExpressionBlock parse { name, args, indent, lineNumber, blockType, content, so
         , id = String.fromInt lineNumber
         , tag = Compiler.Util.getItem MicroLaTeXLang "label" sourceText
         , blockType = blockType_
-        , content = mapContent parse lineNumber blockType_ (String.join "\n" content_)
-        , messages = MicroLaTeX.Parser.Expression.parseToState lineNumber sourceText |> MicroLaTeX.Parser.Expression.extractMessages
+        , content = exprs
+        , messages = messages -- MicroLaTeX.Parser.Expression.parseToState lineNumber sourceText |> MicroLaTeX.Parser.Expression.extractMessages
         , sourceText = sourceText
         }
 
 
-mapContent : (Int -> String -> List Expr) -> Int -> BlockType -> String -> Either String (List Expr)
+mapContent : (Int -> String -> ( List Expr, List String )) -> Int -> BlockType -> String -> ( Either String (List Expr), List String )
 mapContent parse lineNumber blockType content =
+    let
+        ( parsed, messages ) =
+            parse lineNumber content
+    in
+    ( mapContentAux blockType parsed content, messages )
+
+
+mapContentAux : BlockType -> List Expr -> String -> Either String (List Expr)
+mapContentAux blockType parsed content =
     case blockType of
         Paragraph ->
-            Right (parse lineNumber content)
+            Right parsed
 
         OrdinaryBlock _ ->
-            Right (parse lineNumber content)
+            Right parsed
 
         VerbatimBlock _ ->
             let

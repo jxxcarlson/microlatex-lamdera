@@ -110,24 +110,32 @@ viewSharedDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ E.el [ Font.color (E.rgb 0 0 0), Font.bold ] (E.text "Shared documents"), E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewShareDocuments model.currentDocument model.shareDocumentList
+            :: viewShareDocuments model.currentDocument model.sharedDocumentList
         )
 
 
-viewShareDocuments : Maybe Document -> List ( String, Types.SharedDocument ) -> List (Element FrontendMsg)
+viewShareDocuments : Maybe Document -> List ( String, Bool, Types.SharedDocument ) -> List (Element FrontendMsg)
 viewShareDocuments currentDocument shareDocumentList =
     List.map (viewSharedDocument currentDocument) shareDocumentList
 
 
-viewSharedDocument : Maybe Document -> ( String, Types.SharedDocument ) -> Element FrontendMsg
-viewSharedDocument currentDocument ( author, sharedDocument ) =
+viewSharedDocument : Maybe Document -> ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocument currentDocument ( author, isOnline, sharedDocument ) =
     let
+        onlineStatus =
+            if isOnline then
+                " (online) "
+
+            else
+                ""
+
         label =
             author
+                ++ onlineStatus
                 ++ ": "
                 ++ sharedDocument.title
     in
-    Button.getDocument sharedDocument.id (label |> String.Extra.softEllipsis 40) ((Maybe.map .id currentDocument |> Maybe.withDefault "((0))") == sharedDocument.id)
+    Button.getDocument StandardHandling sharedDocument.id (label |> String.Extra.softEllipsis 40) ((Maybe.map .id currentDocument |> Maybe.withDefault "((0))") == sharedDocument.id)
 
 
 viewWorkingDocs : FrontendModel -> Int -> Int -> Element FrontendMsg

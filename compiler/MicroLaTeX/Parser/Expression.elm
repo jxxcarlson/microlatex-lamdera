@@ -14,6 +14,8 @@ import MicroLaTeX.Parser.Token as Token exposing (Token(..), TokenType(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
 import Parser.Match as M
+import Parser.Meta
+import Tools
 
 
 
@@ -58,13 +60,19 @@ initWithTokens lineNumber tokens =
 -- Exposed functions
 
 
-parse : Int -> String -> List Expr
+parse : Int -> String -> ( List Expr, List String )
 parse lineNumber str =
-    str
-        |> Token.run
-        |> initWithTokens lineNumber
-        |> run
-        |> .committed
+    let
+        state =
+            str |> Token.run |> initWithTokens lineNumber |> run
+
+        exprs =
+            state.committed
+
+        messages =
+            state.messages
+    in
+    ( exprs, messages )
 
 
 parseToState : Int -> String -> State
@@ -90,17 +98,22 @@ nextStep state =
     case List.Extra.getAt state.tokenIndex state.tokens of
         Nothing ->
             if List.isEmpty state.stack then
-                Done state
+                Done (state |> Tools.forklogCyan "Done" 12 show)
 
             else
                 -- the stack is not empty, so we need to handle the parse error
-                recoverFromError state
+                recoverFromError (state |> Tools.forklogCyan "Recover" 12 show)
 
         Just token ->
             pushToken token { state | tokenIndex = state.tokenIndex + 1 }
                 |> reduceState
                 |> (\st -> { st | step = st.step + 1 })
+                |> Tools.forklogCyan "Push-Reduce" 12 show
                 |> Loop
+
+
+show state =
+    ( state.stack |> List.reverse |> Token.toString2, state.committed |> List.map Parser.Expr.simplify )
 
 
 
@@ -196,11 +209,9 @@ reduceState state =
         peek : Maybe Token
         peek =
             List.Extra.getAt state.tokenIndex state.tokens
-
-        reducible1 =
-            isReducible state.stack
     in
-    if state.tokenIndex >= state.numberOfTokens || (reducible1 && not (isLBToken peek)) then
+    -- the peek clause is needed to parse macros with more than one argument
+    if isReducible state.stack && not (Maybe.map Token.type_ peek == Just TLB) then
         let
             symbols =
                 state.stack |> Symbol.convertTokens |> List.reverse
@@ -208,77 +219,89 @@ reduceState state =
         case List.head symbols of
             Just B ->
                 case eval state.lineNumber (state.stack |> List.reverse) of
-                    (Expr "??(3)" [ Text message _ ] _) :: rest ->
+                    (Expr "ERROR" [ Text message _ ] _) :: rest ->
                         { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
 
-                    whatever ->
-                        { state | stack = [], committed = whatever ++ state.committed }
+                    exprs ->
+                        -- Function eval has reduced the stack, producing a list of expressiosn.  Push
+                        -- them onto the list of committed expressions and clear the stack
+                        { state | stack = [], committed = exprs ++ state.committed }
 
             Just M ->
-                let
-                    content =
-                        state.stack |> List.reverse |> Token.toString
-
-                    trailing =
-                        String.right 1 content
-
-                    committed =
-                        if trailing == "$" && content == "$" then
-                            let
-                                ( first_, rest_ ) =
-                                    case state.committed of
-                                        first :: rest ->
-                                            ( first, rest )
-
-                                        _ ->
-                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-                            in
-                            first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
-
-                        else if trailing == "$" then
-                            Verbatim "math" (String.replace "$" "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
-
-                        else
-                            Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
-                                :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
-                                :: state.committed
-                in
-                { state | stack = [], committed = committed }
+                handleMath state
 
             Just C ->
-                let
-                    content =
-                        state.stack |> List.reverse |> Token.toString
-
-                    trailing =
-                        String.right 1 content
-
-                    committed =
-                        if trailing == "`" && content == "`" then
-                            let
-                                ( first_, rest_ ) =
-                                    case state.committed of
-                                        first :: rest ->
-                                            ( first, rest )
-
-                                        _ ->
-                                            ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
-                            in
-                            first_ :: Expr "red" [ Text "`" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId :: rest_
-
-                        else if trailing == "`" then
-                            Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
-
-                        else
-                            Expr "red" [ Text "`" dummyLocWithId ] dummyLocWithId :: Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
-                in
-                { state | stack = [], committed = committed }
+                handleCode state
 
             _ ->
                 state
 
     else
         state
+
+
+handleMath : State -> State
+handleMath state =
+    let
+        content =
+            state.stack |> List.reverse |> Token.toString
+
+        trailing =
+            String.right 1 content
+
+        committed =
+            if trailing == "$" && content == "$" then
+                let
+                    ( first_, rest_ ) =
+                        case state.committed of
+                            first :: rest ->
+                                ( first, rest )
+
+                            _ ->
+                                ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
+                in
+                first_ :: Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId :: rest_
+
+            else if trailing == "$" then
+                Verbatim "math" (String.replace "$" "" content) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
+
+            else
+                Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
+                    :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+                    :: state.committed
+    in
+    { state | stack = [], committed = committed }
+
+
+handleCode : State -> State
+handleCode state =
+    let
+        content =
+            state.stack |> List.reverse |> Token.toString
+
+        trailing =
+            String.right 1 content
+
+        committed =
+            if trailing == "`" && content == "`" then
+                let
+                    ( first_, rest_ ) =
+                        case state.committed of
+                            first :: rest ->
+                                ( first, rest )
+
+                            _ ->
+                                ( Expr "red" [ Text "????(4)" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId, [] )
+                in
+                first_ :: Expr "red" [ Text "`" (boostMeta state.lineNumber state.tokenIndex dummyLoc) ] dummyLocWithId :: rest_
+
+            else if trailing == "`" then
+                Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
+
+            else
+                Expr "red" [ Text "`" dummyLocWithId ] dummyLocWithId :: Verbatim "code" (String.replace "`" "" content) (boostMeta state.lineNumber state.tokenIndex { begin = 0, end = 0, index = 0 }) :: state.committed
+    in
+    { state | stack = [], committed = committed }
 
 
 eval : Int -> List Token -> List Expr
@@ -291,7 +314,7 @@ eval lineNumber tokens =
         (S t m2) :: rest ->
             Text t m2 :: evalList Nothing lineNumber rest
 
-        (BS m1) :: (S name _) :: rest ->
+        (BS m1) :: (S name m2) :: rest ->
             let
                 ( a, b ) =
                     split rest
@@ -306,7 +329,7 @@ eval lineNumber tokens =
                 [ Expr name (evalList (Just name) lineNumber a) m1 ] ++ evalList (Just name) lineNumber b
 
         _ ->
-            errorMessage2Part lineNumber "\\" "{??}(5)"
+            [ errorMessage1Part "{??}" ]
 
 
 evalList : Maybe String -> Int -> List Token -> List Expr
@@ -316,10 +339,13 @@ evalList macroName lineNumber tokens =
             case Token.type_ token of
                 TLB ->
                     case M.match (Symbol.convertTokens2 tokens) of
+                        -- there was no match for the left brace;
+                        -- this is an error
                         Nothing ->
                             errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
                         Just k ->
+                            -- there are k matching tokens
                             let
                                 ( a, b ) =
                                     M.splitAt (k + 1) tokens
@@ -353,40 +379,6 @@ split tokens =
             M.splitAt (k + 1) tokens
 
 
-errorMessage2Part : Int -> String -> String -> List Expr
-errorMessage2Part lineNumber a b =
-    [ Expr "red" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
-
-
-errorMessage3Part : Int -> String -> String -> String -> List Expr
-errorMessage3Part lineNumber a b c =
-    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text b dummyLocWithId ] dummyLocWithId, Expr "red" [ Text c dummyLocWithId ] dummyLocWithId ]
-
-
-errorMessage : String -> Expr
-errorMessage message =
-    Expr "red" [ Expr "underline" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
-
-
-errorMessageBold : String -> Expr
-errorMessageBold message =
-    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
-
-
-errorMessage2 : String -> Expr
-errorMessage2 message =
-    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
-
-
-addErrorMessage : String -> State -> State
-addErrorMessage message state =
-    let
-        committed =
-            errorMessage message :: state.committed
-    in
-    { state | committed = committed }
-
-
 isReducible : List Token -> Bool
 isReducible tokens =
     let
@@ -403,7 +395,20 @@ isReducible tokens =
 recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
-        -- brackets with no intervening text
+        (BS m1) :: (S fname m2) :: (LB m3) :: rest ->
+            let
+                tail =
+                    List.drop (m3.index + 1) state.tokens
+            in
+            Loop
+                { state
+                    | committed = errorMessage ("\\" ++ fname ++ "{") :: state.committed
+                    , stack = []
+                    , tokenIndex = m3.index + 1
+                    , messages = Helpers.prependMessage state.lineNumber ("Missing right brace, column " ++ String.fromInt m3.begin) state.messages
+                }
+
+        -- braces with no intervening text
         (LB _) :: (RB meta) :: _ ->
             Loop
                 { state
@@ -558,7 +563,9 @@ recoverFromError1 state =
                         , tokenIndex = 0
                         , numberOfTokens = List.length newStack
                         , committed = errorMessage "[" :: state.committed
-                        , messages = Helpers.prependMessage state.lineNumber ("Unmatched brackets: added " ++ String.fromInt k ++ " right brackets") state.messages
+
+                        -- TODO: the below supresses spurious error messages. But it might supress others as well.
+                        --, messages = Helpers.prependMessage state.lineNumber ("Unmatched brackets: added " ++ String.fromInt k ++ " right brackets") state.messages
                     }
 
     else
@@ -596,6 +603,49 @@ bracketErrorAsString k =
 
     else
         "Too many left brackets (" ++ String.fromInt k ++ ")"
+
+
+
+-- ERROR MESSAGES
+
+
+errorMessage1Part : String -> Expr
+errorMessage1Part a =
+    Expr "errorHighlight" [ Text a dummyLocWithId ] dummyLocWithId
+
+
+errorMessage2Part : Int -> String -> String -> List Expr
+errorMessage2Part lineNumber a b =
+    [ Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
+
+
+errorMessage3Part : Int -> String -> String -> String -> List Expr
+errorMessage3Part lineNumber a b c =
+    [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text c dummyLocWithId ] dummyLocWithId ]
+
+
+errorMessage : String -> Expr
+errorMessage message =
+    Expr "errorHighlight" [ Text message dummyLocWithId ] dummyLocWithId
+
+
+errorMessageBold : String -> Expr
+errorMessageBold message =
+    Expr "bold" [ Expr "red" [ Text message dummyLocWithId ] dummyLocWithId ] dummyLocWithId
+
+
+errorMessage2 : String -> Expr
+errorMessage2 message =
+    Expr "blue" [ Text message dummyLocWithId ] dummyLocWithId
+
+
+addErrorMessage : String -> State -> State
+addErrorMessage message state =
+    let
+        committed =
+            errorMessage message :: state.committed
+    in
+    { state | committed = committed }
 
 
 

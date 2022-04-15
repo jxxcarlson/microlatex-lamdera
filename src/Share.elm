@@ -17,6 +17,7 @@ import Dict
 import Document
 import Lamdera exposing (ClientId, sendToBackend)
 import List.Extra
+import Set
 import Types
 import User
 
@@ -123,12 +124,25 @@ doShare model =
                 editors =
                     model.inputEditors |> String.split "," |> List.map String.trim
 
+                share : Document.Share
                 share =
                     if List.isEmpty readers && List.isEmpty editors then
                         Document.NotShared
 
                     else
                         Document.ShareWith { readers = readers, editors = editors }
+
+                cmdSaveUser =
+                    case model.currentUser of
+                        Nothing ->
+                            Cmd.none
+
+                        Just user ->
+                            let
+                                folks =
+                                    Set.union (Set.fromList readers) (Set.fromList editors)
+                            in
+                            sendToBackend (Types.UpdateUserWith { user | sharedDocumentAuthors = Set.union folks user.sharedDocumentAuthors })
 
                 newDocument =
                     { doc | share = share }
@@ -137,7 +151,11 @@ doShare model =
                     List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
             in
             ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
-            , Cmd.batch [ sendToBackend (Types.SaveDocument newDocument), sendToBackend (Types.UpdateSharedDocumentDict newDocument) ]
+            , Cmd.batch
+                [ sendToBackend (Types.SaveDocument newDocument)
+                , sendToBackend (Types.UpdateSharedDocumentDict newDocument)
+                , cmdSaveUser
+                ]
             )
 
 

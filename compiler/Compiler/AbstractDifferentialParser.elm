@@ -9,6 +9,7 @@ type alias EditRecord chunk parsedChunk accumulator =
     , parsed : List parsedChunk
     , accumulator : accumulator
     , lang : Language
+    , messages : List String
     }
 
 
@@ -16,9 +17,10 @@ init :
     Language
     -> (String -> List chunk)
     -> (Language -> List chunk -> ( acc, List parsedChunk ))
+    -> (List parsedChunk -> List String)
     -> String
     -> EditRecord chunk parsedChunk acc
-init lang chunker accMaker text =
+init lang chunker accMaker getMessages text =
     let
         chunks =
             chunker text
@@ -26,7 +28,7 @@ init lang chunker accMaker text =
         ( newAccumulator, parsed ) =
             accMaker lang chunks
     in
-    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator }
+    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator, messages = getMessages parsed }
 
 
 {-| The update function takes an EditRecord and a string, the "text",
@@ -41,11 +43,12 @@ a differential idList. This last step is perhaps unnecessary. To investigate.
 update :
     (String -> List chunk)
     -> (chunk -> parsedChunk)
+    -> (List parsedChunk -> List String)
     -> (Language -> List parsedChunk -> ( acc, List parsedChunk ))
     -> EditRecord chunk parsedChunk acc
     -> String
     -> EditRecord chunk parsedChunk acc
-update chunker parser accMaker editRecord text =
+update chunker parser getMessages accMaker editRecord text =
     let
         newChunks =
             chunker text
@@ -60,7 +63,7 @@ update chunker parser accMaker editRecord text =
             accMaker editRecord.lang parsed_
     in
     -- TODO: real update of accumulator
-    { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator }
+    { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator, messages = getMessages parsed }
 
 
 differentialParser :

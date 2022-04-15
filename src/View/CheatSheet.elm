@@ -27,6 +27,10 @@ view model =
         E.none
 
 
+bgColor =
+    E.rgb 0.955 0.955 1
+
+
 viewCheatSheet : FrontendModel -> E.Element Types.FrontendMsg
 viewCheatSheet model =
     case model.currentCheatsheet of
@@ -48,6 +52,7 @@ viewCheatSheet model =
                        , E.height (E.px h)
                        , E.scrollbarY
                        , E.paddingEach { left = 18, right = 18, top = 36, bottom = 36 }
+                       , Background.color bgColor
                        , View.Utility.htmlId Config.cheatSheetRenderedTextId
                        ]
                 )
@@ -82,7 +87,11 @@ setSelectedId id settings =
 
 renderSettings : String -> Int -> Render.Settings.Settings
 renderSettings id w =
-    Render.Settings.makeSettings id 0.38 w
+    let
+        s =
+            Render.Settings.makeSettings id 0.38 w
+    in
+    { s | backgroundColor = bgColor }
 
 
 affine : Float -> Float -> Int -> Int

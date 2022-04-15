@@ -20,7 +20,7 @@ view model =
         , htmlId "editor-here"
         , E.width (E.px 550)
         , E.height (E.px (Geometry.appHeight_ model - 110))
-        , E.width (E.px (Geometry.panelWidth_ model.sidebarState model.windowWidth))
+        , E.width (E.px (Geometry.panelWidth_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth))
         , Background.color (E.rgb255 0 68 85)
         , Font.color (E.rgb 0.85 0.85 0.85)
         , Font.size 12

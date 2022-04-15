@@ -50,8 +50,8 @@ viewMainColumn model =
                 viewRenderedTextOnly model
 
 
-viewEditorAndRenderedText : Model -> Element FrontendMsg
-viewEditorAndRenderedText model =
+viewRenderedTextOnly : Model -> Element FrontendMsg
+viewRenderedTextOnly model =
     let
         deltaH =
             (Geometry.appHeight_ model - 100) // 2 + 135
@@ -62,19 +62,48 @@ viewEditorAndRenderedText model =
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
-            , E.inFront (E.el [ E.moveDown 93, E.moveRight 1070 ] (CheatSheet.view model))
+            , E.inFront (E.el [ E.moveDown 93, E.moveRight 570 ] (CheatSheet.view model))
             , E.centerX
-            , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+            , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
+            , E.height (E.px (Geometry.appHeight_ model))
+            ]
+            [ headerRow model
+            , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
+                [ viewRenderedContainer model
+                , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
+                , Sidebar.viewTags model
+                , Sidebar.viewExtras model
+                ]
+            , Footer.view model (Geometry.smallHeaderWidth model.windowWidth)
+            ]
+        ]
+
+
+viewEditorAndRenderedText : Model -> Element FrontendMsg
+viewEditorAndRenderedText model =
+    let
+        deltaH =
+            (Geometry.appHeight_ model - 100) // 2 + 135
+    in
+    E.column (Style.mainColumn model)
+        [ E.column
+            [ E.inFront (languageMenu model)
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
+            , E.inFront (E.el [ E.moveDown 70, E.moveRight 365 ] (Share.view model))
+            , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
+            , E.inFront (E.el [ E.moveDown 93, E.moveRight 1070 ] (CheatSheet.view model))
+            , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
             ]
             [ headerRow model
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
-                , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
-                , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) (deltaH + 10)
-                , Sidebar.view model
+                , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
+                , Index.view model (Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth) (deltaH + 10)
+                , Sidebar.viewExtras model
+                , Sidebar.viewTags model
                 ]
-            , Footer.view model (Geometry.appWidth model.sidebarState (model.windowWidth - 80))
+            , Footer.view model (Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState (model.windowWidth - 80))
             ]
         ]
 
@@ -129,36 +158,8 @@ newDocumentPopup model =
 
 headerRow model =
     E.column [ E.spacing 8, Background.color Color.darkGray, E.padding 12, E.width E.fill ]
-        [ TopHeader.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+        [ TopHeader.view model (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
         , Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
-        ]
-
-
-viewRenderedTextOnly : Model -> Element FrontendMsg
-viewRenderedTextOnly model =
-    let
-        deltaH =
-            (Geometry.appHeight_ model - 100) // 2 + 135
-    in
-    E.column (Style.mainColumn model)
-        [ E.column
-            [ E.inFront (languageMenu model)
-            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
-            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
-            , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
-            , E.inFront (E.el [ E.moveDown 93, E.moveRight 570 ] (CheatSheet.view model))
-            , E.centerX
-            , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
-            , E.height (E.px (Geometry.appHeight_ model))
-            ]
-            [ headerRow model
-            , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
-                [ viewRenderedContainer model
-                , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
-                , Sidebar.view model
-                ]
-            , Footer.view model (Geometry.smallHeaderWidth model.windowWidth)
-            ]
         ]
 
 

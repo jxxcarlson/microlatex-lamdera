@@ -15,7 +15,7 @@ module Document exposing
     , wordCount
     )
 
-import List.Extra
+import Element
 import Parser.Helpers
 import Parser.Language exposing (Language(..))
 import Render.Settings
@@ -164,6 +164,7 @@ defaultSettings =
     , showTOC = True
     , showErrorMessages = False
     , selectedId = ""
+    , backgroundColor = Element.rgb 1 1 1
     }
 
 

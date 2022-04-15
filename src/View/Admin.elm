@@ -20,7 +20,7 @@ view model =
         [ E.column
             [ E.spacing 12
             , E.centerX
-            , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+            , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
             ]
             [ adminHeader model
@@ -43,7 +43,7 @@ adminBody model =
     E.column
         [ E.spacing 12
         , E.centerX
-        , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+        , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
         , E.height (E.px (Geometry.appHeight_ model - 150))
         , Background.color View.Color.white
         , Font.size 14
@@ -53,7 +53,7 @@ adminBody model =
         [ E.row [ E.spacing 36 ]
             [ viewUserList model.userList
             , viewConnectedUsers model.connectedUsers
-            , viewSharedDocuments model.shareDocumentList
+            , viewSharedDocuments model.sharedDocumentList
             ]
         ]
 
@@ -72,14 +72,23 @@ listStyle =
     [ E.spacing 12, E.alignTop, E.height (E.px 700), E.scrollbarY ]
 
 
-viewSharedDocuments : List ( String, Types.SharedDocument ) -> Element FrontendMsg
-viewSharedDocuments shareDocuments =
-    E.column [ E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument shareDocuments)
+viewSharedDocuments : List ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocuments sharedDocuments =
+    E.column [ E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument sharedDocuments)
 
 
-viewSharedDocument : ( String, Types.SharedDocument ) -> Element FrontendMsg
-viewSharedDocument ( author, data ) =
-    E.row [ E.spacing 12 ] (List.map E.text [ author, data.title, data.share |> Document.shareToString, data.currentEditor |> Maybe.withDefault "No one" |> (\s -> "currentEditor: " ++ s) ])
+viewSharedDocument : ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocument ( author, online, data ) =
+    E.row [ E.spacing 12 ] (List.map E.text [ author ++ isOnline online, data.title, data.share |> Document.shareToString, data.currentEditor |> Maybe.withDefault "No one" |> (\s -> "currentEditor: " ++ s) ])
+
+
+isOnline : Bool -> String
+isOnline isOnline_ =
+    if isOnline_ then
+        " (online)"
+
+    else
+        ""
 
 
 adminFooter model =
@@ -89,12 +98,12 @@ adminFooter model =
         ]
 
 
-viewUserList : List ( User.User, Int ) -> Element FrontendMsg
+viewUserList : List ( String, Bool ) -> Element FrontendMsg
 viewUserList users =
     E.column [ E.spacing 8 ]
-        (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _ ) -> u.username) users))
+        (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _ ) -> u) users))
 
 
-viewUser : ( User.User, Int ) -> Element FrontendMsg
-viewUser ( user, k ) =
-    E.row [ E.spacing 8, E.width (E.px 100) ] [ E.el [ E.width (E.px 50) ] (E.text user.username), E.el [ E.width (E.px 20), E.alignRight ] (E.text (String.fromInt k)) ]
+viewUser : ( String, Bool ) -> Element FrontendMsg
+viewUser ( username, isOnline_ ) =
+    E.row [ E.spacing 8, E.width (E.px 150) ] [ E.el [ E.width (E.px 50) ] (E.text <| username ++ isOnline isOnline_) ]

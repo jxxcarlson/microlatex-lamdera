@@ -222,16 +222,32 @@ updateFromFrontend sessionId clientId msg model =
         GetSharedDocuments username ->
             Backend.Update.getSharedDocuments model clientId username
 
-        GetUserList ->
+        GetUsersWithOnlineStatus ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (GotUserList (Backend.Update.getUserData model))
+                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
+                ]
+            )
+
+        GetUserList ->
+            let
+                isConnected username =
+                    case Dict.get username model.connectionDict of
+                        Nothing ->
+                            False
+
+                        Just _ ->
+                            True
+            in
+            ( model
+            , Cmd.batch
+                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
                 , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
                 , sendToFrontend clientId
                     (GotShareDocumentList
                         (model.sharedDocumentDict
                             |> Dict.toList
-                            |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
+                            |> List.map (\( username_, data ) -> ( data.author |> Maybe.withDefault "(anon)", isConnected username_, data ))
                         )
                     )
                 ]
@@ -284,8 +300,8 @@ updateFromFrontend sessionId clientId msg model =
         SearchForDocumentsWithAuthorAndKey segment ->
             Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
 
-        GetDocumentById id ->
-            Backend.Update.getDocumentById model clientId id
+        GetDocumentById documentHandling id ->
+            Backend.Update.getDocumentById model clientId documentHandling id
 
         GetPublicDocuments sortMode mUsername ->
             ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )

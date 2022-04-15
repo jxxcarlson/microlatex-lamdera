@@ -1,4 +1,7 @@
-module Parser.Expr exposing (Expr(..))
+module Parser.Expr exposing
+    ( Expr(..)
+    , SExpr(..), simplify
+    )
 
 {-| The syntax tree for the parser is of type Expr. In the examples below, we use `Parser.Expression.parse`;
 in `parse 0 STRING` 0 is the line number at which the text begins. The Meta component
@@ -19,7 +22,7 @@ which it is derived.
     > parse 0 "this is a test"
       [Text ("this is a test") { begin = 0, end = 13, index = 0 }]
 
-    - Variant Verbatim:
+    - Variant Verbatim: =
 
     > parse 0 "$x^2 = y^3$"
       [Verbatim "math" ("x^2 = y^3") { begin = 0, end = 0, index = 0 }]
@@ -39,6 +42,25 @@ type Expr
     = Expr String (List Expr) Meta
     | Text String Meta
     | Verbatim String String Meta
+
+
+type SExpr
+    = SExpr String (List SExpr)
+    | SText String
+    | SVerbatim String String
+
+
+simplify : Expr -> SExpr
+simplify expr =
+    case expr of
+        Expr str exprs _ ->
+            SExpr str (List.map simplify exprs)
+
+        Text str _ ->
+            SText str
+
+        Verbatim a b _ ->
+            SVerbatim a b
 
 
 

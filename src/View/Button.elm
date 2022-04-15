@@ -63,9 +63,10 @@ module View.Button exposing
     , toggleCheatSheet
     , toggleDocumentList
     , toggleEditor
+    , toggleExtrasSidebar
     , toggleLock
     , togglePublic
-    , toggleSidebar
+    , toggleTagsSidebar
     , unlock
     )
 
@@ -79,7 +80,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
 import String.Extra
-import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentHandling, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentHandling, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import Util
 import View.Color as Color
@@ -672,14 +673,24 @@ getPublicTags tagSelection =
     buttonTemplate style GetPublicTags "Public tags"
 
 
-toggleSidebar : SidebarState -> Element FrontendMsg
-toggleSidebar sidebarState =
+toggleExtrasSidebar : SidebarExtrasState -> Element FrontendMsg
+toggleExtrasSidebar sidebarState =
     case sidebarState of
-        SidebarOut ->
-            buttonTemplate [] ToggleSideBar (String.fromChar '⋮')
+        SidebarExtrasOut ->
+            buttonTemplate [] ToggleExtrasSidebar (String.fromChar '⋮')
 
-        SidebarIn ->
-            buttonTemplate [] ToggleSideBar (String.fromChar '⋮')
+        SidebarExtrasIn ->
+            buttonTemplate [] ToggleExtrasSidebar (String.fromChar '⋮')
+
+
+toggleTagsSidebar : Types.SidebarTagsState -> Element FrontendMsg
+toggleTagsSidebar sidebarState =
+    case sidebarState of
+        SidebarTagsOut ->
+            buttonTemplate [] ToggleTagsSidebar "Tags"
+
+        SidebarTagsIn ->
+            buttonTemplate [] ToggleTagsSidebar "Tags"
 
 
 maximizeMyDocs : MaximizedIndex -> Element FrontendMsg
@@ -707,17 +718,17 @@ home =
     buttonTemplate [] Home "Home"
 
 
-iLink id label =
-    buttonTemplate [] (AskForDocumentById id) label
+iLink documentHandling id label =
+    buttonTemplate [] (AskForDocumentById documentHandling id) label
 
 
-getDocument : String -> String -> Bool -> Element FrontendMsg
-getDocument id title highlighted =
+getDocument : DocumentHandling -> String -> String -> Bool -> Element FrontendMsg
+getDocument documentHandling id title highlighted =
     if highlighted then
-        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskForDocumentById id) title
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.darkRed ] (AskForDocumentById documentHandling id) title
 
     else
-        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskForDocumentById id) title
+        buttonTemplate3b [ Font.size 12 ] [ Font.color Color.blue ] (AskForDocumentById documentHandling id) title
 
 
 setDocumentAsCurrent : DocumentHandling -> Maybe Document.Document -> Document.Document -> Element FrontendMsg

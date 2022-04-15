@@ -20,7 +20,6 @@ forklogBlue label width f a =
 
 
 
---
 --forklog_ fg bg label width f a =
 --    let
 --        _ =
@@ -33,19 +32,15 @@ forklog_ fg bg label width f a =
     a
 
 
+coloredLabel fg bg label width =
+    let
+        n =
+            String.length label
 
---
---coloredLabel fg bg label width =
---    let
---        n =
---            String.length label
---
---        padding =
---            String.repeat (width - n) " "
---    in
---    label |> (\x -> " " ++ x ++ padding) |> bg |> fg
---
---
+        padding =
+            String.repeat (width - n) " "
+    in
+    label |> (\x -> " " ++ x ++ padding) |> bg |> fg
 
 
 blue : String -> Int -> String

@@ -35,7 +35,8 @@ module Types exposing
     , SearchTerm(..)
     , SharedDocument
     , SharedDocumentDict
-    , SidebarState(..)
+    , SidebarExtrasState(..)
+    , SidebarTagsState(..)
     , SignupState(..)
     , SortMode(..)
     , TagSelection(..)
@@ -81,9 +82,9 @@ type alias FrontendModel =
     -- ADMIN
     , statusReport : List String
     , inputSpecial : String
-    , userList : List ( User, Int )
+    , userList : List ( String, Bool )
     , connectedUsers : List String
-    , shareDocumentList : List ( String, SharedDocument )
+    , sharedDocumentList : List ( String, Bool, SharedDocument )
 
     -- USER
     , userMessage : Maybe UserMessage
@@ -109,7 +110,8 @@ type alias FrontendModel =
     , pressedKeys : List Keyboard.Key
     , activeDocList : ActiveDocList
     , maximizedIndex : MaximizedIndex
-    , sidebarState : SidebarState
+    , sidebarExtrasState : SidebarExtrasState
+    , sidebarTagsState : SidebarTagsState
     , tagSelection : TagSelection
     , signupState : SignupState
     , popupState : PopupState
@@ -469,7 +471,8 @@ type FrontendMsg
     | ToggleActiveDocList
     | CloseCollectionIndex
     | ToggleIndexSize
-    | ToggleSideBar
+    | ToggleExtrasSidebar
+    | ToggleTagsSidebar
     | ChangePopup PopupState
       -- SHARE
     | DismissUserMessage
@@ -517,7 +520,7 @@ type FrontendMsg
     | NewDocument
     | SetDocumentAsCurrent DocumentHandling Document
     | SetPublic Document Bool
-    | AskForDocumentById String
+    | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId
     | DeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
@@ -545,9 +548,14 @@ type DocumentList
     | SharedDocumentList
 
 
-type SidebarState
-    = SidebarIn
-    | SidebarOut
+type SidebarExtrasState
+    = SidebarExtrasIn
+    | SidebarExtrasOut
+
+
+type SidebarTagsState
+    = SidebarTagsIn
+    | SidebarTagsOut
 
 
 type PrintingState
@@ -570,6 +578,7 @@ type ToBackend
       RunTask
     | GetStatus
     | GetUserList
+    | GetUsersWithOnlineStatus
     | GetSharedDocuments String
     | ClearConnectionDictBE
       -- USER
@@ -598,7 +607,7 @@ type ToBackend
     | SearchForDocumentsWithAuthorAndKey String
     | SearchForDocuments (Maybe String) String
     | GetDocumentByPublicId String
-    | GetDocumentById String
+    | GetDocumentById DocumentHandling String
     | CreateDocument (Maybe User) Document
     | ApplySpecial User String
     | DeleteDocumentBE Document
@@ -622,9 +631,9 @@ type BackendMsg
 type ToFrontend
     = -- ADMIN
       SendBackupData String
-    | GotUserList (List ( User, Int ))
+    | GotUsersWithOnlineStatus (List ( String, Bool ))
     | GotConnectionList (List String)
-    | GotShareDocumentList (List ( String, SharedDocument ))
+    | GotShareDocumentList (List ( String, Bool, SharedDocument ))
       -- USER
     | UserMessageReceived UserMessage
     | UndeliverableMessage UserMessage

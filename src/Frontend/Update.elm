@@ -93,6 +93,10 @@ handleAsStandardReceivedDocument model doc =
         editRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (editRecord.messages |> String.join "; ") MSYellow
+
         currentMasterDocument =
             if isMaster editRecord then
                 Just doc
@@ -107,6 +111,7 @@ handleAsStandardReceivedDocument model doc =
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
         , sourceText = doc.content
+        , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
@@ -272,7 +277,7 @@ inputText_ model str =
         , editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , messages = [ { content = String.join ", " messages, status = MSWhite } ]
+        , messages = [ { content = String.join ", " messages, status = MSYellow } ]
         , debounce = debounce
         , counter = model.counter + 1
       }
@@ -554,6 +559,10 @@ setDocumentAsCurrentAux doc permissions model =
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
+
         currentMasterDocument =
             if isMaster newEditRecord then
                 Just doc
@@ -582,6 +591,7 @@ setDocumentAsCurrentAux doc permissions model =
         , currentUser = newCurrentUser
         , inputReaders = readers
         , inputEditors = editors
+        , messages = errorMessages
       }
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState
@@ -600,6 +610,10 @@ currentDocumentPostProcess doc model =
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
+
         ( readers, editors ) =
             View.Utility.getReadersAndEditors (Just doc)
     in
@@ -614,6 +628,7 @@ currentDocumentPostProcess doc model =
         , counter = model.counter + 1
         , language = doc.language
         , inputReaders = readers
+        , messages = errorMessages
         , inputEditors = editors
     }
 
@@ -873,7 +888,7 @@ handleSignOut model =
         [ Nav.pushUrl model.key "/"
         , cmd
         , sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
-        , sendToBackend (GetDocumentById Config.welcomeDocId)
+        , sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
         , sendToBackend (GetPublicDocuments Types.SortByMostRecent Nothing)
         ]
     )

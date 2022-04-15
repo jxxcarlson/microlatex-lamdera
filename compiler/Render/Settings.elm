@@ -23,6 +23,7 @@ type alias Settings =
     , showTOC : Bool
     , titleSize : Int
     , width : Int
+    , backgroundColor : Element.Color
     }
 
 
@@ -39,6 +40,7 @@ makeSettings id scale width =
     , showTOC = True
     , showErrorMessages = False
     , selectedId = id
+    , backgroundColor = Element.rgb 1 1 1
     }
 
 

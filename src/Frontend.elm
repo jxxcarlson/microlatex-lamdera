@@ -29,7 +29,7 @@ import Render.XMarkdown
 import Share
 import Task
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import User
@@ -77,7 +77,7 @@ init url key =
       , inputSpecial = ""
       , userList = []
       , connectedUsers = []
-      , shareDocumentList = []
+      , sharedDocumentList = []
 
       -- USER
       , userMessage = Nothing
@@ -113,7 +113,8 @@ init url key =
       , pressedKeys = []
       , activeDocList = Both
       , maximizedIndex = MPublicDocs
-      , sidebarState = SidebarIn
+      , sidebarExtrasState = SidebarExtrasIn
+      , sidebarTagsState = SidebarTagsIn
       , tagSelection = TagPublic
       , signupState = HideSignUpForm
       , popupState = NoPopup
@@ -179,12 +180,12 @@ urlAction path =
             String.dropLeft 3 path
     in
     if prefix == "/" then
-        sendToBackend (GetDocumentById Config.welcomeDocId)
+        sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
 
     else
         case prefix of
             "/i/" ->
-                sendToBackend (GetDocumentById segment)
+                sendToBackend (GetDocumentById Types.StandardHandling segment)
 
             "/a/" ->
                 sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
@@ -197,7 +198,7 @@ urlAction path =
 
             _ ->
                 --Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
-                sendToBackend (GetDocumentById Config.welcomeDocId)
+                sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
 
 
 urlIsForGuest : Url -> Bool
@@ -454,7 +455,7 @@ update msg model =
                             ( { model | activeDocList = PrivateDocsList }, Cmd.none )
 
         Home ->
-            ( model, sendToBackend (GetDocumentById Config.welcomeDocId) )
+            ( model, sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId) )
 
         ShowTOCInPhone ->
             ( { model | phoneMode = PMShowDocumentList }, Cmd.none )
@@ -561,22 +562,32 @@ update msg model =
         GetPublicTags ->
             ( { model | tagSelection = TagPublic }, Cmd.none )
 
-        ToggleSideBar ->
+        ToggleExtrasSidebar ->
+            case model.sidebarExtrasState of
+                SidebarExtrasIn ->
+                    ( { model | sidebarExtrasState = SidebarExtrasOut, sidebarTagsState = SidebarTagsIn }
+                    , sendToBackend GetUsersWithOnlineStatus
+                    )
+
+                SidebarExtrasOut ->
+                    ( { model | sidebarExtrasState = SidebarExtrasIn }, Cmd.none )
+
+        ToggleTagsSidebar ->
             let
                 tagSelection =
                     model.tagSelection
             in
-            case model.sidebarState of
-                SidebarIn ->
-                    ( { model | sidebarState = SidebarOut }
+            case model.sidebarTagsState of
+                SidebarTagsIn ->
+                    ( { model | sidebarExtrasState = SidebarExtrasIn, sidebarTagsState = SidebarTagsOut }
                     , Cmd.batch
                         [ sendToBackend GetPublicTagsFromBE
                         , sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
                         ]
                     )
 
-                SidebarOut ->
-                    ( { model | tagSelection = tagSelection, sidebarState = SidebarIn }, Cmd.none )
+                SidebarTagsOut ->
+                    ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Cmd.none )
 
         SetLanguage dismiss lang ->
             Frontend.Update.setLanguage dismiss lang model
@@ -620,8 +631,8 @@ update msg model =
         InputAuthorId str ->
             ( { model | authorId = str }, Cmd.none )
 
-        AskForDocumentById id ->
-            ( model, sendToBackend (GetDocumentById id) )
+        AskForDocumentById documentHandling id ->
+            ( model, sendToBackend (GetDocumentById documentHandling id) )
 
         AskForDocumentByAuthorId ->
             ( model, sendToBackend (SearchForDocumentsWithAuthorAndKey model.authorId) )
@@ -840,9 +851,9 @@ updateFromBackend msg model =
     case msg of
         -- ADMIN
         GotShareDocumentList sharedDocList ->
-            ( { model | shareDocumentList = sharedDocList }, Cmd.none )
+            ( { model | sharedDocumentList = sharedDocList }, Cmd.none )
 
-        GotUserList userData ->
+        GotUsersWithOnlineStatus userData ->
             ( { model | userList = userData }, Cmd.none )
 
         GotConnectionList connectedUsers ->

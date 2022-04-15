@@ -11,7 +11,20 @@ module View.Geometry exposing
     , smallPanelWidth
     )
 
-import Types exposing (SidebarState(..))
+import Types exposing (SidebarExtrasState(..), SidebarTagsState(..))
+
+
+appWidth : SidebarExtrasState -> SidebarTagsState -> Int -> Int
+appWidth sidebarExtrasState sidebarTags ww =
+    case ( sidebarExtrasState, sidebarTags ) of
+        ( SidebarExtrasOut, _ ) ->
+            ramp 700 1400 ww
+
+        ( _, SidebarTagsOut ) ->
+            ramp 700 1400 ww
+
+        ( SidebarExtrasIn, SidebarTagsIn ) ->
+            ramp 700 1400 ww
 
 
 appHeight_ model =
@@ -22,26 +35,14 @@ panelHeight_ model =
     appHeight_ model - 110
 
 
-
--- DIMENSIONS
-
-
-innerGutter =
-    12
+panelWidth_ : SidebarExtrasState -> SidebarTagsState -> Int -> Int
+panelWidth_ sidebarState sidebarTagsState ww =
+    (appWidth sidebarState sidebarTagsState ww - indexWidth ww) // 2 - innerGutter - outerGutter
 
 
-outerGutter =
-    12
-
-
-panelWidth_ : SidebarState -> Int -> Int
-panelWidth_ sidebarState ww =
-    (appWidth SidebarIn ww - indexWidth ww) // 2 - innerGutter - outerGutter
-
-
-panelWidth2_ : SidebarState -> Int -> Int
-panelWidth2_ sidebarState ww =
-    appWidth SidebarIn ww - indexWidth ww - innerGutter
+panelWidth2_ : SidebarExtrasState -> SidebarTagsState -> Int -> Int
+panelWidth2_ sidebarState sidebarTagsState ww =
+    appWidth sidebarState sidebarTagsState ww - indexWidth ww - innerGutter
 
 
 
@@ -65,15 +66,6 @@ sidebarWidth =
     250
 
 
-appWidth sidebarState ww =
-    case sidebarState of
-        SidebarOut ->
-            ramp 700 (1400 + sidebarWidth) ww
-
-        SidebarIn ->
-            ramp 700 1400 ww
-
-
 smallAppWidth ww =
     ramp 700 900 ww
 
@@ -87,3 +79,15 @@ ramp a b x =
 
     else
         x
+
+
+
+-- DIMENSIONS
+
+
+innerGutter =
+    12
+
+
+outerGutter =
+    12

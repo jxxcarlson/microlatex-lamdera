@@ -4,6 +4,7 @@ module Backend.Update exposing
     , createDocument
     , deleteDocument
     , fetchDocumentById
+    , getConnectedUsers
     , getConnectionData
     , getDocumentByAuthorId
     , getDocumentById
@@ -12,6 +13,8 @@ module Backend.Update exposing
     , getSharedDocuments
     , getUserData
     , getUserDocuments
+    , getUsersAndOnlineStatus
+    , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
     , publicTags
     , removeSessionClient
@@ -43,7 +46,9 @@ import Maybe.Extra
 import Message
 import Parser.Language exposing (Language(..))
 import Random
+import Set
 import Share
+import Time
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
@@ -54,6 +59,10 @@ type alias Model =
     BackendModel
 
 
+
+-- TODO
+
+
 getSharedDocuments model clientId username =
     let
         docList =
@@ -61,15 +70,29 @@ getSharedDocuments model clientId username =
                 |> Dict.toList
                 |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
 
+        connectedUsers =
+            getConnectedUsers model
+
+        onlineStatus username_ =
+            case Dict.get username_ model.connectionDict of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+
         docs1 =
             docList
                 |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
+                |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
 
         docs2 =
-            docList |> List.filter (\( _, data ) -> data.author == Just username)
+            docList
+                |> List.filter (\( _, data ) -> data.author == Just username)
+                |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
     in
     ( model
-    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, doc ) -> doc.title)))
+    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, _, doc ) -> doc.title)))
     )
 
 
@@ -133,7 +156,7 @@ getBadDocuments model =
     model.documentDict |> Dict.toList |> List.filter (\( _, doc ) -> doc.title == "")
 
 
-getDocumentById model clientId id =
+getDocumentById model clientId documentHandling id =
     case Dict.get id model.documentDict of
         Nothing ->
             ( model, sendToFrontend clientId (MessageReceived { content = "No document for that docId", status = MSRed }) )
@@ -141,7 +164,7 @@ getDocumentById model clientId id =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
+                [ sendToFrontend clientId (ReceivedDocument documentHandling doc)
 
                 --, sendToFrontend clientId (SetShowEditor False)
                 , sendToFrontend clientId (MessageReceived { content = "Sending doc " ++ id, status = MSGreen })
@@ -347,7 +370,7 @@ removeSessionClient model sessionId clientId =
                 | sharedDocumentDict = Dict.map Share.resetUser model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
-            , Cmd.batch (List.map (\doc -> Share.narrowCast username doc connectionDict) documents)
+            , Cmd.batch <| broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
             )
 
 
@@ -398,6 +421,7 @@ signIn model sessionId clientId username encryptedPassword =
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
+                    , broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict newConnectionDict_))
                     ]
                 )
 
@@ -406,6 +430,37 @@ signIn model sessionId clientId username encryptedPassword =
 
         Nothing ->
             ( model, sendToFrontend clientId (MessageReceived <| { content = "Sorry, password and username don't match", status = MSYellow }) )
+
+
+type alias UserData =
+    { username : String
+    , id : String
+    , realname : String
+    , email : String
+    , created : Time.Posix
+    , modified : Time.Posix
+    , docs : BoundedDeque.BoundedDeque Document.DocumentInfo
+    , preferences : User.Preferences
+    }
+
+
+getUsersAndOnlineStatus : Model -> List ( String, Bool )
+getUsersAndOnlineStatus model =
+    getUsersAndOnlineStatus_ model.authenticationDict model.connectionDict
+
+
+getUsersAndOnlineStatus_ : Authentication.AuthenticationDict -> ConnectionDict -> List ( String, Bool )
+getUsersAndOnlineStatus_ authenticationDict connectionDict =
+    let
+        isConnected username =
+            case Dict.get username connectionDict of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+    in
+    List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
 
 
 searchForDocuments : Model -> ClientId -> Maybe String -> String -> ( Model, Cmd backendMsg )
@@ -656,6 +711,9 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             , modified = model.currentTime
             , docs = BoundedDeque.empty 15
             , preferences = { language = lang, group = Nothing }
+            , chatGroups = []
+            , sharedDocuments = []
+            , sharedDocumentAuthors = Set.empty
             }
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
@@ -723,6 +781,13 @@ getConnectionData model =
     model.connectionDict
         |> Dict.toList
         |> List.map (\( u, data ) -> u ++ ":: " ++ String.fromInt (List.length data) ++ " :: " ++ connectionDataListToString data)
+
+
+{-| Return user names of connected users
+-}
+getConnectedUsers : BackendModel -> List String
+getConnectedUsers model =
+    Dict.keys model.connectionDict
 
 
 truncateMiddle : Int -> Int -> String -> String

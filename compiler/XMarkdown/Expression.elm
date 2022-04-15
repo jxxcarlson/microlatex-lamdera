@@ -339,7 +339,7 @@ handleAt symbols state =
 
         expr : List Expr
         expr =
-            L0.Parser.Expression.parse 0 content
+            L0.Parser.Expression.parse 0 content |> Tuple.first
     in
     { state | committed = expr ++ state.committed, stack = [] }
 
