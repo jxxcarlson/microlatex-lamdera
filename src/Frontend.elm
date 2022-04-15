@@ -967,10 +967,14 @@ updateFromBackend msg model =
             let
                 documents =
                     DocumentTools.sort model.sortMode documents_
+
+                _ =
+                    Debug.log "Received docs: " (List.length documents)
             in
             case List.head documents of
                 Nothing ->
-                    ( model, sendToBackend (FetchDocumentById StandardHandling Config.notFoundDocId) )
+                    -- ( model, sendToBackend (FetchDocumentById StandardHandling Config.notFoundDocId) )
+                    ( model, Cmd.none )
 
                 Just doc ->
                     ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
