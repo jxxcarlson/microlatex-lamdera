@@ -877,6 +877,9 @@ updateFromBackend msg model =
                 StandardHandling ->
                     Frontend.Update.handleAsStandardReceivedDocument model doc
 
+                DelayedHandling ->
+                    Frontend.Update.handleAsReceivedDocumentWithDelay model doc
+
                 HandleAsCheatSheet ->
                     Frontend.Update.handleReceivedDocumentAsCheatsheet model doc
 
@@ -970,7 +973,8 @@ updateFromBackend msg model =
             in
             case List.head documents of
                 Nothing ->
-                    ( model, Util.delay 400 (SetDocumentCurrentViaId Config.notFoundDocId) )
+                    -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
+                    ( model, Cmd.none )
 
                 Just doc ->
                     ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )

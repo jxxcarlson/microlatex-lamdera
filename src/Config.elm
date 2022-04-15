@@ -66,7 +66,12 @@ publicDocumentStartupSearchKey =
 
 
 notFoundDocId =
-    "id-sr565-tf824"
+    case Env.mode of
+        Env.Production ->
+            "id-sr565-tf824"
+
+        Env.Development ->
+            "id-fl180-br848"
 
 
 l0CheetsheetId =

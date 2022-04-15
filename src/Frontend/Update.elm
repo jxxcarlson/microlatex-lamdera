@@ -8,6 +8,7 @@ module Frontend.Update exposing
     , exportToLaTeX
     , exportToMarkdown
     , firstSyncLR
+    , handleAsReceivedDocumentWithDelay
     , handleAsStandardReceivedDocument
     , handleReceivedDocumentAsCheatsheet
     , handleSignIn
@@ -116,6 +117,37 @@ handleAsStandardReceivedDocument model doc =
         , counter = model.counter + 1
       }
     , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    )
+
+
+handleAsReceivedDocumentWithDelay model doc =
+    let
+        editRecord =
+            Compiler.DifferentialParser.init doc.language doc.content
+
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (editRecord.messages |> String.join "; ") MSYellow
+
+        currentMasterDocument =
+            if isMaster editRecord then
+                Just doc
+
+            else
+                model.currentMasterDocument
+    in
+    ( { model
+        | editRecord = editRecord
+        , title = Compiler.ASTTools.title editRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
+        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , currentDocument = Just doc
+        , sourceText = doc.content
+        , messages = errorMessages
+        , currentMasterDocument = currentMasterDocument
+        , counter = model.counter + 1
+      }
+    , Cmd.batch [ Util.delay 200 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
     )
 
 

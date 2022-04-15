@@ -658,6 +658,7 @@ type ToFrontend
 
 type DocumentHandling
     = StandardHandling
+    | DelayedHandling
     | HandleAsCheatSheet
 
 
