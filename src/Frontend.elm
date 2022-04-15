@@ -970,7 +970,7 @@ updateFromBackend msg model =
             in
             case List.head documents of
                 Nothing ->
-                    ( model, Util.delay 100 (SetDocumentCurrentViaId Config.notFoundDocId) )
+                    ( model, Util.delay 200 (SetDocumentCurrentViaId Config.notFoundDocId) )
 
                 Just doc ->
                     ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
