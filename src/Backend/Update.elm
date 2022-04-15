@@ -486,7 +486,7 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model
 
         author :: firstKey :: rest ->
-            getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member firstKey doc.tags)
+            getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member ("id:" ++ firstKey) doc.tags)
 
 
 
