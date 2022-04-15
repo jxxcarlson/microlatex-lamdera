@@ -411,6 +411,9 @@ signIn model sessionId clientId username encryptedPassword =
 
                             Just groupName ->
                                 Dict.get groupName model.chatGroupDict
+
+                    me =
+                        ( userData.user.username, True )
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
@@ -419,7 +422,7 @@ signIn model sessionId clientId username encryptedPassword =
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
-                    , broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus model))
+                    , broadcast (GotUsersWithOnlineStatus (me :: getUsersAndOnlineStatus model))
                     ]
                 )
 
