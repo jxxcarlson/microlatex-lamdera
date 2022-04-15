@@ -46,6 +46,7 @@ import Maybe.Extra
 import Message
 import Parser.Language exposing (Language(..))
 import Random
+import Set
 import Share
 import Time
 import Token
@@ -710,6 +711,9 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             , modified = model.currentTime
             , docs = BoundedDeque.empty 15
             , preferences = { language = lang, group = Nothing }
+            , chatGroups = []
+            , sharedDocuments = []
+            , sharedDocumentAuthors = Set.empty
             }
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
