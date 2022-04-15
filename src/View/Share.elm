@@ -150,7 +150,7 @@ style2 =
     , E.height (E.px 700)
     , E.padding 25
     , Font.size 14
-    , Background.color Color.paleGreen
+    , Background.color Color.paleBlue
     ]
 
 
@@ -162,7 +162,7 @@ style =
     , E.height (E.px 700)
     , E.padding 25
     , Font.size 14
-    , Background.color Color.paleViolet
+    , Background.color Color.paleBlue
     ]
 
 
