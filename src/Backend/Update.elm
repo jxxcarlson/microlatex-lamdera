@@ -14,6 +14,7 @@ module Backend.Update exposing
     , getUserData
     , getUserDocuments
     , getUsersAndOnlineStatus
+    , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
     , publicTags
     , removeSessionClient
@@ -368,7 +369,7 @@ removeSessionClient model sessionId clientId =
                 | sharedDocumentDict = Dict.map Share.resetUser model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
-            , Cmd.batch (List.map (\doc -> Share.narrowCast username doc connectionDict) documents)
+            , Cmd.batch <| broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
             )
 
 
