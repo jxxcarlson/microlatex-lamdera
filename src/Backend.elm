@@ -223,6 +223,10 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.getSharedDocuments model clientId username
 
         GetUserList ->
+            let
+                connectedUsers =
+                    Backend.Update.getConnectedUsers model
+            in
             ( model
             , Cmd.batch
                 [ sendToFrontend clientId (GotUserList (Backend.Update.getUserData model))
@@ -232,6 +236,7 @@ updateFromFrontend sessionId clientId msg model =
                         (model.sharedDocumentDict
                             |> Dict.toList
                             |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
+                            |> List.map (\( username_, data ) -> ( username_, List.member username_ connectedUsers, data ))
                         )
                     )
                 ]

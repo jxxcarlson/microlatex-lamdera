@@ -83,7 +83,7 @@ type alias FrontendModel =
     , inputSpecial : String
     , userList : List ( User, Int )
     , connectedUsers : List String
-    , shareDocumentList : List ( String, SharedDocument )
+    , sharedDocumentList : List ( String, Bool, SharedDocument )
 
     -- USER
     , userMessage : Maybe UserMessage
@@ -624,7 +624,7 @@ type ToFrontend
       SendBackupData String
     | GotUserList (List ( User, Int ))
     | GotConnectionList (List String)
-    | GotShareDocumentList (List ( String, SharedDocument ))
+    | GotShareDocumentList (List ( String, Bool, SharedDocument ))
       -- USER
     | UserMessageReceived UserMessage
     | UndeliverableMessage UserMessage

@@ -4,6 +4,7 @@ module Backend.Update exposing
     , createDocument
     , deleteDocument
     , fetchDocumentById
+    , getConnectedUsers
     , getConnectionData
     , getDocumentByAuthorId
     , getDocumentById
@@ -54,6 +55,10 @@ type alias Model =
     BackendModel
 
 
+
+-- TODO
+
+
 getSharedDocuments model clientId username =
     let
         docList =
@@ -61,15 +66,21 @@ getSharedDocuments model clientId username =
                 |> Dict.toList
                 |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
 
+        connectedUsers =
+            getConnectedUsers model
+
         docs1 =
             docList
                 |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
+                |> List.map (\( username_, data ) -> ( username_, List.member username connectedUsers, data ))
 
         docs2 =
-            docList |> List.filter (\( _, data ) -> data.author == Just username)
+            docList
+                |> List.filter (\( _, data ) -> data.author == Just username)
+                |> List.map (\( username_, data ) -> ( username_, List.member username connectedUsers, data ))
     in
     ( model
-    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, doc ) -> doc.title)))
+    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, _, doc ) -> doc.title)))
     )
 
 
@@ -723,6 +734,13 @@ getConnectionData model =
     model.connectionDict
         |> Dict.toList
         |> List.map (\( u, data ) -> u ++ ":: " ++ String.fromInt (List.length data) ++ " :: " ++ connectionDataListToString data)
+
+
+{-| Return user names of connected users
+-}
+getConnectedUsers : BackendModel -> List String
+getConnectedUsers model =
+    Dict.keys model.connectionDict
 
 
 truncateMiddle : Int -> Int -> String -> String

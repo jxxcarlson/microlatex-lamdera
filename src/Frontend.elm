@@ -77,7 +77,7 @@ init url key =
       , inputSpecial = ""
       , userList = []
       , connectedUsers = []
-      , shareDocumentList = []
+      , sharedDocumentList = []
 
       -- USER
       , userMessage = Nothing
@@ -840,7 +840,7 @@ updateFromBackend msg model =
     case msg of
         -- ADMIN
         GotShareDocumentList sharedDocList ->
-            ( { model | shareDocumentList = sharedDocList }, Cmd.none )
+            ( { model | sharedDocumentList = sharedDocList }, Cmd.none )
 
         GotUserList userData ->
             ( { model | userList = userData }, Cmd.none )

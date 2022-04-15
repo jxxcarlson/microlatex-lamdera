@@ -53,7 +53,7 @@ adminBody model =
         [ E.row [ E.spacing 36 ]
             [ viewUserList model.userList
             , viewConnectedUsers model.connectedUsers
-            , viewSharedDocuments model.shareDocumentList
+            , viewSharedDocuments model.sharedDocumentList
             ]
         ]
 
@@ -72,14 +72,23 @@ listStyle =
     [ E.spacing 12, E.alignTop, E.height (E.px 700), E.scrollbarY ]
 
 
-viewSharedDocuments : List ( String, Types.SharedDocument ) -> Element FrontendMsg
-viewSharedDocuments shareDocuments =
-    E.column [ E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument shareDocuments)
+viewSharedDocuments : List ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocuments sharedDocuments =
+    E.column [ E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument sharedDocuments)
 
 
-viewSharedDocument : ( String, Types.SharedDocument ) -> Element FrontendMsg
-viewSharedDocument ( author, data ) =
-    E.row [ E.spacing 12 ] (List.map E.text [ author, data.title, data.share |> Document.shareToString, data.currentEditor |> Maybe.withDefault "No one" |> (\s -> "currentEditor: " ++ s) ])
+viewSharedDocument : ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
+viewSharedDocument ( author, online, data ) =
+    E.row [ E.spacing 12 ] (List.map E.text [ author ++ isOnline online, data.title, data.share |> Document.shareToString, data.currentEditor |> Maybe.withDefault "No one" |> (\s -> "currentEditor: " ++ s) ])
+
+
+isOnline : Bool -> String
+isOnline isOnline_ =
+    if isOnline_ then
+        " (online)"
+
+    else
+        ""
 
 
 adminFooter model =
