@@ -69,15 +69,23 @@ getSharedDocuments model clientId username =
         connectedUsers =
             getConnectedUsers model
 
+        onlineStatus username_ =
+            case Dict.get username_ model.connectionDict of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+
         docs1 =
             docList
                 |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
-                |> List.map (\( username_, data ) -> ( username_, List.member username connectedUsers, data ))
+                |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
 
         docs2 =
             docList
                 |> List.filter (\( _, data ) -> data.author == Just username)
-                |> List.map (\( username_, data ) -> ( username_, List.member username connectedUsers, data ))
+                |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
     in
     ( model
     , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, _, doc ) -> doc.title)))
