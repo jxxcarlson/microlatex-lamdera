@@ -11,7 +11,7 @@ module View.Geometry exposing
     , smallPanelWidth
     )
 
-import Types exposing (SidebarState(..))
+import Types exposing (SidebarExtrasState(..))
 
 
 appHeight_ model =
@@ -34,14 +34,14 @@ outerGutter =
     12
 
 
-panelWidth_ : SidebarState -> Int -> Int
+panelWidth_ : SidebarExtrasState -> Int -> Int
 panelWidth_ sidebarState ww =
-    (appWidth SidebarIn ww - indexWidth ww) // 2 - innerGutter - outerGutter
+    (appWidth SidebarExtrasIn ww - indexWidth ww) // 2 - innerGutter - outerGutter
 
 
-panelWidth2_ : SidebarState -> Int -> Int
+panelWidth2_ : SidebarExtrasState -> Int -> Int
 panelWidth2_ sidebarState ww =
-    appWidth SidebarIn ww - indexWidth ww - innerGutter
+    appWidth SidebarExtrasIn ww - indexWidth ww - innerGutter
 
 
 
@@ -67,10 +67,10 @@ sidebarWidth =
 
 appWidth sidebarState ww =
     case sidebarState of
-        SidebarOut ->
+        SidebarExtrasOut ->
             ramp 700 (1400 + sidebarWidth) ww
 
-        SidebarIn ->
+        SidebarExtrasIn ->
             ramp 700 1400 ww
 
 

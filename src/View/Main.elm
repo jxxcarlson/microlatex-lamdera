@@ -64,17 +64,18 @@ viewEditorAndRenderedText model =
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
             , E.inFront (E.el [ E.moveDown 93, E.moveRight 1070 ] (CheatSheet.view model))
             , E.centerX
-            , E.width (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+            , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.windowWidth)
             , E.height (E.px (Geometry.appHeight_ model))
             ]
             [ headerRow model
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
-                , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarState model.windowWidth)
-                , Index.view model (Geometry.appWidth model.sidebarState model.windowWidth) (deltaH + 10)
-                , Sidebar.view model
+                , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarExtrasState model.windowWidth)
+                , Index.view model (Geometry.appWidth model.sidebarExtrasState model.windowWidth) (deltaH + 10)
+                , Sidebar.viewExtras model
+                , Sidebar.viewTags model
                 ]
-            , Footer.view model (Geometry.appWidth model.sidebarState (model.windowWidth - 80))
+            , Footer.view model (Geometry.appWidth model.sidebarExtrasState (model.windowWidth - 80))
             ]
         ]
 
@@ -129,7 +130,7 @@ newDocumentPopup model =
 
 headerRow model =
     E.column [ E.spacing 8, Background.color Color.darkGray, E.padding 12, E.width E.fill ]
-        [ TopHeader.view model (E.px <| Geometry.appWidth model.sidebarState model.windowWidth)
+        [ TopHeader.view model (E.px <| Geometry.appWidth model.sidebarExtrasState model.windowWidth)
         , Header.view model (E.px <| Geometry.smallHeaderWidth model.windowWidth)
         ]
 
@@ -155,7 +156,8 @@ viewRenderedTextOnly model =
             , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
                 , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
-                , Sidebar.view model
+                , Sidebar.viewTags model
+                , Sidebar.viewExtras model
                 ]
             , Footer.view model (Geometry.smallHeaderWidth model.windowWidth)
             ]

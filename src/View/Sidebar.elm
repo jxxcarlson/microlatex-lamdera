@@ -1,11 +1,11 @@
-module View.Sidebar exposing (view)
+module View.Sidebar exposing (viewExtras, viewTags)
 
 import Dict exposing (Dict)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import String.Extra
-import Types exposing (FrontendModel, FrontendMsg, SidebarState(..))
+import Types exposing (FrontendModel, FrontendMsg, SidebarExtrasState(..), SidebarTagsState(..))
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry
@@ -13,13 +13,35 @@ import View.Input
 import View.Utility
 
 
-view : FrontendModel -> Element FrontendMsg
-view model =
-    case model.sidebarState of
-        SidebarIn ->
+viewExtras : FrontendModel -> Element FrontendMsg
+viewExtras model =
+    case model.sidebarExtrasState of
+        SidebarExtrasIn ->
             E.none
 
-        SidebarOut ->
+        SidebarExtrasOut ->
+            E.column
+                [ E.width (E.px Geometry.sidebarWidth)
+                , E.spacing 4
+                , E.height (E.px (Geometry.appHeight_ model - 110))
+                , E.paddingXY 8 0
+                , Background.color Color.lightGray
+                ]
+                [ E.text "Extras"
+                ]
+
+
+viewTags : FrontendModel -> Element FrontendMsg
+viewTags model =
+    let
+        _ =
+            Debug.log "sidebarTagsState" model.sidebarTagsState
+    in
+    case model.sidebarTagsState of
+        SidebarTagsIn ->
+            E.none
+
+        SidebarTagsOut ->
             E.column
                 [ E.width (E.px Geometry.sidebarWidth)
                 , E.spacing 4

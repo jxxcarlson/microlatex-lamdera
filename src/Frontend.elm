@@ -29,7 +29,7 @@ import Render.XMarkdown
 import Share
 import Task
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import User
@@ -113,7 +113,8 @@ init url key =
       , pressedKeys = []
       , activeDocList = Both
       , maximizedIndex = MPublicDocs
-      , sidebarState = SidebarIn
+      , sidebarExtrasState = SidebarExtrasIn
+      , sidebarTagsState = SidebarTagsIn
       , tagSelection = TagPublic
       , signupState = HideSignUpForm
       , popupState = NoPopup
@@ -561,22 +562,32 @@ update msg model =
         GetPublicTags ->
             ( { model | tagSelection = TagPublic }, Cmd.none )
 
-        ToggleSideBar ->
+        ToggleExtrasSidebar ->
+            case model.sidebarExtrasState of
+                SidebarExtrasIn ->
+                    ( { model | sidebarExtrasState = SidebarExtrasOut }
+                    , Cmd.none
+                    )
+
+                SidebarExtrasOut ->
+                    ( { model | sidebarExtrasState = SidebarExtrasIn }, Cmd.none )
+
+        ToggleTagsSidebar ->
             let
                 tagSelection =
                     model.tagSelection
             in
-            case model.sidebarState of
-                SidebarIn ->
-                    ( { model | sidebarState = SidebarOut }
+            case model.sidebarTagsState of
+                SidebarTagsIn ->
+                    ( { model | messages = Message.make "Tags out" MSYellow, sidebarTagsState = SidebarTagsOut }
                     , Cmd.batch
                         [ sendToBackend GetPublicTagsFromBE
                         , sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
                         ]
                     )
 
-                SidebarOut ->
-                    ( { model | tagSelection = tagSelection, sidebarState = SidebarIn }, Cmd.none )
+                SidebarTagsOut ->
+                    ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Cmd.none )
 
         SetLanguage dismiss lang ->
             Frontend.Update.setLanguage dismiss lang model

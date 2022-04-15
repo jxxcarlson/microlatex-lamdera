@@ -12,6 +12,16 @@ import View.Utility
 view : FrontendModel -> b -> Element FrontendMsg
 view model _ =
     E.row [ E.spacing 12, E.width E.fill ]
+        [ documentControls model
+        , sharingControls model
+        , E.el [ E.alignLeft ] Button.toggleCheatSheet
+        , E.el [ E.alignRight ] (Button.toggleTagsSidebar model.sidebarTagsState)
+        , View.Utility.hideIf (model.currentUser == Nothing) Button.toggleChat
+        ]
+
+
+documentControls model =
+    E.row [ E.spacing 6 ]
         [ View.Utility.hideIf (model.currentUser == Nothing) (Button.languageMenu model.popupState model.language)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor Button.closeEditor)
         , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.hideIf model.showEditor Button.openEditor)
@@ -19,16 +29,13 @@ view model _ =
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.deleteDocument model)
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
-        , sharingControls model
-        , E.el [ E.alignLeft ] Button.toggleCheatSheet
-        , E.el [ E.alignRight ] (wordCount model)
+        , View.Utility.showIf model.showEditor (E.el [ E.alignRight ] (wordCount model))
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
-        , View.Utility.hideIf (model.currentUser == Nothing) Button.toggleChat
         ]
 
 
 sharingControls model =
-    E.row [ E.spacing 8, E.paddingXY 18 0 ]
+    E.row [ E.spacing 6, E.paddingXY 18 0 ]
         [ showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) Button.share
         , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
         , View.Utility.currentDocumentEditor (Maybe.map .username model.currentUser) model.currentDocument

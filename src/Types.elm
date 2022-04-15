@@ -35,7 +35,8 @@ module Types exposing
     , SearchTerm(..)
     , SharedDocument
     , SharedDocumentDict
-    , SidebarState(..)
+    , SidebarExtrasState(..)
+    , SidebarTagsState(..)
     , SignupState(..)
     , SortMode(..)
     , TagSelection(..)
@@ -109,7 +110,8 @@ type alias FrontendModel =
     , pressedKeys : List Keyboard.Key
     , activeDocList : ActiveDocList
     , maximizedIndex : MaximizedIndex
-    , sidebarState : SidebarState
+    , sidebarExtrasState : SidebarExtrasState
+    , sidebarTagsState : SidebarTagsState
     , tagSelection : TagSelection
     , signupState : SignupState
     , popupState : PopupState
@@ -469,7 +471,8 @@ type FrontendMsg
     | ToggleActiveDocList
     | CloseCollectionIndex
     | ToggleIndexSize
-    | ToggleSideBar
+    | ToggleExtrasSidebar
+    | ToggleTagsSidebar
     | ChangePopup PopupState
       -- SHARE
     | DismissUserMessage
@@ -545,9 +548,14 @@ type DocumentList
     | SharedDocumentList
 
 
-type SidebarState
-    = SidebarIn
-    | SidebarOut
+type SidebarExtrasState
+    = SidebarExtrasIn
+    | SidebarExtrasOut
+
+
+type SidebarTagsState
+    = SidebarTagsIn
+    | SidebarTagsOut
 
 
 type PrintingState
