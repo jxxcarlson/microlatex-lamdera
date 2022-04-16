@@ -76,10 +76,6 @@ backup zone maybeDocument =
             E.none
 
         Just doc ->
-            let
-                _ =
-                    Debug.log "HANDLING" doc.handling
-            in
             case doc.handling of
                 Document.DHStandard ->
                     Button.makeBackup
