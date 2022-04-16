@@ -16,6 +16,7 @@ module Backend.Update exposing
     , getUsersAndOnlineStatus
     , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
+    , insertDocument
     , publicTags
     , removeSessionClient
     , removeSessionFromDict
@@ -327,6 +328,34 @@ createDocument model clientId maybeCurrentUser doc_ =
             ]
 
 
+insertDocument model clientId user doc_ =
+    let
+        doc =
+            { doc_ | created = model.currentTime, modified = model.currentTime }
+
+        documentDict =
+            Dict.insert doc.id doc model.documentDict
+
+        authorIdDict =
+            Dict.insert (doc.id ++ "-bak") doc.id model.authorIdDict
+
+        usersDocumentsDict =
+            let
+                oldIdList =
+                    Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
+            in
+            Dict.insert user.id ((doc.id ++ "-bak") :: oldIdList) model.usersDocumentsDict
+    in
+    ( { model
+        | documentDict = documentDict
+        , authorIdDict = authorIdDict
+
+        --, usersDocumentsDict = usersDocumentsDict
+      }
+    , sendToFrontend clientId (MessageReceived { content = "Backup made for " ++ doc.title, status = MSYellow })
+    )
+
+
 getConnectedUser : ClientId -> ConnectionDict -> Maybe Types.Username
 getConnectedUser clientId dict =
     let
@@ -486,7 +515,7 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model
 
         author :: firstKey :: rest ->
-            getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member firstKey doc.tags)
+            getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member ("id:" ++ firstKey) doc.tags)
 
 
 

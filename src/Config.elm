@@ -14,6 +14,7 @@ module Config exposing
     , masterDocLoadedPageId
     , maxDocSearchLimit
     , microLaTeXCheetsheetId
+    , notFoundDocId
     , pdfServer
     , plainTextCheetsheetId
     , publicDocumentStartupSearchKey
@@ -62,6 +63,15 @@ maxDocSearchLimit =
 
 publicDocumentStartupSearchKey =
     "system:startup"
+
+
+notFoundDocId =
+    case Env.mode of
+        Env.Production ->
+            "id-sr565-tf824"
+
+        Env.Development ->
+            "id-fl180-br848"
 
 
 l0CheetsheetId =

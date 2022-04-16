@@ -8,7 +8,7 @@ import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Helpers exposing (Step(..), loop)
-import Render.Settings exposing (Settings)
+import Render.Settings exposing (Settings, defaultSettings)
 import Render.Utility as Utility
 import Tree
 
@@ -155,17 +155,17 @@ nextState ((ExpressionBlock { name }) as block) state =
 
 
 exportBlock : Settings -> ExpressionBlock -> String
-exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
+exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as block) =
     case blockType of
         Paragraph ->
             case content of
                 Left str ->
-                    mapChars str
+                    mapChars2 str
 
                 Right exprs_ ->
                     exportExprList settings exprs_
 
-        OrdinaryBlock args ->
+        OrdinaryBlock args_ ->
             case content of
                 Left _ ->
                     ""
@@ -186,24 +186,27 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                             else
                                 environment name_ (exportExprList settings exprs_)
 
-        VerbatimBlock args ->
+        VerbatimBlock args_ ->
             case content of
                 Left str ->
-                    case List.head args of
+                    case name of
                         Just "math" ->
                             -- TODO: there should be a trailing "$$"
-                            [ "$$", str ] |> String.join "\n"
+                            [ "$$", str, "$$" ] |> String.join "\n"
 
                         Just "equation" ->
                             -- TODO: there should be a trailing "$$"
                             -- TODO: equation numbers and label
-                            [ "\\begin{equation}", str ] |> String.join "\n"
+                            [ "\\begin{equation}", str, "\\end{equation}" ] |> String.join "\n"
 
                         Just "aligned" ->
                             -- TODO: equation numbers and label
                             [ "\\begin{align}", str, "\\end{align}" ] |> String.join "\n"
 
                         Just "code" ->
+                            str |> fixChars |> (\s -> "\\begin{verbatim}\n" ++ s ++ "\n\\end{verbatim}")
+
+                        Just "mathmacros" ->
                             str
 
                         _ ->
@@ -213,22 +216,41 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                     "???(13)"
 
 
+fixChars str =
+    str |> String.replace "{" "\\{" |> String.replace "}" "\\}"
+
+
 renderDefs settings exprs =
     "%% Macro definitions from Markup text:\n"
         ++ exportExprList settings exprs
 
 
-mapChars : String -> String
-mapChars str =
-    String.replace "_" "\\_" str
+mapChars1 : String -> String
+mapChars1 str =
+    str
+        |> String.replace "\\term_" "\\termx"
+
+
+mapChars2 : String -> String
+mapChars2 str =
+    str
+        |> String.replace "_" "\\_"
 
 
 
--- DICIONARIES
+-- BEGIN DICTIONARIES
 
 
-verbatimExprDict =
-    Dict.empty
+functionDict : Dict String String
+functionDict =
+    Dict.fromList
+        [ ( "italic", "textit" )
+        , ( "i", "textit" )
+        , ( "bold", "textbf" )
+        , ( "b", "textbf" )
+        , ( "image", "imagecenter" )
+        , ( "contents", "tableofcontents" )
+        ]
 
 
 macroDict : Dict String (Settings -> List Expr -> String)
@@ -236,12 +258,53 @@ macroDict =
     Dict.fromList
         [ ( "link", link )
         , ( "ilink", ilink )
+        , ( "index_", blindIndex )
+        , ( "code", code )
         ]
+
+
+blockDict : Dict String (Settings -> List String -> String -> String)
+blockDict =
+    Dict.fromList
+        [ ( "title", \_ _ _ -> "" )
+        , ( "subtitle", \_ _ _ -> "" )
+        , ( "author", \_ _ _ -> "" )
+        , ( "date", \_ _ _ -> "" )
+        , ( "contents", \_ _ _ -> "" )
+        , ( "section", \_ args body -> section args body )
+        , ( "item", \_ _ body -> macro1 "item" body )
+        , ( "numbered", \_ _ body -> macro1 "item" body )
+        , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
+        , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
+        , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
+        , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
+        , ( "mathmacros", \_ args body -> body ++ "\nHa ha ha!" )
+        ]
+
+
+verbatimExprDict =
+    Dict.fromList
+        [ ( "code", code )
+        ]
+
+
+
+-- END DICTIONARIES
 
 
 getArgs : List Expr -> List String
 getArgs =
     ASTTools.exprListToStringList >> List.map String.words >> List.concat >> List.filter (\x -> x /= "")
+
+
+getOneArg : List Expr -> String
+getOneArg exprs =
+    case List.head (getArgs exprs) of
+        Nothing ->
+            ""
+
+        Just str ->
+            str
 
 
 getTwoArgs : List Expr -> { first : String, second : String }
@@ -262,6 +325,11 @@ getTwoArgs exprs =
     { first = first, second = second }
 
 
+code : Settings -> List Expr -> String
+code _ exprs =
+    getOneArg exprs |> fixChars
+
+
 link : Settings -> List Expr -> String
 link s exprs =
     let
@@ -280,39 +348,19 @@ ilink s exprs =
     [ "\\href{", "https://l0-lab-demo.lamdera.app/i/", args.second, "}{", args.first, "}" ] |> String.join ""
 
 
-functionDict : Dict String String
-functionDict =
-    Dict.fromList
-        [ ( "italic", "textit" )
-        , ( "i", "textit" )
-        , ( "bold", "textbf" )
-        , ( "b", "textbf" )
-        , ( "image", "imagecenter" )
-        , ( "contents", "tableofcontents" )
-        ]
-
-
-blockDict : Dict String (Settings -> List String -> String -> String)
-blockDict =
-    Dict.fromList
-        [ ( "title", \_ _ _ -> "" )
-        , ( "subtitle", \_ _ _ -> "" )
-        , ( "author", \_ _ _ -> "" )
-        , ( "date", \_ _ _ -> "" )
-        , ( "contents", \_ _ _ -> "" )
-        , ( "section", \_ args body -> section args body )
-        , ( "item", \_ _ body -> macro1 "item" body )
-        , ( "numbered", \_ _ body -> macro1 "item" body )
-        , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
-        , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
-        , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
-        , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
-        ]
+blindIndex : Settings -> List Expr -> String
+blindIndex s exprs =
+    let
+        args =
+            getTwoArgs exprs
+    in
+    -- TODO
+    [] |> String.join ""
 
 
 section : List String -> String -> String
 section args body =
-    case Utility.getArg "4" 1 args of
+    case Utility.getArg "4" 0 args of
         "1" ->
             macro1 "section" body
 
@@ -340,15 +388,15 @@ macro1 name arg =
     else
         case Dict.get name functionDict of
             Nothing ->
-                "\\" ++ name ++ "{" ++ mapChars (String.trimLeft arg) ++ "}"
+                "\\" ++ name ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
             Just realName ->
-                "\\" ++ realName ++ "{" ++ mapChars (String.trimLeft arg) ++ "}"
+                "\\" ++ realName ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
 
 exportExprList : Settings -> List Expr -> String
 exportExprList settings exprs =
-    List.map (exportExpr settings) exprs |> String.join ""
+    List.map (exportExpr settings) exprs |> String.join "" |> mapChars1
 
 
 exportExpr : Settings -> Expr -> String
@@ -372,7 +420,7 @@ exportExpr settings expr =
                         macro1 name (List.map (exportExpr settings) exps_ |> String.join " ")
 
         Text str _ ->
-            mapChars str
+            mapChars2 str
 
         Verbatim name body _ ->
             renderVerbatim name body
@@ -384,8 +432,8 @@ renderVerbatim name body =
         Nothing ->
             macro1 name body
 
-        Just macroName ->
-            macro1 macroName body
+        Just macro ->
+            body |> fixChars
 
 
 
@@ -492,6 +540,8 @@ preamble title author date =
 \\newtheorem{exercises}{Exercises}
 \\newcommand{\\bs}[1]{$\\backslash$#1}
 \\newcommand{\\texarg}[1]{\\{#1\\}}
+
+\\newcommand{\\termx}[1]{}
 
 %% Environments
 \\renewenvironment{quotation}

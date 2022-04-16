@@ -29,6 +29,7 @@ module View.Button exposing
     , languageMenu
     , linkTemplate
     , lock
+    , makeBackup
     , makeCurrentGroupPreferred
     , maximizeMyDocs
     , maximizePublicDocs
@@ -313,6 +314,10 @@ cancelDeleteDocument model =
 
         CanDelete ->
             buttonTemplate [ Background.color (E.rgb 0 0 0.8) ] (SetDeleteDocumentState WaitingForDeleteAction) "Cancel"
+
+
+makeBackup =
+    buttonTemplate [] MakeBackup "Back up"
 
 
 syncLR =

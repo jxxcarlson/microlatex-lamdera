@@ -1,4 +1,4 @@
-module DateTimeUtility exposing (toString)
+module DateTimeUtility exposing (toString, toStringWithYear)
 
 import Time exposing (Month(..), toDay, toHour, toMonth, toYear, utc)
 
@@ -10,6 +10,19 @@ toString zone time =
         ++ (String.fromInt (Time.toDay zone time) |> String.padLeft 2 '0')
         --++ "/"
         --++ String.fromInt (Time.toYear zone time)
+        ++ ", "
+        ++ (String.fromInt (toHour zone time) |> String.padLeft 2 '0')
+        ++ ":"
+        ++ (String.fromInt (Time.toMinute zone time) |> String.padLeft 2 '0')
+
+
+toStringWithYear : Time.Zone -> Time.Posix -> String
+toStringWithYear zone time =
+    monthString (Time.toMonth zone time)
+        ++ "/"
+        ++ (String.fromInt (Time.toDay zone time) |> String.padLeft 2 '0')
+        ++ "/"
+        ++ String.fromInt (Time.toYear zone time)
         ++ ", "
         ++ (String.fromInt (toHour zone time) |> String.padLeft 2 '0')
         ++ ":"

@@ -1,5 +1,6 @@
 module Document exposing
     ( Document
+    , DocumentHandling(..)
     , DocumentId
     , DocumentInfo
     , Share(..)
@@ -8,6 +9,7 @@ module Document exposing
     , defaultSettings
     , documentFromListViaId
     , empty
+    , makeBackup
     , setTags
     , shareToString
     , testDoc
@@ -34,6 +36,7 @@ type alias Document =
     , currentEditor : Maybe String -- the username of the person currently editing the document
     , language : Language
     , share : Share
+    , handling : DocumentHandling
     , tags : List String
     }
 
@@ -50,6 +53,12 @@ type alias Document =
 type Share
     = ShareWith { readers : List Username, editors : List Username }
     | NotShared
+
+
+type DocumentHandling
+    = DHStandard
+    | Backup DocumentId
+    | Version DocumentId Int
 
 
 type alias DocumentId =
@@ -181,6 +190,25 @@ empty =
     , language = MicroLaTeXLang
     , share = NotShared
     , tags = []
+    , handling = DHStandard
+    }
+
+
+makeBackup : Document -> Document
+makeBackup doc =
+    { id = doc.id ++ "-backup"
+    , publicId = doc.publicId
+    , created = doc.created
+    , modified = doc.modified
+    , content = String.replace doc.title (doc.title ++ " (BAK)") doc.content
+    , title = doc.title ++ " (BAK)"
+    , public = doc.public
+    , author = doc.author
+    , currentEditor = Nothing
+    , language = doc.language
+    , share = NotShared
+    , handling = Backup doc.id
+    , tags = doc.tags
     }
 
 

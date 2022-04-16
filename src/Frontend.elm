@@ -357,7 +357,7 @@ update msg model =
             Frontend.Update.handleSignIn model
 
         SignOut ->
-            Frontend.Update.handleSignOut model
+            Frontend.Update.signOut model
 
         -- ADMIN
         ClearConnectionDict ->
@@ -537,6 +537,40 @@ update msg model =
             Frontend.Update.unlockCurrentDocument model
 
         -- DOCUMENT
+        ChangeLanguage ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        newDocument =
+                            { doc | language = model.language }
+                    in
+                    ( model
+                    , sendToBackend (SaveDocument newDocument)
+                    )
+                        |> (\( m, c ) -> ( Frontend.Update.currentDocumentPostProcess newDocument m, c ))
+
+        MakeBackup ->
+            case ( model.currentUser, model.currentDocument ) of
+                ( Nothing, _ ) ->
+                    ( model, Cmd.none )
+
+                ( _, Nothing ) ->
+                    ( model, Cmd.none )
+
+                ( Just user, Just doc ) ->
+                    if Just user.username == doc.author then
+                        let
+                            newDocument =
+                                Document.makeBackup doc
+                        in
+                        ( model, sendToBackend (InsertDocument user newDocument) )
+
+                    else
+                        ( model, Cmd.none )
+
         SetDocumentCurrent document ->
             Frontend.Update.setDocumentAsCurrent model document HandleAsCheatSheet
 
@@ -758,13 +792,17 @@ updateDoc model str =
         Just doc ->
             -- if Share.canEdit model.currentUser (Just doc) then
             -- if View.Utility.canSaveStrict model.currentUser doc then
-            if Share.canEdit model.currentUser (Just doc) then
+            if Share.canEdit model.currentUser (Just doc) && doc.handling == Document.DHStandard then
                 updateDoc_ model doc str
 
             else
                 let
                     m =
-                        "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+                        if doc.handling == Document.DHStandard then
+                            "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+
+                        else
+                            "Oops, this is a backup or version document -- no edits"
                 in
                 ( { model | messages = [ { content = m, status = MSYellow } ] }, Cmd.none )
 
@@ -877,6 +915,9 @@ updateFromBackend msg model =
                 StandardHandling ->
                     Frontend.Update.handleAsStandardReceivedDocument model doc
 
+                DelayedHandling ->
+                    Frontend.Update.handleAsReceivedDocumentWithDelay model doc
+
                 HandleAsCheatSheet ->
                     Frontend.Update.handleReceivedDocumentAsCheatsheet model doc
 
@@ -970,6 +1011,7 @@ updateFromBackend msg model =
             in
             case List.head documents of
                 Nothing ->
+                    -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
                     ( model, Cmd.none )
 
                 Just doc ->

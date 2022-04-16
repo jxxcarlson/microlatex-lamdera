@@ -495,7 +495,9 @@ type FrontendMsg
     | MessageFieldChanged String
     | MessageSubmitted
     | InputChoseGroup String
-      -- DOC
+      -- DOCUMENT
+    | ChangeLanguage
+    | MakeBackup
     | SetDocumentCurrent Document
     | SetDocumentCurrentViaId Document.DocumentId
     | GetPinnedDocuments
@@ -597,6 +599,7 @@ type ToBackend
     | UpdateSharedDocumentDict Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
+    | InsertDocument User Document
     | GetCheatSheetDocument
     | RequestRefresh String
     | SignOutBE (Maybe String)
@@ -658,6 +661,7 @@ type ToFrontend
 
 type DocumentHandling
     = StandardHandling
+    | DelayedHandling
     | HandleAsCheatSheet
 
 
