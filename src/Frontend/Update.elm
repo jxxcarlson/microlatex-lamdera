@@ -12,7 +12,6 @@ module Frontend.Update exposing
     , handleAsStandardReceivedDocument
     , handleReceivedDocumentAsCheatsheet
     , handleSignIn
-    , handleSignOut
     , handleSignUp
     , handleUrlRequest
     , inputText
@@ -34,6 +33,7 @@ module Frontend.Update exposing
     , setPublicDocumentAsCurrentById
     , setUserLanguage
     , setViewportForElement
+    , signOut
     , syncLR
     , unlockCurrentDocument
     , updateCurrentDocument
@@ -881,7 +881,7 @@ runSpecial model =
                 model |> withNoCmd
 
 
-handleSignOut model =
+signOut model =
     let
         cmd =
             case model.currentUser of

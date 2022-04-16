@@ -357,7 +357,7 @@ update msg model =
             Frontend.Update.handleSignIn model
 
         SignOut ->
-            Frontend.Update.handleSignOut model
+            Frontend.Update.signOut model
 
         -- ADMIN
         ClearConnectionDict ->

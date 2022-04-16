@@ -443,7 +443,7 @@ violet g acc s exprList =
 
 
 highlight g acc s exprList =
-    simpleElement [ Background.color (Element.rgb255 255 255 0) ] g acc s exprList
+    simpleElement [ Background.color (Element.rgb255 255 255 0), Element.paddingXY 6 3 ] g acc s exprList
 
 
 ref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
