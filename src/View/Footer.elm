@@ -62,7 +62,8 @@ view model width_ =
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
-        , showCurrentEditor model.currentDocument
+
+        --, showCurrentEditor model.currentDocument
         , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
             (backup model.zone model.currentDocument)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
