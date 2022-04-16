@@ -537,6 +537,25 @@ update msg model =
             Frontend.Update.unlockCurrentDocument model
 
         -- DOCUMENT
+        MakeBackup ->
+            case ( model.currentUser, model.currentDocument ) of
+                ( Nothing, _ ) ->
+                    ( model, Cmd.none )
+
+                ( _, Nothing ) ->
+                    ( model, Cmd.none )
+
+                ( Just user, Just doc ) ->
+                    if Just user.username == doc.author then
+                        let
+                            newDocument =
+                                Document.makeBackup doc
+                        in
+                        ( model, sendToBackend (InsertDocument newDocument) )
+
+                    else
+                        ( model, Cmd.none )
+
         SetDocumentCurrent document ->
             Frontend.Update.setDocumentAsCurrent model document HandleAsCheatSheet
 
@@ -758,13 +777,17 @@ updateDoc model str =
         Just doc ->
             -- if Share.canEdit model.currentUser (Just doc) then
             -- if View.Utility.canSaveStrict model.currentUser doc then
-            if Share.canEdit model.currentUser (Just doc) then
+            if Share.canEdit model.currentUser (Just doc) && doc.handling == Document.DHStandard then
                 updateDoc_ model doc str
 
             else
                 let
                     m =
-                        "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+                        if doc.handling == Document.DHStandard then
+                            "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+
+                        else
+                            "Oops, this is a backup or version document -- no edits"
                 in
                 ( { model | messages = [ { content = m, status = MSYellow } ] }, Cmd.none )
 

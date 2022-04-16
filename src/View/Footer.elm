@@ -61,6 +61,7 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
         , showCurrentEditor model.currentDocument
+        , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser) Button.makeBackup
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         ]
 

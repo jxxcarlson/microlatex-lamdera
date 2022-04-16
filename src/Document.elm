@@ -9,6 +9,7 @@ module Document exposing
     , defaultSettings
     , documentFromListViaId
     , empty
+    , makeBackup
     , setTags
     , shareToString
     , testDoc
@@ -190,6 +191,24 @@ empty =
     , share = NotShared
     , tags = []
     , handling = DHStandard
+    }
+
+
+makeBackup : Document -> Document
+makeBackup doc =
+    { id = doc.id ++ "-backup"
+    , publicId = doc.publicId
+    , created = doc.created
+    , modified = doc.modified
+    , content = String.replace doc.title (doc.title ++ " (BAK)") doc.content
+    , title = doc.title ++ " (BAK)"
+    , public = doc.public
+    , author = doc.author
+    , currentEditor = Nothing
+    , language = doc.language
+    , share = NotShared
+    , handling = Backup doc.id
+    , tags = doc.tags
     }
 
 

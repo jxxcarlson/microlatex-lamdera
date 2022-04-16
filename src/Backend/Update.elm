@@ -16,6 +16,7 @@ module Backend.Update exposing
     , getUsersAndOnlineStatus
     , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
+    , insertDocument
     , publicTags
     , removeSessionClient
     , removeSessionFromDict
@@ -325,6 +326,36 @@ createDocument model clientId maybeCurrentUser doc_ =
         |> Cmd.Extra.withCmds
             [ sendToFrontend clientId (ReceivedNewDocument HandleAsCheatSheet doc)
             ]
+
+
+insertDocument model clientId doc =
+    let
+        documentDict =
+            Dict.insert doc.id doc model.documentDict
+
+        authorIdDict =
+            Dict.insert (doc.id ++ "-bak") doc.id model.authorIdDict
+
+        --usersDocumentsDict =
+        --    case maybeCurrentUser of
+        --        Nothing ->
+        --            model.usersDocumentsDict
+        --
+        --        Just user ->
+        --            let
+        --                oldIdList =
+        --                    Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
+        --            in
+        --            Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
+    in
+    ( { model
+        | documentDict = documentDict
+        , authorIdDict = authorIdDict
+
+        --, usersDocumentsDict = usersDocumentsDict
+      }
+    , sendToFrontend clientId (MessageReceived { content = "Backup mode for " ++ doc.title, status = MSYellow })
+    )
 
 
 getConnectedUser : ClientId -> ConnectionDict -> Maybe Types.Username

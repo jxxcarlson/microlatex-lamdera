@@ -273,6 +273,9 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.signUpUser model sessionId clientId username lang encryptedPassword realname email
 
         -- DOCUMENTS
+        InsertDocument doc ->
+            Backend.Update.insertDocument model clientId doc
+
         GetUserTagsFromBE author ->
             ( model, sendToFrontend clientId (AcceptUserTags (Backend.Update.authorTags author model)) )
 
