@@ -155,21 +155,17 @@ nextState ((ExpressionBlock { name }) as block) state =
 
 
 exportBlock : Settings -> ExpressionBlock -> String
-exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
+exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as block) =
     case blockType of
         Paragraph ->
             case content of
                 Left str ->
-                    mapChars str
+                    mapChars2 str
 
                 Right exprs_ ->
                     exportExprList settings exprs_
 
-        OrdinaryBlock args ->
-            let
-                _ =
-                    Debug.log "ARGS" args
-            in
+        OrdinaryBlock args_ ->
             case content of
                 Left _ ->
                     ""
@@ -190,11 +186,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                             else
                                 environment name_ (exportExprList settings exprs_)
 
-        VerbatimBlock args ->
-            let
-                _ =
-                    Debug.log "Verbatim, Name" name
-            in
+        VerbatimBlock args_ ->
             case content of
                 Left str ->
                     case name of
@@ -212,7 +204,10 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                             [ "\\begin{align}", str, "\\end{align}" ] |> String.join "\n"
 
                         Just "code" ->
-                            str |> fixChars
+                            str |> fixChars |> (\s -> "\\begin{verbatim}\n" ++ s ++ "\n\\end{verbatim}")
+
+                        Just "mathmacros" ->
+                            str
 
                         _ ->
                             environment "anon" str
@@ -222,7 +217,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
 
 
 fixChars str =
-    str |> String.replace "{" "\\{" |> String.replace "}" "\\}" |> Debug.log "FIX"
+    str |> String.replace "{" "\\{" |> String.replace "}" "\\}"
 
 
 renderDefs settings exprs =
@@ -230,18 +225,31 @@ renderDefs settings exprs =
         ++ exportExprList settings exprs
 
 
-mapChars : String -> String
-mapChars str =
-    String.replace "_" "\\_" str
+mapChars1 : String -> String
+mapChars1 str =
+    str
+        |> String.replace "\\term_" "\\termx"
+
+
+mapChars2 : String -> String
+mapChars2 str =
+    str
+        |> String.replace "_" "\\_"
 
 
 
--- DICIONARIES
+-- BEGIN DICTIONARIES
 
 
-verbatimExprDict =
+functionDict : Dict String String
+functionDict =
     Dict.fromList
-        [ ( "code", code )
+        [ ( "italic", "textit" )
+        , ( "i", "textit" )
+        , ( "bold", "textbf" )
+        , ( "b", "textbf" )
+        , ( "image", "imagecenter" )
+        , ( "contents", "tableofcontents" )
         ]
 
 
@@ -253,6 +261,35 @@ macroDict =
         , ( "index_", blindIndex )
         , ( "code", code )
         ]
+
+
+blockDict : Dict String (Settings -> List String -> String -> String)
+blockDict =
+    Dict.fromList
+        [ ( "title", \_ _ _ -> "" )
+        , ( "subtitle", \_ _ _ -> "" )
+        , ( "author", \_ _ _ -> "" )
+        , ( "date", \_ _ _ -> "" )
+        , ( "contents", \_ _ _ -> "" )
+        , ( "section", \_ args body -> section args body )
+        , ( "item", \_ _ body -> macro1 "item" body )
+        , ( "numbered", \_ _ body -> macro1 "item" body )
+        , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
+        , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
+        , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
+        , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
+        , ( "mathmacros", \_ args body -> body ++ "\nHa ha ha!" )
+        ]
+
+
+verbatimExprDict =
+    Dict.fromList
+        [ ( "code", code )
+        ]
+
+
+
+-- END DICTIONARIES
 
 
 getArgs : List Expr -> List String
@@ -290,10 +327,6 @@ getTwoArgs exprs =
 
 code : Settings -> List Expr -> String
 code _ exprs =
-    let
-        _ =
-            Debug.log "IN" "CODE"
-    in
     getOneArg exprs |> fixChars
 
 
@@ -325,40 +358,9 @@ blindIndex s exprs =
     [] |> String.join ""
 
 
-functionDict : Dict String String
-functionDict =
-    Dict.fromList
-        [ ( "italic", "textit" )
-        , ( "i", "textit" )
-        , ( "bold", "textbf" )
-        , ( "b", "textbf" )
-        , ( "image", "imagecenter" )
-        , ( "contents", "tableofcontents" )
-        ]
-
-
-blockDict : Dict String (Settings -> List String -> String -> String)
-blockDict =
-    Dict.fromList
-        [ ( "title", \_ _ _ -> "" )
-        , ( "subtitle", \_ _ _ -> "" )
-        , ( "author", \_ _ _ -> "" )
-        , ( "date", \_ _ _ -> "" )
-        , ( "contents", \_ _ _ -> "" )
-        , ( "section", \_ args body -> section args body )
-        , ( "item", \_ _ body -> macro1 "item" body )
-        , ( "numbered", \_ _ body -> macro1 "item" body )
-        , ( "beginBlock", \_ _ _ -> "\\begin{itemize}" )
-        , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
-        , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
-        , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
-        , ( "mathmacros", \_ args body -> body ++ "\nHa ha ha!" )
-        ]
-
-
 section : List String -> String -> String
 section args body =
-    case Utility.getArg "4" 1 args of
+    case Utility.getArg "4" 0 args of
         "1" ->
             macro1 "section" body
 
@@ -386,15 +388,15 @@ macro1 name arg =
     else
         case Dict.get name functionDict of
             Nothing ->
-                "\\" ++ name ++ "{" ++ mapChars (String.trimLeft arg) ++ "}"
+                "\\" ++ name ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
             Just realName ->
-                "\\" ++ realName ++ "{" ++ mapChars (String.trimLeft arg) ++ "}"
+                "\\" ++ realName ++ "{" ++ mapChars2 (String.trimLeft arg) ++ "}"
 
 
 exportExprList : Settings -> List Expr -> String
 exportExprList settings exprs =
-    List.map (exportExpr settings) exprs |> String.join ""
+    List.map (exportExpr settings) exprs |> String.join "" |> mapChars1
 
 
 exportExpr : Settings -> Expr -> String
@@ -410,10 +412,6 @@ exportExpr settings expr =
                         "Error extracting lambda"
 
             else
-                let
-                    _ =
-                        Debug.log "MACRO NAME" name
-                in
                 case Dict.get name macroDict of
                     Just f ->
                         f settings exps_
@@ -422,7 +420,7 @@ exportExpr settings expr =
                         macro1 name (List.map (exportExpr settings) exps_ |> String.join " ")
 
         Text str _ ->
-            mapChars str
+            mapChars2 str
 
         Verbatim name body _ ->
             renderVerbatim name body
@@ -542,6 +540,8 @@ preamble title author date =
 \\newtheorem{exercises}{Exercises}
 \\newcommand{\\bs}[1]{$\\backslash$#1}
 \\newcommand{\\texarg}[1]{\\{#1\\}}
+
+\\newcommand{\\termx}[1]{}
 
 %% Environments
 \\renewenvironment{quotation}

@@ -19,7 +19,7 @@ parse str =
 
 parseAndExport : String -> String
 parseAndExport str =
-    str |> parse |> Debug.log "EXPR" |> rawExport defaultSettings
+    str |> parse |> rawExport defaultSettings
 
 
 parseL0 : String -> Forest ExpressionBlock
@@ -29,7 +29,7 @@ parseL0 str =
 
 parseAndExportL0 : String -> String
 parseAndExportL0 str =
-    str |> parseL0 |> Debug.log "EXPR" |> rawExport defaultSettings
+    str |> parseL0 |> rawExport defaultSettings
 
 
 test_ label expr expectedOutput =
@@ -47,6 +47,45 @@ suite =
 suite2 : Test
 suite2 =
     describe "LaTeX export from L0"
-        [ -- test_ "code" (parseAndExportL0 "`foo`") "\\code{foo}"
-          test_ "code {}" (parseAndExportL0 "`{}`") "\\{\\}" -- "\\code{\\{\\}}"
+        [ test_ "code" (parseAndExportL0 "`foo`") "foo"
+        , test_ "code {}" (parseAndExportL0 "`{}`") "\\{\\}"
+        , test_ "mathmacros" (parseAndExportL0 x1) x1Out
+        , Test.skip <| test_ "term_" (parseAndExportL0 "\\term_{a}") "\\termx{a}"
+        , test_ "section" (parseAndExportL0 "| section 1\nIntro") "\\section{Intro}"
+        , test_ "code block" (parseAndExportL0 x2) x2Out
         ]
+
+
+suite_ : Test
+suite_ =
+    describe "LaTeX export from L0"
+        [ test_ "code block" (parseAndExportL0 x2) x2Out
+        ]
+
+
+x1 =
+    """
+|| mathmacros
+\\newcommand{\\bool}{\\mathop{\\text{Bool}}}
+"""
+
+
+x1Out =
+    """\\newcommand{\\bool}{\\mathop{\\text{Bool}}}"""
+
+
+x2 =
+    """|| code
+A  not-A
+--------
+T   F
+F   T"""
+
+
+x2Out =
+    """\\begin{verbatim}
+A  not-A
+--------
+T   F
+F   T
+\\end{verbatim}"""
