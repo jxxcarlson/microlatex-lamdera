@@ -193,7 +193,7 @@ currentDocumentAuthor mUsername mDoc =
                             " , editing: " ++ editorName
 
                 str =
-                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "author: " ++ x) |> Maybe.withDefault ""
+                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault ""
             in
             Element.el [ color, Font.size 14 ] (Element.text str)
 

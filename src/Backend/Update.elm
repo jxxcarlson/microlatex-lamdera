@@ -328,25 +328,23 @@ createDocument model clientId maybeCurrentUser doc_ =
             ]
 
 
-insertDocument model clientId doc =
+insertDocument model clientId user doc_ =
     let
+        doc =
+            { doc_ | created = model.currentTime, modified = model.currentTime }
+
         documentDict =
             Dict.insert doc.id doc model.documentDict
 
         authorIdDict =
             Dict.insert (doc.id ++ "-bak") doc.id model.authorIdDict
 
-        --usersDocumentsDict =
-        --    case maybeCurrentUser of
-        --        Nothing ->
-        --            model.usersDocumentsDict
-        --
-        --        Just user ->
-        --            let
-        --                oldIdList =
-        --                    Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
-        --            in
-        --            Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
+        usersDocumentsDict =
+            let
+                oldIdList =
+                    Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
+            in
+            Dict.insert user.id ((doc.id ++ "-bak") :: oldIdList) model.usersDocumentsDict
     in
     ( { model
         | documentDict = documentDict
@@ -354,7 +352,7 @@ insertDocument model clientId doc =
 
         --, usersDocumentsDict = usersDocumentsDict
       }
-    , sendToFrontend clientId (MessageReceived { content = "Backup mode for " ++ doc.title, status = MSYellow })
+    , sendToFrontend clientId (MessageReceived { content = "Backup made for " ++ doc.title, status = MSYellow })
     )
 
 

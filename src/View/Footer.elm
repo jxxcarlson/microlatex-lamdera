@@ -1,10 +1,12 @@
 module View.Footer exposing (view)
 
-import Document
+import DateTimeUtility
+import Document exposing (Document)
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Message
+import Time
 import Types
 import View.Button as Button
 import View.Chat
@@ -61,9 +63,32 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
         , showCurrentEditor model.currentDocument
-        , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser) Button.makeBackup
+        , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
+            (backup model.zone model.currentDocument)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         ]
+
+
+backup : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
+backup zone maybeDocument =
+    case maybeDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            let
+                _ =
+                    Debug.log "HANDLING" doc.handling
+            in
+            case doc.handling of
+                Document.DHStandard ->
+                    Button.makeBackup
+
+                Document.Backup _ ->
+                    E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
+
+                Document.Version _ _ ->
+                    E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
 showCurrentEditor : Maybe Document.Document -> E.Element msg

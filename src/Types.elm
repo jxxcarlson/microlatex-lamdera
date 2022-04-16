@@ -598,7 +598,7 @@ type ToBackend
     | UpdateSharedDocumentDict Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
-    | InsertDocument Document
+    | InsertDocument User Document
     | GetCheatSheetDocument
     | RequestRefresh String
     | SignOutBE (Maybe String)

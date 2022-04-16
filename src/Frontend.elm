@@ -551,7 +551,7 @@ update msg model =
                             newDocument =
                                 Document.makeBackup doc
                         in
-                        ( model, sendToBackend (InsertDocument newDocument) )
+                        ( model, sendToBackend (InsertDocument user newDocument) )
 
                     else
                         ( model, Cmd.none )
