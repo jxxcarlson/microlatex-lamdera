@@ -495,7 +495,8 @@ type FrontendMsg
     | MessageFieldChanged String
     | MessageSubmitted
     | InputChoseGroup String
-      -- DOC
+      -- DOCUMENT
+    | ChangeLanguage
     | MakeBackup
     | SetDocumentCurrent Document
     | SetDocumentCurrentViaId Document.DocumentId

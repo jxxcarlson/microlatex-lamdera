@@ -1,6 +1,7 @@
 module Frontend.Update exposing
     ( addDocToCurrentUser
     , adjustId
+    , changeLanguage
     , closeEditor
     , currentDocumentPostProcess
     , debounceMsg
@@ -353,6 +354,7 @@ render model msg_ =
 setLanguage dismiss lang model =
     if dismiss then
         ( { model | language = lang, popupState = NoPopup }, Cmd.none )
+            |> (\( m, _ ) -> changeLanguage m)
 
     else
         ( { model | language = lang }, Cmd.none )
@@ -627,6 +629,22 @@ setDocumentAsCurrentAux doc permissions model =
         --, sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
         ]
     )
+
+
+changeLanguage model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc ->
+            let
+                newDoc =
+                    { doc | language = model.language }
+            in
+            ( model
+            , sendToBackend (SaveDocument newDoc)
+            )
+                |> (\( m, c ) -> ( currentDocumentPostProcess newDoc m, c ))
 
 
 currentDocumentPostProcess : Document.Document -> FrontendModel -> FrontendModel

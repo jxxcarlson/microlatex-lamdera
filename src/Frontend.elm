@@ -537,6 +537,21 @@ update msg model =
             Frontend.Update.unlockCurrentDocument model
 
         -- DOCUMENT
+        ChangeLanguage ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        newDocument =
+                            { doc | language = model.language }
+                    in
+                    ( model
+                    , sendToBackend (SaveDocument newDocument)
+                    )
+                        |> (\( m, c ) -> ( Frontend.Update.currentDocumentPostProcess newDocument m, c ))
+
         MakeBackup ->
             case ( model.currentUser, model.currentDocument ) of
                 ( Nothing, _ ) ->
