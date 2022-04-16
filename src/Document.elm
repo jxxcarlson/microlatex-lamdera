@@ -1,5 +1,6 @@
 module Document exposing
     ( Document
+    , DocumentHandling(..)
     , DocumentId
     , DocumentInfo
     , Share(..)
@@ -34,6 +35,7 @@ type alias Document =
     , currentEditor : Maybe String -- the username of the person currently editing the document
     , language : Language
     , share : Share
+    , handling : DocumentHandling
     , tags : List String
     }
 
@@ -50,6 +52,12 @@ type alias Document =
 type Share
     = ShareWith { readers : List Username, editors : List Username }
     | NotShared
+
+
+type DocumentHandling
+    = DHStandard
+    | Backup DocumentId
+    | Version DocumentId Int
 
 
 type alias DocumentId =
@@ -181,6 +189,7 @@ empty =
     , language = MicroLaTeXLang
     , share = NotShared
     , tags = []
+    , handling = DHStandard
     }
 
 
