@@ -8,7 +8,7 @@ import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Helpers exposing (Step(..), loop)
-import Render.Settings exposing (Settings)
+import Render.Settings exposing (Settings, defaultSettings)
 import Render.Utility as Utility
 import Tree
 
@@ -166,6 +166,10 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                     exportExprList settings exprs_
 
         OrdinaryBlock args ->
+            let
+                _ =
+                    Debug.log "ARGS" args
+            in
             case content of
                 Left _ ->
                     ""
@@ -187,30 +191,38 @@ exportBlock settings ((ExpressionBlock { blockType, name, content }) as block) =
                                 environment name_ (exportExprList settings exprs_)
 
         VerbatimBlock args ->
+            let
+                _ =
+                    Debug.log "Verbatim, Name" name
+            in
             case content of
                 Left str ->
-                    case List.head args of
+                    case name of
                         Just "math" ->
                             -- TODO: there should be a trailing "$$"
-                            [ "$$", str ] |> String.join "\n"
+                            [ "$$", str, "$$" ] |> String.join "\n"
 
                         Just "equation" ->
                             -- TODO: there should be a trailing "$$"
                             -- TODO: equation numbers and label
-                            [ "\\begin{equation}", str ] |> String.join "\n"
+                            [ "\\begin{equation}", str, "\\end{equation}" ] |> String.join "\n"
 
                         Just "aligned" ->
                             -- TODO: equation numbers and label
                             [ "\\begin{align}", str, "\\end{align}" ] |> String.join "\n"
 
                         Just "code" ->
-                            str
+                            str |> fixChars
 
                         _ ->
                             environment "anon" str
 
                 Right _ ->
                     "???(13)"
+
+
+fixChars str =
+    str |> String.replace "{" "\\{" |> String.replace "}" "\\}" |> Debug.log "FIX"
 
 
 renderDefs settings exprs =
@@ -228,7 +240,9 @@ mapChars str =
 
 
 verbatimExprDict =
-    Dict.empty
+    Dict.fromList
+        [ ( "code", code )
+        ]
 
 
 macroDict : Dict String (Settings -> List Expr -> String)
@@ -236,12 +250,24 @@ macroDict =
     Dict.fromList
         [ ( "link", link )
         , ( "ilink", ilink )
+        , ( "index_", blindIndex )
+        , ( "code", code )
         ]
 
 
 getArgs : List Expr -> List String
 getArgs =
     ASTTools.exprListToStringList >> List.map String.words >> List.concat >> List.filter (\x -> x /= "")
+
+
+getOneArg : List Expr -> String
+getOneArg exprs =
+    case List.head (getArgs exprs) of
+        Nothing ->
+            ""
+
+        Just str ->
+            str
 
 
 getTwoArgs : List Expr -> { first : String, second : String }
@@ -262,6 +288,15 @@ getTwoArgs exprs =
     { first = first, second = second }
 
 
+code : Settings -> List Expr -> String
+code _ exprs =
+    let
+        _ =
+            Debug.log "IN" "CODE"
+    in
+    getOneArg exprs |> fixChars
+
+
 link : Settings -> List Expr -> String
 link s exprs =
     let
@@ -278,6 +313,16 @@ ilink s exprs =
             getTwoArgs exprs
     in
     [ "\\href{", "https://l0-lab-demo.lamdera.app/i/", args.second, "}{", args.first, "}" ] |> String.join ""
+
+
+blindIndex : Settings -> List Expr -> String
+blindIndex s exprs =
+    let
+        args =
+            getTwoArgs exprs
+    in
+    -- TODO
+    [] |> String.join ""
 
 
 functionDict : Dict String String
@@ -307,6 +352,7 @@ blockDict =
         , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
         , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
         , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
+        , ( "mathmacros", \_ args body -> body ++ "\nHa ha ha!" )
         ]
 
 
@@ -364,6 +410,10 @@ exportExpr settings expr =
                         "Error extracting lambda"
 
             else
+                let
+                    _ =
+                        Debug.log "MACRO NAME" name
+                in
                 case Dict.get name macroDict of
                     Just f ->
                         f settings exps_
@@ -384,8 +434,8 @@ renderVerbatim name body =
         Nothing ->
             macro1 name body
 
-        Just macroName ->
-            macro1 macroName body
+        Just macro ->
+            body |> fixChars
 
 
 
