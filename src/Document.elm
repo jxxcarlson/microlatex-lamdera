@@ -65,7 +65,7 @@ location position source =
             String.lines prefix
 
         column =
-            List.Extra.last lines |> Maybe.withDefault "1" |> String.length
+            List.Extra.last lines |> Maybe.withDefault "0" |> String.length
 
         row =
             List.length lines
