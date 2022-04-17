@@ -1,6 +1,4 @@
-module OT exposing (Document, Operation(..), apply, emptyDoc, findOps, reconcile, updateXY)
-
-import Document
+module OT exposing (Document, Operation(..), apply, emptyDoc, findOps, reconcile)
 
 
 type Operation
@@ -35,7 +33,7 @@ findOps before after =
         [ Insert (String.slice before.cursor after.cursor after.content) ]
 
     else if after.cursor < before.cursor then
-        [ Skip (after.cursor - before.cursor), Delete (before.cursor - after.cursor) ]
+        [ Skip (after.cursor - before.cursor + 1), Delete (before.cursor - after.cursor) ]
 
     else
         [ Delete (String.length before.content - String.length after.content) ]
@@ -43,25 +41,19 @@ findOps before after =
 
 applyOp : Operation -> Document -> Document
 applyOp op { cursor, x, y, content } =
-    -- TODO: fix x and y
     case op of
         Insert str ->
             { x = x + String.length str, y = y, cursor = cursor + String.length str, content = String.left cursor content ++ str ++ String.dropLeft cursor content }
 
         Delete n ->
-            { x = x, y = y, cursor = cursor, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
+            if cursor == String.length content - 1 then
+                { x = x - 1, y = y, cursor = cursor - 1, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
+
+            else
+                { x = x, y = y, cursor = cursor, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
 
         Skip n ->
             { x = x + n, y = y, cursor = cursor + n, content = content }
-
-
-updateXY : Document -> Document
-updateXY doc =
-    let
-        newLocation =
-            Document.location doc.cursor doc.content
-    in
-    { doc | x = newLocation.x, y = newLocation.y }
 
 
 apply : List Operation -> Document -> Document

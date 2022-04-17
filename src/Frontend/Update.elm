@@ -295,6 +295,12 @@ inputText model { position, source } =
 
         newNetworkModel =
             Network.updateFromUser editEvent model.networkModel |> Debug.log "!! LOCAL MODEL"
+
+        localUpdate =
+            Network.getLocalDocument newNetworkModel |> .content |> Debug.log "!! UPDATED DOC"
+
+        _ =
+            Debug.log "!! SUCCEED" (localUpdate == source)
     in
     if Share.canEdit model.currentUser model.currentDocument then
         inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source

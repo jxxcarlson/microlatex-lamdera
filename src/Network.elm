@@ -1,4 +1,14 @@
-module Network exposing (EditEvent, NetworkModel, ServerState, createEvent, emptyServerState, init, updateFromUser)
+module Network exposing
+    ( EditEvent
+    , NetworkModel
+    , ServerState
+    , applyEvent
+    , createEvent
+    , emptyServerState
+    , getLocalDocument
+    , init
+    , updateFromUser
+    )
 
 import Dict exposing (Dict)
 import Document
@@ -50,8 +60,8 @@ createEvent userId_ oldDocument newDocument =
     { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations }
 
 
-f : EditEvent -> ServerState -> ServerState
-f event serverState =
+applyEvent : EditEvent -> ServerState -> ServerState
+applyEvent event serverState =
     case Dict.get event.userId serverState.cursorPositions of
         Nothing ->
             serverState
@@ -81,6 +91,11 @@ updateFromUser event localModel =
 localState : (EditEvent -> ServerState -> ServerState) -> NetworkModel -> ServerState
 localState updateFunc localModel =
     List.foldl updateFunc localModel.serverState localModel.localMsgs
+
+
+getLocalDocument : NetworkModel -> OT.Document
+getLocalDocument localModel =
+    localState applyEvent localModel |> .document
 
 
 updateFromBackend : (EditEvent -> ServerState -> ServerState) -> EditEvent -> NetworkModel -> NetworkModel

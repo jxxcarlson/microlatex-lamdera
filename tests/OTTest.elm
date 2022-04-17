@@ -5,6 +5,10 @@ import OT exposing (Document, Operation(..))
 import Test exposing (..)
 
 
+foo =
+    1
+
+
 test_ label expr expectedOutput =
     test label <| \_ -> equal expr expectedOutput
 
@@ -28,7 +32,7 @@ suite =
         , test_ "!!! Reconcile Insert 'x'" (OT.reconcile { cursor = 1, x = 1, y = 0, content = "abcd" } { cursor = 2, x = 2, y = 0, content = "axbcd" }) { cursor = 2, x = 2, y = 0, content = "axbcd" }
         , test_ "Delete 1" (OT.findOps { cursor = 2, x = 0, y = 0, content = "abcd" } { cursor = 2, x = 0, y = 0, content = "abd" }) [ Delete 1 ]
         , test_ "Reconcile Delete 1" (OT.reconcile { cursor = 2, x = 0, y = 0, content = "abcd" } { cursor = 2, x = 0, y = 0, content = "abd" }) { cursor = 2, x = 0, y = 0, content = "abd" }
-        , test_ "Delete back 1" (OT.findOps { cursor = 2, x = 0, y = 0, content = "abcd" } { cursor = 1, x = 0, y = 0, content = "abd" }) [ Skip -1, Delete 1 ]
+        , test_ "Delete back 1" (OT.findOps { cursor = 2, x = 0, y = 0, content = "abcd" } { cursor = 1, x = 0, y = 0, content = "abd" }) [ Skip 0, Delete 1 ]
         , test_ "Reconcile Delete back 1" (OT.reconcile { cursor = 2, x = 0, y = 0, content = "abcd" } { cursor = 2, x = 0, y = 0, content = "abd" }) { cursor = 2, x = 0, y = 0, content = "abd" }
         ]
 
