@@ -1,4 +1,4 @@
-module OT exposing (Document, Operation(..), apply, findOps)
+module OT exposing (Document, Operation(..), apply, findOps, reconcile)
 
 
 type Operation
@@ -9,6 +9,15 @@ type Operation
 
 type alias Document =
     { cursor : Int, content : String }
+
+
+reconcile : Document -> Document -> Document
+reconcile a b =
+    let
+        ops_ =
+            findOps a b |> Debug.log "OPS"
+    in
+    apply ops_ a
 
 
 findOps : Document -> Document -> List Operation
