@@ -54,6 +54,7 @@ import Compiler.Acc
 import Compiler.DifferentialParser
 import Config
 import Debounce
+import Dict
 import Diff
 import Docs
 import Document exposing (Document)
@@ -65,6 +66,7 @@ import List.Extra
 import Markup
 import Maybe.Extra
 import Message
+import Network
 import OT
 import Parser.Language exposing (Language(..))
 import Process
@@ -278,14 +280,24 @@ inputText model { position, source } =
         _ =
             Debug.log "{Position, Location)" ( position, Document.location position source )
 
-        oTDocument =
-            { cursor = position, content = source } |> Debug.log "!! OT DOC"
+        newOTDocument =
+            let
+                newLocation =
+                    Document.location position source
+            in
+            { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
 
-        operations =
-            OT.findOps model.oTDocument oTDocument |> Debug.log "!! OT Ops"
+        userId =
+            model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
+
+        editEvent =
+            Network.createEvent userId model.oTDocument newOTDocument |> Debug.log "!! NEW EVENT"
+
+        newNetworkModel =
+            Network.updateFromUser editEvent model.networkModel |> Debug.log "!! LOCAL MODEL"
     in
     if Share.canEdit model.currentUser model.currentDocument then
-        inputText_ { model | oTDocument = oTDocument } source
+        inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source
 
     else if Maybe.map .share model.currentDocument == Just Document.NotShared then
         ( model, Cmd.none )
@@ -600,6 +612,9 @@ setDocumentAsCurrentAux doc permissions model =
         currentUserName_ =
             Util.currentUsername model.currentUser
 
+        currentUserId =
+            Maybe.map .id model.currentUser |> Maybe.withDefault "---"
+
         newEditRecord : Compiler.DifferentialParser.EditRecord
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
@@ -620,12 +635,20 @@ setDocumentAsCurrentAux doc permissions model =
 
         newCurrentUser =
             addDocToCurrentUser model doc
+
+        oTDocument =
+            { cursor = 0, x = 0, y = 0, content = doc.content }
+
+        networkDict =
+            Dict.fromList [ ( currentUserId, { x = 0, y = 0, p = 0 } ) ]
     in
     ( { model
         | currentDocument = Just doc
         , currentMasterDocument = currentMasterDocument
         , sourceText = doc.content
-        , oTDocument = { cursor = 0, content = doc.content }
+        , oTDocument = oTDocument
+        , myCursorPosition = { x = 0, y = 0, p = 0 }
+        , networkModel = Network.init { cursorPositions = networkDict, document = oTDocument }
         , initialText = doc.content
         , editRecord = newEditRecord
         , title =

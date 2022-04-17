@@ -51,7 +51,6 @@ module Types exposing
     )
 
 import Abstract exposing (Abstract, AbstractOLD)
-import AbstractNetwork
 import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
@@ -63,6 +62,7 @@ import Document exposing (Document)
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
+import Network
 import OT
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
@@ -138,6 +138,8 @@ type alias FrontendModel =
 
     -- DOCUMENT
     , oTDocument : OT.Document
+    , myCursorPosition : { x : Int, y : Int, p : Int }
+    , networkModel : Network.NetworkModel
     , publicDocumentSearchKey : String
     , docLoaded : DocLoaded
     , documentsCreatedCounter : Int

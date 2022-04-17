@@ -1,7 +1,9 @@
-module Network exposing (..)
+module Network exposing (EditEvent, NetworkModel, ServerState, createEvent, emptyServerState, init, updateFromUser)
 
 import Dict exposing (Dict)
+import Document
 import List.Extra
+import OT
 
 
 type alias UserId =
@@ -15,13 +17,37 @@ type alias UserId =
 
 
 type alias EditEvent =
-    { userId : String, dx : Int, dy : Int, content : String }
+    { userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
 
 
 type alias ServerState =
-    { cursorPositions : Dict UserId { x : Int, y : Int }
-    , content : String
+    { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
+    , document : OT.Document
     }
+
+
+emptyServerState =
+    { cursorPositions = Dict.empty
+    , document = OT.emptyDoc
+    }
+
+
+createEvent : String -> OT.Document -> OT.Document -> EditEvent
+createEvent userId_ oldDocument newDocument =
+    let
+        dp =
+            newDocument.cursor - oldDocument.cursor
+
+        dx =
+            newDocument.x - oldDocument.x
+
+        dy =
+            newDocument.y - oldDocument.y
+
+        operations =
+            OT.findOps oldDocument newDocument |> Debug.log "!! OT Ops"
+    in
+    { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations }
 
 
 f : EditEvent -> ServerState -> ServerState
@@ -30,9 +56,9 @@ f event serverState =
         Nothing ->
             serverState
 
-        Just { x, y } ->
-            { cursorPositions = Dict.insert event.userId { x = x + event.dx, y = y + event.dy } serverState.cursorPositions
-            , content = event.content
+        Just { x, y, p } ->
+            { cursorPositions = Dict.insert event.userId { x = x + event.dx, y = y + event.dy, p = p + event.dp } serverState.cursorPositions
+            , document = OT.apply event.operations serverState.document
             }
 
 

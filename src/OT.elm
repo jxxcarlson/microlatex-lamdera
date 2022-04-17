@@ -8,11 +8,11 @@ type Operation
 
 
 type alias Document =
-    { cursor : Int, content : String }
+    { cursor : Int, x : Int, y : Int, content : String }
 
 
 emptyDoc =
-    { cursor = 0, content = "" }
+    { cursor = 0, x = 0, y = 0, content = "" }
 
 
 reconcile : Document -> Document -> Document
@@ -33,7 +33,6 @@ findOps before after =
         [ Insert (String.slice before.cursor after.cursor after.content) ]
 
     else if after.cursor < before.cursor then
-        --[ Skip (after.cursor - before.cursor), Insert (String.slice after.cursor before.cursor after.content) ]
         [ Skip (after.cursor - before.cursor), Delete (before.cursor - after.cursor) ]
 
     else
@@ -41,16 +40,17 @@ findOps before after =
 
 
 applyOp : Operation -> Document -> Document
-applyOp op { cursor, content } =
+applyOp op { cursor, x, y, content } =
+    -- TODO: fix x and y
     case op of
         Insert str ->
-            { cursor = cursor + String.length str, content = String.left cursor content ++ str ++ String.dropLeft cursor content }
+            { x = x, y = y, cursor = cursor + String.length str, content = String.left cursor content ++ str ++ String.dropLeft cursor content }
 
         Delete n ->
-            { cursor = cursor, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
+            { x = x, y = y, cursor = cursor, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
 
         Skip n ->
-            { cursor = cursor + n, content = content }
+            { x = x, y = y, cursor = cursor + n, content = content }
 
 
 apply : List Operation -> Document -> Document

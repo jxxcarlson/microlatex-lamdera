@@ -3,6 +3,7 @@ module Document exposing
     , DocumentHandling(..)
     , DocumentId
     , DocumentInfo
+    , Location
     , Share(..)
     , SourceTextRecord
     , canEditSharedDoc
@@ -49,7 +50,7 @@ type alias SourceTextRecord =
 
 
 type alias Location =
-    { row : Int, column : Int }
+    { x : Int, y : Int }
 
 
 {-| Get the location of the cursor where the
@@ -70,7 +71,7 @@ location position source =
         row =
             List.length lines
     in
-    { row = row - 1, column = column }
+    { x = row - 1, y = column }
 
 
 {-|

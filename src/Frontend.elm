@@ -21,6 +21,7 @@ import Keyboard
 import Lamdera exposing (sendToBackend)
 import Markup
 import Message
+import Network
 import OT
 import Parser.Language exposing (Language(..))
 import Process
@@ -132,6 +133,8 @@ init url key =
 
       -- DOCUMENT
       , oTDocument = OT.emptyDoc
+      , myCursorPosition = { x = 0, y = 0, p = 0 }
+      , networkModel = Network.init Network.emptyServerState
       , lineNumber = 0
       , permissions = StandardHandling
       , initialText = Config.loadingText
