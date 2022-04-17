@@ -16,12 +16,11 @@ test_ label original modified =
 
 suite : Test
 suite =
-    Test.only <|
-        describe "reconciliation of diffs"
-            [ test_ "append 'x'" "a" "ax"
-            , test_ "prepend 'x'" "a" "xa"
-            , test_ "insert 'x' in middle" "ab" "axb"
-            , test_ "delete 'x at end" "ax" "a"
-            , test_ "delete 'x at beginning" "xa" "a"
-            , test_ "delete 'x at middle" "axb" "ab"
-            ]
+    describe "reconciliation of diffs"
+        [ test_ "append 'x'" "a" "ax"
+        , test_ "prepend 'x'" "a" "xa"
+        , test_ "insert 'x' in middle" "ab" "axb"
+        , test_ "delete 'x at end" "ax" "a"
+        , test_ "delete 'x at beginning" "xa" "a"
+        , test_ "delete 'x at middle" "axb" "ab"
+        ]

@@ -24,10 +24,13 @@ suite =
         , test_ "Reconcile Insert 'x'" (OT.reconcile { cursor = 1, content = "abcd" } { cursor = 2, content = "axbcd" }) { cursor = 2, content = "axbcd" }
         , test_ "find" (OT.findOps { cursor = 1, content = "abcd" } { cursor = 2, content = "axbcd" }) [ Insert "x" ]
         , test_ "Insert 'x' !!" (OT.apply [ Insert "x" ] { cursor = 1, content = "abcd" }) { cursor = 2, content = "axbcd" }
-        , test_ "Insert 'x'" (OT.findOps { cursor = 1, content = "abcd" } { cursor = 2, content = "abxcd" }) [ Insert "x" ]
-        , test_ "Reconcile Insert 'x'" (OT.reconcile { cursor = 1, content = "abcd" } { cursor = 2, content = "abxcd" }) { cursor = 2, content = "abxcd" }
+        , test_ "Insert 'x'" (OT.findOps { cursor = 1, content = "abcd" } { cursor = 2, content = "axbcd" }) [ Insert "x" ]
+        , test_ "!!! Reconcile Insert 'x'" (OT.reconcile { cursor = 1, content = "abcd" } { cursor = 2, content = "axbcd" }) { cursor = 2, content = "axbcd" }
         , test_ "Delete 1" (OT.findOps { cursor = 2, content = "abcd" } { cursor = 2, content = "abd" }) [ Delete 1 ]
         , test_ "Reconcile Delete 1" (OT.reconcile { cursor = 2, content = "abcd" } { cursor = 2, content = "abd" }) { cursor = 2, content = "abd" }
+        , test_ "Delete back 1" (OT.findOps { cursor = 2, content = "abcd" } { cursor = 1, content = "abd" }) [ Skip -1, Delete 1 ]
+
+        --, test_ "Reconcile Delete back 1" (OT.reconcile { cursor = 2, content = "abcd" } { cursor = 2, content = "abd" }) { cursor = 2, content = "abd" }
         ]
 
 

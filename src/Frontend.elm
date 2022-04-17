@@ -2,7 +2,6 @@ module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLa
 
 import Browser.Events
 import Browser.Navigation as Nav
-import Chat
 import Cmd.Extra exposing (withNoCmd)
 import Compiler.ASTTools
 import Compiler.DifferentialParser
@@ -22,6 +21,7 @@ import Keyboard
 import Lamdera exposing (sendToBackend)
 import Markup
 import Message
+import OT
 import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
@@ -131,6 +131,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , oTDocument = OT.emptyDoc
       , lineNumber = 0
       , permissions = StandardHandling
       , initialText = Config.loadingText

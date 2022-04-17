@@ -1,4 +1,4 @@
-module OT exposing (Document, Operation(..), apply, findOps, reconcile)
+module OT exposing (Document, Operation(..), apply, emptyDoc, findOps, reconcile)
 
 
 type Operation
@@ -9,6 +9,10 @@ type Operation
 
 type alias Document =
     { cursor : Int, content : String }
+
+
+emptyDoc =
+    { cursor = 0, content = "" }
 
 
 reconcile : Document -> Document -> Document
@@ -29,7 +33,8 @@ findOps before after =
         [ Insert (String.slice before.cursor after.cursor after.content) ]
 
     else if after.cursor < before.cursor then
-        [ Skip (after.cursor - before.cursor), Insert (String.slice after.cursor before.cursor after.content) ]
+        --[ Skip (after.cursor - before.cursor), Insert (String.slice after.cursor before.cursor after.content) ]
+        [ Skip (after.cursor - before.cursor), Delete (before.cursor - after.cursor) ]
 
     else
         [ Delete (String.length before.content - String.length after.content) ]

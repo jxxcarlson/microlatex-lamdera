@@ -63,6 +63,7 @@ import Document exposing (Document)
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
+import OT
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
@@ -136,6 +137,7 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , oTDocument : OT.Document
     , publicDocumentSearchKey : String
     , docLoaded : DocLoaded
     , documentsCreatedCounter : Int

@@ -53,7 +53,7 @@ type alias Location =
 
 
 {-| Get the location of the cursor where the
-row and column positions are 1-based.
+row and column positions are 0-based.
 -}
 location : Int -> String -> Location
 location position source =
@@ -70,7 +70,7 @@ location position source =
         row =
             List.length lines
     in
-    { row = row, column = column }
+    { row = row - 1, column = column }
 
 
 {-|

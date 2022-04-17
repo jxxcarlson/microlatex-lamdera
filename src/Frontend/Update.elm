@@ -65,6 +65,7 @@ import List.Extra
 import Markup
 import Maybe.Extra
 import Message
+import OT
 import Parser.Language exposing (Language(..))
 import Process
 import Render.LaTeX as LaTeX
@@ -276,9 +277,15 @@ inputText model { position, source } =
     let
         _ =
             Debug.log "{Position, Location)" ( position, Document.location position source )
+
+        oTDocument =
+            { cursor = position, content = source } |> Debug.log "!! OT DOC"
+
+        operations =
+            OT.findOps model.oTDocument oTDocument |> Debug.log "!! OT Ops"
     in
     if Share.canEdit model.currentUser model.currentDocument then
-        inputText_ model source
+        inputText_ { model | oTDocument = oTDocument } source
 
     else if Maybe.map .share model.currentDocument == Just Document.NotShared then
         ( model, Cmd.none )
@@ -618,6 +625,7 @@ setDocumentAsCurrentAux doc permissions model =
         | currentDocument = Just doc
         , currentMasterDocument = currentMasterDocument
         , sourceText = doc.content
+        , oTDocument = { cursor = 0, content = doc.content }
         , initialText = doc.content
         , editRecord = newEditRecord
         , title =
