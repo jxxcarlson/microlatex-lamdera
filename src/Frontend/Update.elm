@@ -275,7 +275,7 @@ inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd F
 inputText model { position, source } =
     let
         _ =
-            Debug.log "POSITION" position
+            Debug.log "{Position, Location)" ( position, Document.location position source )
     in
     if Share.canEdit model.currentUser model.currentDocument then
         inputText_ model source
