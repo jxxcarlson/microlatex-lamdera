@@ -1,4 +1,6 @@
-module OT exposing (Document, Operation(..), apply, emptyDoc, findOps, reconcile)
+module OT exposing (Document, Operation(..), apply, emptyDoc, findOps, reconcile, updateXY)
+
+import Document
 
 
 type Operation
@@ -44,13 +46,22 @@ applyOp op { cursor, x, y, content } =
     -- TODO: fix x and y
     case op of
         Insert str ->
-            { x = x, y = y, cursor = cursor + String.length str, content = String.left cursor content ++ str ++ String.dropLeft cursor content }
+            { x = x + String.length str, y = y, cursor = cursor + String.length str, content = String.left cursor content ++ str ++ String.dropLeft cursor content }
 
         Delete n ->
             { x = x, y = y, cursor = cursor, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
 
         Skip n ->
-            { x = x, y = y, cursor = cursor + n, content = content }
+            { x = x + n, y = y, cursor = cursor + n, content = content }
+
+
+updateXY : Document -> Document
+updateXY doc =
+    let
+        newLocation =
+            Document.location doc.cursor doc.content
+    in
+    { doc | x = newLocation.x, y = newLocation.y }
 
 
 apply : List Operation -> Document -> Document
