@@ -271,10 +271,14 @@ inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
 
 
-inputText : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
-inputText model str =
+inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
+inputText model { position, source } =
+    let
+        _ =
+            Debug.log "POSITION" position
+    in
     if Share.canEdit model.currentUser model.currentDocument then
-        inputText_ model str
+        inputText_ model source
 
     else if Maybe.map .share model.currentDocument == Just Document.NotShared then
         ( model, Cmd.none )

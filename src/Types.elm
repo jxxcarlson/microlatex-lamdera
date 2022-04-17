@@ -508,7 +508,7 @@ type FrontendMsg
     | SetDocumentInPhoneAsCurrent DocumentHandling Document
     | ShowTOCInPhone
     | InputSearchSource String
-    | InputText String
+    | InputText { position : Int, source : String }
     | InputTitle String
     | InputReaders String
     | InputEditors String

@@ -4,6 +4,7 @@ module Document exposing
     , DocumentId
     , DocumentInfo
     , Share(..)
+    , SourceTextRecord
     , canEditSharedDoc
     , currentAuthor
     , defaultSettings
@@ -39,6 +40,10 @@ type alias Document =
     , handling : DocumentHandling
     , tags : List String
     }
+
+
+type alias SourceTextRecord =
+    { position : Int, source : String }
 
 
 {-|

@@ -1,5 +1,6 @@
 module View.Editor exposing (view)
 
+import Document
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
@@ -56,7 +57,7 @@ htmlId str =
 
 onTextChange : Html.Attribute FrontendMsg
 onTextChange =
-    textDecoder
+    dataDecoder
         |> Json.Decode.map InputText
         |> Html.Events.on "text-change"
 
@@ -66,6 +67,19 @@ onSelectionChange =
     textDecoder
         |> Json.Decode.map SelectedText
         |> Html.Events.on "selected-text"
+
+
+dataDecoder : Json.Decode.Decoder Document.SourceTextRecord
+dataDecoder =
+    dataDecoder_
+        |> Json.Decode.at [ "detail" ]
+
+
+dataDecoder_ : Json.Decode.Decoder Document.SourceTextRecord
+dataDecoder_ =
+    Json.Decode.map2 Document.SourceTextRecord
+        (Json.Decode.field "position" Json.Decode.int)
+        (Json.Decode.field "source" Json.Decode.string)
 
 
 textDecoder : Json.Decode.Decoder String
