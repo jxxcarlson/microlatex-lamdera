@@ -63,6 +63,7 @@ view model width_ =
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
+        , dateCreated model.zone model.currentDocument
 
         --, showCurrentEditor model.currentDocument
         , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
@@ -91,6 +92,16 @@ timeElapsed model =
                 "Automatic signout in " ++ timeRemaining ++ " seconds. Type any key to cancel."
         in
         E.el [ Font.color Color.white, Background.color Color.red, E.paddingXY 8 4 ] (E.text message)
+
+
+dateCreated : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
+dateCreated zone maybeDocument =
+    case maybeDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
 backup : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
