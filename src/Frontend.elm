@@ -133,6 +133,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , seeBackups = False
       , lineNumber = 0
       , permissions = StandardHandling
       , initialText = Config.loadingText
@@ -1018,7 +1019,7 @@ updateFromBackend msg model =
         ReceivedDocuments documents_ ->
             let
                 documents =
-                    DocumentTools.sort model.sortMode documents_
+                    DocumentTools.sort model.sortMode documents_ |> filterBackups model.seeBackups
             in
             case List.head documents of
                 Nothing ->
@@ -1057,6 +1058,14 @@ updateFromBackend msg model =
 
         ChatMessageReceived message ->
             ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
+
+
+filterBackups seeBackups docs =
+    if seeBackups then
+        docs
+
+    else
+        List.filter (\doc -> doc.handling == Document.DHStandard) docs
 
 
 view : Model -> { title : String, body : List (Html.Html FrontendMsg) }

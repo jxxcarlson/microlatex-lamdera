@@ -138,6 +138,7 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , seeBackups : Bool
     , publicDocumentSearchKey : String
     , docLoaded : DocLoaded
     , documentsCreatedCounter : Int

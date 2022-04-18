@@ -506,6 +506,7 @@ searchForDocumentsByAuthorAndKey model clientId key =
     ( model, sendToFrontend clientId (ReceivedDocuments (searchForDocumentsByAuthorAndKey_ model clientId key)) )
 
 
+searchForDocumentsByAuthorAndKey_ : Model -> ClientId -> String -> List Document.Document
 searchForDocumentsByAuthorAndKey_ model clientId key =
     case String.split "/" key of
         [] ->
