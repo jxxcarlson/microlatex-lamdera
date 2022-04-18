@@ -165,7 +165,11 @@ init url key =
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
-        , sendToBackend (SearchForDocuments Nothing "system:startup")
+        , if url.path == "/" then
+            sendToBackend (SearchForDocuments Nothing "system:startup")
+
+          else
+            Cmd.none
         , Task.perform AdjustTimeZone Time.here
         , sendToBackend GetCheatSheetDocument
         ]
