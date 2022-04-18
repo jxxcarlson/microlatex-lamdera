@@ -118,7 +118,7 @@ searchTags key_ list =
         List.filter (\item -> not (String.contains "id:" (String.toLower item.title))) list
 
     else
-        List.filter (\item -> String.contains key item.tag || String.contains key (String.toLower item.title)) list
+        List.filter (\item -> not (String.contains "id:" (String.toLower item.title)) && (String.contains key item.tag || String.contains key (String.toLower item.title))) list
 
 
 viewTagDict_ : String -> List ( String, List { a | id : String, title : String } ) -> List (Element FrontendMsg)
