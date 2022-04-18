@@ -114,6 +114,14 @@ viewSharedDocs model deltaH indexShift =
         )
 
 
+filterBackups seeBackups docs =
+    if seeBackups then
+        docs
+
+    else
+        List.filter (\doc -> doc.handling == Document.DHStandard) docs
+
+
 viewShareDocuments : Maybe Document -> List ( String, Bool, Types.SharedDocument ) -> List (Element FrontendMsg)
 viewShareDocuments currentDocument shareDocumentList =
     List.map (viewSharedDocument currentDocument) shareDocumentList
@@ -155,7 +163,12 @@ viewWorkingDocs model deltaH indexShift =
                     []
 
                 Just user_ ->
-                    user_.docs |> BoundedDeque.toList |> sort
+                    let
+                        foo : BoundedDeque.BoundedDeque Document.DocumentInfo
+                        foo =
+                            user_.docs
+                    in
+                    user_.docs |> BoundedDeque.toList |> sort |> filterDocInfo model.seeBackups
 
         buttonText =
             "Working docs (" ++ String.fromInt (List.length docInfoList) ++ ")"
@@ -174,8 +187,17 @@ viewWorkingDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocInfoList model.currentDocument model.documents docInfoList
+            :: viewDocInfoList model.currentDocument model.documents (docInfoList |> filterDocInfo model.seeBackups)
         )
+
+
+filterDocInfo : Bool -> List Document.DocumentInfo -> List Document.DocumentInfo
+filterDocInfo seeBackups list =
+    if seeBackups then
+        List.filter (\item -> not (String.contains "BAK" item.title)) list
+
+    else
+        list
 
 
 viewMydocs : FrontendModel -> Int -> Int -> Element FrontendMsg
@@ -221,7 +243,7 @@ viewMydocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments HandleAsCheatSheet model.currentDocument docs
+            :: viewDocuments HandleAsCheatSheet model.currentDocument (docs |> filterBackups model.seeBackups)
         )
 
 
@@ -266,7 +288,7 @@ viewPublicDocuments model =
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
     in
-    viewDocuments StandardHandling model.currentDocument (sorter model.publicDocuments)
+    viewDocuments StandardHandling model.currentDocument (sorter (model.publicDocuments |> filterBackups model.seeBackups))
 
 
 viewDocuments : DocumentHandling -> Maybe Document -> List Document -> List (Element FrontendMsg)
