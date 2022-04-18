@@ -220,7 +220,7 @@ getHomePage model clientId username =
         Just doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
+                [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
             )
