@@ -1,6 +1,8 @@
 module Config exposing
     ( appName
     , appUrl
+    , automaticSignoutLimit
+    , automaticSignoutLimitWarning
     , backendTickSeconds
     , cheatSheetRenderedTextId
     , documentDeletedNotice
@@ -45,20 +47,42 @@ frontendTickSeconds =
             1
 
         Env.Development ->
-            60
+            1
 
 
 backendTickSeconds =
     case Env.mode of
         Env.Production ->
-            30
+            10
 
         Env.Development ->
-            30
+            10
+
+
+{-| Units = seconds
+-}
+automaticSignoutLimit =
+    case Env.mode of
+        Env.Production ->
+            3600
+
+        Env.Development ->
+            60
+
+
+{-| Units = seconds
+-}
+automaticSignoutLimitWarning =
+    case Env.mode of
+        Env.Production ->
+            3000
+
+        Env.Development ->
+            45
 
 
 maxDocSearchLimit =
-    300
+    100
 
 
 publicDocumentStartupSearchKey =
@@ -222,8 +246,12 @@ appName =
 
 
 appUrl =
-    -- "localhost/8000"
-    "https://scripta.io"
+    case Env.mode of
+        Env.Production ->
+            "https://scripta.io"
+
+        Env.Development ->
+            "localhost/8000"
 
 
 pdfServer =
@@ -232,10 +260,6 @@ pdfServer =
 
 startupHelpDocumentId =
     "kc154.dg274"
-
-
-
--- id-xk211-qw247
 
 
 helpDocumentId =

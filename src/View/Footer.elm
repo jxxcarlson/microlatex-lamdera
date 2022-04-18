@@ -1,5 +1,6 @@
 module View.Footer exposing (view)
 
+import Config
 import DateTimeUtility
 import Document exposing (Document)
 import Element as E
@@ -66,8 +67,30 @@ view model width_ =
         --, showCurrentEditor model.currentDocument
         , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
             (backup model.zone model.currentDocument)
+        , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         ]
+
+
+timeElapsed model =
+    let
+        elapsedSinceLastInteraction : Int
+        elapsedSinceLastInteraction =
+            (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000
+    in
+    if elapsedSinceLastInteraction < Config.automaticSignoutLimitWarning then
+        --E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
+        E.none
+
+    else
+        let
+            timeRemaining =
+                String.fromInt (1 + Config.automaticSignoutLimit - elapsedSinceLastInteraction)
+
+            message =
+                "Automatic signout in " ++ timeRemaining ++ " seconds. Type any key to cancel."
+        in
+        E.el [ Font.color Color.white, Background.color Color.red, E.paddingXY 8 4 ] (E.text message)
 
 
 backup : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg

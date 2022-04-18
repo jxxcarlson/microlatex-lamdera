@@ -78,6 +78,8 @@ type alias FrontendModel =
     , messages : List Message
     , currentTime : Time.Posix
     , zone : Time.Zone
+    , timeSignedIn : Time.Posix
+    , lastInteractionTime : Time.Posix
 
     -- ADMIN
     , statusReport : List String

@@ -71,6 +71,8 @@ init url key =
       , messages = [ { content = "Welcome!", status = MSWhite } ]
       , currentTime = Time.millisToPosix 0
       , zone = Time.utc
+      , timeSignedIn = Time.millisToPosix 0
+      , lastInteractionTime = Time.millisToPosix 0
 
       -- ADMIN
       , statusReport = []
@@ -213,7 +215,11 @@ update msg model =
             ( model, Cmd.none )
 
         FETick newTime ->
-            ( { model | currentTime = newTime }, Cmd.none )
+            if (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000 > Config.automaticSignoutLimit && model.currentUser /= Nothing then
+                Frontend.Update.signOut model
+
+            else
+                ( { model | currentTime = newTime }, Cmd.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Cmd.none )
@@ -1000,6 +1006,7 @@ updateFromBackend msg model =
                 , inputPassword = ""
                 , inputPasswordAgain = ""
                 , language = user.preferences.language
+                , timeSignedIn = model.currentTime
               }
             , Cmd.none
             )

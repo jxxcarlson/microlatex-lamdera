@@ -620,6 +620,7 @@ setDocumentAsCurrentAux doc permissions model =
         , inputReaders = readers
         , inputEditors = editors
         , messages = errorMessages
+        , lastInteractionTime = model.currentTime
       }
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState
@@ -1025,7 +1026,7 @@ updateKeys model keyMsg =
             else
                 model.doSync
     in
-    ( { model | pressedKeys = pressedKeys, doSync = doSync }
+    ( { model | pressedKeys = pressedKeys, doSync = doSync, lastInteractionTime = model.currentTime }
     , Cmd.none
     )
 
