@@ -58,7 +58,7 @@ backendTickSeconds =
 
 
 maxDocSearchLimit =
-    30
+    300
 
 
 publicDocumentStartupSearchKey =
