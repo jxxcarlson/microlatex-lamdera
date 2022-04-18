@@ -60,6 +60,7 @@ module View.Button exposing
     , syncLR
     , toggleActiveDocList
     , toggleAppMode
+    , toggleBackupVisibility
     , toggleChat
     , toggleCheatSheet
     , toggleDocumentList
@@ -161,6 +162,15 @@ linkStyle =
 
 
 -- UI
+
+
+toggleBackupVisibility : Bool -> Element FrontendMsg
+toggleBackupVisibility seeBackups =
+    if seeBackups then
+        buttonTemplate [] ToggleBackupVisibility "Backups visible"
+
+    else
+        buttonTemplate [] ToggleBackupVisibility "Backups hidden"
 
 
 toggleCheatSheet : Element FrontendMsg

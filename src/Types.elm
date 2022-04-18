@@ -501,6 +501,7 @@ type FrontendMsg
       -- DOCUMENT
     | ChangeLanguage
     | MakeBackup
+    | ToggleBackupVisibility
     | SetDocumentCurrent Document
     | SetDocumentCurrentViaId Document.DocumentId
     | GetPinnedDocuments

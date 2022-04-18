@@ -563,6 +563,9 @@ update msg model =
                     )
                         |> (\( m, c ) -> ( Frontend.Update.currentDocumentPostProcess newDocument m, c ))
 
+        ToggleBackupVisibility ->
+            ( { model | seeBackups = not model.seeBackups }, Cmd.none )
+
         MakeBackup ->
             case ( model.currentUser, model.currentDocument ) of
                 ( Nothing, _ ) ->

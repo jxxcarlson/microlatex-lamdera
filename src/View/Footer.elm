@@ -66,8 +66,11 @@ view model width_ =
         , dateCreated model.zone model.currentDocument
 
         --, showCurrentEditor model.currentDocument
-        , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
-            (backup model.zone model.currentDocument)
+        , E.row [ E.spacing 4 ]
+            [ View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
+                (backup model.zone model.currentDocument)
+            , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleBackupVisibility model.seeBackups)
+            ]
         , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         ]
