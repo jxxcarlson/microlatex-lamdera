@@ -80,6 +80,7 @@ viewTags model =
 
 viewTagDict model =
     let
+        dictItems : List ( k, v )
         dictItems =
             case model.tagSelection of
                 Types.TagPublic ->
@@ -115,7 +116,7 @@ searchTags key_ list =
             String.toLower key_
     in
     if key == "" then
-        list
+        List.filter (\item -> not (String.contains "id:" (String.toLower item.title))) list
 
     else
         List.filter (\item -> String.contains key item.tag || String.contains key (String.toLower item.title)) list
