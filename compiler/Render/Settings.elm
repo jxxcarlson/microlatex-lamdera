@@ -10,6 +10,7 @@ module Render.Settings exposing
     , maxHeadingFontSize
     , redColor
     , topMarginForChildren
+    , wideLeftIndentation
     , windowWidthScale
     )
 
@@ -67,6 +68,10 @@ topMarginForChildren =
 
 leftIndentation =
     Element.paddingEach { left = 18, right = 0, top = 0, bottom = 0 }
+
+
+wideLeftIndentation =
+    Element.paddingEach { left = 54, right = 0, top = 0, bottom = 0 }
 
 
 leftRightIndentation =

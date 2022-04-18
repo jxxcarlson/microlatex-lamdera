@@ -112,6 +112,7 @@ blockDict : Dict String (Int -> Accumulator -> Settings -> List String -> String
 blockDict =
     Dict.fromList
         [ ( "indent", indented )
+        , ( "quotation", quotation )
         , ( "document", document )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
@@ -216,6 +217,25 @@ renderWithDefault2 default count acc settings exprs =
 indented count acc settings _ id exprs =
     Element.paragraph ([ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         (renderWithDefault "| indent" count acc settings exprs)
+
+
+quotation count acc settings args id exprs =
+    let
+        attribution_ =
+            String.join " " args
+
+        attribution =
+            if attribution_ == "" then
+                ""
+
+            else
+                "—" ++ attribution_
+    in
+    Element.column [ Element.spacing 12 ]
+        [ Element.paragraph ([ Font.italic, Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
+            (renderWithDefault "| indent" count acc settings exprs)
+        , Element.el [ Render.Settings.wideLeftIndentation, Font.italic ] (Element.text attribution)
+        ]
 
 
 bibitem count acc settings args id exprs =

@@ -28,7 +28,9 @@ transform block =
 
             else if String.left 2 firstLine == ". " then
                 handleNumberedItem block (String.dropLeft 2 firstLine) rest_
-                --else if String.left 1 firstLine == "@" then
+
+            else if String.left 2 firstLine == "> " then
+                handleQuotation block firstLine rest_
                 --    handleOrdinaryBlock block (String.dropLeft 1 firstLine) rest_
                 --
                 --else if String.left 1 firstLine == "!" then
@@ -93,6 +95,15 @@ handleTitle block firstLine rest =
                     String.fromInt n
             in
             { block | args = [ level ], blockType = PBOrdinary, name = Just "section", content = [ first, String.join " " (List.drop 1 words) ] }
+
+
+handleQuotation block firstLine rest_ =
+    let
+        args : List String
+        args =
+            firstLine |> String.dropLeft 2 |> String.words
+    in
+    { block | args = args, blockType = PBOrdinary, name = Just "quotation" } |> Debug.log "QUOTATION"
 
 
 
