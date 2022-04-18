@@ -80,7 +80,6 @@ viewTags model =
 
 viewTagDict model =
     let
-        dictItems : List ( k, v )
         dictItems =
             case model.tagSelection of
                 Types.TagPublic ->
