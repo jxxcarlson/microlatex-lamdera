@@ -445,7 +445,7 @@ signIn model sessionId clientId username encryptedPassword =
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
-                    [ sendToFrontend clientId (ReceivedDocuments <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
+                    [ sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
                     , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
@@ -492,18 +492,18 @@ getUsersAndOnlineStatus_ authenticationDict connectionDict =
     List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
 
 
-searchForDocuments : Model -> ClientId -> Maybe String -> String -> ( Model, Cmd backendMsg )
-searchForDocuments model clientId maybeUsername key =
+searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe String -> String -> ( Model, Cmd backendMsg )
+searchForDocuments model clientId documentHandling maybeUsername key =
     ( model
     , Cmd.batch
-        [ sendToFrontend clientId (ReceivedDocuments (searchForUserDocuments maybeUsername key model))
+        [ sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername key model))
         , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
         ]
     )
 
 
 searchForDocumentsByAuthorAndKey model clientId key =
-    ( model, sendToFrontend clientId (ReceivedDocuments (searchForDocumentsByAuthorAndKey_ model clientId key)) )
+    ( model, sendToFrontend clientId (ReceivedDocuments StandardHandling (searchForDocumentsByAuthorAndKey_ model clientId key)) )
 
 
 searchForDocumentsByAuthorAndKey_ : Model -> ClientId -> String -> List Document.Document

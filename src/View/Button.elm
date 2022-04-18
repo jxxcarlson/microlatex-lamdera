@@ -111,7 +111,7 @@ buttonTemplateSmall attrList attrList2 msg label_ =
     E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ attrList)
         [ Input.button View.Style.buttonStyleSmall
             { onPress = Just msg
-            , label = E.el ([ E.centerX, E.centerY, Font.size 14, E.paddingXY 4 4 ] ++ attrList2) (E.text label_)
+            , label = E.el ([ E.centerX, E.centerY, Font.size 12, E.paddingXY 2 2 ] ++ attrList2) (E.text label_)
             }
         ]
 

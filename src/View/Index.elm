@@ -30,13 +30,13 @@ view model width_ deltaH =
             in
             E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
                 [ E.row [ E.spacing 18 ]
-                    [ E.row [ E.spacing 6, E.alignLeft ]
+                    [ E.row [ E.spacing 4, E.alignLeft ]
                         [ View.Utility.hideIf (model.currentUser == Nothing) (Button.pinnedDocs model.documentList)
                         , View.Utility.hideIf (model.currentUser == Nothing) (Button.sharedDocs model.documentList)
                         , View.Utility.hideIf (model.currentUser == Nothing) (Button.workingDocs model.documentList)
                         , Button.standardDocs model.documentList
                         ]
-                    , E.row [ E.spacing 6, E.alignRight ]
+                    , E.row [ E.spacing 4, E.alignRight ]
                         [ Button.setSortModeMostRecent model.sortMode
                         , Button.setSortModeAlpha model.sortMode
                         ]
@@ -46,7 +46,7 @@ view model width_ deltaH =
                         viewWorkingDocs model deltaH -indexShift
 
                     PinnedDocs ->
-                        viewMydocs model deltaH -indexShift
+                        viewPinnedDocs model deltaH -indexShift
 
                     StandardList ->
                         viewMydocs model deltaH -indexShift
@@ -232,6 +232,44 @@ viewMydocs model deltaH indexShift =
 
                 Just _ ->
                     "My docs" ++ searchKey ++ " (" ++ String.fromInt (List.length docs) ++ ")"
+
+        titleButton =
+            E.el [ Font.color (E.rgb 0 0 0), Font.size 16 ] (E.text buttonText)
+    in
+    E.column
+        [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
+        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , Font.size 14
+        , E.scrollbarY
+        , Background.color (E.rgb 0.95 0.95 1.0)
+        , E.paddingXY 12 18
+        , Font.color (E.rgb 0.1 0.1 1.0)
+        , E.spacing 8
+        ]
+        (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
+            :: viewDocuments HandleAsCheatSheet model.currentDocument (docs |> filterBackups model.seeBackups)
+        )
+
+
+viewPinnedDocs : FrontendModel -> Int -> Int -> Element FrontendMsg
+viewPinnedDocs model deltaH indexShift =
+    let
+        sort =
+            case model.sortMode of
+                SortAlphabetically ->
+                    List.sortBy (\doc -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." doc.title)
+
+                SortByMostRecent ->
+                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+
+        docs =
+            sort model.pinnedDocuments
+
+        searchKey =
+            "[pinned]"
+
+        buttonText =
+            "Pinned docs" ++ " (" ++ String.fromInt (List.length docs) ++ ")"
 
         titleButton =
             E.el [ Font.color (E.rgb 0 0 0), Font.size 16 ] (E.text buttonText)

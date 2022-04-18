@@ -256,8 +256,8 @@ updateFromFrontend sessionId clientId msg model =
         RunTask ->
             ( model, Cmd.none )
 
-        SearchForDocuments maybeUsername key ->
-            Backend.Update.searchForDocuments model clientId maybeUsername key
+        SearchForDocuments documentHandling maybeUsername key ->
+            Backend.Update.searchForDocuments model clientId documentHandling maybeUsername key
 
         GetStatus ->
             ( model, sendToFrontend clientId (StatusReport (statusReport model)) )

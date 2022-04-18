@@ -159,6 +159,7 @@ type alias FrontendModel =
     , currentCheatsheet : Maybe Document
     , currentMasterDocument : Maybe Document
     , documents : List Document
+    , pinnedDocuments : List Document
     , publicDocuments : List Document
     , inputSearchKey : String
     , actualSearchKey : String
@@ -613,7 +614,7 @@ type ToBackend
     | GetPublicDocuments SortMode (Maybe String)
     | SaveDocument Document
     | SearchForDocumentsWithAuthorAndKey String
-    | SearchForDocuments (Maybe String) String
+    | SearchForDocuments DocumentHandling (Maybe String) String
     | GetDocumentByPublicId String
     | GetDocumentById DocumentHandling String
     | CreateDocument (Maybe User) Document
@@ -656,7 +657,7 @@ type ToFrontend
     | AcceptPublicTags (Dict String (List { id : String, title : String }))
     | ReceivedDocument DocumentHandling Document
     | ReceivedNewDocument DocumentHandling Document
-    | ReceivedDocuments (List Document)
+    | ReceivedDocuments DocumentHandling (List Document)
     | ReceivedPublicDocuments (List Document)
     | MessageReceived Message
     | StatusReport (List String)
@@ -666,6 +667,7 @@ type ToFrontend
 
 type DocumentHandling
     = StandardHandling
+    | PinnedDocumentList
     | DelayedHandling
     | HandleAsCheatSheet
 

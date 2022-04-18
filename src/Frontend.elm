@@ -150,6 +150,7 @@ init url key =
       , publicDocumentSearchKey = Config.publicDocumentStartupSearchKey
       , authorId = ""
       , documents = []
+      , pinnedDocuments = []
       , currentDocument = Just Docs.notSignedIn
       , currentCheatsheet = Nothing
       , currentMasterDocument = Nothing
@@ -167,7 +168,7 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , if url.path == "/" then
-            sendToBackend (SearchForDocuments Nothing "system:startup")
+            sendToBackend (SearchForDocuments StandardHandling Nothing "system:startup")
 
           else
             Cmd.none
@@ -198,7 +199,7 @@ urlAction path =
                 sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
 
             "/s/" ->
-                sendToBackend (SearchForDocuments Nothing segment)
+                sendToBackend (SearchForDocuments StandardHandling Nothing segment)
 
             "/h/" ->
                 sendToBackend (GetHomePage segment)
@@ -429,7 +430,7 @@ update msg model =
                         sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
 
                     else if list == PinnedDocs then
-                        sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin")
+                        sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin")
 
                     else
                         Cmd.none
@@ -604,7 +605,7 @@ update msg model =
             Share.doShare model
 
         GetPinnedDocuments ->
-            ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin") )
+            ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin") )
 
         -- TAGS
         GetUserTags ->
@@ -664,7 +665,7 @@ update msg model =
                 , documentList = StandardList
                 , currentMasterDocument = Nothing
               }
-            , sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) model.inputSearchKey)
+            , sendToBackend (SearchForDocuments StandardHandling (model.currentUser |> Maybe.map .username) model.inputSearchKey)
             )
 
         SearchText ->
@@ -935,6 +936,9 @@ updateFromBackend msg model =
                 DelayedHandling ->
                     Frontend.Update.handleAsReceivedDocumentWithDelay model doc
 
+                PinnedDocumentList ->
+                    Frontend.Update.handleAsStandardReceivedDocument model doc
+
                 HandleAsCheatSheet ->
                     Frontend.Update.handleReceivedDocumentAsCheatsheet model doc
 
@@ -1022,7 +1026,7 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
-        ReceivedDocuments documents_ ->
+        ReceivedDocuments documentHandling documents_ ->
             let
                 documents =
                     DocumentTools.sort model.sortMode documents_
@@ -1033,7 +1037,12 @@ updateFromBackend msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
+                    case documentHandling of
+                        PinnedDocumentList ->
+                            ( { model | pinnedDocuments = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
+
+                        _ ->
+                            ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
 
         -- CHAT (updateFromBackend)
         GotChatHistory ->
