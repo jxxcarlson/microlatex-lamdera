@@ -84,7 +84,7 @@ type alias FrontendModel =
     -- ADMIN
     , statusReport : List String
     , inputSpecial : String
-    , userList : List ( String, Bool )
+    , userList : List ( String, Int )
     , connectedUsers : List String
     , sharedDocumentList : List ( String, Bool, SharedDocument )
 
@@ -636,7 +636,7 @@ type BackendMsg
 type ToFrontend
     = -- ADMIN
       SendBackupData String
-    | GotUsersWithOnlineStatus (List ( String, Bool ))
+    | GotUsersWithOnlineStatus (List ( String, Int ))
     | GotConnectionList (List String)
     | GotShareDocumentList (List ( String, Bool, SharedDocument ))
       -- USER

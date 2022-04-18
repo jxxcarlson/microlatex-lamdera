@@ -473,21 +473,21 @@ type alias UserData =
     }
 
 
-getUsersAndOnlineStatus : Model -> List ( String, Bool )
+getUsersAndOnlineStatus : Model -> List ( String, Int )
 getUsersAndOnlineStatus model =
     getUsersAndOnlineStatus_ model.authenticationDict model.connectionDict
 
 
-getUsersAndOnlineStatus_ : Authentication.AuthenticationDict -> ConnectionDict -> List ( String, Bool )
+getUsersAndOnlineStatus_ : Authentication.AuthenticationDict -> ConnectionDict -> List ( String, Int )
 getUsersAndOnlineStatus_ authenticationDict connectionDict =
     let
         isConnected username =
             case Dict.get username connectionDict of
                 Nothing ->
-                    False
+                    0
 
-                Just _ ->
-                    True
+                Just data ->
+                    List.length data
     in
     List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
 
