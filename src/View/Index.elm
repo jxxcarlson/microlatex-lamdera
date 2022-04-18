@@ -31,9 +31,10 @@ view model width_ deltaH =
             E.column [ E.spacing 8, E.paddingEach { top = 12, bottom = 0, left = 0, right = 0 } ]
                 [ E.row [ E.spacing 18 ]
                     [ E.row [ E.spacing 6, E.alignLeft ]
-                        [ Button.getPinnedDocs
-                        , Button.openSharedDocumentList model.documentList
-                        , Button.toggleDocumentList model.documentList
+                        [ View.Utility.hideIf (model.currentUser == Nothing) (Button.pinnedDocs model.documentList)
+                        , View.Utility.hideIf (model.currentUser == Nothing) (Button.sharedDocs model.documentList)
+                        , View.Utility.hideIf (model.currentUser == Nothing) (Button.workingDocs model.documentList)
+                        , Button.standardDocs model.documentList
                         ]
                     , E.row [ E.spacing 6, E.alignRight ]
                         [ Button.setSortModeMostRecent model.sortMode
@@ -43,6 +44,9 @@ view model width_ deltaH =
                 , case model.documentList of
                     WorkingList ->
                         viewWorkingDocs model deltaH -indexShift
+
+                    PinnedDocs ->
+                        viewMydocs model deltaH -indexShift
 
                     StandardList ->
                         viewMydocs model deltaH -indexShift

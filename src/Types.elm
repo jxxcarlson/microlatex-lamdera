@@ -552,6 +552,7 @@ type DocumentList
     = WorkingList
     | StandardList
     | SharedDocumentList
+    | PinnedDocs
 
 
 type SidebarExtrasState

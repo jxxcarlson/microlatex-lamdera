@@ -35,7 +35,7 @@ module View.Button exposing
     , maximizePublicDocs
     , nextSyncButton
     , openEditor
-    , openSharedDocumentList
+    , pinnedDocs
     , popupNewDocumentForm
     , printToPDF
     , reply
@@ -51,10 +51,12 @@ module View.Button exposing
     , setSortModeMostRecent
     , setUserLanguage
     , share
+    , sharedDocs
     , showTOCInPhone
     , signIn
     , signOut
     , signUp
+    , standardDocs
     , startupHelp
     , syncButton
     , syncLR
@@ -63,13 +65,13 @@ module View.Button exposing
     , toggleBackupVisibility
     , toggleChat
     , toggleCheatSheet
-    , toggleDocumentList
     , toggleEditor
     , toggleExtrasSidebar
     , toggleLock
     , togglePublic
     , toggleTagsSidebar
     , unlock
+    , workingDocs
     )
 
 import Compiler.Util
@@ -410,14 +412,6 @@ setSortModeMostRecent sortMode =
     buttonTemplateSmall [ bg ] [] (SetSortMode SortByMostRecent) "Recent"
 
 
-openSharedDocumentList currentDocumentList =
-    if currentDocumentList == SharedDocumentList then
-        buttonTemplateSmall [ Background.color darkRed ] [] (SelectList SharedDocumentList) "Shared"
-
-    else
-        buttonTemplateSmall [ Background.color charcoal ] [] (SelectList SharedDocumentList) "Shared"
-
-
 
 -- [ Background.color (E.rgb 0.4 0.4 0.4) ] [ Font.color (E.rgb 0.7 0.7 0.7) ]
 
@@ -430,16 +424,40 @@ charcoal =
     E.rgb 0.3 0.3 0.3
 
 
-toggleDocumentList currentDocumentList =
-    case currentDocumentList of
-        WorkingList ->
-            buttonTemplateSmall [ Background.color darkRed ] [] (SelectList StandardList) "Work "
+workingDocs currentDocumentList =
+    if currentDocumentList == WorkingList then
+        buttonTemplateSmall [ Background.color darkRed ] [] FENoOp "Work "
 
-        StandardList ->
-            buttonTemplateSmall [ Background.color darkRed ] [] (SelectList WorkingList) "Docs"
+    else
+        buttonTemplateSmall [] [] (SelectList WorkingList) "Work "
 
-        SharedDocumentList ->
-            buttonTemplateSmall [ Background.color charcoal ] [] (SelectList StandardList) "Docs"
+
+standardDocs currentDocumentList =
+    if currentDocumentList == StandardList then
+        buttonTemplateSmall [ Background.color darkRed ] [] FENoOp "Docs "
+
+    else
+        buttonTemplateSmall [] [] (SelectList StandardList) "Docs "
+
+
+pinnedDocs currentDocumentList =
+    if currentDocumentList == PinnedDocs then
+        buttonTemplateSmall [ Background.color darkRed ] [] FENoOp (String.fromChar '📌')
+
+    else
+        buttonTemplateSmall [] [] (SelectList PinnedDocs) (String.fromChar '📌')
+
+
+getPinnedDocs =
+    buttonTemplateSmall [] [] GetPinnedDocuments (String.fromChar '📌')
+
+
+sharedDocs currentDocumentList =
+    if currentDocumentList == SharedDocumentList then
+        buttonTemplateSmall [ Background.color darkRed ] [] (SelectList SharedDocumentList) "Shared"
+
+    else
+        buttonTemplateSmall [ Background.color charcoal ] [] (SelectList SharedDocumentList) "Shared"
 
 
 
@@ -585,10 +603,6 @@ sendUnlockMessage_ doc currentUser =
             }
     in
     buttonTemplateSmall [] [] (SendUserMessage message) "Ask to unlock"
-
-
-getPinnedDocs =
-    buttonTemplateSmall [] [] GetPinnedDocuments (String.fromChar '📌')
 
 
 clearConnectionDict =

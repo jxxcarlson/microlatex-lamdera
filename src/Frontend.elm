@@ -428,10 +428,13 @@ update msg model =
                     if list == SharedDocumentList then
                         sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
 
+                    else if list == PinnedDocs then
+                        sendToBackend (SearchForDocuments (model.currentUser |> Maybe.map .username) "pin")
+
                     else
                         Cmd.none
             in
-            ( { model | documentList = list }, cmd )
+            ( { model | lastInteractionTime = model.currentTime, documentList = list }, cmd )
 
         ChangePopup popupState ->
             ( { model | popupState = popupState }, Cmd.none )
