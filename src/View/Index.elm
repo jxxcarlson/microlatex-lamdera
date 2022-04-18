@@ -216,7 +216,7 @@ viewMydocs model deltaH indexShift =
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
 
         docs =
-            sort model.documents
+            sort model.documents |> filterBackups model.seeBackups
 
         searchKey =
             if model.actualSearchKey == "" then
@@ -247,7 +247,7 @@ viewMydocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments HandleAsCheatSheet model.currentDocument (docs |> filterBackups model.seeBackups)
+            :: viewDocuments HandleAsCheatSheet model.currentDocument docs
         )
 
 
@@ -263,7 +263,7 @@ viewPinnedDocs model deltaH indexShift =
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
 
         docs =
-            sort model.pinnedDocuments
+            sort model.pinnedDocuments |> filterBackups model.seeBackups
 
         searchKey =
             "[pinned]"
@@ -285,7 +285,7 @@ viewPinnedDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments HandleAsCheatSheet model.currentDocument (docs |> filterBackups model.seeBackups)
+            :: viewDocuments HandleAsCheatSheet model.currentDocument docs
         )
 
 
