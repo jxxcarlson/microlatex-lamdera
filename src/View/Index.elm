@@ -194,10 +194,10 @@ viewWorkingDocs model deltaH indexShift =
 filterDocInfo : Bool -> List Document.DocumentInfo -> List Document.DocumentInfo
 filterDocInfo seeBackups list =
     if seeBackups then
-        List.filter (\item -> not (String.contains "BAK" item.title)) list
+        list
 
     else
-        list
+        List.filter (\item -> not (String.contains "BAK" item.title)) list
 
 
 viewMydocs : FrontendModel -> Int -> Int -> Element FrontendMsg
