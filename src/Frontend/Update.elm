@@ -117,7 +117,8 @@ handleAsStandardReceivedDocument model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+      --, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
     )
 
 
