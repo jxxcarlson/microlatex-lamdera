@@ -222,7 +222,7 @@ update msg model =
 
         FETick newTime ->
             if (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000 > Config.automaticSignoutLimit && model.currentUser /= Nothing then
-                Frontend.Update.signOut model
+                Frontend.Update.signOut { model | messages = [ { content = "Signed out due to inactivity", status = MSYellow } ] }
 
             else
                 ( { model | currentTime = newTime }, Cmd.none )

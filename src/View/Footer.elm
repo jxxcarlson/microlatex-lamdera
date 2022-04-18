@@ -83,8 +83,7 @@ timeElapsed model =
             (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000
     in
     if elapsedSinceLastInteraction < Config.automaticSignoutLimitWarning then
-        --E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
-        E.none
+        E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
 
     else
         let

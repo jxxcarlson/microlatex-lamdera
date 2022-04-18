@@ -47,7 +47,7 @@ frontendTickSeconds =
             1
 
         Env.Development ->
-            20
+            1
 
 
 backendTickSeconds =
@@ -68,7 +68,7 @@ automaticSignoutLimit =
             3600
 
         Env.Development ->
-            3600
+            45
 
 
 {-| Units = seconds
@@ -80,7 +80,7 @@ automaticSignoutLimitWarning =
             3000
 
         Env.Development ->
-            3000
+            30
 
 
 maxDocSearchLimit =
