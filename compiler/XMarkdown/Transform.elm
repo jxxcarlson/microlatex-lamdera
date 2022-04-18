@@ -103,7 +103,7 @@ handleQuotation block firstLine rest_ =
         args =
             firstLine |> String.dropLeft 2 |> String.words
     in
-    { block | args = args, blockType = PBOrdinary, name = Just "quotation" } |> Debug.log "QUOTATION"
+    { block | args = args, blockType = PBOrdinary, name = Just "quotation" }
 
 
 
