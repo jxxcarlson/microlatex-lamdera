@@ -5,6 +5,7 @@ module Config exposing
     , automaticSignoutLimitWarning
     , backendTickSeconds
     , cheatSheetRenderedTextId
+    , debounceSaveDocumentInterval
     , documentDeletedNotice
     , frontendTickSeconds
     , helpDocumentId
@@ -30,6 +31,13 @@ module Config exposing
 
 import Env
 import Parser.Language
+
+
+{-| Now set at 3 seconds, up from 0.3 seconds before
+-}
+debounceSaveDocumentInterval : Float
+debounceSaveDocumentInterval =
+    3000
 
 
 welcomeDocId =

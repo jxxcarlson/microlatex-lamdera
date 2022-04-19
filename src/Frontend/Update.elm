@@ -331,11 +331,6 @@ searchText model =
     ( { model | selectedId = id, searchCount = model.searchCount + 1, messages = [ { content = "ids: " ++ String.join ", " ids, status = MSWhite } ] }, cmd )
 
 
-save : String -> Cmd FrontendMsg
-save s =
-    Task.perform Saved (Task.succeed s)
-
-
 inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
 
@@ -381,6 +376,20 @@ inputText_ model str =
     )
 
 
+{-| Here is where documents get saved. This is done
+at present every 300 milliseconds. Here is the path:
+
+  - Frontend.Update.save
+  - perform the task Saved in Frontend
+  - this just makes the call 'Frontend.updateDoc model str'
+  - which calls 'Frontend.updateDoc\_ model str'
+  - which issues the command 'sendToBackend (SaveDocument newDocument)'
+  - which call 'Backend.Update.saveDocument model document'
+  - which update the documentDict with `Dict.insert document.id { document | modified = model.currentTime } model.documentDict`
+
+This is way too complicated!
+
+-}
 debounceMsg model msg_ =
     let
         ( debounce, cmd ) =
@@ -395,9 +404,14 @@ debounceMsg model msg_ =
     )
 
 
+save : String -> Cmd FrontendMsg
+save s =
+    Task.perform Saved (Task.succeed s)
+
+
 debounceConfig : Debounce.Config FrontendMsg
 debounceConfig =
-    { strategy = Debounce.soon 300
+    { strategy = Debounce.soon Config.debounceSaveDocumentInterval
     , transform = DebounceMsg
     }
 
