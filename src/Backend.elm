@@ -424,7 +424,11 @@ getAbstract documentDict id =
             Abstract.empty
 
         Just doc ->
-            Abstract.get doc.author doc.language doc.content
+            let
+                abstr =
+                    Abstract.get doc.author doc.language doc.content
+            in
+            { abstr | digest = abstr.digest ++ " " ++ doc.id }
 
 
 searchInAbstract : String -> Abstract -> Bool
