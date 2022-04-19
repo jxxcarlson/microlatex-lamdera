@@ -2,6 +2,7 @@ module Util exposing
     ( currentUsername
     , delay
     , insertInListOrUpdate
+    , liftToMaybe
     , updateDocumentInList
     )
 
@@ -10,6 +11,16 @@ import List.Extra
 import Process
 import Task
 import User
+
+
+liftToMaybe : (a -> b) -> (Maybe a -> Maybe b)
+liftToMaybe f ma =
+    case ma of
+        Nothing ->
+            Nothing
+
+        Just a ->
+            Just (f a)
 
 
 currentUsername : Maybe User.User -> String

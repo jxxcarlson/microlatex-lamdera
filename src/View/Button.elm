@@ -478,7 +478,7 @@ exportToMarkown =
 
 exportToLaTeX : Element FrontendMsg
 exportToLaTeX =
-    buttonTemplate [] ExportToLaTeX "Export to LaTeX"
+    buttonTemplate [] ExportToLaTeX "Export"
 
 
 export : Element FrontendMsg
@@ -889,7 +889,3 @@ toggleAppMode model =
 
         AdminMode ->
             buttonTemplate [] (SetAppMode UserMode) "User Mode"
-
-
-
--- buttonTemplateSmall [ Font.size 12, fg, Background.color (E.rgb 0.3 0.3 0.3) ] (SetDocumentAsCurrent document) document.title

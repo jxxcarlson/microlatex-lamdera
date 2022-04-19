@@ -351,6 +351,7 @@ inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
 inputText_ model str =
     let
         -- Push your values here.
+        -- This is how we throttle saving the document
         ( debounce, cmd ) =
             Debounce.push debounceConfig str model.debounce
     in
@@ -384,8 +385,8 @@ at present every 300 milliseconds. Here is the path:
   - this just makes the call 'Frontend.updateDoc model str'
   - which calls 'Frontend.updateDoc\_ model str'
   - which issues the command 'sendToBackend (SaveDocument newDocument)'
-  - which call 'Backend.Update.saveDocument model document'
-  - which update the documentDict with `Dict.insert document.id { document | modified = model.currentTime } model.documentDict`
+  - which calls 'Backend.Update.saveDocument model document'
+  - which updates the documentDict with `Dict.insert document.id { document | modified = model.currentTime } model.documentDict`
 
 This is way too complicated!
 
@@ -639,35 +640,8 @@ shouldMakeRequest mUser doc showEditor =
         || View.Utility.iOwnThisDocument mUser doc
 
 
-
--- && showEditor
-
-
-batch =
-    \( m, cmds ) -> ( m, Cmd.batch cmds )
-
-
-
--- SET DOCUMENT AS CURRENT
-
-
-setDocumentAsCurrent : FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrent model doc permissions =
-    if model.showEditor then
-        -- if we are not in the editor, unlock the previous current document if need be
-        -- and loc the new document (doc)
-        -- model |> join unlockCurrentDocument (setDocumentAsCurrentAux doc permissions)
-        model |> setDocumentAsCurrentAux doc permissions
-
-    else
-        -- if we are not in the editor, refresh the document so as
-        -- to be looking at the most recent copy
-        -- model |> join (\m -> ( m, requestRefreshCmd doc.id m )) (setDocumentAsCurrentAux doc permissions)
-        setDocumentAsCurrentAux doc permissions model
-
-
-setDocumentAsCurrentAux : Document.Document -> DocumentHandling -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrentAux doc permissions model =
+setDocumentAsCurrent : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent cmd model doc permissions =
     let
         -- For now, loc the doc in all cases
         currentUserName_ : String
@@ -715,6 +689,7 @@ setDocumentAsCurrentAux doc permissions model =
       }
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState
+        , cmd
         , sendToBackend (SaveDocument doc)
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
 

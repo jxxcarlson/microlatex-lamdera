@@ -53,6 +53,7 @@ import Time
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
+import Util
 import View.Utility
 
 
@@ -258,13 +259,20 @@ fetchDocumentById model clientId docId documentHandling =
             )
 
 
-saveDocument model document =
+saveDocument model clientId document =
     -- TODO: review this for safety
     let
-        documentDict =
-            Dict.insert document.id { document | modified = model.currentTime } model.documentDict
+        updateDoc : Document.Document -> Document.Document
+        updateDoc =
+            \d -> { document | modified = model.currentTime }
+
+        mUpdateDoc =
+            Util.liftToMaybe updateDoc
+
+        updateDocumentDict2 doc dict =
+            Dict.update doc.id mUpdateDoc dict
     in
-    ( { model | documentDict = documentDict }, Cmd.none )
+    ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { content = "saved: " ++ document.title, status = MSRed }) )
 
 
 createDocument model clientId maybeCurrentUser doc_ =

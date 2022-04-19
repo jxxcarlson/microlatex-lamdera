@@ -589,9 +589,6 @@ update msg model =
                     else
                         ( model, Cmd.none )
 
-        SetDocumentCurrent document ->
-            Frontend.Update.setDocumentAsCurrent model document HandleAsCheatSheet
-
         InputReaders str ->
             ( { model | inputReaders = str }, Cmd.none )
 
@@ -657,6 +654,7 @@ update msg model =
             Frontend.Update.debounceMsg model msg_
 
         Saved str ->
+            -- TODO
             updateDoc model str
 
         Search ->
@@ -707,8 +705,42 @@ update msg model =
         SetPublicDocumentAsCurrentById id ->
             Frontend.Update.setPublicDocumentAsCurrentById model id
 
-        SetDocumentAsCurrent permissions doc ->
-            Frontend.Update.setDocumentAsCurrent model doc permissions
+        SetDocumentCurrent document ->
+            case model.currentDocument of
+                Nothing ->
+                    Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
+
+                Just doc ->
+                    let
+                        _ =
+                            Debug.log "!! (3, SetDocumentCurrent)" doc.title
+                    in
+                    -- save the current document in case it has unsaved changes
+                    -- and then set document as current
+                    Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
+
+        -- Handles button clicks
+        SetDocumentAsCurrent handling document ->
+            let
+                _ =
+                    Debug.log "!! (1, SetDocumentAsCurrent )" document.title
+
+                _ =
+                    Debug.log "!! (1, sourceText)" model.sourceText
+            in
+            case model.currentDocument of
+                Nothing ->
+                    Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
+
+                Just theDoc ->
+                    let
+                        updatedDoc =
+                            { theDoc | content = model.sourceText } |> Debug.log "!! updatedDoc"
+
+                        newModel =
+                            { model | documents = Util.updateDocumentInList updatedDoc model.documents }
+                    in
+                    Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document handling
 
         SetDocumentCurrentViaId id ->
             case Document.documentFromListViaId id model.documents of
@@ -827,6 +859,9 @@ updateDoc model str =
 
 updateDoc_ model doc str =
     let
+        _ =
+            Debug.log "!! (2, updateDoc_)" doc.title
+
         provisionalTitle : String
         provisionalTitle =
             Compiler.ASTTools.title model.editRecord.parsed

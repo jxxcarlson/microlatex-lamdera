@@ -286,7 +286,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
         SaveDocument document ->
-            Backend.Update.saveDocument model document
+            Backend.Update.saveDocument model clientId document
 
         GetCheatSheetDocument ->
             Backend.Update.fetchDocumentById model clientId Config.l0CheetsheetId Types.HandleAsCheatSheet

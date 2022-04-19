@@ -26,7 +26,7 @@ view model width_ =
                 605
     in
     E.row
-        [ E.spacing 12
+        [ E.spacing 1
         , E.paddingXY 0 8
         , E.height (E.px 35)
         , Background.color Color.black
@@ -51,8 +51,10 @@ view model width_ =
         ]
         [ -- Button.syncButton
           Button.nextSyncButton model.foundIds
-        , Button.exportToLaTeX
-        , Button.printToPDF model
+        , E.row [ E.spacing 1 ]
+            [ Button.exportToLaTeX
+            , Button.printToPDF model
+            ]
 
         --, Button.exportToMicroLaTeX
         --, Button.exportToXMarkdown

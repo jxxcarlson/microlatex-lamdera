@@ -37,7 +37,7 @@ import Parser.Language
 -}
 debounceSaveDocumentInterval : Float
 debounceSaveDocumentInterval =
-    3000
+    15000
 
 
 welcomeDocId =
