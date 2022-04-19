@@ -1014,7 +1014,7 @@ signOut model =
     in
     ( { model
         | currentUser = Nothing
-        , currentDocument = Nothing
+        , currentDocument = Just Docs.simpleWelcomeDoc
         , currentMasterDocument = Nothing
         , documents = []
         , messages = [ { content = "Signed out", status = MSWhite } ]

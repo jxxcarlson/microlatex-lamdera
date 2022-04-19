@@ -1080,13 +1080,12 @@ updateFromBackend msg model =
                     case documentHandling of
                         PinnedDocumentList ->
                             ( { model | pinnedDocuments = documents, currentDocument = Just doc }
-                            , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
+                            , Cmd.none
+                              -- TODO: ??, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
                             )
 
                         _ ->
-                            ( { model | documents = documents, currentDocument = Just doc }
-                              -- TODO: ???
-                              -- , Cmd.batch [ Frontend.Update.preserveCurrentDocument model, Util.delay 40 (SetDocumentCurrent doc) ]
+                            ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.currentDocumentPostProcess doc
                             , Cmd.none
                             )
 

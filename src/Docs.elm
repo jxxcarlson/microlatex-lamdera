@@ -1,4 +1,4 @@
-module Docs exposing (deleted, docsNotFound, notSignedIn)
+module Docs exposing (deleted, docsNotFound, notSignedIn, simpleWelcomeDoc)
 
 import Document exposing (Document, empty)
 import View.Data
@@ -48,4 +48,22 @@ docsNotFoundText =
 [i  Sorry, could not find your documents]
 
 [i To create a document, press the [b New] button above, on left.]
+"""
+
+
+simpleWelcomeDoc =
+    let
+        emptyDoc =
+            Document.empty
+    in
+    { emptyDoc | content = simpleWelcomeText, id = "simpleWelcomeDoc" }
+
+
+simpleWelcomeText =
+    """
+| title
+Welcome to Scripta.io!
+
+
+[image https://news.wttw.com/sites/default/files/styles/full/public/field/image/CardinalSnowtlparadisPixabayCrop.jpg?itok=iyp0zGMz]
 """
