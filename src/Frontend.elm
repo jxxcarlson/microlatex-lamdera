@@ -231,7 +231,11 @@ update msg model =
             --    Frontend.Update.signOut { model | messages = [ { content = "Signed out due to inactivity", status = MSYellow } ] }
             --
             --else
-            ( { model | currentTime = newTime }, Cmd.none )
+            if model.lastInteractionTime == Time.millisToPosix 0 then
+                ( { model | currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
+
+            else
+                ( { model | currentTime = newTime }, Cmd.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Cmd.none )
