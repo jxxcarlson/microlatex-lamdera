@@ -776,7 +776,7 @@ setDocumentAsCurrent docPermissions currentDocument document =
                     ( Font.color (E.rgb 0.7 0.4 0.4), Font.regular )
 
                 else
-                    ( Font.color (E.rgb 0.7 0 0), Font.bold )
+                    ( Font.color (E.rgb 0.7 0 0), Font.semiBold )
 
             else if document.status == Document.DSSoftDelete then
                 ( Font.color (E.rgb 0.5 0.5 0.5), Font.light )
