@@ -259,12 +259,9 @@ answer count acc settings args id exprs =
     let
         title =
             String.join " " (List.drop 1 args)
-
-        label =
-            List.take 1 args |> String.join ""
     in
     Element.column [ Element.spacing 12, Element.paddingEach { top = 0, bottom = 24, left = 0, right = 0 } ]
-        [ Element.el [ Font.bold, Events.onClick (ProposeSolution (Render.Msg.Solved id)) ] (Element.text (title ++ " " ++ label))
+        [ Element.el [ Font.bold, Events.onClick (ProposeSolution (Render.Msg.Solved id)) ] (Element.text title)
         , if settings.selectedId == id then
             Element.el [ Events.onClick (ProposeSolution Render.Msg.Unsolved) ]
                 (Element.paragraph ([ Font.italic, Render.Utility.elementAttribute "id" id, Element.paddingXY 8 8 ] ++ highlightAttrs id settings)
