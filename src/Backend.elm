@@ -315,8 +315,8 @@ updateFromFrontend sessionId clientId msg model =
             --( { model | sharedDocumentDict = Share.createShareDocumentDict model.documentDict }, Cmd.none )
             ( model, Cmd.none )
 
-        DeleteDocumentBE doc ->
-            Backend.Update.deleteDocument clientId doc model
+        HardDeleteDocumentBE doc ->
+            Backend.Update.hardDeleteDocument clientId doc model
 
 
 makeLink : String -> DocumentDict -> AbstractDict -> Maybe DocumentLink

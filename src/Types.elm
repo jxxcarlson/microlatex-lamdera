@@ -18,6 +18,7 @@ module Types exposing
     , DocumentDeleteState(..)
     , DocumentDict
     , DocumentHandling(..)
+    , DocumentHardDeleteState(..)
     , DocumentLink
     , DocumentList(..)
     , FailureAction(..)
@@ -138,6 +139,7 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , documentDirty : Bool
     , seeBackups : Bool
     , publicDocumentSearchKey : String
     , docLoaded : DocLoaded
@@ -170,6 +172,7 @@ type alias FrontendModel =
     , documentDeleteState : DocumentDeleteState
     , counter : Int
     , deleteDocumentState : DocumentDeleteState
+    , hardDeleteDocumentState : DocumentHardDeleteState
     , sortMode : SortMode
     , language : Language
     }
@@ -529,8 +532,10 @@ type FrontendMsg
     | SetPublic Document Bool
     | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId
-    | DeleteDocument
+    | SoftDeleteDocument
+    | HardDeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
+    | SetHardDeleteDocumentState DocumentHardDeleteState
     | SetSortMode SortMode
     | SelectList DocumentList
     | GetUserTags
@@ -577,6 +582,11 @@ type DocumentDeleteState
     | CanDelete
 
 
+type DocumentHardDeleteState
+    = WaitingForHardDeleteAction
+    | CanHardDelete
+
+
 type SearchTerm
     = Query String
 
@@ -619,7 +629,7 @@ type ToBackend
     | GetDocumentById DocumentHandling String
     | CreateDocument (Maybe User) Document
     | ApplySpecial User String
-    | DeleteDocumentBE Document
+    | HardDeleteDocumentBE Document
     | GetUserTagsFromBE String
     | GetPublicTagsFromBE
 

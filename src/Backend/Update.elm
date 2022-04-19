@@ -2,7 +2,6 @@ module Backend.Update exposing
     ( applySpecial
     , authorTags
     , createDocument
-    , deleteDocument
     , fetchDocumentById
     , getConnectedUsers
     , getConnectionData
@@ -16,6 +15,7 @@ module Backend.Update exposing
     , getUsersAndOnlineStatus
     , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
+    , hardDeleteDocument
     , insertDocument
     , publicTags
     , removeSessionClient
@@ -181,7 +181,7 @@ getDocumentByCmdId model clientId id =
 
         Just doc ->
             Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
+                [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
                 , sendToFrontend clientId (SetShowEditor False)
                 ]
 
@@ -203,7 +203,7 @@ getDocumentByAuthorId model clientId authorId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
+                        [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -240,7 +240,7 @@ getDocumentByPublicId model clientId publicId =
                 Just doc ->
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument HandleAsCheatSheet doc)
+                        [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
                         , sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
@@ -332,7 +332,7 @@ createDocument model clientId maybeCurrentUser doc_ =
         , usersDocumentsDict = usersDocumentsDict
     }
         |> Cmd.Extra.withCmds
-            [ sendToFrontend clientId (ReceivedNewDocument HandleAsCheatSheet doc)
+            [ sendToFrontend clientId (ReceivedNewDocument StandardHandling doc)
             ]
 
 
@@ -453,8 +453,10 @@ signIn model sessionId clientId username encryptedPassword =
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
-                    [ sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
-                    , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
+                    [ -- TODO: restore the below
+                      sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
+
+                    --, sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
                     , sendToFrontend clientId (UserSignedUp userData.user)
                     , sendToFrontend clientId (MessageReceived <| { content = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , sendToFrontend clientId (GotChatGroup chatGroup)
@@ -503,11 +505,19 @@ getUsersAndOnlineStatus_ authenticationDict connectionDict =
 searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe String -> String -> ( Model, Cmd backendMsg )
 searchForDocuments model clientId documentHandling maybeUsername key =
     ( model
-    , Cmd.batch
-        [ sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername key model))
-        , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
-        ]
+    , if String.contains ":user" key then
+        sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername (stripKey ":user" key) model))
+
+      else
+        Cmd.batch
+            [ sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername key model))
+            , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
+            ]
     )
+
+
+stripKey str key =
+    String.replace str key "" |> String.trim
 
 
 searchForDocumentsByAuthorAndKey model clientId key =
@@ -648,8 +658,8 @@ searchForUserDocuments maybeUsername key model =
 -- SYSTEM
 
 
-deleteDocument : ClientId -> Document.Document -> Model -> ( Model, Cmd msg )
-deleteDocument clientId doc model =
+hardDeleteDocument : ClientId -> Document.Document -> Model -> ( Model, Cmd msg )
+hardDeleteDocument clientId doc model =
     let
         documentDict =
             Dict.remove doc.id model.documentDict

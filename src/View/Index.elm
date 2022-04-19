@@ -247,7 +247,7 @@ viewMydocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments HandleAsCheatSheet model.currentDocument docs
+            :: viewDocuments StandardHandling model.currentDocument docs
         )
 
 
@@ -266,7 +266,7 @@ viewPinnedDocs model deltaH indexShift =
             sort model.pinnedDocuments |> filterBackups model.seeBackups
 
         searchKey =
-            "[pinned]"
+            "[pin]"
 
         buttonText =
             "Pinned docs" ++ " (" ++ String.fromInt (List.length docs) ++ ")"
@@ -285,7 +285,7 @@ viewPinnedDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments HandleAsCheatSheet model.currentDocument docs
+            :: viewDocuments StandardHandling model.currentDocument docs
         )
 
 

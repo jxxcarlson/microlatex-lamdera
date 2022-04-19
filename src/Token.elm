@@ -1,13 +1,23 @@
 module Token exposing (get)
 
-import Random
+import Random exposing (Seed, initialSeed, step)
 import Random.Char
 import Random.Int
 import Random.String
+import Uuid
 
 
 get : Random.Seed -> { token : String, seed : Random.Seed }
 get seed_ =
+    let
+        ( newUuid, newSeed ) =
+            step Uuid.uuidGenerator seed_
+    in
+    { token = Uuid.toString newUuid, seed = newSeed }
+
+
+getOld : Random.Seed -> { token : String, seed : Random.Seed }
+getOld seed_ =
     let
         { words, seed } =
             randomWords seed_ 2 6

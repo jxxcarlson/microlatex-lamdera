@@ -8,7 +8,6 @@ module View.Button exposing
     , closeEditor
     , createChatGroup
     , createDocument
-    , deleteDocument
     , dismissPopup
     , dismissUserMessage
     , doShare
@@ -23,6 +22,7 @@ module View.Button exposing
     , getPublicTags
     , getUserList
     , getUserTags
+    , hardDeleteDocument
     , help
     , home
     , iLink
@@ -56,6 +56,7 @@ module View.Button exposing
     , signIn
     , signOut
     , signUp
+    , softDeleteDocument
     , standardDocs
     , startupHelp
     , syncButton
@@ -84,7 +85,7 @@ import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
 import String.Extra
-import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentHandling, DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..))
+import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentHandling, DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
 import Util
 import View.Color as Color
@@ -290,8 +291,8 @@ doShare =
     buttonTemplate [] DoShare "Update"
 
 
-deleteDocument : FrontendModel -> Element FrontendMsg
-deleteDocument model =
+softDeleteDocument : FrontendModel -> Element FrontendMsg
+softDeleteDocument model =
     let
         authorName : Maybe String
         authorName =
@@ -321,13 +322,53 @@ deleteDocument model =
         E.none
 
 
+hardDeleteDocument : FrontendModel -> Element FrontendMsg
+hardDeleteDocument model =
+    let
+        authorName : Maybe String
+        authorName =
+            Maybe.andThen .author model.currentDocument
+
+        userName : Maybe String
+        userName =
+            Maybe.map .username model.currentUser
+    in
+    if userName /= Nothing && authorName == userName then
+        case model.currentDocument of
+            Nothing ->
+                E.none
+
+            Just doc ->
+                case doc.status of
+                    Document.DSSoftDelete ->
+                        hardDelete "Hard delete" model
+
+                    Document.DSNormal ->
+                        E.none
+
+                    Document.DSReadOnly ->
+                        E.none
+
+    else
+        E.none
+
+
+hardDelete title model =
+    case model.hardDeleteDocumentState of
+        WaitingForHardDeleteAction ->
+            buttonTemplate [] (SetHardDeleteDocumentState CanHardDelete) title
+
+        CanHardDelete ->
+            buttonTemplate [ Background.color (E.rgb 0.8 0 0) ] HardDeleteDocument "Sure?"
+
+
 deleteDocument_ title model =
     case model.deleteDocumentState of
         WaitingForDeleteAction ->
             buttonTemplate [] (SetDeleteDocumentState CanDelete) title
 
         CanDelete ->
-            buttonTemplate [ Background.color (E.rgb 0.8 0 0) ] DeleteDocument "Sure?"
+            buttonTemplate [ Background.color (E.rgb 0.8 0 0) ] SoftDeleteDocument "Sure?"
 
 
 cancelDeleteDocument model =

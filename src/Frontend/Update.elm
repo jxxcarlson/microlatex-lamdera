@@ -15,6 +15,7 @@ module Frontend.Update exposing
     , handleSignIn
     , handleSignUp
     , handleUrlRequest
+    , hardDeleteDocument
     , inputText
     , inputTitle
     , isMaster
@@ -23,8 +24,11 @@ module Frontend.Update exposing
     , newDocument
     , nextSyncLR
     , openEditor
+    , preserveCurrentDocument
     , render
     , runSpecial
+    , saveCurrentDocumentToBackend
+    , saveDocumentToBackend
     , searchText
     , setDocumentAsCurrent
     , setDocumentInPhoneAsCurrent
@@ -106,6 +110,18 @@ handleAsStandardReceivedDocument model doc =
 
             else
                 model.currentMasterDocument
+
+        savePreviousCurrentDocumentCmd =
+            case model.currentDocument of
+                Nothing ->
+                    Cmd.none
+
+                Just previousDoc ->
+                    let
+                        previousDoc2 =
+                            { previousDoc | content = model.sourceText }
+                    in
+                    sendToBackend (SaveDocument previousDoc2)
     in
     ( { model
         | editRecord = editRecord
@@ -119,7 +135,7 @@ handleAsStandardReceivedDocument model doc =
         , counter = model.counter + 1
       }
       --, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
-    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    , Cmd.batch [ savePreviousCurrentDocumentCmd, Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
     )
 
 
@@ -299,10 +315,10 @@ hardDeleteDocument model =
             ( { model
                 | currentDocument = Just Docs.deleted
                 , documents = List.filter (\d -> d.id /= doc.id) model.documents
-                , deleteDocumentState = WaitingForDeleteAction
+                , hardDeleteDocumentState = Types.WaitingForHardDeleteAction
                 , currentUser = newUser
               }
-            , Cmd.batch [ sendToBackend (DeleteDocumentBE doc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            , Cmd.batch [ sendToBackend (HardDeleteDocumentBE doc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
 
@@ -372,6 +388,7 @@ inputText_ model str =
         , messages = [ { content = String.join ", " messages, status = MSYellow } ]
         , debounce = debounce
         , counter = model.counter + 1
+        , documentDirty = True
       }
     , cmd
     )
@@ -714,6 +731,25 @@ changeLanguage model =
                 |> (\( m, c ) -> ( currentDocumentPostProcess newDoc m, c ))
 
 
+saveDocument : Maybe Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+saveDocument mDoc model =
+    case mDoc of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc ->
+            ( { model | documentDirty = False }, sendToBackend (SaveDocument doc) )
+
+
+joinF : ( FrontendModel, Cmd FrontendMsg ) -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg )) -> ( FrontendModel, Cmd FrontendMsg )
+joinF ( model1, cmd1 ) f =
+    let
+        ( model2, cmd2 ) =
+            f model1
+    in
+    ( model2, Cmd.batch [ cmd1, cmd2 ] )
+
+
 currentDocumentPostProcess : Document.Document -> FrontendModel -> FrontendModel
 currentDocumentPostProcess doc model =
     let
@@ -927,7 +963,7 @@ setPermissions currentUser permissions document =
 
         Just author ->
             if Just author == Maybe.map .username currentUser then
-                HandleAsCheatSheet
+                StandardHandling
 
             else
                 permissions
@@ -1157,6 +1193,34 @@ newDocument model =
 updateCurrentDocument : Document -> FrontendModel -> FrontendModel
 updateCurrentDocument doc model =
     { model | currentDocument = Just doc }
+
+
+
+-- SAVE DOCUMENT TOOLS
+
+
+preserveCurrentDocument model =
+    case model.currentDocument of
+        Nothing ->
+            Cmd.none
+
+        Just doc ->
+            saveDocumentToBackend { doc | content = model.sourceText }
+
+
+saveDocumentToBackend : Document.Document -> Cmd FrontendMsg
+saveDocumentToBackend doc =
+    sendToBackend (SaveDocument doc)
+
+
+saveCurrentDocumentToBackend : Maybe Document.Document -> Cmd FrontendMsg
+saveCurrentDocumentToBackend mDoc =
+    case mDoc of
+        Nothing ->
+            Cmd.none
+
+        Just doc ->
+            sendToBackend (SaveDocument doc)
 
 
 

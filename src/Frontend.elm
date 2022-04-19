@@ -29,7 +29,7 @@ import Render.XMarkdown
 import Share
 import Task
 import Time
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
 import User
@@ -133,6 +133,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , documentDirty = False
       , seeBackups = False
       , lineNumber = 0
       , permissions = StandardHandling
@@ -158,6 +159,7 @@ init url key =
       , documentDeleteState = WaitingForDeleteAction
       , publicDocuments = []
       , deleteDocumentState = WaitingForDeleteAction
+      , hardDeleteDocumentState = WaitingForHardDeleteAction
       , sortMode = SortAlphabetically
       , language = Config.initialLanguage
       , inputTitle = ""
@@ -168,12 +170,15 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , if url.path == "/" then
-            sendToBackend (SearchForDocuments StandardHandling Nothing "system:startup")
+            -- TODO: ???
+            --- sendToBackend (SearchForDocuments StandardHandling Nothing "system:startup")
+            Cmd.none
 
           else
             Cmd.none
         , Task.perform AdjustTimeZone Time.here
-        , sendToBackend GetCheatSheetDocument
+
+        --- TODO: ???, sendToBackend GetCheatSheetDocument
         ]
     )
 
@@ -221,11 +226,12 @@ update msg model =
             ( model, Cmd.none )
 
         FETick newTime ->
-            if (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000 > Config.automaticSignoutLimit && model.currentUser /= Nothing then
-                Frontend.Update.signOut { model | messages = [ { content = "Signed out due to inactivity", status = MSYellow } ] }
-
-            else
-                ( { model | currentTime = newTime }, Cmd.none )
+            -- TODO: ???
+            --if (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000 > Config.automaticSignoutLimit && model.currentUser /= Nothing then
+            --    Frontend.Update.signOut { model | messages = [ { content = "Signed out due to inactivity", status = MSYellow } ] }
+            --
+            --else
+            ( { model | currentTime = newTime }, Cmd.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Cmd.none )
@@ -699,8 +705,14 @@ update msg model =
         SetDeleteDocumentState s ->
             ( { model | deleteDocumentState = s }, Cmd.none )
 
-        DeleteDocument ->
+        SetHardDeleteDocumentState s ->
+            ( { model | hardDeleteDocumentState = s }, Cmd.none )
+
+        SoftDeleteDocument ->
             Frontend.Update.softDeleteDocument model
+
+        HardDeleteDocument ->
+            Frontend.Update.hardDeleteDocument model
 
         SetPublicDocumentAsCurrentById id ->
             Frontend.Update.setPublicDocumentAsCurrentById model id
@@ -713,7 +725,14 @@ update msg model =
                 Just doc ->
                     -- save the current document in case it has unsaved changes
                     -- and then set document as current
-                    Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
+                    let
+                        updatedDoc =
+                            { doc | content = model.sourceText }
+
+                        newModel =
+                            { model | documents = Util.updateDocumentInList updatedDoc model.documents }
+                    in
+                    Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
@@ -879,7 +898,7 @@ updateDoc_ model doc str =
         , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-    , Cmd.batch [ sendToBackend (SaveDocument newDocument), sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc) ]
+    , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument, sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc) ]
     )
 
 
@@ -1060,10 +1079,16 @@ updateFromBackend msg model =
                 Just doc ->
                     case documentHandling of
                         PinnedDocumentList ->
-                            ( { model | pinnedDocuments = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
+                            ( { model | pinnedDocuments = documents, currentDocument = Just doc }
+                            , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
+                            )
 
                         _ ->
-                            ( { model | documents = documents, currentDocument = Just doc }, Util.delay 40 (SetDocumentCurrent doc) )
+                            ( { model | documents = documents, currentDocument = Just doc }
+                              -- TODO: ???
+                              -- , Cmd.batch [ Frontend.Update.preserveCurrentDocument model, Util.delay 40 (SetDocumentCurrent doc) ]
+                            , Cmd.none
+                            )
 
         -- CHAT (updateFromBackend)
         GotChatHistory ->
