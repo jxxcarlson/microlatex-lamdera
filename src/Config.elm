@@ -111,7 +111,7 @@ notFoundDocId =
 l0CheetsheetId =
     case Env.mode of
         Env.Production ->
-            "id-xezv21358-ryxc94686"
+            "id-kzus87221-afps0448"
 
         Env.Development ->
             "id-da833-rp359"
