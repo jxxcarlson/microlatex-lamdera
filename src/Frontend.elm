@@ -170,9 +170,8 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , if url.path == "/" then
-            -- TODO: ???
-            --- sendToBackend (SearchForDocuments StandardHandling Nothing "system:startup")
-            Cmd.none
+            sendToBackend (SearchForDocuments StandardHandling Nothing "system:startup")
+            -- searchForPublicDocuments sortMode limit mUsername key model
 
           else
             Cmd.none
