@@ -711,23 +711,12 @@ update msg model =
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
 
                 Just doc ->
-                    let
-                        _ =
-                            Debug.log "!! (3, SetDocumentCurrent)" doc.title
-                    in
                     -- save the current document in case it has unsaved changes
                     -- and then set document as current
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
-            let
-                _ =
-                    Debug.log "!! (1, SetDocumentAsCurrent )" document.title
-
-                _ =
-                    Debug.log "!! (1, sourceText)" model.sourceText
-            in
             case model.currentDocument of
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
@@ -735,7 +724,7 @@ update msg model =
                 Just theDoc ->
                     let
                         updatedDoc =
-                            { theDoc | content = model.sourceText } |> Debug.log "!! updatedDoc"
+                            { theDoc | content = model.sourceText }
 
                         newModel =
                             { model | documents = Util.updateDocumentInList updatedDoc model.documents }
@@ -859,9 +848,6 @@ updateDoc model str =
 
 updateDoc_ model doc str =
     let
-        _ =
-            Debug.log "!! (2, updateDoc_)" doc.title
-
         provisionalTitle : String
         provisionalTitle =
             Compiler.ASTTools.title model.editRecord.parsed
