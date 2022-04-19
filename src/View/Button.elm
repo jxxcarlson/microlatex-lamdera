@@ -413,6 +413,19 @@ setSortModeMostRecent sortMode =
 
 
 
+--
+--answer : Types.SolutionState -> String -> Element FrontendMsg
+--answer solutionState id =
+--    case solutionState of
+--        Types.Unsolved ->
+--            buttonTemplateSmall [ E.width (E.px 50), Font.size 12 ] [] (Types.ProposeSolution (Types.Solved id)) "??"
+--
+--        Types.Solved solutionId ->
+--            if solutionId == id then
+--                buttonTemplateSmall [ E.width (E.px 50), Font.size 12 ] [] (ProposeSolution Types.Unsolved) "??"
+--
+--            else
+--                buttonTemplateSmall [ E.width (E.px 50), Font.size 12 ] [] (ProposeSolution (Types.Solved id)) "??"
 -- [ Background.color (E.rgb 0.4 0.4 0.4) ] [ Font.color (E.rgb 0.7 0.7 0.7) ]
 
 

@@ -70,7 +70,7 @@ import Parser.Language exposing (Language(..))
 import Process
 import Render.LaTeX as LaTeX
 import Render.Markup
-import Render.Msg exposing (MarkupMsg(..))
+import Render.Msg exposing (MarkupMsg(..), SolutionState(..))
 import Render.Settings as Settings
 import Share
 import String.Extra
@@ -382,6 +382,14 @@ render model msg_ =
 
         GetPublicDocument id ->
             ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
+
+        ProposeSolution proposal ->
+            case proposal of
+                Solved id ->
+                    ( { model | selectedId = id }, Cmd.none )
+
+                Unsolved ->
+                    ( { model | selectedId = "???" }, Cmd.none )
 
 
 setLanguage dismiss lang model =

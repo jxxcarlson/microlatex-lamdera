@@ -68,7 +68,7 @@ automaticSignoutLimit =
             3600
 
         Env.Development ->
-            45
+            3600
 
 
 {-| Units = seconds
@@ -80,7 +80,7 @@ automaticSignoutLimitWarning =
             3000
 
         Env.Development ->
-            30
+            3000
 
 
 maxDocSearchLimit =

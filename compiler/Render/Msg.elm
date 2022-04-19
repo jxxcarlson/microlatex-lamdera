@@ -1,4 +1,4 @@
-module Render.Msg exposing (MarkupMsg(..))
+module Render.Msg exposing (MarkupMsg(..), SolutionState(..))
 
 
 type MarkupMsg
@@ -6,3 +6,9 @@ type MarkupMsg
     | SendId String
     | SelectId String
     | GetPublicDocument String
+    | ProposeSolution SolutionState
+
+
+type SolutionState
+    = Unsolved
+    | Solved String -- Solved SolutionId
