@@ -5,7 +5,6 @@ module Frontend.Update exposing
     , closeEditor
     , currentDocumentPostProcess
     , debounceMsg
-    , deleteDocument
     , exportToLaTeX
     , exportToMarkdown
     , firstSyncLR
@@ -36,6 +35,7 @@ module Frontend.Update exposing
     , setUserLanguage
     , setViewportForElement
     , signOut
+    , softDeleteDocument
     , syncLR
     , unlockCurrentDocument
     , updateCurrentDocument
@@ -245,7 +245,35 @@ setPublicDocumentAsCurrentById model id =
             )
 
 
-deleteDocument model =
+softDeleteDocument model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc ->
+            let
+                newUser =
+                    case model.currentUser of
+                        Nothing ->
+                            Nothing
+
+                        Just _ ->
+                            deleteDocFromCurrentUser model doc
+
+                newDoc =
+                    { doc | status = Document.DSSoftDelete }
+            in
+            ( { model
+                | currentDocument = Just Docs.deleted
+                , documents = List.filter (\d -> d.id /= doc.id) model.documents
+                , deleteDocumentState = WaitingForDeleteAction
+                , currentUser = newUser
+              }
+            , Cmd.batch [ sendToBackend (SaveDocument newDoc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            )
+
+
+hardDeleteDocument model =
     case model.currentDocument of
         Nothing ->
             ( model, Cmd.none )

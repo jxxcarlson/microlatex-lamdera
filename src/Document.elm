@@ -1,5 +1,6 @@
 module Document exposing
-    ( Document
+    ( DocStatus(..)
+    , Document
     , DocumentHandling(..)
     , DocumentId
     , DocumentInfo
@@ -38,7 +39,14 @@ type alias Document =
     , share : Share
     , handling : DocumentHandling
     , tags : List String
+    , status : DocStatus
     }
+
+
+type DocStatus
+    = DSNormal
+    | DSReadOnly
+    | DSSoftDelete
 
 
 {-|
@@ -191,6 +199,7 @@ empty =
     , share = NotShared
     , tags = []
     , handling = DHStandard
+    , status = DSNormal
     }
 
 
@@ -209,6 +218,7 @@ makeBackup doc =
     , share = NotShared
     , handling = Backup doc.id
     , tags = doc.tags
+    , status = doc.status
     }
 
 

@@ -702,7 +702,7 @@ update msg model =
             ( { model | deleteDocumentState = s }, Cmd.none )
 
         DeleteDocument ->
-            Frontend.Update.deleteDocument model
+            Frontend.Update.softDeleteDocument model
 
         SetPublicDocumentAsCurrentById id ->
             Frontend.Update.setPublicDocumentAsCurrentById model id
