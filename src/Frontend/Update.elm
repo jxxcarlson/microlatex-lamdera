@@ -260,17 +260,25 @@ softDeleteDocument model =
                         Just _ ->
                             deleteDocFromCurrentUser model doc
 
-                newDoc =
-                    { doc | status = Document.DSSoftDelete }
+                ( newDoc, currentDocument, newDocuments ) =
+                    if doc.status == Document.DSSoftDelete then
+                        ( { doc | status = Document.DSNormal }, model.currentDocument, model.documents )
+
+                    else
+                        ( { doc | status = Document.DSSoftDelete }, Just Docs.deleted, List.filter (\d -> d.id /= doc.id) model.documents )
             in
             ( { model
-                | currentDocument = Just Docs.deleted
-                , documents = List.filter (\d -> d.id /= doc.id) model.documents
+                | currentDocument = currentDocument
+                , documents = newDocuments
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = newUser
               }
             , Cmd.batch [ sendToBackend (SaveDocument newDoc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
+
+
+
+-- |> (\( m, c ) -> ( currentDocumentPostProcess newDoc m, c ))
 
 
 hardDeleteDocument model =

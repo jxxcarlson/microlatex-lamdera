@@ -302,21 +302,32 @@ deleteDocument model =
             Maybe.map .username model.currentUser
     in
     if userName /= Nothing && authorName == userName then
-        deleteDocument_ model
-        --else if userName == Just "jxxcarlson" then
-        --    deleteDocument_ model
+        case model.currentDocument of
+            Nothing ->
+                E.none
+
+            Just doc ->
+                case doc.status of
+                    Document.DSSoftDelete ->
+                        deleteDocument_ "Undelete" model
+
+                    Document.DSNormal ->
+                        deleteDocument_ "Delete" model
+
+                    Document.DSReadOnly ->
+                        buttonTemplate [ Background.color (E.rgb 0.5 0.5 0.5) ] FENoOp "Delete"
 
     else
         E.none
 
 
-deleteDocument_ model =
+deleteDocument_ title model =
     case model.deleteDocumentState of
         WaitingForDeleteAction ->
-            buttonTemplate [] (SetDeleteDocumentState CanDelete) "Delete"
+            buttonTemplate [] (SetDeleteDocumentState CanDelete) title
 
         CanDelete ->
-            buttonTemplate [ Background.color (E.rgb 0.8 0 0) ] DeleteDocument "Forever?"
+            buttonTemplate [ Background.color (E.rgb 0.8 0 0) ] DeleteDocument "Sure?"
 
 
 cancelDeleteDocument model =
@@ -759,15 +770,19 @@ getDocument documentHandling id title highlighted =
 setDocumentAsCurrent : DocumentHandling -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
 setDocumentAsCurrent docPermissions currentDocument document =
     let
-        fg =
+        ( fg, weight ) =
             if currentDocument == Just document then
-                Font.color (E.rgb 0.7 0 0)
+                if document.status == Document.DSSoftDelete then
+                    ( Font.color (E.rgb 0.7 0.4 0.4), Font.regular )
+
+                else
+                    ( Font.color (E.rgb 0.7 0 0), Font.bold )
 
             else if document.status == Document.DSSoftDelete then
-                Font.color (E.rgb 0.5 0.5 0.5)
+                ( Font.color (E.rgb 0.5 0.5 0.5), Font.light )
 
             else
-                Font.color (E.rgb 0 0 0.8)
+                ( Font.color (E.rgb 0 0 0.8), Font.regular )
 
         style =
             if document.public then
@@ -783,7 +798,7 @@ setDocumentAsCurrent docPermissions currentDocument document =
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docPermissions document)
-        , label = E.el [ Font.size 14, fg, style ] (E.text titleString)
+        , label = E.el [ Font.size 14, fg, weight, style ] (E.text titleString)
         }
 
 
