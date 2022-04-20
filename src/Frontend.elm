@@ -224,6 +224,21 @@ update msg model =
         FENoOp ->
             ( model, Cmd.none )
 
+        SetDocumentStatus status ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    let
+                        updatedDoc =
+                            { doc | status = status }
+
+                        documents =
+                            Util.updateDocumentInList updatedDoc model.documents
+                    in
+                    ( { model | currentDocument = Just updatedDoc, documents = documents }, Frontend.Update.saveDocumentToBackend updatedDoc )
+
         FETick newTime ->
             -- TODO: ???
             --if (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000 > Config.automaticSignoutLimit && model.currentUser /= Nothing then
@@ -851,24 +866,33 @@ updateDoc model str =
             ( model, Cmd.none )
 
         Just doc ->
-            -- if Share.canEdit model.currentUser (Just doc) then
-            -- if View.Utility.canSaveStrict model.currentUser doc then
-            if Share.canEdit model.currentUser (Just doc) && doc.handling == Document.DHStandard then
-                updateDoc_ model doc str
+            case doc.status of
+                Document.DSSoftDelete ->
+                    ( model, Cmd.none )
 
-            else
-                let
-                    m =
-                        if doc.handling == Document.DHStandard then
-                            "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+                Document.DSReadOnly ->
+                    ( model, Cmd.none )
 
-                        else
-                            "Oops, this is a backup or version document -- no edits"
-                in
-                ( { model | messages = [ { content = m, status = MSYellow } ] }, Cmd.none )
+                Document.DSNormal ->
+                    -- if Share.canEdit model.currentUser (Just doc) then
+                    -- if View.Utility.canSaveStrict model.currentUser doc then
+                    if Share.canEdit model.currentUser (Just doc) && doc.handling == Document.DHStandard then
+                        updateDoc_ doc str model
+
+                    else
+                        let
+                            m =
+                                if doc.handling == Document.DHStandard then
+                                    "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+
+                                else
+                                    "Oops, this is a backup or version document -- no edits"
+                        in
+                        ( { model | messages = [ { content = m, status = MSYellow } ] }, Cmd.none )
 
 
-updateDoc_ model doc str =
+updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+updateDoc_ doc str model =
     let
         provisionalTitle : String
         provisionalTitle =

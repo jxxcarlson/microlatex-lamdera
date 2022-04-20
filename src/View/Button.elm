@@ -66,6 +66,7 @@ module View.Button exposing
     , toggleBackupVisibility
     , toggleChat
     , toggleCheatSheet
+    , toggleDocumentStatus
     , toggleEditor
     , toggleExtrasSidebar
     , toggleLock
@@ -289,6 +290,24 @@ share =
 
 doShare =
     buttonTemplate [] DoShare "Update"
+
+
+toggleDocumentStatus : FrontendModel -> Element FrontendMsg
+toggleDocumentStatus model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            case doc.status of
+                Document.DSNormal ->
+                    buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
+
+                Document.DSReadOnly ->
+                    buttonTemplate [] (SetDocumentStatus Document.DSSoftDelete) "Doc: Read only"
+
+                Document.DSSoftDelete ->
+                    buttonTemplate [] (SetDocumentStatus Document.DSNormal) "Doc: Soft-deleted"
 
 
 softDeleteDocument : FrontendModel -> Element FrontendMsg

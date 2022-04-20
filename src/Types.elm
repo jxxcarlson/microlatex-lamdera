@@ -503,6 +503,7 @@ type FrontendMsg
     | MessageSubmitted
     | InputChoseGroup String
       -- DOCUMENT
+    | SetDocumentStatus Document.DocStatus
     | ChangeLanguage
     | MakeBackup
     | ToggleBackupVisibility

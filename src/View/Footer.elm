@@ -69,7 +69,9 @@ view model width_ =
 
         --, showCurrentEditor model.currentDocument
         , E.row [ E.spacing 4 ]
-            [ View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
+            [ View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleDocumentStatus model)
+            , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
+            , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
                 (backup model.zone model.currentDocument)
             , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleBackupVisibility model.seeBackups)
             ]

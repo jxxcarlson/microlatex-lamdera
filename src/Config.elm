@@ -1,14 +1,15 @@
 module Config exposing
     ( appName
-    , appUrl
     , automaticSignoutLimit
     , automaticSignoutLimitWarning
     , backendTickSeconds
     , cheatSheetRenderedTextId
     , debounceSaveDocumentInterval
+    , defaultUrl
     , documentDeletedNotice
     , frontendTickSeconds
     , helpDocumentId
+    , host
     , indentationQuantum
     , initialLanguage
     , l0CheetsheetId
@@ -31,6 +32,7 @@ module Config exposing
 
 import Env
 import Parser.Language
+import Url
 
 
 {-| Now set at 3 seconds, up from 0.3 seconds before
@@ -152,6 +154,64 @@ masterDocLoadedPageId =
     "id-vt202-ux358"
 
 
+cheatSheetRenderedTextId =
+    "__CHEATSHEET_RENDERED_TEXT__"
+
+
+renderedTextId =
+    "__RENDERED_TEXT__"
+
+
+documentDeletedNotice =
+    "id-dj146-un326"
+
+
+appName =
+    "Scripta.io"
+
+
+host =
+    case Env.mode of
+        Env.Production ->
+            "https://scripta.io"
+
+        Env.Development ->
+            "localhost/8000"
+
+
+defaultUrl : Maybe Url.Url
+defaultUrl =
+    Url.fromString host
+
+
+pdfServer =
+    "https://pdfserv.app"
+
+
+startupHelpDocumentId =
+    "kc154.dg274"
+
+
+helpDocumentId =
+    "yr248.qb459"
+
+
+transitKey =
+    "1f0d8b16-9689-4310-829d-794a86abep1F"
+
+
+initialLanguage =
+    Parser.Language.MicroLaTeXLang
+
+
+titleSize =
+    32
+
+
+indentationQuantum =
+    2
+
+
 loadingText =
     """
 | title
@@ -237,56 +297,3 @@ Nicholas Yang, Matt Griffith, and Rob Simmons and team at Brilliant.org.
 
 
 """
-
-
-cheatSheetRenderedTextId =
-    "__CHEATSHEET_RENDERED_TEXT__"
-
-
-renderedTextId =
-    "__RENDERED_TEXT__"
-
-
-documentDeletedNotice =
-    "id-dj146-un326"
-
-
-appName =
-    "Scripta.io"
-
-
-appUrl =
-    case Env.mode of
-        Env.Production ->
-            "https://scripta.io"
-
-        Env.Development ->
-            "localhost/8000"
-
-
-pdfServer =
-    "https://pdfserv.app"
-
-
-startupHelpDocumentId =
-    "kc154.dg274"
-
-
-helpDocumentId =
-    "yr248.qb459"
-
-
-transitKey =
-    "1f0d8b16-9689-4310-829d-794a86abep1F"
-
-
-initialLanguage =
-    Parser.Language.MicroLaTeXLang
-
-
-titleSize =
-    32
-
-
-indentationQuantum =
-    2

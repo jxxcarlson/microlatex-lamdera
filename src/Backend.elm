@@ -330,7 +330,7 @@ makeLink docId documentDict abstractDict =
 
         ( Just doc, Just abstr ) ->
             if doc.public then
-                Just { digest = abstr.digest, label = abstr.title, url = Config.appUrl ++ "/p/" ++ doc.publicId }
+                Just { digest = abstr.digest, label = abstr.title, url = Config.host ++ "/p/" ++ doc.publicId }
 
             else
                 Nothing
@@ -372,7 +372,7 @@ statusReport model =
 
 authorUrl : String -> String
 authorUrl authorId =
-    Config.appUrl ++ "/a/" ++ authorId
+    Config.host ++ "/a/" ++ authorId
 
 
 authorLink : String -> String
@@ -382,7 +382,7 @@ authorLink authorId =
 
 publicUrl : String -> String
 publicUrl publicId =
-    Config.appUrl ++ "/p/" ++ publicId
+    Config.host ++ "/p/" ++ publicId
 
 
 publicLink : String -> String

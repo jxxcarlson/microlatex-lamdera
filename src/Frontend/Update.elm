@@ -1049,9 +1049,12 @@ signOut model =
 
 handleSignIn model =
     if String.length model.inputPassword >= 8 then
-        ( model
-        , sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword))
-        )
+        case Config.defaultUrl of
+            Nothing ->
+                ( model, sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
+
+            Just url ->
+                ( { model | url = url }, sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
     else
         ( { model | messages = [ { content = "Password must be at least 8 letters long.", status = MSWhite } ] }, Cmd.none )
@@ -1197,6 +1200,16 @@ updateCurrentDocument doc model =
 
 
 -- SAVE DOCUMENT TOOLS
+-- proceedIfDocStatusOK : FrontendModel -> FrontendMsg -> (Document -> FrontendModel -> (FrontendModel, Cmd FrontendMsg)) -> (FrontendModel, Cmd FrontendMsg)
+--proceedIfDocStatusOK model doc func =
+--    case doc.status of
+--                    Document.DSSoftDelete ->
+--                        ( model, Cmd.none )
+--
+--                    Document.DSReadOnly ->
+--                        ( model, Cmd.none )
+--
+--                    Document.DSNormal ->
 
 
 preserveCurrentDocument model =
@@ -1205,12 +1218,28 @@ preserveCurrentDocument model =
             Cmd.none
 
         Just doc ->
-            saveDocumentToBackend { doc | content = model.sourceText }
+            case doc.status of
+                Document.DSSoftDelete ->
+                    Cmd.none
+
+                Document.DSReadOnly ->
+                    Cmd.none
+
+                Document.DSNormal ->
+                    saveDocumentToBackend { doc | content = model.sourceText }
 
 
 saveDocumentToBackend : Document.Document -> Cmd FrontendMsg
 saveDocumentToBackend doc =
-    sendToBackend (SaveDocument doc)
+    case doc.status of
+        Document.DSSoftDelete ->
+            Cmd.none
+
+        Document.DSReadOnly ->
+            Cmd.none
+
+        Document.DSNormal ->
+            sendToBackend (SaveDocument doc)
 
 
 saveCurrentDocumentToBackend : Maybe Document.Document -> Cmd FrontendMsg
@@ -1220,7 +1249,15 @@ saveCurrentDocumentToBackend mDoc =
             Cmd.none
 
         Just doc ->
-            sendToBackend (SaveDocument doc)
+            case doc.status of
+                Document.DSSoftDelete ->
+                    Cmd.none
+
+                Document.DSReadOnly ->
+                    Cmd.none
+
+                Document.DSNormal ->
+                    sendToBackend (SaveDocument doc)
 
 
 
