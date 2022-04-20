@@ -30,7 +30,6 @@ documentControls model =
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.hardDeleteDocument model)
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)
         , View.Utility.showIf model.showEditor (Button.togglePublic model.currentDocument)
-        , View.Utility.showIf model.showEditor (E.el [ E.alignRight ] (wordCount model))
         , View.Utility.currentDocumentAuthor (Maybe.map .username model.currentUser) model.currentDocument
         ]
 
@@ -59,16 +58,6 @@ showIfDocumentIsShared model condition element =
                )
         )
         element
-
-
-wordCount : FrontendModel -> Element FrontendMsg
-wordCount model =
-    case model.currentDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            E.el [ Font.size 14, Font.color Color.lightGray ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
 

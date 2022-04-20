@@ -38,10 +38,21 @@ view model =
             , creationDate model
             , dateCreated model.zone model.currentDocument
             , docId model
+            , E.el [] (wordCount model)
             ]
 
     else
         E.none
+
+
+wordCount : FrontendModel -> Element FrontendMsg
+wordCount model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
 dateCreated : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
