@@ -1247,10 +1247,10 @@ saveDocumentToBackend : Document.Document -> Cmd FrontendMsg
 saveDocumentToBackend doc =
     case doc.status of
         Document.DSSoftDelete ->
-            Cmd.none
+            sendToBackend (SaveDocument doc)
 
         Document.DSReadOnly ->
-            Cmd.none
+            sendToBackend (SaveDocument doc)
 
         Document.DSNormal ->
             sendToBackend (SaveDocument doc)
