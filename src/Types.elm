@@ -147,6 +147,7 @@ type alias FrontendModel =
     , initialText : String
     , sourceText : String
     , inputTitle : String
+    , showDocTools : Bool
 
     --, ast : Markup.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord
@@ -475,6 +476,7 @@ type FrontendMsg
     | SendSyncLR
     | GetSelection String
       -- UI
+    | ToggleDocTools
     | ToggleActiveDocList
     | CloseCollectionIndex
     | ToggleIndexSize

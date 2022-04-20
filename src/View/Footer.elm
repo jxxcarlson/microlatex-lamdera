@@ -9,9 +9,11 @@ import Element.Font as Font
 import Message
 import Time
 import Types
+import Util
 import View.Button as Button
 import View.Chat
 import View.Color as Color
+import View.DocTools
 import View.Style
 import View.Utility
 
@@ -27,6 +29,7 @@ view model width_ =
     in
     E.row
         [ E.spacing 1
+        , E.inFront (View.DocTools.view model)
         , E.paddingXY 0 8
         , E.height (E.px 35)
         , Background.color Color.black
@@ -64,19 +67,11 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) Button.exportJson
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
-        , E.el [ View.Style.fgWhite, E.paddingXY 8 8, View.Style.bgBlack ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
-        , dateCreated model.zone model.currentDocument
-
         --, showCurrentEditor model.currentDocument
-        , E.row [ E.spacing 4 ]
-            [ View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleDocumentStatus model)
-            , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleLock model.currentDocument)
-            , View.Utility.showIf (model.currentUser /= Nothing && Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser)
-                (backup model.zone model.currentDocument)
-            , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleBackupVisibility model.seeBackups)
-            ]
+        , Button.toggleDocumentStatus model
         , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
+        , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
 
 
@@ -98,16 +93,6 @@ timeElapsed model =
                 "Automatic signout in " ++ timeRemaining ++ " seconds. Type any key to cancel."
         in
         E.el [ Font.color Color.white, Background.color Color.red, E.paddingXY 8 4 ] (E.text message)
-
-
-dateCreated : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
-dateCreated zone maybeDocument =
-    case maybeDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
 backup : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg

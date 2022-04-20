@@ -120,6 +120,7 @@ init url key =
       , tagSelection = TagPublic
       , signupState = HideSignUpForm
       , popupState = NoPopup
+      , showDocTools = False
 
       -- SYNC
       , doSync = False
@@ -339,6 +340,9 @@ update msg model =
 
         ToggleChat ->
             ( { model | chatVisible = not model.chatVisible }, Util.delay 100 ScrollChatToBottom )
+
+        ToggleDocTools ->
+            ( { model | showDocTools = not model.showDocTools }, Cmd.none )
 
         MessageFieldChanged str ->
             ( { model | chatMessageFieldContent = str }, Cmd.none )

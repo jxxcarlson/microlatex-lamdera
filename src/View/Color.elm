@@ -8,6 +8,7 @@ module View.Color exposing
     , lightBlue
     , lightGray
     , medGray
+    , mediumPaleBlue
     , paleBlue
     , paleGreen
     , palePink
@@ -93,6 +94,11 @@ paleBlue =
 veryPaleBlue : E.Color
 veryPaleBlue =
     E.rgb 0.9 0.9 1.0
+
+
+mediumPaleBlue : E.Color
+mediumPaleBlue =
+    E.rgb 0.85 0.85 1.0
 
 
 transparentBlue : E.Color

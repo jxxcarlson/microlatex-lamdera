@@ -1,6 +1,7 @@
 module Util exposing
     ( currentUsername
     , delay
+    , documentIsMine
     , insertInListOrUpdate
     , liftToMaybe
     , updateDocumentInList
@@ -26,6 +27,19 @@ liftToMaybe f ma =
 currentUsername : Maybe User.User -> String
 currentUsername currentUser =
     Maybe.map .username currentUser |> Maybe.withDefault "(nobody)"
+
+
+documentIsMine : Maybe Document -> Maybe User.User -> Bool
+documentIsMine maybeDoc maybeUser =
+    case ( maybeDoc, maybeUser ) of
+        ( Nothing, _ ) ->
+            False
+
+        ( _, Nothing ) ->
+            False
+
+        ( Just doc, Just user ) ->
+            doc.author == Just user.username
 
 
 batch =

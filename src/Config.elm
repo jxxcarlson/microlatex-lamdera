@@ -66,7 +66,7 @@ backendTickSeconds =
             10
 
         Env.Development ->
-            10
+            3
 
 
 {-| Units = seconds

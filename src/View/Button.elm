@@ -66,6 +66,7 @@ module View.Button exposing
     , toggleBackupVisibility
     , toggleChat
     , toggleCheatSheet
+    , toggleDocTools
     , toggleDocumentStatus
     , toggleEditor
     , toggleExtrasSidebar
@@ -290,6 +291,15 @@ share =
 
 doShare =
     buttonTemplate [] DoShare "Update"
+
+
+toggleDocTools : FrontendModel -> Element FrontendMsg
+toggleDocTools model =
+    if model.showDocTools then
+        buttonTemplate [] ToggleDocTools "Hide DocTools"
+
+    else
+        buttonTemplate [] ToggleDocTools "Show DocTools"
 
 
 toggleDocumentStatus : FrontendModel -> Element FrontendMsg
