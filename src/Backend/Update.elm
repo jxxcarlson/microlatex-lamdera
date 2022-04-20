@@ -272,7 +272,7 @@ saveDocument model clientId document =
         updateDocumentDict2 doc dict =
             Dict.update doc.id mUpdateDoc dict
     in
-    ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { content = "saved: " ++ document.title, status = MSRed }) )
+    ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { content = "saved: " ++ document.title, status = MSYellow }) )
 
 
 createDocument model clientId maybeCurrentUser doc_ =
