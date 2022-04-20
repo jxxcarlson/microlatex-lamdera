@@ -117,40 +117,27 @@ unlockDocuments model userId =
             ( { model | documentDict = newDocumentDict }, Cmd.none )
 
 
+applySpecial : BackendModel -> ClientId -> ( BackendModel, Cmd BackendMsg )
 applySpecial model clientId =
     let
-        badDocs =
-            getBadDocuments model
-
+        updateDoc : Document.Document -> BackendModel -> BackendModel
         updateDoc doc mod =
             let
-                content =
-                    case doc.language of
-                        L0Lang ->
-                            "| title\n<<untitled>>\n\n"
-
-                        MicroLaTeXLang ->
-                            "\\title{<<untitled>>}\n\n"
-
-                        PlainTextLang ->
-                            "| title\n<<untitled>>\n\n"
-
-                        XMarkdownLang ->
-                            "| title\n <<untitled>>\n\n"
+                updateDoc_ : Document.Document -> Document.Document
+                updateDoc_ doc_ =
+                    { doc_ | status = Document.DSReadOnly }
 
                 documentDict =
-                    Dict.insert doc.id { doc | title = "<<untitled>>", content = content, modified = model.currentTime } mod.documentDict
+                    Dict.update doc.id (Util.liftToMaybe updateDoc_) mod.documentDict
             in
             { mod | documentDict = documentDict }
 
+        newModel : BackendModel
         newModel =
-            List.foldl (\doc m -> updateDoc doc m) model (badDocs |> List.map Tuple.second)
+            List.foldl (\doc m -> updateDoc doc m) model (model.documentDict |> Dict.values)
     in
     ( newModel
-    , sendToFrontend clientId
-        (MessageReceived
-            { content = "Bad docs: " ++ String.fromInt (List.length badDocs), status = MSRed }
-        )
+    , Cmd.none
     )
 
 

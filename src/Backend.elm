@@ -309,11 +309,8 @@ updateFromFrontend sessionId clientId msg model =
         GetPublicDocuments sortMode mUsername ->
             ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
-        ApplySpecial _ _ ->
-            -- stealId user id model |> Cmd.Extra.withNoCmd
-            -- Backend.Update.applySpecial model clientId
-            --( { model | sharedDocumentDict = Share.createShareDocumentDict model.documentDict }, Cmd.none )
-            ( model, Cmd.none )
+        ApplySpecial user clientId_ ->
+            Backend.Update.applySpecial model clientId_
 
         HardDeleteDocumentBE doc ->
             Backend.Update.hardDeleteDocument clientId doc model
