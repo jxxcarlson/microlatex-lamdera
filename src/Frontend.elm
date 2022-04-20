@@ -238,7 +238,7 @@ update msg model =
                         documents =
                             Util.updateDocumentInList updatedDoc model.documents
                     in
-                    ( { model | currentDocument = Just updatedDoc, documents = documents }, Frontend.Update.saveDocumentToBackend updatedDoc )
+                    ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend updatedDoc )
 
         FETick newTime ->
             -- TODO: ???
@@ -926,6 +926,7 @@ updateDoc_ doc str model =
         | currentDocument = Just newDocument
         , counter = model.counter + 1
         , documents = documents
+        , documentDirty = False
         , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }

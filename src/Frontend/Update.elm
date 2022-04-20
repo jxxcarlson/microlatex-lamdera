@@ -110,18 +110,6 @@ handleAsStandardReceivedDocument model doc =
 
             else
                 model.currentMasterDocument
-
-        savePreviousCurrentDocumentCmd =
-            case model.currentDocument of
-                Nothing ->
-                    Cmd.none
-
-                Just previousDoc ->
-                    let
-                        previousDoc2 =
-                            { previousDoc | content = model.sourceText }
-                    in
-                    sendToBackend (SaveDocument previousDoc2)
     in
     ( { model
         | editRecord = editRecord
@@ -134,9 +122,29 @@ handleAsStandardReceivedDocument model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-      --, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
-    , Cmd.batch [ savePreviousCurrentDocumentCmd, Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    , Cmd.batch [ savePreviousCurrentDocumentCmd model, Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
     )
+
+
+{-| Use this function to ensure that edits to the current document are saved
+before the current documen is changed
+-}
+savePreviousCurrentDocumentCmd : FrontendModel -> Cmd FrontendMsg
+savePreviousCurrentDocumentCmd model =
+    case model.currentDocument of
+        Nothing ->
+            Cmd.none
+
+        Just previousDoc ->
+            if model.documentDirty then
+                let
+                    previousDoc2 =
+                        { previousDoc | content = model.sourceText }
+                in
+                sendToBackend (SaveDocument previousDoc2)
+
+            else
+                Cmd.none
 
 
 handleAsReceivedDocumentWithDelay model doc =
@@ -233,7 +241,7 @@ setPublic model doc public =
         documents =
             List.Extra.setIf (\d -> d.id == newDocument_.id) newDocument_ model.documents
     in
-    ( { model | documents = documents, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument newDocument_) )
+    ( { model | documents = documents, documentDirty = False, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument newDocument_) )
 
 
 setPublicDocumentAsCurrentById : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
@@ -286,6 +294,7 @@ softDeleteDocument model =
             ( { model
                 | currentDocument = currentDocument
                 , documents = newDocuments
+                , documentDirty = False
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = newUser
               }
@@ -689,6 +698,7 @@ setDocumentAsCurrent cmd model doc permissions =
     ( { model
         | currentDocument = Just doc
         , currentMasterDocument = currentMasterDocument
+        , documentDirty = False
         , sourceText = doc.content
         , initialText = doc.content
         , editRecord = newEditRecord
@@ -725,7 +735,7 @@ changeLanguage model =
                 newDoc =
                     { doc | language = model.language }
             in
-            ( model
+            ( { model | documentDirty = False }
             , sendToBackend (SaveDocument newDoc)
             )
                 |> (\( m, c ) -> ( currentDocumentPostProcess newDoc m, c ))
@@ -800,6 +810,7 @@ lockCurrentDocumentUnconditionally model =
             in
             ( { model
                 | currentDocument = Just doc
+                , documentDirty = False
                 , documents = Util.updateDocumentInList doc model.documents
               }
             , Cmd.batch
@@ -828,6 +839,7 @@ lockCurrentDocument model =
                     | currentDocument = Just doc
                     , documents = Util.updateDocumentInList doc model.documents
                     , messages = Message.make "Document locked" MSGreen
+                    , documentDirty = False
                   }
                 , Cmd.batch
                     [ sendToBackend (SaveDocument doc)
@@ -855,6 +867,7 @@ unlockCurrentDocument model =
                 | userMessage = Nothing
                 , messages = Message.make "Document unlocked" MSGreen
                 , currentDocument = Just doc
+                , documentDirty = False
                 , documents = Util.updateDocumentInList doc model.documents
               }
             , Cmd.batch
@@ -883,6 +896,7 @@ lockDocument model =
                     | currentDocument = Just doc
                     , messages = Message.make "Document is locked" MSGreen
                     , documents = Util.updateDocumentInList doc model.documents
+                    , documentDirty = False
                   }
                 , Cmd.batch
                     [ sendToBackend (SaveDocument doc)
