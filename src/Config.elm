@@ -45,7 +45,7 @@ debounceSaveDocumentInterval =
 welcomeDocId =
     case Env.mode of
         Env.Production ->
-            "id-gv236-po313"
+            "id-9f038398-0d4f-4a51-904e-1c66b52ded9e"
 
         Env.Development ->
             "id-fa167-yd715"
