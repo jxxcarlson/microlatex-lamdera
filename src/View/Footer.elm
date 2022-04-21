@@ -69,8 +69,7 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
         , Button.toggleDocumentStatus model
-
-        -- , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
+        , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
@@ -82,7 +81,7 @@ timeElapsed model =
         elapsedSinceLastInteraction =
             (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000
     in
-    if elapsedSinceLastInteraction < Config.automaticSignoutLimitWarning then
+    if elapsedSinceLastInteraction < Config.automaticSignoutLimit - Config.automaticSignoutNoticePeriod then
         E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
 
     else

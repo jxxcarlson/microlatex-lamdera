@@ -1,7 +1,7 @@
 module Config exposing
     ( appName
     , automaticSignoutLimit
-    , automaticSignoutLimitWarning
+    , automaticSignoutNoticePeriod
     , backendTickSeconds
     , cheatSheetRenderedTextId
     , debounceSaveDocumentInterval
@@ -78,19 +78,19 @@ automaticSignoutLimit =
             3600
 
         Env.Development ->
-            3600
+            20
 
 
 {-| Units = seconds
 -}
-automaticSignoutLimitWarning =
+automaticSignoutNoticePeriod =
     case Env.mode of
         Env.Production ->
-            -- 50 minutes
-            3000
+            -- 10 minutes
+            600
 
         Env.Development ->
-            3000
+            5
 
 
 maxDocSearchLimit =

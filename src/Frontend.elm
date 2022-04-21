@@ -241,13 +241,22 @@ update msg model =
                     ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend updatedDoc )
 
         FETick newTime ->
-            -- TODO: ???
-            --if (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000 > Config.automaticSignoutLimit && model.currentUser /= Nothing then
-            --    Frontend.Update.signOut { model | messages = [ { content = "Signed out due to inactivity", status = MSYellow } ] }
-            --
-            --else
+            let
+                lastInteractionTimeMilliseconds =
+                    model.lastInteractionTime |> Time.posixToMillis
+
+                currentTimeMilliseconds =
+                    model.currentTime |> Time.posixToMillis
+
+                elapsedSinceLastInteractionSeconds =
+                    (currentTimeMilliseconds - lastInteractionTimeMilliseconds) // 1000
+            in
+            -- If the lastInteractionTime has not been updated since init, do so now.
             if model.lastInteractionTime == Time.millisToPosix 0 then
                 ( { model | currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
+
+            else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit then
+                Frontend.Update.signOut { model | currentTime = newTime }
 
             else
                 ( { model | currentTime = newTime }, Cmd.none )
