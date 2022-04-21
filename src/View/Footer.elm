@@ -54,10 +54,12 @@ view model width_ =
         ]
         [ -- Button.syncButton
           Button.nextSyncButton model.foundIds
-        , E.row [ E.spacing 1 ]
-            [ Button.exportToLaTeX
-            , Button.printToPDF model
-            ]
+        , View.Utility.showIf (model.currentUser /= Nothing)
+            (E.row [ E.spacing 1 ]
+                [ Button.exportToLaTeX
+                , Button.printToPDF model
+                ]
+            )
 
         --, Button.exportToMicroLaTeX
         --, Button.exportToXMarkdown
@@ -82,7 +84,8 @@ timeElapsed model =
             (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000
     in
     if elapsedSinceLastInteraction < Config.automaticSignoutLimit - Config.automaticSignoutNoticePeriod then
-        E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
+        --E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
+        E.none
 
     else
         let
