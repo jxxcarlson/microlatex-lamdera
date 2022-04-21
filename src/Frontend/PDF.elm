@@ -1,6 +1,7 @@
 module Frontend.PDF exposing (gotLink, print)
 
 import Compiler.ASTTools as ASTTools
+import Config
 import Document exposing (Document)
 import Either
 import Http
@@ -22,7 +23,7 @@ print model =
             ( model, Cmd.none )
 
         Just doc ->
-            ( { model | messages = [ { content = "printToPDF", status = MSWhite } ] }
+            ( { model | messages = [ { content = "printToPDF", status = MSGreen } ] }
             , Cmd.batch
                 [ generatePdf doc
                 , Process.sleep 1 |> Task.perform (always (ChangePrintingState PrintProcessing))
@@ -54,7 +55,7 @@ generatePdf document =
     Http.request
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
-        , url = "https://pdfserv.app/pdf"
+        , url = Config.pdfServer ++ "/pdf"
         , body = Http.jsonBody (encodeForPDF document.id contentForExport imageUrls)
         , expect = Http.expectString GotPdfLink
         , timeout = Nothing
@@ -78,6 +79,15 @@ gotLink model result =
 
 encodeForPDF : String -> String -> List String -> E.Value
 encodeForPDF id content urlList =
+    E.object
+        [ ( "id", E.string id )
+        , ( "content", E.string content )
+        , ( "urlList", E.list E.string urlList )
+        ]
+
+
+encodeForPDF1 : String -> String -> String -> List String -> E.Value
+encodeForPDF1 id title content urlList =
     E.object
         [ ( "id", E.string id )
         , ( "content", E.string content )

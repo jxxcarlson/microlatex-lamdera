@@ -185,7 +185,12 @@ defaultUrl =
 
 
 pdfServer =
-    "https://pdfserv.app"
+    case Env.mode of
+        Env.Production ->
+            "https://pdfserv.app"
+
+        Env.Development ->
+            "https://pdfserv.app"
 
 
 startupHelpDocumentId =

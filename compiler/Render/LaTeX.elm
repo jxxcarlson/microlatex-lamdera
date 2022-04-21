@@ -4,6 +4,7 @@ import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
@@ -15,6 +16,11 @@ import Tree
 
 export : Settings -> Forest ExpressionBlock -> String
 export settings ast =
+    let
+        imageList : List String
+        imageList =
+            getImageUrls ast
+    in
     preamble (ASTTools.extractTextFromSyntaxTreeByKey "title" ast)
         (ASTTools.extractTextFromSyntaxTreeByKey "author" ast)
         (ASTTools.extractTextFromSyntaxTreeByKey "date" ast)
@@ -23,11 +29,24 @@ export settings ast =
         ++ "\n\n\\end{document}\n"
 
 
+getImageUrls : Forest ExpressionBlock -> List String
+getImageUrls ast =
+    ast
+        |> List.map Tree.flatten
+        |> List.concat
+        |> List.map (\(ExpressionBlock { content }) -> Either.rightToMaybe content |> Maybe.withDefault [])
+        |> List.concat
+        |> ASTTools.filterExpressionsOnName "image"
+        |> List.map ASTTools.getText
+        |> Maybe.Extra.values
+
+
 rawExport : Settings -> Forest ExpressionBlock -> String
 rawExport settings ast =
     ast
         |> List.map Tree.flatten
         |> List.concat
+        |> List.map Parser.Block.condenseUrls
         |> encloseLists
         |> List.map (exportBlock settings)
         |> String.join "\n\n"
@@ -463,7 +482,7 @@ preamble title author date =
 \\usepackage{changepage}   % for the adjustwidth environment
 \\usepackage{graphicx}
 \\usepackage{wrapfig}
-\\graphicspath{ {images/} }
+\\graphicspath{ {image/} }
 \\usepackage{amssymb}
 \\usepackage{amsmath}
 \\usepackage{amscd}
