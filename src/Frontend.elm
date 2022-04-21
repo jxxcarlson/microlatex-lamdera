@@ -875,7 +875,7 @@ updateDoc model str =
                     ( model, Cmd.none )
 
                 Document.DSReadOnly ->
-                    ( model, Cmd.none )
+                    ( { model | messages = [ { content = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
 
                 Document.DSNormal ->
                     -- if Share.canEdit model.currentUser (Just doc) then
