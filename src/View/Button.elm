@@ -309,15 +309,19 @@ toggleDocumentStatus model =
             E.none
 
         Just doc ->
-            case doc.status of
-                Document.DSNormal ->
-                    buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
+            if Util.documentIsMine model.currentDocument model.currentUser then
+                case doc.status of
+                    Document.DSNormal ->
+                        buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
 
-                Document.DSReadOnly ->
-                    buttonTemplate [] (SetDocumentStatus Document.DSSoftDelete) "Doc: Read only"
+                    Document.DSReadOnly ->
+                        buttonTemplate [] (SetDocumentStatus Document.DSNormal) "Doc: Read only"
 
-                Document.DSSoftDelete ->
-                    buttonTemplate [] (SetDocumentStatus Document.DSNormal) "Doc: Soft-deleted"
+                    Document.DSSoftDelete ->
+                        buttonTemplate [] (SetDocumentStatus Document.DSNormal) "Doc: Soft-deleted"
+
+            else
+                E.none
 
 
 softDeleteDocument : FrontendModel -> Element FrontendMsg
