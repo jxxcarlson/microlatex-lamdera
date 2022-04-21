@@ -243,7 +243,7 @@ update msg model =
         FETick newTime ->
             let
                 lastInteractionTimeMilliseconds =
-                    model.lastInteractionTime |> Time.posixToMillis
+                    model.lastInteractionTime |> Time.posixToMillis |> Debug.log "LAST INT. TIME"
 
                 currentTimeMilliseconds =
                     model.currentTime |> Time.posixToMillis
@@ -255,7 +255,7 @@ update msg model =
             if model.lastInteractionTime == Time.millisToPosix 0 then
                 ( { model | currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
 
-            else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit then
+            else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then
                 Frontend.Update.signOut { model | currentTime = newTime }
 
             else
