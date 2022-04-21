@@ -252,7 +252,7 @@ update msg model =
                     (currentTimeMilliseconds - lastInteractionTimeMilliseconds) // 1000
             in
             -- If the lastInteractionTime has not been updated since init, do so now.
-            if model.lastInteractionTime == Time.millisToPosix 0 then
+            if model.lastInteractionTime == Time.millisToPosix 0 && model.currentUser /= Nothing then
                 ( { model | currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
 
             else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then

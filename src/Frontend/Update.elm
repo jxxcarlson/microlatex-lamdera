@@ -1044,6 +1044,7 @@ signOut model =
         , showEditor = False
         , chatVisible = False
         , sortMode = Types.SortByMostRecent
+        , lastInteractionTime = Time.millisToPosix 0
       }
     , Cmd.batch
         [ Nav.pushUrl model.key "/"
