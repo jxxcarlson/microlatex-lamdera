@@ -74,8 +74,8 @@ backendTickSeconds =
 automaticSignoutLimit =
     case Env.mode of
         Env.Production ->
-            -- two minutes
-            120
+            -- one hour
+            3600
 
         Env.Development ->
             20
@@ -86,8 +86,8 @@ automaticSignoutLimit =
 automaticSignoutNoticePeriod =
     case Env.mode of
         Env.Production ->
-            -- 1 minute
-            60
+            -- 5 minutes
+            300
 
         Env.Development ->
             5
