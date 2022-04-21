@@ -259,7 +259,7 @@ saveDocument model clientId document =
         updateDocumentDict2 doc dict =
             Dict.update doc.id mUpdateDoc dict
     in
-    ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { content = "saved: " ++ document.title, status = MSYellow }) )
+    ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { content = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen }) )
 
 
 createDocument model clientId maybeCurrentUser doc_ =
@@ -347,7 +347,7 @@ insertDocument model clientId user doc_ =
 
         --, usersDocumentsDict = usersDocumentsDict
       }
-    , sendToFrontend clientId (MessageReceived { content = "Backup made for " ++ doc.title, status = MSYellow })
+    , sendToFrontend clientId (MessageReceived { content = "Backup made for " ++ String.replace "(BAK)" "" doc.title ++ " (" ++ String.fromInt (String.length doc.content) ++ " chars)", status = MSYellow })
     )
 
 

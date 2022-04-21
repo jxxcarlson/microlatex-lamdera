@@ -69,7 +69,8 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
         , Button.toggleDocumentStatus model
-        , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
+
+        -- , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
