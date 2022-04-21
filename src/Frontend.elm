@@ -243,7 +243,7 @@ update msg model =
         FETick newTime ->
             let
                 lastInteractionTimeMilliseconds =
-                    model.lastInteractionTime |> Time.posixToMillis |> Debug.log "LAST INT. TIME"
+                    model.lastInteractionTime |> Time.posixToMillis
 
                 currentTimeMilliseconds =
                     model.currentTime |> Time.posixToMillis
