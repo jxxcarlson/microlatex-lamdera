@@ -240,10 +240,18 @@ fetchDocumentById model clientId docId documentHandling =
 
         Just document ->
             ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument documentHandling document)
-                ]
+            , fetchDocumentByIdCmd model clientId docId documentHandling
             )
+
+
+fetchDocumentByIdCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg
+fetchDocumentByIdCmd model clientId docId documentHandling =
+    case Dict.get docId model.documentDict of
+        Nothing ->
+            Cmd.none
+
+        Just document ->
+            sendToFrontend clientId (ReceivedDocument documentHandling document)
 
 
 saveDocument model clientId document =
@@ -389,12 +397,19 @@ removeSessionClient model sessionId clientId =
                     List.foldl (\id list -> Dict.get id model.documentDict :: list) [] activeSharedDocIds
                         |> Maybe.Extra.values
                         |> List.map (\doc -> Share.unshare doc)
+
+                pushSignOutDocCmd : Cmd BackendMsg
+                pushSignOutDocCmd =
+                    fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
+
+                notifications =
+                    broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
             in
             ( { model
                 | sharedDocumentDict = Dict.map Share.resetUser model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
-            , Cmd.batch <| broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
+            , Cmd.batch <| pushSignOutDocCmd :: notifications
             )
 
 

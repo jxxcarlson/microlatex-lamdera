@@ -23,6 +23,7 @@ module Config exposing
     , plainTextCheetsheetId
     , publicDocumentStartupSearchKey
     , renderedTextId
+    , signOutDocumentId
     , startupHelpDocumentId
     , titleSize
     , transitKey
@@ -135,6 +136,15 @@ xmarkdownCheetsheetId =
 
         Env.Development ->
             "--"
+
+
+signOutDocumentId =
+    case Env.mode of
+        Env.Production ->
+            "id-aeeace09-a1eb-4ac2-956b-bb66ac072b95"
+
+        Env.Development ->
+            "id-93c08863-e803-44c3-a776-2df2ef067e3b"
 
 
 plainTextCheetsheetId =
