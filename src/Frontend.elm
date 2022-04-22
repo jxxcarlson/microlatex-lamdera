@@ -760,7 +760,7 @@ update msg model =
                 Just doc ->
                     -- save the current document in case it has unsaved changes
                     -- and then set document as current
-                    if model.documentDirty then
+                    if model.documentDirty && doc.status == Document.DSNormal then
                         let
                             updatedDoc =
                                 { doc | content = model.sourceText }
@@ -780,7 +780,7 @@ update msg model =
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
 
                 Just theDoc ->
-                    if model.documentDirty then
+                    if model.documentDirty && document.status == Document.DSNormal then
                         let
                             updatedDoc =
                                 { theDoc | content = model.sourceText }

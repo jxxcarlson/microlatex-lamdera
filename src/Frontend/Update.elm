@@ -136,7 +136,7 @@ savePreviousCurrentDocumentCmd model =
             Cmd.none
 
         Just previousDoc ->
-            if model.documentDirty then
+            if model.documentDirty && previousDoc.status == Document.DSNormal then
                 let
                     previousDoc2 =
                         -- TODO: change content
@@ -1225,6 +1225,7 @@ updateCurrentDocument doc model =
 
 
 preserveCurrentDocument model =
+    -- TODO: use this function!
     case model.currentDocument of
         Nothing ->
             Cmd.none
