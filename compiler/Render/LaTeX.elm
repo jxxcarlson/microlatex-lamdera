@@ -24,9 +24,9 @@ export settings ast =
         get ast_ name_ =
             ASTTools.filterASTOnName ast_ name_ |> String.join " "
     in
-    preamble (get ast "title" |> Debug.log "Extract TITLE")
-        (get ast "author" |> Debug.log "Extract AUTHOR")
-        (get ast "date" |> Debug.log "Extract DATE")
+    preamble (get ast "title")
+        (get ast "author")
+        (get ast "date")
         ++ "\n\n"
         ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
