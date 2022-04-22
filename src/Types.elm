@@ -162,7 +162,7 @@ type alias FrontendModel =
     , currentCheatsheet : Maybe Document
     , currentMasterDocument : Maybe Document
     , documents : List Document
-    , pinnedDocuments : List Document
+    , pinnedDocuments : List Document.DocumentInfo
     , publicDocuments : List Document
     , inputSearchKey : String
     , actualSearchKey : String

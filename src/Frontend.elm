@@ -749,10 +749,6 @@ update msg model =
             Frontend.Update.setPublicDocumentAsCurrentById model id
 
         SetDocumentCurrent document ->
-            let
-                _ =
-                    Debug.log "HERE" 1
-            in
             case model.currentDocument of
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
@@ -775,24 +771,13 @@ update msg model =
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
-            let
-                _ =
-                    Debug.log "HERE" 2
-            in
             case model.currentDocument of
                 Nothing ->
-                    let
-                        _ =
-                            Debug.log "HERE" 2.1
-                    in
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
 
                 Just theDoc ->
                     if model.documentDirty then
                         let
-                            _ =
-                                Debug.log "HERE" 2.2
-
                             updatedDoc =
                                 { theDoc | content = model.sourceText }
 
@@ -802,10 +787,6 @@ update msg model =
                         Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document handling
 
                     else
-                        let
-                            _ =
-                                Debug.log "HERE" 2.3
-                        in
                         Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
 
         SetDocumentCurrentViaId id ->
@@ -1147,7 +1128,7 @@ updateFromBackend msg model =
                 Just doc ->
                     case documentHandling of
                         PinnedDocumentList ->
-                            ( { model | pinnedDocuments = documents, currentDocument = Just doc }
+                            ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
                             , Cmd.none
                               -- TODO: ??, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
                             )

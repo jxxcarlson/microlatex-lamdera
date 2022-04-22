@@ -262,9 +262,11 @@ viewPinnedDocs model deltaH indexShift =
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
 
+        docs : List { title : String, id : String, modified : Time.Posix, public : Bool }
         docs =
-            sort model.pinnedDocuments |> filterBackups model.seeBackups
+            sort model.pinnedDocuments
 
+        -- |> filterBackups model.seeBackups
         searchKey =
             "[pin]"
 
@@ -285,7 +287,8 @@ viewPinnedDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocuments StandardHandling model.currentDocument docs
+            :: viewDocInfoList model.currentDocument model.documents docs
+         --  (docInfoList |> filterDocInfo model.seeBackups)
         )
 
 
