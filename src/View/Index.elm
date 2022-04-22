@@ -334,8 +334,8 @@ viewPublicDocuments model =
 
 
 viewDocuments : DocumentHandling -> Maybe Document -> List Document -> List (Element FrontendMsg)
-viewDocuments docPermissions currentDocument docs =
-    List.map (Button.setDocumentAsCurrent docPermissions currentDocument) docs
+viewDocuments docHandling currentDocument docs =
+    List.map (Button.setDocumentAsCurrent docHandling currentDocument) docs
 
 
 viewDocInfoList : Maybe Document -> List Document -> List Document.DocumentInfo -> List (Element FrontendMsg)

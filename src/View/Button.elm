@@ -842,11 +842,13 @@ getDocument documentHandling id title highlighted =
 
 
 setDocumentAsCurrent : DocumentHandling -> Maybe Document.Document -> Document.Document -> Element FrontendMsg
-setDocumentAsCurrent docPermissions currentDocument document =
+setDocumentAsCurrent docHandling currentDocument document =
     let
         ( fg, weight ) =
             if currentDocument == Just document then
+                -- red: document is current
                 if document.status == Document.DSSoftDelete then
+                    -- pale red: document has been soft-deleted
                     ( Font.color (E.rgb 0.7 0.4 0.4), Font.regular )
 
                 else
@@ -871,7 +873,7 @@ setDocumentAsCurrent docPermissions currentDocument document =
                 |> String.Extra.ellipsisWith 40 " ..."
     in
     Input.button []
-        { onPress = Just (SetDocumentAsCurrent docPermissions document)
+        { onPress = Just (SetDocumentAsCurrent docHandling document)
         , label = E.el [ Font.size 14, fg, weight, style ] (E.text titleString)
         }
 
