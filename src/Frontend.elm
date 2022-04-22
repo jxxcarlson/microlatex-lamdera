@@ -134,6 +134,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , showPublicUrl = False
       , documentDirty = False
       , seeBackups = False
       , lineNumber = 0
@@ -346,6 +347,9 @@ update msg model =
 
         InputChoseGroup str ->
             ( { model | inputGroup = str }, sendToBackend (GetChatGroup str) )
+
+        TogglePublicUrl ->
+            ( { model | showPublicUrl = not model.showPublicUrl }, Cmd.none )
 
         ToggleChat ->
             ( { model | chatVisible = not model.chatVisible }, Util.delay 100 ScrollChatToBottom )

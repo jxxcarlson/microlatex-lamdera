@@ -148,6 +148,7 @@ type alias FrontendModel =
     , sourceText : String
     , inputTitle : String
     , showDocTools : Bool
+    , showPublicUrl : Bool
 
     --, ast : Markup.SyntaxTree
     , editRecord : Compiler.DifferentialParser.EditRecord
@@ -476,6 +477,7 @@ type FrontendMsg
     | SendSyncLR
     | GetSelection String
       -- UI
+    | TogglePublicUrl
     | ToggleDocTools
     | ToggleActiveDocList
     | CloseCollectionIndex

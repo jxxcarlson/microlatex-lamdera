@@ -72,6 +72,7 @@ module View.Button exposing
     , toggleExtrasSidebar
     , toggleLock
     , togglePublic
+    , togglePublicUrl
     , toggleTagsSidebar
     , unlock
     , workingDocs
@@ -693,6 +694,11 @@ clearConnectionDict =
 toggleActiveDocList : String -> Element FrontendMsg
 toggleActiveDocList name =
     buttonTemplate2 [] ToggleActiveDocList name
+
+
+togglePublicUrl : Element FrontendMsg
+togglePublicUrl =
+    buttonTemplate [ Font.color Color.white ] TogglePublicUrl "URL"
 
 
 

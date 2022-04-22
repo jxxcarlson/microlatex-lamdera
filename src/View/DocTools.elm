@@ -1,5 +1,6 @@
-module View.DocTools exposing (view)
+module View.DocTools exposing (urlPopup, view)
 
+import Config
 import DateTimeUtility
 import Dict exposing (Dict)
 import Document exposing (Document)
@@ -43,6 +44,45 @@ view model =
 
     else
         E.none
+
+
+urlPopup model =
+    if model.showPublicUrl then
+        E.column
+            [ Background.color Color.lightBlue
+            , E.paddingXY 18 18
+            , E.moveUp 102
+            , E.spacing 8
+            , Font.size 16
+            , if model.showEditor then
+                E.moveRight (toFloat <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth - 707)
+
+              else
+                E.moveRight 387
+            , E.width (E.px 500)
+            , E.height (E.px 60)
+            ]
+            [ publicLink model.currentDocument
+            ]
+
+    else
+        E.none
+
+
+publicLink currentDocument =
+    case currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            let
+                path =
+                    Maybe.map .id currentDocument |> Maybe.withDefault "??"
+
+                url =
+                    "https://" ++ Config.host ++ "/i/" ++ path
+            in
+            E.el [ Font.size 16, Font.color Color.white, E.centerX, E.centerY ] (E.text url)
 
 
 wordCount : FrontendModel -> Element FrontendMsg

@@ -30,6 +30,7 @@ view model width_ =
     E.row
         [ E.spacing 1
         , E.inFront (View.DocTools.view model)
+        , E.inFront (View.DocTools.urlPopup model)
         , E.paddingXY 0 8
         , E.height (E.px 35)
         , Background.color Color.black
@@ -70,6 +71,7 @@ view model width_ =
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
+        , E.el [ E.alignRight ] Button.togglePublicUrl
         , Button.toggleDocumentStatus model
         , isCurrentDocumentDirty model.documentDirty
         , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
