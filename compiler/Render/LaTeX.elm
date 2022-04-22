@@ -20,10 +20,13 @@ export settings ast =
         imageList : List String
         imageList =
             getImageUrls ast
+
+        get ast_ name_ =
+            ASTTools.filterASTOnName ast_ name_ |> String.join " "
     in
-    preamble (ASTTools.extractTextFromSyntaxTreeByKey "title" ast)
-        (ASTTools.extractTextFromSyntaxTreeByKey "author" ast)
-        (ASTTools.extractTextFromSyntaxTreeByKey "date" ast)
+    preamble (get ast "title" |> Debug.log "Extract TITLE")
+        (get ast "author" |> Debug.log "Extract AUTHOR")
+        (get ast "date" |> Debug.log "Extract DATE")
         ++ "\n\n"
         ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
