@@ -68,7 +68,7 @@ init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
 init url key =
     ( { key = key
       , url = url
-      , messages = [ { content = "Welcome!", status = MSWhite } ]
+      , messages = [ { txt = "Welcome!", status = MSWhite } ]
       , currentTime = Time.millisToPosix 0
       , zone = Time.utc
       , timeSignedIn = Time.millisToPosix 0
@@ -544,7 +544,7 @@ update msg model =
             ( { model | searchSourceText = str, foundIdIndex = 0 }, Cmd.none )
 
         GetSelection str ->
-            ( { model | messages = [ { content = "Selection: " ++ str, status = MSWhite } ] }, Cmd.none )
+            ( { model | messages = [ { txt = "Selection: " ++ str, status = MSWhite } ] }, Cmd.none )
 
         -- SYNC
         SelectedText str ->
@@ -574,7 +574,7 @@ update msg model =
         OpenEditor ->
             case model.currentDocument of
                 Nothing ->
-                    ( { model | messages = [ { content = "No document to open in editor", status = MSWhite } ] }, Cmd.none )
+                    ( { model | messages = [ { txt = "No document to open in editor", status = MSWhite } ] }, Cmd.none )
 
                 Just doc ->
                     Frontend.Update.openEditor doc model
@@ -896,7 +896,7 @@ updateDoc model str =
                     ( model, Cmd.none )
 
                 Document.DSReadOnly ->
-                    ( { model | messages = [ { content = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
+                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
 
                 Document.DSNormal ->
                     -- if Share.canEdit model.currentUser (Just doc) then
@@ -913,7 +913,7 @@ updateDoc model str =
                                 else
                                     "Oops, this is a backup or version document -- no edits"
                         in
-                        ( { model | messages = [ { content = m, status = MSYellow } ] }, Cmd.none )
+                        ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
 
 
 updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
@@ -1094,7 +1094,7 @@ updateFromBackend msg model =
 
         -- ADMIN
         SendBackupData data ->
-            ( { model | messages = [ { content = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSWhite } ] }, Download.string "l0-lab-demo    .json" "text/json" data )
+            ( { model | messages = [ { txt = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSWhite } ] }, Download.string "l0-lab-demo    .json" "text/json" data )
 
         StatusReport items ->
             ( { model | statusReport = items }, Cmd.none )

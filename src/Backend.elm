@@ -118,7 +118,7 @@ update msg model =
                 [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
                 , sendToFrontend clientId
                     (MessageReceived
-                        { content = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
+                        { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
                         , status = Types.MSYellow
                         }
                     )
@@ -150,7 +150,7 @@ updateFromFrontend sessionId clientId msg model =
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
                 Nothing ->
-                    ( model, sendToFrontend clientId (MessageReceived { content = groupName ++ ": no such group", status = Types.MSYellow }) )
+                    ( model, sendToFrontend clientId (MessageReceived { txt = groupName ++ ": no such group", status = Types.MSYellow }) )
 
                 Just _ ->
                     ( model, Chat.sendChatHistoryCmd groupName model clientId )
@@ -202,7 +202,7 @@ updateFromFrontend sessionId clientId msg model =
                 Just doc ->
                     let
                         message =
-                            { content = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing"), status = Types.MSGreen }
+                            { txt = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing"), status = Types.MSGreen }
                     in
                     ( model
                     , Cmd.batch

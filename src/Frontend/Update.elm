@@ -249,7 +249,7 @@ setPublicDocumentAsCurrentById : FrontendModel -> String -> ( FrontendModel, Cmd
 setPublicDocumentAsCurrentById model id =
     case List.filter (\doc -> doc.id == id) model.publicDocuments |> List.head of
         Nothing ->
-            ( { model | messages = [ { content = "No document of id [" ++ id ++ "] found", status = MSWhite } ] }, Cmd.none )
+            ( { model | messages = [ { txt = "No document of id [" ++ id ++ "] found", status = MSWhite } ] }, Cmd.none )
 
         Just doc ->
             let
@@ -263,7 +263,7 @@ setPublicDocumentAsCurrentById model id =
                 , editRecord = newEditRecord
                 , title = Compiler.ASTTools.title newEditRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                , messages = [ { content = "id = " ++ doc.id, status = MSWhite } ]
+                , messages = [ { txt = "id = " ++ doc.id, status = MSWhite } ]
                 , counter = model.counter + 1
               }
             , Cmd.batch [ View.Utility.setViewPortToTop model.popupState ]
@@ -335,7 +335,7 @@ hardDeleteDocument model =
 setInitialEditorContent model =
     case model.currentDocument of
         Nothing ->
-            ( { model | messages = [ { content = "Could not set editor content: there is no current document", status = MSWhite } ] }, Cmd.none )
+            ( { model | messages = [ { txt = "Could not set editor content: there is no current document", status = MSWhite } ] }, Cmd.none )
 
         Just doc ->
             ( { model | initialText = doc.content }, Cmd.none )
@@ -354,7 +354,7 @@ searchText model =
                 Just id_ ->
                     ( View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_, id_ )
     in
-    ( { model | selectedId = id, searchCount = model.searchCount + 1, messages = [ { content = "ids: " ++ String.join ", " ids, status = MSWhite } ] }, cmd )
+    ( { model | selectedId = id, searchCount = model.searchCount + 1, messages = [ { txt = "ids: " ++ String.join ", " ids, status = MSWhite } ] }, cmd )
 
 
 inputTitle model str =
@@ -395,7 +395,7 @@ inputText_ model str =
         , editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , messages = [ { content = String.join ", " messages, status = MSYellow } ]
+        , messages = [ { txt = String.join ", " messages, status = MSYellow } ]
         , debounce = debounce
         , counter = model.counter + 1
         , documentDirty = True
@@ -452,7 +452,7 @@ render model msg_ =
 
         Render.Msg.SendId line ->
             -- TODO: the below (using id also for line number) is not a great idea.
-            ( { model | messages = [ { content = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSYellow } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
+            ( { model | messages = [ { txt = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSYellow } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
 
         Render.Msg.SelectId id ->
             -- the element with this id will be highlighted
@@ -505,7 +505,7 @@ firstSyncLR model searchSourceText =
         , foundIds = data.foundIds
         , foundIdIndex = data.foundIdIndex
         , searchCount = data.searchCount
-        , messages = [ { content = ("[" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", ", status = MSWhite } ]
+        , messages = [ { txt = ("[" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", ", status = MSWhite } ]
       }
     , data.cmd
     )
@@ -520,7 +520,7 @@ nextSyncLR model =
         | selectedId = id_
         , foundIdIndex = modBy (List.length model.foundIds) (model.foundIdIndex + 1)
         , searchCount = model.searchCount + 1
-        , messages = [ { content = ("[" ++ adjustId id_ ++ "]") :: List.map adjustId model.foundIds |> String.join ", ", status = MSWhite } ]
+        , messages = [ { txt = ("[" ++ adjustId id_ ++ "]") :: List.map adjustId model.foundIds |> String.join ", ", status = MSWhite } ]
       }
     , View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_
     )
@@ -561,7 +561,7 @@ syncLR model =
         , foundIds = data.foundIds
         , foundIdIndex = data.foundIdIndex
         , searchCount = data.searchCount
-        , messages = [ { content = ("!![" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", ", status = MSWhite } ]
+        , messages = [ { txt = ("!![" ++ adjustId data.selectedId ++ "]") :: List.map adjustId data.foundIds |> String.join ", ", status = MSWhite } ]
       }
     , data.cmd
     )
@@ -581,7 +581,7 @@ setViewportForElement model result =
     case result of
         Ok ( element, viewport ) ->
             ( { model | messages = [] }
-              -- [ { content = model.message ++ ", setting viewport", status = MSNormal } ] }
+              -- [ { txt = model.message ++ ", setting viewport", status = MSNormal } ] }
             , View.Utility.setViewPortForSelectedLine model.popupState element viewport
             )
 
@@ -646,7 +646,7 @@ requestRefresh : String -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( Fronte
 requestRefresh docId ( model, cmds ) =
     let
         message =
-            { content = "Requesting refresh for " ++ docId, status = MSGreen }
+            { txt = "Requesting refresh for " ++ docId, status = MSGreen }
     in
     ( { model | messages = message :: model.messages }, sendToBackend (RequestRefresh docId) :: cmds )
 
@@ -902,7 +902,7 @@ lockDocument model =
                 )
 
             else
-                ( { model | messages = [ { content = "Document is locked already", status = MSRed } ] }, Cmd.none )
+                ( { model | messages = [ { txt = "Document is locked already", status = MSRed } ] }, Cmd.none )
 
 
 join :
@@ -991,7 +991,7 @@ setDocumentInPhoneAsCurrent model doc permissions =
         , initialText = doc.content
         , title = Compiler.ASTTools.title ast
         , tableOfContents = Compiler.ASTTools.tableOfContents ast
-        , messages = [ { content = "id = " ++ doc.id, status = MSWhite } ]
+        , messages = [ { txt = "id = " ++ doc.id, status = MSWhite } ]
         , permissions = setPermissions model.currentUser permissions doc
         , counter = model.counter + 1
         , phoneMode = PMShowDocument
@@ -1028,7 +1028,7 @@ signOut model =
         , currentDocument = Just Docs.simpleWelcomeDoc
         , currentMasterDocument = Nothing
         , documents = []
-        , messages = [ { content = "Signed out", status = MSWhite } ]
+        , messages = [ { txt = "Signed out", status = MSWhite } ]
         , inputSearchKey = ""
         , actualSearchKey = ""
         , inputTitle = ""
@@ -1069,7 +1069,7 @@ handleSignIn model =
                 ( { model | url = url }, sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
     else
-        ( { model | messages = [ { content = "Password must be at least 8 letters long.", status = MSWhite } ] }, Cmd.none )
+        ( { model | messages = [ { txt = "Password must be at least 8 letters long.", status = MSWhite } ] }, Cmd.none )
 
 
 handleSignUp model =
@@ -1090,7 +1090,7 @@ handleSignUp model =
         )
 
     else
-        ( { model | messages = [ { content = String.join "; " errors, status = MSWhite } ] }, Cmd.none )
+        ( { model | messages = [ { txt = String.join "; " errors, status = MSWhite } ] }, Cmd.none )
 
 
 reject : Bool -> String -> List String -> List String

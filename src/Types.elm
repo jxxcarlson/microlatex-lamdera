@@ -186,7 +186,7 @@ type ToggleChatGroupDisplay
 
 
 type alias Message =
-    { content : String, status : MessageStatus }
+    { txt : String, status : MessageStatus }
 
 
 type MessageStatus

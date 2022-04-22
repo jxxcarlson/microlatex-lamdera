@@ -13,20 +13,20 @@ style attr =
 
 make : String -> Types.MessageStatus -> List Types.Message
 make str status =
-    [ { content = str, status = status } ]
+    [ { txt = str, status = status } ]
 
 
 handleMessage : Types.Message -> Element msg
-handleMessage { content, status } =
+handleMessage { txt, status } =
     case status of
         Types.MSWhite ->
-            E.el (style []) (E.text content)
+            E.el (style []) (E.text txt)
 
         Types.MSYellow ->
-            E.el (style [ Font.color View.Color.yellow ]) (E.text content)
+            E.el (style [ Font.color View.Color.yellow ]) (E.text txt)
 
         Types.MSGreen ->
-            E.el (style [ Font.color (E.rgb 0 0.7 0) ]) (E.text content)
+            E.el (style [ Font.color (E.rgb 0 0.7 0) ]) (E.text txt)
 
         Types.MSRed ->
-            E.el (style [ Font.color View.Color.white, Background.color View.Color.red, E.paddingXY 4 4 ]) (E.text content)
+            E.el (style [ Font.color View.Color.white, Background.color View.Color.red, E.paddingXY 4 4 ]) (E.text txt)
