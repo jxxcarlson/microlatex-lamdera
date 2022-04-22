@@ -192,7 +192,7 @@ userIsReaderOrEditor model =
             False
 
         Just doc ->
-            Predicate.isSharedToMe model.currentUser doc
+            Predicate.isSharedToMe (Just doc) model.currentUser
 
 
 label str =

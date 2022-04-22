@@ -93,9 +93,6 @@ handleCurrentDocumentChange model currentDocument document =
         -- we are leaving the old current document.
         -- make sure that the content is saved and its status is set to read only
         let
-            _ =
-                Debug.log "handle" 1
-
             updatedDoc =
                 { currentDocument | content = model.sourceText, status = Document.DSReadOnly }
 
@@ -106,22 +103,15 @@ handleCurrentDocumentChange model currentDocument document =
 
     else if currentDocument.status == Document.DSNormal then
         let
-            _ =
-                Debug.log "handle" 2
-
             updatedDoc =
                 { currentDocument | status = Document.DSReadOnly }
 
             newModel =
                 { model | documents = Util.updateDocumentInList updatedDoc model.documents }
         in
-        setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel { document | status = Document.DSReadOnly } StandardHandling
+        setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
 
     else
-        let
-            _ =
-                Debug.log "handle" 3
-        in
         setDocumentAsCurrent Cmd.none model document StandardHandling
 
 
@@ -155,13 +145,11 @@ setDocumentAsCurrent cmd model doc permissions =
             addDocToCurrentUser model doc
 
         newDocumentStatus =
-            (if Predicate.documentIsMine model.currentDocument model.currentUser && model.showEditor then
+            if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
                 Document.DSNormal
 
-             else
+            else
                 Document.DSReadOnly
-            )
-                |> Debug.log ("NEW STATUS (" ++ doc.title ++ ")")
 
         updatedDoc =
             { doc | status = newDocumentStatus }
@@ -171,6 +159,7 @@ setDocumentAsCurrent cmd model doc permissions =
         , currentMasterDocument = currentMasterDocument
         , sourceText = doc.content
         , initialText = doc.content
+        , documents = Util.updateDocumentInList updatedDoc model.documents
         , editRecord = newEditRecord
         , title =
             Compiler.ASTTools.title newEditRecord.parsed
@@ -770,8 +759,8 @@ currentDocumentId mDoc =
 shouldMakeRequest : Maybe User -> Document -> Bool -> Bool
 shouldMakeRequest mUser doc showEditor =
     -- Predicate.isSharedToMe mUser doc
-    Predicate.isSharedToMe mUser doc
-        || Predicate.documentIsMine (Just doc) mUser
+    Predicate.isSharedToMe (Just doc) mUser
+        || Predicate.documentIsMineOrSharedToMe (Just doc) mUser
 
 
 changeLanguage model =

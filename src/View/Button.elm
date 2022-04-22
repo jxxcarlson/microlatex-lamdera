@@ -311,7 +311,7 @@ toggleDocumentStatus model =
             E.none
 
         Just doc ->
-            if Predicate.documentIsMine model.currentDocument model.currentUser then
+            if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
                 case doc.status of
                     Document.DSNormal ->
                         buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
