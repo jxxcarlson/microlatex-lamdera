@@ -139,6 +139,7 @@ savePreviousCurrentDocumentCmd model =
             if model.documentDirty then
                 let
                     previousDoc2 =
+                        -- TODO: change content
                         { previousDoc | content = model.sourceText }
                 in
                 sendToBackend (SaveDocument previousDoc2)
@@ -369,7 +370,7 @@ inputText model str =
         ( model, Cmd.none )
 
     else
-        ( { model | messages = Message.make "Please lock this document to edit it." MSRed }, Cmd.none )
+        ( { model | messages = Message.make "Doc shared; lock to edit it." MSRed }, Cmd.none )
 
 
 inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
