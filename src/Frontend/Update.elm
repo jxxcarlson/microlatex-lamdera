@@ -699,7 +699,6 @@ setDocumentAsCurrent cmd model doc permissions =
     ( { model
         | currentDocument = Just doc
         , currentMasterDocument = currentMasterDocument
-        , documentDirty = False
         , sourceText = doc.content
         , initialText = doc.content
         , editRecord = newEditRecord
@@ -718,10 +717,7 @@ setDocumentAsCurrent cmd model doc permissions =
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState
         , cmd
-        , sendToBackend (SaveDocument doc)
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
-
-        --, sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
         ]
     )
 
