@@ -31,7 +31,7 @@ view model width_ =
         [ E.spacing 1
         , E.inFront (View.DocTools.view model)
         , E.inFront (View.DocTools.urlPopup model)
-        , E.paddingXY 0 8
+        , E.paddingXY 8 8
         , E.height (E.px 35)
         , Background.color Color.black
         , E.width (E.px (width_ + 7))

@@ -9,12 +9,11 @@ import View.Color as Color
 import View.Utility
 
 
-view : FrontendModel -> b -> Element FrontendMsg
 view model _ =
     E.row [ E.spacing 12, E.width E.fill ]
         [ documentControls model
         , sharingControls model
-        , View.Utility.showIf (model.currentUser /= Nothing) (E.el [ E.alignLeft ] Button.toggleCheatSheet)
+        , E.el [ E.centerX ] Button.toggleCheatSheet
         , E.el [ E.alignRight ] (Button.toggleTagsSidebar model.sidebarTagsState)
         , View.Utility.hideIf (model.currentUser == Nothing) Button.toggleChat
         ]
