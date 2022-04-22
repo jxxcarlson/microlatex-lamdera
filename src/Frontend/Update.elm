@@ -929,12 +929,17 @@ openEditor doc model =
 
 openEditor_ : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 openEditor_ doc model =
+    let
+        updatedDoc =
+            { doc | status = Document.DSNormal }
+    in
     ( { model
         | showEditor = True
         , sourceText = doc.content
         , initialText = ""
+        , currentDocument = Just updatedDoc
       }
-    , Frontend.Cmd.setInitialEditorContent 20
+    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20 ]
     )
 
 
@@ -955,12 +960,23 @@ closeEditor model =
         mCurrentUsername : Maybe String
         mCurrentUsername =
             model.currentUser |> Maybe.map .username
+
+        updatedDoc =
+            Maybe.map (\doc -> { doc | status = Document.DSReadOnly }) model.currentDocument
+
+        cmd =
+            case updatedDoc of
+                Nothing ->
+                    Cmd.none
+
+                Just doc ->
+                    sendToBackend (SaveDocument doc)
     in
     if mCurrentEditor == mCurrentUsername then
-        model |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.none )) unlockCurrentDocument
+        { model | currentDocument = updatedDoc } |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.none )) unlockCurrentDocument
 
     else
-        ( { model | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.none )
+        ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, cmd )
 
 
 

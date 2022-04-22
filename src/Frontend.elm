@@ -783,7 +783,7 @@ update msg model =
                     if model.documentDirty && document.status == Document.DSNormal then
                         let
                             updatedDoc =
-                                { theDoc | content = model.sourceText }
+                                { theDoc | content = model.sourceText, status = Document.DSReadOnly }
 
                             newModel =
                                 { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
