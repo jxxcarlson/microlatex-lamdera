@@ -1,7 +1,5 @@
 module View.Utility exposing
-    ( canSave
-    , canSaveStrict
-    , cssNode
+    ( cssNode
     , currentDocumentAuthor
     , currentDocumentEditor
     , elementAttribute
@@ -9,13 +7,7 @@ module View.Utility exposing
     , getReadersAndEditors
     , hideIf
     , htmlId
-    , iOwnThisDocument
-    , iOwnThisDocument_
     , isAdmin
-    , isSharedToMe
-    , isSharedToMe_
-    , isShared_
-    , isUnlocked
     , katexCSS
     , noFocus
     , onEnter
@@ -37,6 +29,7 @@ import Html
 import Html.Attributes as HA
 import Html.Events exposing (keyCode, on)
 import Json.Decode as D
+import Predicate
 import String.Extra
 import Task exposing (Task)
 import Types exposing (FrontendModel, FrontendMsg)
@@ -71,93 +64,6 @@ getReadersAndEditors mDocument =
                     ( readers |> String.join ", ", editors |> String.join ", " )
 
 
-isUnlocked : Document.Document -> Bool
-isUnlocked doc =
-    doc.currentEditor == Nothing
-
-
-canSave : Maybe User.User -> Document.Document -> Bool
-canSave mCurrentUser currentDocument =
-    let
-        iOwntheDocOrItIsShareToMe =
-            Maybe.map .username mCurrentUser
-                == .author currentDocument
-                || isSharedToMe_ (Maybe.map .username mCurrentUser) currentDocument
-
-        iAmTheCurrentEditorOrNobodyIs =
-            Maybe.map .username mCurrentUser == currentDocument.currentEditor || currentDocument.currentEditor == Nothing
-    in
-    iOwntheDocOrItIsShareToMe && iAmTheCurrentEditorOrNobodyIs
-
-
-canSaveStrict : Maybe User.User -> Document.Document -> Bool
-canSaveStrict mCurrentUser currentDocument =
-    let
-        mUsername =
-            Maybe.map .username mCurrentUser
-    in
-    if isShared_ mUsername currentDocument then
-        currentDocument.currentEditor == mUsername
-
-    else
-        iOwnThisDocument_ (mUsername |> Maybe.withDefault "((nobody))") currentDocument
-
-
-iOwnThisDocument : Maybe User.User -> Document.Document -> Bool
-iOwnThisDocument mUser doc =
-    Maybe.map .username mUser == doc.author
-
-
-iOwnThisDocument_ : String -> Document.Document -> Bool
-iOwnThisDocument_ username doc =
-    Just username == doc.author
-
-
-isSharedToMe : Maybe User.User -> Document.Document -> Bool
-isSharedToMe mUser doc =
-    case mUser of
-        Nothing ->
-            False
-
-        Just user ->
-            case doc.share of
-                Document.NotShared ->
-                    False
-
-                Document.ShareWith { readers, editors } ->
-                    List.member user.username readers || List.member user.username editors
-
-
-isSharedToMe_ : Maybe String -> Document.Document -> Bool
-isSharedToMe_ mUsername doc =
-    case mUsername of
-        Nothing ->
-            False
-
-        Just username ->
-            case doc.share of
-                Document.NotShared ->
-                    False
-
-                Document.ShareWith { readers, editors } ->
-                    List.member username readers || List.member username editors
-
-
-isShared_ : Maybe String -> Document.Document -> Bool
-isShared_ mUsername doc =
-    case mUsername of
-        Nothing ->
-            False
-
-        Just username ->
-            case doc.share of
-                Document.NotShared ->
-                    False
-
-                Document.ShareWith { readers, editors } ->
-                    List.isEmpty readers && List.isEmpty editors |> not
-
-
 currentDocumentAuthor : Maybe String -> Maybe Document.Document -> Element FrontendMsg
 currentDocumentAuthor mUsername mDoc =
     case mDoc of
@@ -176,7 +82,7 @@ currentDocumentAuthor mUsername mDoc =
                             -- my doc, shared to someone
                             Font.color (Element.rgb 0.5 0.8 0.8)
 
-                    else if isSharedToMe_ mUsername doc then
+                    else if Predicate.isSharedToMe_ mUsername doc then
                         -- not my doc, shared to me
                         Font.color (Element.rgb 0.9 0.8 0.6)
 
@@ -216,7 +122,7 @@ currentDocumentEditor mUsername mDoc =
                             -- my doc, shared to someone
                             Font.color (Element.rgb 0.5 0.8 0.8)
 
-                    else if isSharedToMe_ mUsername doc then
+                    else if Predicate.isSharedToMe_ mUsername doc then
                         -- not my doc, shared to me
                         Font.color (Element.rgb 0.9 0.8 0.6)
 

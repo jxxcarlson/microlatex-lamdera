@@ -72,6 +72,7 @@ import Markup
 import Maybe.Extra
 import Message
 import Parser.Language exposing (Language(..))
+import Predicate
 import Process
 import Render.LaTeX as LaTeX
 import Render.Markup
@@ -154,7 +155,7 @@ setDocumentAsCurrent cmd model doc permissions =
             addDocToCurrentUser model doc
 
         newDocumentStatus =
-            (if Util.documentIsMine model.currentDocument model.currentUser && model.showEditor then
+            (if Predicate.documentIsMine model.currentDocument model.currentUser && model.showEditor then
                 Document.DSNormal
 
              else
@@ -768,8 +769,9 @@ currentDocumentId mDoc =
 
 shouldMakeRequest : Maybe User -> Document -> Bool -> Bool
 shouldMakeRequest mUser doc showEditor =
-    View.Utility.isSharedToMe mUser doc
-        || View.Utility.iOwnThisDocument mUser doc
+    -- Predicate.isSharedToMe mUser doc
+    Predicate.isSharedToMe mUser doc
+        || Predicate.documentIsMine (Just doc) mUser
 
 
 changeLanguage model =

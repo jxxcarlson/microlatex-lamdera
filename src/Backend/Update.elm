@@ -46,6 +46,7 @@ import List.Extra
 import Maybe.Extra
 import Message
 import Parser.Language exposing (Language(..))
+import Predicate
 import Random
 import Set
 import Share
@@ -624,7 +625,7 @@ getUserDocumentsForAuthor author model =
 searchForPublicDocuments : Types.SortMode -> Int -> Maybe String -> String -> Model -> List Document.Document
 searchForPublicDocuments sortMode limit mUsername key model =
     searchForDocuments_ key model
-        |> List.filter (\doc -> doc.public || View.Utility.isSharedToMe_ mUsername doc)
+        |> List.filter (\doc -> doc.public || Predicate.isSharedToMe_ mUsername doc)
         |> DocumentTools.sort sortMode
         |> List.take Config.maxDocSearchLimit
 

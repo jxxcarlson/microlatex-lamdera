@@ -3,6 +3,7 @@ module View.Header exposing (view)
 import Document
 import Element as E exposing (Element)
 import Element.Font as Font
+import Predicate
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
 import View.Color as Color
@@ -51,7 +52,7 @@ showIfUserIsDocumentAuthor model condition element =
 showIfDocumentIsShared model condition element =
     View.Utility.showIf
         ((model.currentUser /= Nothing)
-            && (Maybe.map (View.Utility.isShared_ (Maybe.map .username model.currentUser)) model.currentDocument
+            && (Maybe.map (Predicate.isShared_ (Maybe.map .username model.currentUser)) model.currentDocument
                     == Just True
                     && condition
                )

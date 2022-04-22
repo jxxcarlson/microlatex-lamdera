@@ -87,6 +87,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Parser.Language exposing (Language(..))
+import Predicate
 import String.Extra
 import Types exposing (AppMode(..), DocumentDeleteState(..), DocumentHandling, DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), PopupState(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..))
 import User exposing (User)
@@ -310,7 +311,7 @@ toggleDocumentStatus model =
             E.none
 
         Just doc ->
-            if Util.documentIsMine model.currentDocument model.currentUser then
+            if Predicate.documentIsMine model.currentDocument model.currentUser then
                 case doc.status of
                     Document.DSNormal ->
                         buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"

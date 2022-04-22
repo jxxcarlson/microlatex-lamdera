@@ -7,9 +7,9 @@ import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Message
+import Predicate
 import Time
 import Types
-import Util
 import View.Button as Button
 import View.Chat
 import View.Color as Color
@@ -57,7 +57,7 @@ view model width_ =
           Button.nextSyncButton model.foundIds
         , View.Utility.showIf (model.currentUser /= Nothing)
             (E.row [ E.spacing 1 ]
-                [ View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) Button.exportToLaTeX
+                [ View.Utility.showIf (Predicate.documentIsMine model.currentDocument model.currentUser) Button.exportToLaTeX
                 , Button.printToPDF model
                 ]
             )
@@ -71,12 +71,12 @@ view model width_ =
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
-        , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (Button.toggleDocumentStatus model)
-        , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
-        , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (timeElapsed model)
+        , View.Utility.showIf (Predicate.documentIsMine model.currentDocument model.currentUser) (Button.toggleDocumentStatus model)
+        , View.Utility.showIf (Predicate.documentIsMine model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
+        , View.Utility.showIf (Predicate.documentIsMine model.currentDocument model.currentUser) (timeElapsed model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
-        , View.Utility.showIf (Util.documentIsMine model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
+        , View.Utility.showIf (Predicate.documentIsMine model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
 
 

@@ -4,6 +4,7 @@ import Document
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
+import Predicate
 import Types exposing (DocumentHandling(..), FrontendModel, PopupState(..))
 import View.Button as Button
 import View.Color as Color
@@ -191,7 +192,7 @@ userIsReaderOrEditor model =
             False
 
         Just doc ->
-            View.Utility.isSharedToMe model.currentUser doc
+            Predicate.isSharedToMe model.currentUser doc
 
 
 label str =
