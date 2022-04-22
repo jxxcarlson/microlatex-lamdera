@@ -279,6 +279,7 @@ macroDict =
         , ( "ilink", ilink )
         , ( "index_", blindIndex )
         , ( "code", code )
+        , ( "image", image )
         ]
 
 
@@ -365,6 +366,20 @@ ilink s exprs =
             getTwoArgs exprs
     in
     [ "\\href{", "https://l0-lab-demo.lamdera.app/i/", args.second, "}{", args.first, "}" ] |> String.join ""
+
+
+image : Settings -> List Expr -> String
+image s exprs =
+    let
+        args =
+            getOneArg exprs |> String.words
+    in
+    case List.head args of
+        Nothing ->
+            "ERROR IN IMAGE"
+
+        Just url ->
+            [ "\\imagecenter{", url, "}" ] |> String.join ""
 
 
 blindIndex : Settings -> List Expr -> String
