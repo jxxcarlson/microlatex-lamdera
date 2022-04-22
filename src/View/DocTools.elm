@@ -80,7 +80,7 @@ publicLink currentDocument =
                     Maybe.map .id currentDocument |> Maybe.withDefault "??"
 
                 url =
-                    "https://" ++ Config.host ++ "/i/" ++ path
+                    Config.host ++ "/i/" ++ path
             in
             E.el [ Font.size 16, Font.color Color.white, E.centerX, E.centerY ] (E.text url)
 

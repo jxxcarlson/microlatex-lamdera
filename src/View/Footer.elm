@@ -71,7 +71,7 @@ view model width_ =
         --, View.Utility.showIf (isAdmin model) Button.importJson
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
-        , E.el [ E.alignRight ] Button.togglePublicUrl
+        , E.el [ E.alignRight, E.moveUp 2 ] Button.togglePublicUrl
         , Button.toggleDocumentStatus model
         , isCurrentDocumentDirty model.documentDirty
         , View.Utility.showIf (model.currentUser /= Nothing) (timeElapsed model)
