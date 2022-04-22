@@ -749,6 +749,10 @@ update msg model =
             Frontend.Update.setPublicDocumentAsCurrentById model id
 
         SetDocumentCurrent document ->
+            let
+                _ =
+                    Debug.log "HERE" 1
+            in
             case model.currentDocument of
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
@@ -756,30 +760,53 @@ update msg model =
                 Just doc ->
                     -- save the current document in case it has unsaved changes
                     -- and then set document as current
-                    let
-                        updatedDoc =
-                            { doc | content = model.sourceText }
+                    if model.documentDirty then
+                        let
+                            updatedDoc =
+                                { doc | content = model.sourceText }
 
-                        newModel =
-                            { model | documents = Util.updateDocumentInList updatedDoc model.documents }
-                    in
-                    Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
+                            newModel =
+                                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
+                        in
+                        Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
+
+                    else
+                        Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
+            let
+                _ =
+                    Debug.log "HERE" 2
+            in
             case model.currentDocument of
                 Nothing ->
+                    let
+                        _ =
+                            Debug.log "HERE" 2.1
+                    in
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
 
                 Just theDoc ->
-                    let
-                        updatedDoc =
-                            { theDoc | content = model.sourceText }
+                    if model.documentDirty then
+                        let
+                            _ =
+                                Debug.log "HERE" 2.2
 
-                        newModel =
-                            { model | documents = Util.updateDocumentInList updatedDoc model.documents }
-                    in
-                    Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document handling
+                            updatedDoc =
+                                { theDoc | content = model.sourceText }
+
+                            newModel =
+                                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
+                        in
+                        Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document handling
+
+                    else
+                        let
+                            _ =
+                                Debug.log "HERE" 2.3
+                        in
+                        Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
 
         SetDocumentCurrentViaId id ->
             case Document.documentFromListViaId id model.documents of
