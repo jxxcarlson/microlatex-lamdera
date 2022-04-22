@@ -10,6 +10,7 @@ module Frontend.Update exposing
     , firstSyncLR
     , handleAsReceivedDocumentWithDelay
     , handleAsStandardReceivedDocument
+    , handleCurrentDocumentChange
     , handlePinnedDocuments
     , handleReceivedDocumentAsCheatsheet
     , handleSignIn
@@ -84,6 +85,110 @@ import Types exposing (DocumentDeleteState(..), DocumentHandling(..), DocumentLi
 import User exposing (User)
 import Util
 import View.Utility
+
+
+handleCurrentDocumentChange model currentDocument document =
+    if model.documentDirty && currentDocument.status == Document.DSNormal then
+        -- we are leaving the old current document.
+        -- make sure that the content is saved and its status is set to read only
+        let
+            _ =
+                Debug.log "handle" 1
+
+            updatedDoc =
+                { currentDocument | content = model.sourceText, status = Document.DSReadOnly }
+
+            newModel =
+                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
+        in
+        setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
+
+    else if currentDocument.status == Document.DSNormal then
+        let
+            _ =
+                Debug.log "handle" 2
+
+            updatedDoc =
+                { currentDocument | status = Document.DSReadOnly }
+
+            newModel =
+                { model | documents = Util.updateDocumentInList updatedDoc model.documents }
+        in
+        setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel { document | status = Document.DSReadOnly } StandardHandling
+
+    else
+        let
+            _ =
+                Debug.log "handle" 3
+        in
+        setDocumentAsCurrent Cmd.none model document StandardHandling
+
+
+setDocumentAsCurrent : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent cmd model doc permissions =
+    let
+        -- For now, loc the doc in all cases
+        currentUserName_ : String
+        currentUserName_ =
+            Util.currentUsername model.currentUser
+
+        newEditRecord : Compiler.DifferentialParser.EditRecord
+        newEditRecord =
+            Compiler.DifferentialParser.init doc.language doc.content
+
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
+
+        currentMasterDocument =
+            if isMaster newEditRecord then
+                Just doc
+
+            else
+                Nothing
+
+        ( readers, editors ) =
+            View.Utility.getReadersAndEditors (Just doc)
+
+        newCurrentUser =
+            addDocToCurrentUser model doc
+
+        newDocumentStatus =
+            (if Util.documentIsMine model.currentDocument model.currentUser && model.showEditor then
+                Document.DSNormal
+
+             else
+                Document.DSReadOnly
+            )
+                |> Debug.log ("NEW STATUS (" ++ doc.title ++ ")")
+
+        updatedDoc =
+            { doc | status = newDocumentStatus }
+    in
+    ( { model
+        | currentDocument = Just updatedDoc
+        , currentMasterDocument = currentMasterDocument
+        , sourceText = doc.content
+        , initialText = doc.content
+        , editRecord = newEditRecord
+        , title =
+            Compiler.ASTTools.title newEditRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
+        , permissions = setPermissions model.currentUser permissions doc
+        , counter = model.counter + 1
+        , language = doc.language
+        , currentUser = newCurrentUser
+        , inputReaders = readers
+        , inputEditors = editors
+        , messages = errorMessages
+        , lastInteractionTime = model.currentTime
+      }
+    , Cmd.batch
+        [ View.Utility.setViewPortToTop model.popupState
+        , Cmd.batch [ cmd, sendToBackend (SaveDocument updatedDoc) ]
+        , Nav.pushUrl model.key ("/c/" ++ doc.id)
+        ]
+    )
 
 
 handleReceivedDocumentAsCheatsheet model doc =
@@ -665,61 +770,6 @@ shouldMakeRequest : Maybe User -> Document -> Bool -> Bool
 shouldMakeRequest mUser doc showEditor =
     View.Utility.isSharedToMe mUser doc
         || View.Utility.iOwnThisDocument mUser doc
-
-
-setDocumentAsCurrent : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
-setDocumentAsCurrent cmd model doc permissions =
-    let
-        -- For now, loc the doc in all cases
-        currentUserName_ : String
-        currentUserName_ =
-            Util.currentUsername model.currentUser
-
-        newEditRecord : Compiler.DifferentialParser.EditRecord
-        newEditRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
-
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
-
-        currentMasterDocument =
-            if isMaster newEditRecord then
-                Just doc
-
-            else
-                Nothing
-
-        ( readers, editors ) =
-            View.Utility.getReadersAndEditors (Just doc)
-
-        newCurrentUser =
-            addDocToCurrentUser model doc
-    in
-    ( { model
-        | currentDocument = Just doc
-        , currentMasterDocument = currentMasterDocument
-        , sourceText = doc.content
-        , initialText = doc.content
-        , editRecord = newEditRecord
-        , title =
-            Compiler.ASTTools.title newEditRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-        , permissions = setPermissions model.currentUser permissions doc
-        , counter = model.counter + 1
-        , language = doc.language
-        , currentUser = newCurrentUser
-        , inputReaders = readers
-        , inputEditors = editors
-        , messages = errorMessages
-        , lastInteractionTime = model.currentTime
-      }
-    , Cmd.batch
-        [ View.Utility.setViewPortToTop model.popupState
-        , cmd
-        , Nav.pushUrl model.key ("/c/" ++ doc.id)
-        ]
-    )
 
 
 changeLanguage model =

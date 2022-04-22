@@ -757,21 +757,8 @@ update msg model =
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
 
-                Just doc ->
-                    -- save the current document in case it has unsaved changes
-                    -- and then set document as current
-                    if model.documentDirty && doc.status == Document.DSNormal then
-                        let
-                            updatedDoc =
-                                { doc | content = model.sourceText }
-
-                            newModel =
-                                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
-                        in
-                        Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
-
-                    else
-                        Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
+                Just currentDocument ->
+                    Frontend.Update.handleCurrentDocumentChange model currentDocument document
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
@@ -779,19 +766,8 @@ update msg model =
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
 
-                Just theDoc ->
-                    if model.documentDirty && document.status == Document.DSNormal then
-                        let
-                            updatedDoc =
-                                { theDoc | content = model.sourceText, status = Document.DSReadOnly }
-
-                            newModel =
-                                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
-                        in
-                        Frontend.Update.setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document handling
-
-                    else
-                        Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
+                Just currentDocument ->
+                    Frontend.Update.handleCurrentDocumentChange model currentDocument document
 
         SetDocumentCurrentViaId id ->
             case Document.documentFromListViaId id model.documents of
