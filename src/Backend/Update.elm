@@ -455,7 +455,7 @@ signIn model sessionId clientId username encryptedPassword =
                 ( model, sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
 
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSYellow }) )
+            ( model, sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
 
 
 type alias UserData =
