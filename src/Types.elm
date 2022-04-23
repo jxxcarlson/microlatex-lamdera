@@ -626,6 +626,7 @@ type ToBackend
     | SignOutBE (Maybe String)
     | GetHomePage String
     | FetchDocumentById DocumentHandling Document.DocumentId
+    | FindDocumentByAuthorAndKey DocumentHandling Username String
     | GetPublicDocuments SortMode (Maybe String)
     | SaveDocument Document
     | SearchForDocumentsWithAuthorAndKey String

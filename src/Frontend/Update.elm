@@ -556,6 +556,9 @@ render model msg_ =
         GetPublicDocument id ->
             ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
 
+        GetPublicDocumentFromAuthor authorName searchKey ->
+            ( model, sendToBackend (FindDocumentByAuthorAndKey Types.StandardHandling authorName searchKey) )
+
         ProposeSolution proposal ->
             case proposal of
                 Solved id ->

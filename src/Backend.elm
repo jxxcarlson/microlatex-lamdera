@@ -294,6 +294,9 @@ updateFromFrontend sessionId clientId msg model =
         FetchDocumentById documentHandling docId ->
             Backend.Update.fetchDocumentById model clientId docId documentHandling
 
+        FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
+            Backend.Update.findDocumentByAuthorAndKey model clientId Types.StandardHandling authorName searchKey
+
         GetDocumentByPublicId publicId ->
             Backend.Update.getDocumentByPublicId model clientId publicId
 

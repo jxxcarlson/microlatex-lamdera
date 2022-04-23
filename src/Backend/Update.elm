@@ -3,6 +3,7 @@ module Backend.Update exposing
     , authorTags
     , createDocument
     , fetchDocumentById
+    , findDocumentByAuthorAndKey
     , getConnectedUsers
     , getConnectionData
     , getDocumentByAuthorId
@@ -565,6 +566,35 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member ("id:" ++ firstKey) doc.tags)
 
 
+findDocumentByAuthorAndKey : BackendModel -> ClientId -> Types.DocumentHandling -> String -> String -> ( BackendModel, Cmd BackendMsg )
+findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey =
+    let
+        foundDocs =
+            getUserDocumentsForAuthor authorName model |> List.filter (\doc -> List.member searchKey doc.tags)
+    in
+    case List.head foundDocs of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc ->
+            ( model, sendToFrontend clientId (ReceivedDocument documentHandling doc) )
+
+
+getUserDocumentsForAuthor : String -> Model -> List Document.Document
+getUserDocumentsForAuthor author model =
+    case Authentication.userIdFromUserName author model.authenticationDict of
+        Nothing ->
+            []
+
+        Just userId ->
+            case Dict.get userId model.usersDocumentsDict of
+                Nothing ->
+                    []
+
+                Just usersDocIds ->
+                    List.map (\id -> Dict.get id model.documentDict) usersDocIds |> Maybe.Extra.values
+
+
 
 -- TAGS
 
@@ -630,21 +660,6 @@ insertIf { id, title, tag } dict =
 
             Just ids ->
                 Dict.insert tag ({ id = id, title = title } :: ids) dict
-
-
-getUserDocumentsForAuthor : String -> Model -> List Document.Document
-getUserDocumentsForAuthor author model =
-    case Authentication.userIdFromUserName author model.authenticationDict of
-        Nothing ->
-            []
-
-        Just userId ->
-            case Dict.get userId model.usersDocumentsDict of
-                Nothing ->
-                    []
-
-                Just usersDocIds ->
-                    List.map (\id -> Dict.get id model.documentDict) usersDocIds |> Maybe.Extra.values
 
 
 searchForPublicDocuments : Types.SortMode -> Int -> Maybe String -> String -> Model -> List Document.Document

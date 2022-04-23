@@ -6,6 +6,7 @@ type MarkupMsg
     | SendId String
     | SelectId String
     | GetPublicDocument String
+    | GetPublicDocumentFromAuthor String String
     | ProposeSolution SolutionState
 
 

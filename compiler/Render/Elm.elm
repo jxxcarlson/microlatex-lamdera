@@ -94,6 +94,7 @@ markupDict =
         , ( "link", \g acc s exprList -> link g acc s exprList )
         , ( "href", \g acc s exprList -> href g acc s exprList )
         , ( "ilink", \g acc s exprList -> ilink g acc s exprList )
+        , ( "ulink", \g acc s exprList -> ulink g acc s exprList )
         , ( "abstract", \g acc s exprList -> abstract g acc s exprList )
         , ( "large", \g acc s exprList -> large g acc s exprList )
         , ( "mdash", \_ _ _ _ -> Element.el [] (Element.text "—") )
@@ -214,6 +215,34 @@ ilink _ _ _ exprList =
             in
             Input.button []
                 { onPress = Just (GetPublicDocument docId)
+                , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
+                }
+
+
+ulink _ _ _ exprList =
+    case List.head <| ASTTools.exprListToStringList exprList of
+        Nothing ->
+            errorText_ "Please provide label and url"
+
+        Just argString ->
+            let
+                args =
+                    String.words argString
+
+                n =
+                    List.length args
+
+                label =
+                    List.take (n - 1) args |> String.join " "
+
+                fragment =
+                    List.drop (n - 1) args |> String.join " "
+
+                username =
+                    String.split ":" fragment |> List.head |> Maybe.withDefault "---"
+            in
+            Input.button []
+                { onPress = Just (GetPublicDocumentFromAuthor username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
