@@ -1104,9 +1104,7 @@ signOut model =
         , lastInteractionTime = Time.millisToPosix 0
       }
     , Cmd.batch
-        [ Nav.pushUrl model.key "/i/id-aeeace09-a1eb-4ac2-956b-bb66ac072b95"
-
-        --  [ Nav.pushUrl model.key "/"
+        [ Nav.pushUrl model.key "/"
         , cmd
         , sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
         , sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
