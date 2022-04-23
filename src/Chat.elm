@@ -14,17 +14,13 @@ import Time
 import Types exposing (ChatMsg(..))
 
 
-toString : ChatMsg -> String
-toString chatMsg =
-    case chatMsg of
-        JoinedChat _ _ ->
-            ""
 
-        LeftChat _ _ ->
-            ""
+-- CONSOLIDATE
 
-        ChatMsg _ msg ->
-            msg.content
+
+consolidate : List Types.ChatMsg -> List Types.ChatMsg
+consolidate messages =
+    messages |> group |> concat
 
 
 group : List Types.ChatMsg -> List ( Types.ChatMsg, List Types.ChatMsg )
@@ -40,6 +36,16 @@ close mx1 mx2 =
 
         _ ->
             False
+
+
+interval : Time.Posix -> Time.Posix -> Float
+interval t1 t2 =
+    toFloat (Time.posixToMillis t2 - Time.posixToMillis t1) / 1000.0
+
+
+concat : List ( Types.ChatMsg, List Types.ChatMsg ) -> List Types.ChatMsg
+concat messageGroups =
+    List.map concatGroup messageGroups
 
 
 concatGroup : ( Types.ChatMsg, List Types.ChatMsg ) -> Types.ChatMsg
@@ -71,19 +77,21 @@ concatGroup ( firstMessage, rest ) =
                 }
 
 
-concat : List ( Types.ChatMsg, List Types.ChatMsg ) -> List Types.ChatMsg
-concat messageGroups =
-    List.map concatGroup messageGroups
+toString : ChatMsg -> String
+toString chatMsg =
+    case chatMsg of
+        JoinedChat _ _ ->
+            ""
+
+        LeftChat _ _ ->
+            ""
+
+        ChatMsg _ msg ->
+            msg.content
 
 
-consolidate : List Types.ChatMsg -> List Types.ChatMsg
-consolidate messages =
-    messages |> group |> concat
 
-
-interval : Time.Posix -> Time.Posix -> Float
-interval t1 t2 =
-    toFloat (Time.posixToMillis t2 - Time.posixToMillis t1) / 1000.0
+-- NARROWCAST
 
 
 narrowCast : Types.BackendModel -> Types.ChatMessage -> List (Cmd backendMsg)
@@ -100,6 +108,10 @@ narrowCast model message =
             List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.ChatMessageReceived (Types.ChatMsg clientId_ message))) clientIds
     in
     commands
+
+
+
+-- HISTORY
 
 
 sendChatHistoryCmd groupName model clientId =
