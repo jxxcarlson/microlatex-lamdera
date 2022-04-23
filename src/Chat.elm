@@ -43,7 +43,14 @@ consolidate messages =
 
 group : List Types.ChatMsg -> List ( Types.ChatMsg, List Types.ChatMsg )
 group messages =
-    List.Extra.groupWhile close messages
+    let
+        out =
+            List.Extra.groupWhile close messages
+
+        _ =
+            Debug.log "GROUPS: " (List.length out)
+    in
+    out
 
 
 close : Types.ChatMsg -> Types.ChatMsg -> Bool

@@ -1133,7 +1133,7 @@ handleSignUp model =
     let
         errors =
             []
-                |> reject (String.length model.inputUsername < 4) "username: at least three letters"
+                |> reject (String.length model.inputUsername < 3) "username: at least three letters"
                 |> reject (String.toLower model.inputUsername /= model.inputUsername) "username: all lower case characters"
                 |> reject (model.inputPassword == "") "password: cannot be empty"
                 |> reject (String.length model.inputPassword < 8) "password: at least 8 letters long."
