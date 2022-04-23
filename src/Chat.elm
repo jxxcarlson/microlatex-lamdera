@@ -52,7 +52,7 @@ close : Types.ChatMsg -> Types.ChatMsg -> Bool
 close mx1 mx2 =
     case ( mx1, mx2 ) of
         ( ChatMsg _ m1, ChatMsg _ m2 ) ->
-            m2.sender == m2.sender && interval m1.date m2.date < 60
+            m1.sender == m2.sender && interval m1.date m2.date < 60
 
         _ ->
             False
