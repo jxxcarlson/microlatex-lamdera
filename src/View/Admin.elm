@@ -98,6 +98,12 @@ adminFooter model =
         ]
 
 
+viewUserDocumentList : List ( String, Int ) -> Element FrontendMsg
+viewUserDocumentList users =
+    E.column [ E.spacing 8 ]
+        (E.el [ Font.bold ] (E.text "U/Docs") :: List.map viewUser (List.sortBy (\( u, _ ) -> u) users))
+
+
 viewUserList : List ( String, Int ) -> Element FrontendMsg
 viewUserList users =
     E.column [ E.spacing 8 ]

@@ -241,7 +241,7 @@ updateFromFrontend sessionId clientId msg model =
             in
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
+                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUserAndDocumentData model))
                 , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
                 , sendToFrontend clientId
                     (GotShareDocumentList

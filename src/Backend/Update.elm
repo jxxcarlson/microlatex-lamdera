@@ -10,6 +10,7 @@ module Backend.Update exposing
     , getDocumentByPublicId
     , getHomePage
     , getSharedDocuments
+    , getUserAndDocumentData
     , getUserData
     , getUserDocuments
     , getUsersAndOnlineStatus
@@ -64,6 +65,30 @@ type alias Model =
 
 
 -- TODO
+-- ADMNIN
+
+
+{-| Get pairs (username, number of documents for user)
+-}
+getUserAndDocumentData : BackendModel -> List ( String, Int )
+getUserAndDocumentData model =
+    let
+        pairs : List ( String, String )
+        pairs =
+            model.authenticationDict |> Dict.values |> List.map (.user >> (\u -> ( u.username, u.id )))
+    in
+    List.foldl (\( username, userId ) data -> getUserDocData ( username, userId ) model.usersDocumentsDict :: data) [] pairs
+
+
+{-| Given (username, userId) return (username, number of user documents)
+-}
+getUserDocData : ( String, String ) -> Types.UsersDocumentsDict -> ( String, Int )
+getUserDocData ( username, userId ) dict =
+    ( username, Dict.get userId dict |> Maybe.withDefault [] |> List.length )
+
+
+
+-- OTHER
 
 
 getSharedDocuments model clientId username =
