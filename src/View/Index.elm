@@ -264,9 +264,8 @@ viewPinnedDocs model deltaH indexShift =
 
         docs : List { title : String, id : String, modified : Time.Posix, public : Bool }
         docs =
-            sort model.pinnedDocuments
+            sort model.pinnedDocuments |> List.filter (\data -> not (String.contains "(BAK)" data.title))
 
-        -- |> filterBackups model.seeBackups
         searchKey =
             "[pin]"
 
