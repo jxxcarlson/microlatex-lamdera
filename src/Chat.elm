@@ -14,22 +14,6 @@ import Time
 import Types exposing (ChatMsg(..))
 
 
-type alias ChatMessage2 =
-    { sender : String
-    , group : String
-    , subject : String
-    , content : String
-    , date : Time.Posix
-    }
-
-
-
---type ChatMsg3
---    = JoinedChat ClientId Username
---    | LeftChat ClientId Username
---    | ChatMsg ClientId ChatMessage
-
-
 toString : ChatMsg -> String
 toString chatMsg =
     case chatMsg of

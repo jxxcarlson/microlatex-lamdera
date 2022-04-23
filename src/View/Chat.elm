@@ -122,7 +122,7 @@ view_ model =
     E.column [ E.padding 10, E.spacing 8 ]
         [ model.chatMessages
             |> List.reverse
-            |> Chat.consolidate
+            -- |> Chat.consolidate
             |> List.map (viewMessage model.zone)
             |> E.column
                 [ View.Utility.htmlId "message-box"
