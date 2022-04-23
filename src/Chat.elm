@@ -16,11 +16,29 @@ import Types exposing (ChatMsg(..))
 
 
 -- CONSOLIDATE
+--
+--type ChatMsg2
+--    = JoinedChat ClientId Username
+--    | LeftChat ClientId Username
+--    | ChatMsg ClientId ChatMessage
+
+
+timeOf : ChatMsg -> Int
+timeOf msg =
+    case msg of
+        JoinedChat _ _ ->
+            0
+
+        LeftChat _ _ ->
+            0
+
+        ChatMsg _ data ->
+            data.date |> Time.posixToMillis
 
 
 consolidate : List Types.ChatMsg -> List Types.ChatMsg
 consolidate messages =
-    messages |> group |> concat
+    messages |> List.sortBy timeOf |> group |> concat
 
 
 group : List Types.ChatMsg -> List ( Types.ChatMsg, List Types.ChatMsg )
