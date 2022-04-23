@@ -46,9 +46,6 @@ group messages =
     let
         out =
             List.Extra.groupWhile close messages
-
-        _ =
-            Debug.log "GROUPS: " (List.length out)
     in
     out
 
