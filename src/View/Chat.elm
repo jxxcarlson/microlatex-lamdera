@@ -1,6 +1,7 @@
 module View.Chat exposing (focusMessageInput, scrollChatToBottom, view)
 
 import Browser.Dom as Dom
+import Chat
 import DateTimeUtility
 import Element as E
 import Element.Background as Background
@@ -121,6 +122,7 @@ view_ model =
     E.column [ E.padding 10, E.spacing 8 ]
         [ model.chatMessages
             |> List.reverse
+            |> Chat.consolidate
             |> List.map (viewMessage model.zone)
             |> E.column
                 [ View.Utility.htmlId "message-box"
