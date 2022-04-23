@@ -60,7 +60,7 @@ adminBody model =
 
 viewConnectedUsers : List String -> Element FrontendMsg
 viewConnectedUsers users =
-    E.column [ E.spacing 8 ] (E.el [ Font.bold ] (E.text "Connected Users") :: List.map (\u -> viewConnectedUser u) users)
+    E.column [ E.alignTop, E.spacing 8 ] (E.el [ Font.bold ] (E.text "Connected Users") :: List.map (\u -> viewConnectedUser u) users)
 
 
 viewConnectedUser : String -> Element FrontendMsg
@@ -74,7 +74,7 @@ listStyle =
 
 viewSharedDocuments : List ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
 viewSharedDocuments sharedDocuments =
-    E.column [ E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument sharedDocuments)
+    E.column [ E.alignTop, E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument sharedDocuments)
 
 
 viewSharedDocument : ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
@@ -106,7 +106,7 @@ viewUserDocumentList users =
 
 viewUserList : List ( String, Int ) -> Element FrontendMsg
 viewUserList users =
-    E.column [ E.spacing 8 ]
+    E.column [ E.alignTop, E.spacing 8 ]
         (E.el [ Font.bold ] (E.text "Users") :: List.map viewUser (List.sortBy (\( u, _ ) -> u) users))
 
 
