@@ -15,6 +15,7 @@ module Config exposing
     , l0CheetsheetId
     , loadingId
     , loadingText
+    , manualsId
     , masterDocLoadedPageId
     , maxDocSearchLimit
     , microLaTeXCheetsheetId
@@ -41,6 +42,10 @@ import Url
 debounceSaveDocumentInterval : Float
 debounceSaveDocumentInterval =
     300
+
+
+manualsId =
+    "id-62cdc3d3-b6d5-4f4d-b314-3f50f7a6aaef"
 
 
 welcomeDocId =

@@ -23,12 +23,46 @@ view model =
     if model.popupState == CheatSheetPopup then
         viewCheatSheet model
 
+    else if model.popupState == ManualsPopup then
+        viewManual model
+
     else
         E.none
 
 
 bgColor =
     E.rgb 0.955 0.955 1
+
+
+viewManual : FrontendModel -> E.Element Types.FrontendMsg
+viewManual model =
+    case model.currentCheatsheet of
+        Just doc ->
+            let
+                editRecord =
+                    Compiler.DifferentialParser.init doc.language doc.content
+
+                w =
+                    min (model.windowWidth // 3) 450
+
+                h =
+                    model.windowHeight - 166
+            in
+            E.column
+                (style2
+                    ++ [ Font.size 14
+                       , E.width (E.px w)
+                       , E.height (E.px h)
+                       , E.scrollbarY
+                       , E.paddingEach { left = 18, right = 18, top = 36, bottom = 36 }
+                       , Background.color bgColor
+                       , View.Utility.htmlId Config.cheatSheetRenderedTextId
+                       ]
+                )
+                (viewDocument w h model.counter model.selectedId editRecord)
+
+        Nothing ->
+            E.none
 
 
 viewCheatSheet : FrontendModel -> E.Element Types.FrontendMsg

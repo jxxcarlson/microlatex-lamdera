@@ -71,6 +71,7 @@ module View.Button exposing
     , toggleEditor
     , toggleExtrasSidebar
     , toggleLock
+    , toggleManuals
     , togglePublic
     , togglePublicUrl
     , toggleTagsSidebar
@@ -183,6 +184,11 @@ toggleBackupVisibility seeBackups =
 toggleCheatSheet : Element FrontendMsg
 toggleCheatSheet =
     buttonTemplate [] ToggleCheatsheet "Cheat Sheet"
+
+
+toggleManuals : Element FrontendMsg
+toggleManuals =
+    buttonTemplate [] ToggleManuals "Manuals"
 
 
 reply : String -> Types.UserMessage -> Element FrontendMsg

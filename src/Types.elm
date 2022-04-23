@@ -202,6 +202,7 @@ type PopupState
     | NewDocumentPopup
     | UserMessagePopup
     | CheatSheetPopup
+    | ManualsPopup
     | SharePopup
 
 
@@ -442,6 +443,7 @@ type FrontendMsg
     | Render Render.Msg.MarkupMsg
       -- UI
     | ToggleCheatsheet
+    | ToggleManuals
     | OpenSharedDocumentList
     | SetAppMode AppMode
     | GotNewWindowDimensions Int Int

@@ -464,6 +464,14 @@ update msg model =
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
 
+        ToggleManuals ->
+            case model.popupState of
+                NoPopup ->
+                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.manualsId) )
+
+                _ ->
+                    ( { model | popupState = NoPopup }, Cmd.none )
+
         SelectList list ->
             let
                 cmd =
