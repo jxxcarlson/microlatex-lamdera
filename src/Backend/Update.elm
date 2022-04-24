@@ -40,7 +40,7 @@ import Cmd.Extra
 import Config
 import DateTimeUtility
 import Dict
-import Document
+import Document exposing (Document)
 import DocumentTools
 import Hex
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
@@ -64,9 +64,48 @@ type alias Model =
     BackendModel
 
 
+setDocumentsToReadOnlyWithUserName : Types.Username -> BackendModel -> BackendModel
+setDocumentsToReadOnlyWithUserName username model =
+    case Dict.get username model.authenticationDict of
+        Nothing ->
+            model
 
--- TODO
--- ADMNIN
+        Just { user } ->
+            setUsersDocumentsToReadOnly user.id model
+
+
+setUsersDocumentsToReadOnly : Types.UserId -> BackendModel -> BackendModel
+setUsersDocumentsToReadOnly userId model =
+    applyToUsersDocuments userId (\doc -> { doc | status = Document.DSReadOnly }) model
+
+
+{-| Apply a function to all documents for a given user (defined by his user id) and persist the result in the backend model
+-}
+applyToUsersDocuments : Types.UserId -> (Document -> Document) -> BackendModel -> BackendModel
+applyToUsersDocuments userId f model =
+    let
+        ids =
+            Dict.get userId model.usersDocumentsDict |> Maybe.withDefault []
+    in
+    applyToDocuments (Dict.get userId model.usersDocumentsDict |> Maybe.withDefault []) f model
+
+
+{-| Apply a function to all documents defined by a list of documents and persist the result in the backend model
+-}
+applyToDocuments : List Types.DocId -> (Document -> Document) -> BackendModel -> BackendModel
+applyToDocuments idList f model =
+    let
+        oldDocumentDict =
+            model.documentDict
+
+        newDocumentDict =
+            List.foldl (\id dict -> Dict.update id (Util.liftToMaybe f) dict) oldDocumentDict idList
+    in
+    { model | documentDict = newDocumentDict }
+
+
+
+-- ADMIN
 
 
 {-| Get pairs (username, number of documents for user)
@@ -431,8 +470,11 @@ removeSessionClient model sessionId clientId =
 
                 notifications =
                     broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
+
+                updatedModel =
+                    setDocumentsToReadOnlyWithUserName username model
             in
-            ( { model
+            ( { updatedModel
                 | sharedDocumentDict = Dict.map Share.resetUser model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
