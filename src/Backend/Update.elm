@@ -643,7 +643,7 @@ getUserDocumentsForAuthor author model =
 
 authorTags : String -> Model -> Dict.Dict String (List { id : String, title : String })
 authorTags authorName model =
-    makeTagDict (getUserDocumentsForAuthor authorName model)
+    makeTagDict (getUserDocumentsForAuthor authorName model |> List.filter (\{ title } -> not (String.contains "(BAK)" title)))
 
 
 publicTags : Model -> Dict.Dict String (List { id : String, title : String })
@@ -654,6 +654,7 @@ publicTags model =
                 |> Dict.toList
                 |> List.map (\( _, doc ) -> doc)
                 |> List.filter (\doc -> doc.public)
+                |> List.filter (\{ title } -> not (String.contains "(BAK)" title))
     in
     makeTagDict publicDocs
 
