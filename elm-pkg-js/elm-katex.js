@@ -14,13 +14,13 @@ exports.init =  async function(app) {
   document.head.appendChild(katexJs);
   console.log("elm-katex: I have appended katexJs to document.head");
 
-    var mhChemJs = document.createElement('script')
-    mhChemJs.type = 'text/javascript'
-    mhChemJs.src = "https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/contrib/mhchem.min.js"
-
-
-  document.head.appendChild(mhChemJs);
-  console.log("mhChem: I have appended mhChemJs to document.head");
+//    var mhChemJs = document.createElement('script')
+//    mhChemJs.type = 'text/javascript'
+//    mhChemJs.src = "https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/contrib/mhchem.min.js"
+//
+//
+//    document.head.appendChild(mhChemJs);
+//    console.log("mhChem: I have appended mhChemJs to document.head");
 
 
 
