@@ -74,6 +74,10 @@ import Url exposing (Url)
 import User exposing (User)
 
 
+
+-- FRONT END MODEL
+
+
 type alias FrontendModel =
     { key : Browser.Navigation.Key
     , url : Url
@@ -181,73 +185,8 @@ type alias FrontendModel =
     }
 
 
-type ToggleChatGroupDisplay
-    = TCGDisplay
-    | TCGShowInputForm
 
-
-type alias Message =
-    { txt : String, status : MessageStatus }
-
-
-type MessageStatus
-    = MSWhite
-    | MSYellow
-    | MSGreen
-    | MSRed
-
-
-type PopupState
-    = NoPopup
-    | LanguageMenuPopup
-    | NewDocumentPopup
-    | UserMessagePopup
-    | CheatSheetPopup
-    | ManualsPopup
-    | SharePopup
-
-
-type TagSelection
-    = TagPublic
-    | TagUser
-
-
-type MaximizedIndex
-    = MMyDocs
-    | MPublicDocs
-
-
-type ActiveDocList
-    = PublicDocsList
-    | PrivateDocsList
-    | Both
-
-
-type SortMode
-    = SortAlphabetically
-    | SortByMostRecent
-
-
-type DocLoaded
-    = NotLoaded
-
-
-type AppMode
-    = UserMode
-    | AdminMode
-
-
-type PhoneMode
-    = PMShowDocument
-    | PMShowDocumentList
-
-
-type PopupWindow
-    = AdminPopup
-
-
-type PopupStatus
-    = PopupClosed
+-- BACKEND MODEL
 
 
 type alias BackendModel =
@@ -281,156 +220,8 @@ type alias BackendModel =
     }
 
 
-{-| keys are usernames
-values are lists of ConnectionData because a user could have various active sessions
--}
-type alias ConnectionDict =
-    Dict String (List ConnectionData)
 
-
-type alias ConnectionData =
-    { session : SessionId, client : ClientId }
-
-
-type alias DocumentLink =
-    { digest : String, label : String, url : String }
-
-
-
--- Entries for the first three dictionaries are created when a document
--- is created.
-
-
-{-| author's doc id -> docId; enables author access to doc via a link
--}
-type alias AuthorDict =
-    Dict String String
-
-
-{-| public's doc id -> docId; enables public access to doc via a link
--}
-type alias PublicIdDict =
-    Dict String String
-
-
-{-| docId -> Document
--}
-type alias DocumentDict =
-    Dict String Document
-
-
-{-| User id -> List docId
--}
-type alias UsersDocumentsDict =
-    Dict UserId (List DocId)
-
-
-type alias SharedDocument =
-    { title : String
-    , id : String
-    , author : Maybe String
-    , share : Document.Share
-    , currentEditor : Maybe String -- Just user name of current editor if there is one
-    }
-
-
-{-| key = docId
--}
-type alias SharedDocumentDict =
-    Dict String SharedDocument
-
-
-
--- The document abstract is updated every time a document is saved.
-
-
-{-| docId -> Document abstracts
--}
-type alias AbstractDict =
-    Dict String Abstract
-
-
-type alias AbstractDictOLD =
-    Dict String AbstractOLD
-
-
-type alias UserId =
-    String
-
-
-type alias DocId =
-    String
-
-
-
--- CHAT
-
-
-type alias ChatDict =
-    Dict GroupName (List ChatMessage)
-
-
-type alias ChatGroupDict =
-    Dict GroupName ChatGroup
-
-
-type alias ChatGroup =
-    { name : String
-    , members : List Username
-    , owner : Username
-    , assistant : Maybe Username
-    }
-
-
-type ChatMsg
-    = JoinedChat ClientId Username
-    | LeftChat ClientId Username
-    | ChatMsg ClientId ChatMessage
-
-
-type alias GroupName =
-    String
-
-
-type alias ChatMessage =
-    { sender : String
-    , group : String
-    , subject : String
-    , content : String
-    , date : Time.Posix
-    }
-
-
-type alias Username =
-    String
-
-
-
--- USERMESSAGE
-
-
-type alias UserMessage =
-    { from : String
-    , to : String
-    , subject : String
-    , content : String
-    , show : List UMButtons
-    , info : String -- e.g., "docId:abc1234uji"
-    , action : FrontendMsg
-    , actionOnFailureToDeliver : FailureAction
-    }
-
-
-type FailureAction
-    = FANoOp
-    | FAUnlockCurrentDocument
-
-
-type UMButtons
-    = UMOk
-    | UMNotYet
-    | UMDismiss
-    | UMUnlock
+-- FRONTENDMSG
 
 
 type FrontendMsg
@@ -562,41 +353,20 @@ type FrontendMsg
     | Help String
 
 
-type DocumentList
-    = WorkingList
-    | StandardList
-    | SharedDocumentList
-    | PinnedDocs
+
+-- BACKENDMSG
 
 
-type SidebarExtrasState
-    = SidebarExtrasIn
-    | SidebarExtrasOut
+type BackendMsg
+    = ClientConnected SessionId ClientId
+    | ClientDisconnected SessionId ClientId
+    | GotAtomsphericRandomNumber (Result Http.Error String)
+    | DelaySendingDocument Lamdera.ClientId Document
+    | Tick Time.Posix
 
 
-type SidebarTagsState
-    = SidebarTagsIn
-    | SidebarTagsOut
 
-
-type PrintingState
-    = PrintWaiting
-    | PrintProcessing
-    | PrintReady
-
-
-type DocumentDeleteState
-    = WaitingForDeleteAction
-    | CanDelete
-
-
-type DocumentHardDeleteState
-    = WaitingForHardDeleteAction
-    | CanHardDelete
-
-
-type SearchTerm
-    = Query String
+-- TOBACKEND (MSG)
 
 
 type ToBackend
@@ -643,17 +413,8 @@ type ToBackend
     | GetPublicTagsFromBE
 
 
-type SignupState
-    = ShowSignUpForm
-    | HideSignUpForm
 
-
-type BackendMsg
-    = ClientConnected SessionId ClientId
-    | ClientDisconnected SessionId ClientId
-    | GotAtomsphericRandomNumber (Result Http.Error String)
-    | DelaySendingDocument Lamdera.ClientId Document
-    | Tick Time.Posix
+-- TOFRONTEND (MSG)
 
 
 type ToFrontend
@@ -684,11 +445,294 @@ type ToFrontend
     | UnlockDocument Document.DocumentId
 
 
+
+-- CHAT
+
+
+type alias ChatDict =
+    Dict GroupName (List ChatMessage)
+
+
+type alias ChatGroupDict =
+    Dict GroupName ChatGroup
+
+
+type alias ChatGroup =
+    { name : String
+    , members : List Username
+    , owner : Username
+    , assistant : Maybe Username
+    }
+
+
+type ChatMsg
+    = JoinedChat ClientId Username
+    | LeftChat ClientId Username
+    | ChatMsg ClientId ChatMessage
+
+
+type alias GroupName =
+    String
+
+
+type alias ChatMessage =
+    { sender : String
+    , group : String
+    , subject : String
+    , content : String
+    , date : Time.Posix
+    }
+
+
+type ToggleChatGroupDisplay
+    = TCGDisplay
+    | TCGShowInputForm
+
+
+
+-- MESSAGE
+
+
+type alias Message =
+    { txt : String, status : MessageStatus }
+
+
+type MessageStatus
+    = MSWhite
+    | MSYellow
+    | MSGreen
+    | MSRed
+
+
+
+-- POPUPS
+
+
+type PopupState
+    = NoPopup
+    | LanguageMenuPopup
+    | NewDocumentPopup
+    | UserMessagePopup
+    | CheatSheetPopup
+    | ManualsPopup
+    | SharePopup
+
+
+type TagSelection
+    = TagPublic
+    | TagUser
+
+
+type MaximizedIndex
+    = MMyDocs
+    | MPublicDocs
+
+
+type ActiveDocList
+    = PublicDocsList
+    | PrivateDocsList
+    | Both
+
+
+
+-- DOC Types
+
+
+type DocumentDeleteState
+    = WaitingForDeleteAction
+    | CanDelete
+
+
+type DocumentHardDeleteState
+    = WaitingForHardDeleteAction
+    | CanHardDelete
+
+
+type SortMode
+    = SortAlphabetically
+    | SortByMostRecent
+
+
+type DocLoaded
+    = NotLoaded
+
+
+type DocumentList
+    = WorkingList
+    | StandardList
+    | SharedDocumentList
+    | PinnedDocs
+
+
+type PrintingState
+    = PrintWaiting
+    | PrintProcessing
+    | PrintReady
+
+
 type DocumentHandling
     = StandardHandling
     | PinnedDocumentList
     | DelayedHandling
     | HandleAsCheatSheet
+
+
+
+-- APP TYPES
+
+
+type AppMode
+    = UserMode
+    | AdminMode
+
+
+type PhoneMode
+    = PMShowDocument
+    | PMShowDocumentList
+
+
+type PopupWindow
+    = AdminPopup
+
+
+type PopupStatus
+    = PopupClosed
+
+
+
+-- USERMESSAGE
+
+
+type alias UserMessage =
+    { from : String
+    , to : String
+    , subject : String
+    , content : String
+    , show : List UMButtons
+    , info : String -- e.g., "docId:abc1234uji"
+    , action : FrontendMsg
+    , actionOnFailureToDeliver : FailureAction
+    }
+
+
+type FailureAction
+    = FANoOp
+    | FAUnlockCurrentDocument
+
+
+type UMButtons
+    = UMOk
+    | UMNotYet
+    | UMDismiss
+    | UMUnlock
+
+
+type SidebarExtrasState
+    = SidebarExtrasIn
+    | SidebarExtrasOut
+
+
+type SidebarTagsState
+    = SidebarTagsIn
+    | SidebarTagsOut
+
+
+type SearchTerm
+    = Query String
+
+
+type SignupState
+    = ShowSignUpForm
+    | HideSignUpForm
+
+
+
+-- ALIASES
+
+
+{-| keys are usernames
+values are lists of ConnectionData because a user could have various active sessions
+-}
+type alias ConnectionDict =
+    Dict String (List ConnectionData)
+
+
+type alias ConnectionData =
+    { session : SessionId, client : ClientId }
+
+
+type alias DocumentLink =
+    { digest : String, label : String, url : String }
+
+
+
+-- Entries for the first three dictionaries are created when a document
+-- is created.
+
+
+{-| author's doc id -> docId; enables author access to doc via a link
+-}
+type alias AuthorDict =
+    Dict String String
+
+
+{-| public's doc id -> docId; enables public access to doc via a link
+-}
+type alias PublicIdDict =
+    Dict String String
+
+
+{-| docId -> Document
+-}
+type alias DocumentDict =
+    Dict String Document
+
+
+{-| User id -> List docId
+-}
+type alias UsersDocumentsDict =
+    Dict UserId (List DocId)
+
+
+type alias SharedDocument =
+    { title : String
+    , id : String
+    , author : Maybe String
+    , share : Document.Share
+    , currentEditor : Maybe String -- Just user name of current editor if there is one
+    }
+
+
+{-| key = docId
+-}
+type alias SharedDocumentDict =
+    Dict String SharedDocument
+
+
+
+-- The document abstract is updated every time a document is saved.
+
+
+{-| docId -> Document abstracts
+-}
+type alias AbstractDict =
+    Dict String Abstract
+
+
+type alias AbstractDictOLD =
+    Dict String AbstractOLD
+
+
+type alias UserId =
+    String
+
+
+type alias DocId =
+    String
+
+
+type alias Username =
+    String
 
 
 type alias BackupOLD =
