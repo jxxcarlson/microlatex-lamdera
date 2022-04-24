@@ -5,12 +5,19 @@ exports.init =  async function(app) {
 
   var katexJs = document.createElement('script')
   katexJs.type = 'text/javascript'
-  katexJs.src ="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"
+  katexJs.src ="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.js"
+
+  var mhChemJs = document.createElement('script')
+  mhChemJs.type = 'text/javascript'
+  mhChemJs.src = "https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/contrib/mhchem.min.js"
+
   katexJs.onload = initKatex
 
   document.head.appendChild(katexJs);
   console.log("elm-katex: I have appended katexJs to document.head");
 
+  document.head.appendChild(mhChemJs);
+  console.log("mhChem: I have appended mhChemJs to document.head");
 
 
 
