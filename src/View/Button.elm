@@ -15,7 +15,6 @@ module View.Button exposing
     , export
     , exportToLaTeX
     , exportToMarkown
-    , getChatHistory
     , getDocument
     , getDocumentByPrivateId
     , getPinnedDocs
@@ -720,11 +719,6 @@ makeCurrentGroupPreferred =
     buttonTemplate [ Background.color Color.medGray ] SetChatGroup "Set Group"
 
 
-getChatHistory : Element FrontendMsg
-getChatHistory =
-    buttonTemplate [] GetChatHistory "History"
-
-
 createChatGroup : Element FrontendMsg
 createChatGroup =
     buttonTemplate [] CreateChatGroup "Create"
@@ -739,20 +733,20 @@ setChatDisplay : FrontendModel -> Element FrontendMsg
 setChatDisplay model =
     case model.chatDisplay of
         Types.TCGDisplay ->
-            buttonTemplate [ Background.color Color.darkRed ] (Types.SetChatDisplay Types.TCGShowInputForm) "Display"
+            buttonTemplate [ Background.color Color.darkRed ] (Types.SetChatDisplay Types.TCGShowInputForm) "+"
 
         Types.TCGShowInputForm ->
-            buttonTemplate [] (Types.SetChatDisplay Types.TCGDisplay) "Display"
+            buttonTemplate [] (Types.SetChatDisplay Types.TCGDisplay) "Cancel"
 
 
 setChatCreate : FrontendModel -> Element FrontendMsg
 setChatCreate model =
     case model.chatDisplay of
         Types.TCGDisplay ->
-            buttonTemplate [] (Types.SetChatDisplay Types.TCGShowInputForm) "Create"
+            buttonTemplate [ Background.color Color.medGray ] (Types.SetChatDisplay Types.TCGShowInputForm) "Create group"
 
         Types.TCGShowInputForm ->
-            buttonTemplate [ Background.color Color.darkRed ] (Types.SetChatDisplay Types.TCGDisplay) "Create"
+            buttonTemplate [ Background.color Color.darkRed ] (Types.SetChatDisplay Types.TCGDisplay) "Create group"
 
 
 closeCollectionsIndex : Element FrontendMsg

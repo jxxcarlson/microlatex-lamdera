@@ -44,7 +44,7 @@ view model width_ =
                             E.moveUp 778
 
                         Types.TCGShowInputForm ->
-                            E.moveUp 470
+                            E.moveUp 778
                     , E.moveRight dy
                     ]
                     (View.Chat.view model)

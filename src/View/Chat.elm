@@ -22,33 +22,45 @@ import View.Utility
 
 view : FrontendModel -> E.Element FrontendMsg
 view model =
-    E.column [ E.spacing 12, Background.color Color.black, E.padding 1 ]
-        [ case model.chatDisplay of
-            Types.TCGDisplay ->
-                E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (view_ model)
-
-            TCGShowInputForm ->
-                E.none
-        , case model.chatDisplay of
-            Types.TCGDisplay ->
-                E.column [ E.spacing 8 ]
-                    [ E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8 ]
-                        [ View.Input.group model ]
-                    , E.row [ E.paddingEach { left = 8, right = 0, top = 0, bottom = 0 }, E.spacing 8, E.width (E.px 360) ]
-                        [ View.Button.makeCurrentGroupPreferred, E.el [ E.alignRight ] View.Button.clearChatHistory ]
-                    ]
-
-            TCGShowInputForm ->
-                E.none
-        , E.el [ E.paddingXY 18 18 ]
-            (case model.chatDisplay of
-                Types.TCGDisplay ->
-                    viewChatGroup model
-
-                Types.TCGShowInputForm ->
-                    createChatGroup model
-            )
+    E.column [ E.spacing 0, Background.color Color.black, E.padding 1, E.height (E.px (model.windowHeight - 150)) ]
+        [ viewMessages model
+        , viewCurrentGroup model
+        , editGroup model
         ]
+
+
+viewMessages model =
+    case model.chatDisplay of
+        Types.TCGDisplay ->
+            E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 450) model)
+
+        TCGShowInputForm ->
+            E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 720) model)
+
+
+viewCurrentGroup model =
+    case model.chatDisplay of
+        Types.TCGDisplay ->
+            E.column [ E.spacing 8, E.paddingXY 10 10 ]
+                [ E.row [ E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }, E.spacing 8 ]
+                    [ View.Button.makeCurrentGroupPreferred, View.Input.group model ]
+                , viewChatGroup model
+                , E.row [ E.spacing 8 ] [ View.Button.setChatCreate model ]
+                ]
+
+        TCGShowInputForm ->
+            E.none
+
+
+editGroup model =
+    E.el [ E.paddingXY 18 18 ]
+        (case model.chatDisplay of
+            Types.TCGDisplay ->
+                E.none
+
+            Types.TCGShowInputForm ->
+                createChatGroup model
+        )
 
 
 viewChatGroup : FrontendModel -> E.Element FrontendMsg
@@ -58,7 +70,7 @@ viewChatGroup model =
             E.column
                 [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
                 , E.height (E.px 160)
-                , E.width (E.px 340)
+                , E.width (E.px 325)
                 , Background.color Color.veryPaleBlue
                 , Font.size 14
                 , E.spacing 12
@@ -69,19 +81,33 @@ viewChatGroup model =
 
         Just group ->
             E.column
-                [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
-                , E.height (E.px 160)
-                , E.width (E.px 340)
+                [ E.paddingEach { left = 8, right = 0, top = 8, bottom = 0 }
+                , E.height (E.px 90)
+                , E.width (E.px 363)
                 , Background.color Color.veryPaleBlue
                 , Font.size 14
                 , E.spacing 12
                 ]
-                [ row "Group name: " group.name
-                , row "Admin: " group.owner
-                , row "Assistant: " (Maybe.withDefault "none" group.assistant)
+                [ row "Group: " group.name
                 , row "Members: " (String.join ", " group.members)
-                , E.row [ E.spacing 18 ] [ View.Button.setChatDisplay model, View.Button.setChatCreate model ]
                 ]
+
+
+
+--E.column
+--               [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
+--               , E.height (E.px 160)
+--               , E.width (E.px 340)
+--               , Background.color Color.veryPaleBlue
+--               , Font.size 14
+--               , E.spacing 12
+--               ]
+--               [ row "Group name: " group.name
+--               , row "Admin: " group.owner
+--               , row "Assistant: " (Maybe.withDefault "none" group.assistant)
+--               , row "Members: " (String.join ", " group.members)
+--               , E.row [ E.spacing 18 ] [ View.Button.setChatDisplay model, View.Button.setChatCreate model ]
+--               ]
 
 
 createChatGroup : FrontendModel -> E.Element FrontendMsg
@@ -93,7 +119,7 @@ createChatGroup model =
         Just user ->
             E.column
                 [ E.paddingXY 12 12
-                , E.height (E.px 460)
+                , E.height (E.px 420)
                 , E.width (E.px 340)
                 , Background.color Color.veryPaleBlue
                 , Font.size 14
@@ -117,16 +143,15 @@ row label content =
     E.paragraph [ E.width (E.px 300), E.spacing 12 ] [ E.el [ Font.bold ] (E.text label), E.text content ]
 
 
-view_ : FrontendModel -> E.Element FrontendMsg
-view_ model =
-    E.column [ E.padding 10, E.spacing 8 ]
+viewMessages_ : Int -> FrontendModel -> E.Element FrontendMsg
+viewMessages_ h model =
+    E.column [ E.paddingXY 10 0, E.spacing 8 ]
         [ model.chatMessages
             |> List.reverse
-            --  |> Chat.consolidate
             |> List.map (viewMessage model.zone)
             |> E.column
                 [ View.Utility.htmlId "message-box"
-                , E.height (E.px 400)
+                , E.height (E.px h)
                 , E.width (E.px 360)
                 , E.spacing 12
                 , E.scrollbarY
@@ -134,7 +159,7 @@ view_ model =
                 , E.paddingXY 6 16
                 ]
         , chatInput model MessageFieldChanged |> E.html
-        , button (onClick MessageSubmitted :: style "width" "360px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
+        , button (onClick MessageSubmitted :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
         ]
 
 
