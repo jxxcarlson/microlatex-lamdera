@@ -23,6 +23,7 @@ import Authentication
 import Backend.Cmd
 import Backend.Update
 import Chat
+import Chat.Message
 import Cmd.Extra
 import Config
 import Dict exposing (Dict)
@@ -162,7 +163,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 
         ChatMsgSubmitted message ->
-            ( { model | chatDict = Chat.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
+            ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
 
         DeliverUserMessage usermessage ->
             --case Share.isCurrentlyShared usermessage.info model.sharedDocumentDict of

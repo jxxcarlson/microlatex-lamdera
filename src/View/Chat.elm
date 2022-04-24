@@ -122,7 +122,7 @@ view_ model =
     E.column [ E.padding 10, E.spacing 8 ]
         [ model.chatMessages
             |> List.reverse
-            |> Chat.consolidate
+            --  |> Chat.consolidate
             |> List.map (viewMessage model.zone)
             |> E.column
                 [ View.Utility.htmlId "message-box"
@@ -166,7 +166,7 @@ viewMessage zone msg =
             E.paragraph [ Font.italic ] [ E.text <| username ++ " left the chat" ]
 
         Types.ChatMsg clientId message ->
-            E.paragraph [ E.width (E.px 340) ] [ E.el [ Font.bold ] (E.text <| "[" ++ message.sender ++ " " ++ DateTimeUtility.toString zone message.date ++ "]: "), E.text <| message.content ]
+            E.paragraph [ E.width (E.px 340) ] [ E.el [ Font.bold ] (E.text <| "[" ++ message.sender ++ " (" ++ message.group ++ ") " ++ DateTimeUtility.toString zone message.date ++ "]: "), E.text <| message.content ]
 
 
 fontStyles : List (Html.Attribute msg)

@@ -3,6 +3,7 @@ module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLa
 import Browser.Events
 import Browser.Navigation as Nav
 import Chat
+import Chat.Message
 import Cmd.Extra exposing (withNoCmd)
 import Compiler.ASTTools
 import Compiler.DifferentialParser
@@ -289,7 +290,7 @@ update msg model =
         AskToClearChatHistory ->
             ( model, sendToBackend (ClearChatHistory model.inputGroup) )
 
-        MakeCurrentChatGroupPreferred ->
+        SetChatGroup ->
             case model.currentUser of
                 Nothing ->
                     ( model, Cmd.none )
@@ -308,8 +309,15 @@ update msg model =
 
                         revisedUser =
                             { user | preferences = revisedPreferences }
+
+                        ( updatedChatMessages, cmd ) =
+                            if Just (String.trim model.inputGroup) == oldPreferences.group then
+                                ( model.chatMessages, Cmd.none )
+
+                            else
+                                ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
                     in
-                    ( { model | currentUser = Just revisedUser }, sendToBackend (UpdateUserWith revisedUser) )
+                    ( { model | currentUser = Just revisedUser, chatMessages = updatedChatMessages }, Cmd.batch [ cmd, sendToBackend (UpdateUserWith revisedUser) ] )
 
         GetChatHistory ->
             ( model, Cmd.batch [ sendToBackend (SendChatHistory model.inputGroup) ] )
@@ -352,7 +360,7 @@ update msg model =
             ( { model | showPublicUrl = not model.showPublicUrl }, Cmd.none )
 
         ToggleChat ->
-            ( { model | chatVisible = not model.chatVisible }, Util.delay 100 ScrollChatToBottom )
+            ( { model | chatVisible = not model.chatVisible, chatMessages = [] }, Cmd.batch [ Util.delay 100 ScrollChatToBottom, sendToBackend (SendChatHistory model.inputGroup) ] )
 
         ToggleDocTools ->
             ( { model | showDocTools = not model.showDocTools }, Cmd.none )
@@ -1154,7 +1162,9 @@ updateFromBackend msg model =
                     ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )
 
         ChatMessageReceived message ->
-            ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
+            -- ( { model | chatMessages = Chat.consolidateOne message model.chatMessages }, View.Chat.scrollChatToBottom )
+            -- ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
+            ( { model | chatMessages = Chat.consolidateOne message model.chatMessages }, View.Chat.scrollChatToBottom )
 
 
 view : Model -> { title : String, body : List (Html.Html FrontendMsg) }

@@ -1,5 +1,6 @@
 module Chat exposing
     ( consolidate
+    , consolidateOne
     , getClients
     , initialGroup
     , insert
@@ -7,6 +8,7 @@ module Chat exposing
     , sendChatHistoryCmd
     )
 
+import Chat.Message
 import Dict
 import Lamdera
 import List.Extra
@@ -21,6 +23,37 @@ import Types exposing (ChatMsg(..))
 --    = JoinedChat ClientId Username
 --    | LeftChat ClientId Username
 --    | ChatMsg ClientId ChatMessage
+
+
+consolidateOne : ChatMsg -> List ChatMsg -> List ChatMsg
+consolidateOne msg list =
+    case msg of
+        JoinedChat _ _ ->
+            msg :: list
+
+        LeftChat _ _ ->
+            msg :: list
+
+        ChatMsg a1 message1 ->
+            case list of
+                [] ->
+                    [ msg ]
+
+                first :: rest ->
+                    case first of
+                        JoinedChat _ _ ->
+                            msg :: first :: rest
+
+                        LeftChat _ _ ->
+                            msg :: first :: rest
+
+                        ChatMsg a message2 ->
+                            case Chat.Message.consolidateTwo message1 message2 of
+                                Nothing ->
+                                    msg :: list
+
+                                Just consolidated ->
+                                    ChatMsg a consolidated :: rest
 
 
 timeOf : ChatMsg -> Int

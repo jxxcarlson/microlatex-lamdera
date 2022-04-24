@@ -1092,6 +1092,7 @@ signOut model =
         , inputSearchKey = ""
         , actualSearchKey = ""
         , inputTitle = ""
+        , chatMessages = []
         , tagSelection = Types.TagPublic
         , inputUsername = ""
         , inputPassword = ""

@@ -717,7 +717,7 @@ clearChatHistory =
 
 
 makeCurrentGroupPreferred =
-    buttonTemplate [ Background.color Color.medGray ] MakeCurrentChatGroupPreferred "Make Preferred"
+    buttonTemplate [ Background.color Color.medGray ] SetChatGroup "Set Group"
 
 
 getChatHistory : Element FrontendMsg

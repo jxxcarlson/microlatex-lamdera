@@ -24,6 +24,7 @@ module Types exposing
     , FailureAction(..)
     , FrontendModel
     , FrontendMsg(..)
+    , GroupName
     , MaximizedIndex(..)
     , Message
     , MessageStatus(..)
@@ -497,7 +498,7 @@ type FrontendMsg
       -- CHAT (FrontendMsg)
     | AskToClearChatHistory
     | ScrollChatToBottom
-    | MakeCurrentChatGroupPreferred
+    | SetChatGroup
     | GetChatHistory
     | CreateChatGroup
     | SetChatDisplay ToggleChatGroupDisplay
