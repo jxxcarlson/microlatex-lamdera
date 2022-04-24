@@ -1,4 +1,4 @@
-
+exports.init =  async function(app) {
 
      var mhChemJs = document.createElement('script')
      mhChemJs.type = 'text/javascript'
@@ -7,3 +7,5 @@
 
      document.head.appendChild(mhChemJs);
      console.log("mhChem: I have appended mhChemJs to document.head");
+
+}
