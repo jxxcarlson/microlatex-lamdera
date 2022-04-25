@@ -115,6 +115,7 @@ blockDict =
         , ( "quotation", quotation )
         , ( "q", question )
         , ( "a", answer )
+        , ( "include", \_ _ _ _ _ _ -> Element.none )
         , ( "document", document )
         , ( "collection", collection )
         , ( "bibitem", bibitem )
