@@ -311,11 +311,13 @@ update msg model =
                             { user | preferences = revisedPreferences }
 
                         ( updatedChatMessages, cmd ) =
-                            if Just (String.trim model.inputGroup) == oldPreferences.group then
-                                ( model.chatMessages, Cmd.none )
+                            ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
 
-                            else
-                                ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
+                        --if Just (String.trim model.inputGroup) == oldPreferences.group then
+                        --    ( model.chatMessages, Cmd.none )
+                        --
+                        --else
+                        --    ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
                     in
                     ( { model | currentUser = Just revisedUser, chatMessages = updatedChatMessages }, Cmd.batch [ cmd, sendToBackend (UpdateUserWith revisedUser) ] )
 
