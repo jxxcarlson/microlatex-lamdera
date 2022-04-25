@@ -16,15 +16,6 @@ import Time
 import Types exposing (ChatMsg(..))
 
 
-
--- CONSOLIDATE
---
---type ChatMsg2
---    = JoinedChat ClientId Username
---    | LeftChat ClientId Username
---    | ChatMsg ClientId ChatMessage
-
-
 consolidateOne : ChatMsg -> List ChatMsg -> List ChatMsg
 consolidateOne msg list =
     case msg of

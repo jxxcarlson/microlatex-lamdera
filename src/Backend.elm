@@ -257,9 +257,6 @@ updateFromFrontend sessionId clientId msg model =
         RunTask ->
             ( model, Cmd.none )
 
-        SearchForDocuments documentHandling maybeUsername key ->
-            Backend.Update.searchForDocuments model clientId documentHandling maybeUsername key
-
         GetStatus ->
             ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
 
@@ -272,6 +269,25 @@ updateFromFrontend sessionId clientId msg model =
 
         SignUpBE username lang encryptedPassword realname email ->
             Backend.Update.signUpUser model sessionId clientId username lang encryptedPassword realname email
+
+        -- SEARCH
+        SearchForDocumentsWithAuthorAndKey segment ->
+            Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
+
+        SearchForDocuments documentHandling maybeUsername key ->
+            Backend.Update.searchForDocuments model clientId documentHandling maybeUsername key
+
+        FetchDocumentById documentHandling docId ->
+            Backend.Update.fetchDocumentById model clientId docId documentHandling
+
+        FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
+            Backend.Update.findDocumentByAuthorAndKey model clientId Types.StandardHandling authorName searchKey
+
+        GetDocumentByPublicId publicId ->
+            Backend.Update.getDocumentByPublicId model clientId publicId
+
+        GetPublicDocuments sortMode mUsername ->
+            ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         -- DOCUMENTS
         InsertDocument user doc ->
@@ -292,26 +308,11 @@ updateFromFrontend sessionId clientId msg model =
         GetCheatSheetDocument ->
             Backend.Update.fetchDocumentById model clientId Config.l0CheetsheetId Types.HandleAsCheatSheet
 
-        FetchDocumentById documentHandling docId ->
-            Backend.Update.fetchDocumentById model clientId docId documentHandling
-
-        FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
-            Backend.Update.findDocumentByAuthorAndKey model clientId Types.StandardHandling authorName searchKey
-
-        GetDocumentByPublicId publicId ->
-            Backend.Update.getDocumentByPublicId model clientId publicId
-
         GetHomePage username ->
             Backend.Update.getHomePage model clientId username
 
-        SearchForDocumentsWithAuthorAndKey segment ->
-            Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
-
         GetDocumentById documentHandling id ->
             Backend.Update.getDocumentById model clientId documentHandling id
-
-        GetPublicDocuments sortMode mUsername ->
-            ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         ApplySpecial user clientId_ ->
             Backend.Update.applySpecial model clientId_

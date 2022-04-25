@@ -93,23 +93,6 @@ viewChatGroup model =
                 ]
 
 
-
---E.column
---               [ E.paddingEach { left = 18, right = 0, top = 18, bottom = 0 }
---               , E.height (E.px 160)
---               , E.width (E.px 340)
---               , Background.color Color.veryPaleBlue
---               , Font.size 14
---               , E.spacing 12
---               ]
---               [ row "Group name: " group.name
---               , row "Admin: " group.owner
---               , row "Assistant: " (Maybe.withDefault "none" group.assistant)
---               , row "Members: " (String.join ", " group.members)
---               , E.row [ E.spacing 18 ] [ View.Button.setChatDisplay model, View.Button.setChatCreate model ]
---               ]
-
-
 createChatGroup : FrontendModel -> E.Element FrontendMsg
 createChatGroup model =
     case model.currentUser of
