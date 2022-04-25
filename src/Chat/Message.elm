@@ -1,13 +1,24 @@
-module Chat.Message exposing (consolidate, consolidateOne, consolidateTwo, insert)
+module Chat.Message exposing (ChatMessage, consolidate, consolidateOne, consolidateTwo, insert)
 
 import Dict exposing (Dict)
 import List.Extra
 import Time
-import Types exposing (ChatMessage)
-import Util
 
 
-insert : ChatMessage -> Dict Types.GroupName (List ChatMessage) -> Dict Types.GroupName (List ChatMessage)
+type alias ChatMessage =
+    { sender : String
+    , group : String
+    , subject : String
+    , content : String
+    , date : Time.Posix
+    }
+
+
+type alias GroupName =
+    String
+
+
+insert : ChatMessage -> Dict GroupName (List ChatMessage) -> Dict GroupName (List ChatMessage)
 insert message dict =
     case Dict.get message.group dict of
         Nothing ->

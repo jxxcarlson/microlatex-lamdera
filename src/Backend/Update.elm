@@ -1,5 +1,7 @@
 module Backend.Update exposing
-    ( applySpecial
+    ( andThenApply
+    , apply
+    , applySpecial
     , authorTags
     , createDocument
     , fetchDocumentById
@@ -17,8 +19,11 @@ module Backend.Update exposing
     , getUsersAndOnlineStatus
     , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
+    , handleChatMsg
+    , handlePing
     , hardDeleteDocument
     , insertDocument
+    , join
     , publicTags
     , removeSessionClient
     , removeSessionFromDict
@@ -36,6 +41,8 @@ module Backend.Update exposing
 import Abstract
 import Authentication
 import BoundedDeque
+import Chat
+import Chat.Message
 import Cmd.Extra
 import Config
 import DateTimeUtility
@@ -62,6 +69,44 @@ import View.Utility
 
 type alias Model =
     BackendModel
+
+
+
+-- CHAT
+
+
+handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
+handlePing message model =
+    ( model, Cmd.none )
+
+
+handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
+handleChatMsg message model =
+    ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
+
+
+apply :
+    (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+    -> BackendModel
+    -> ( BackendModel, Cmd BackendMsg )
+apply f model =
+    f model
+
+
+andThenApply :
+    (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+    -> ( BackendModel, Cmd BackendMsg )
+    -> ( BackendModel, Cmd BackendMsg )
+andThenApply f ( model, cmd ) =
+    let
+        ( model2, cmd2 ) =
+            f model
+    in
+    ( model2, Cmd.batch [ cmd, cmd2 ] )
+
+
+
+-- OTHER
 
 
 setDocumentsToReadOnlyWithUserName : Types.Username -> BackendModel -> BackendModel
@@ -848,6 +893,7 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             , chatGroups = []
             , sharedDocuments = []
             , sharedDocumentAuthors = Set.empty
+            , pings = []
             }
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
@@ -967,3 +1013,19 @@ updateDocumentTagsInDict dict =
 updateDocumentTags : Model -> Model
 updateDocumentTags model =
     { model | documentDict = updateDocumentTagsInDict model.documentDict }
+
+
+join :
+    (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+    -> (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+    -> (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+join f g =
+    \m ->
+        let
+            ( m1, cmd1 ) =
+                f m
+
+            ( m2, cmd2 ) =
+                g m1
+        in
+        ( m2, Cmd.batch [ cmd1, cmd2 ] )

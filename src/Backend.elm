@@ -163,8 +163,15 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 
         ChatMsgSubmitted message ->
-            ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
+            if String.left 2 message.content == "!!" then
+                model
+                    |> Backend.Update.apply (Backend.Update.handleChatMsg message)
+                    |> Backend.Update.andThenApply (Backend.Update.handlePing message)
 
+            else
+                model |> Backend.Update.apply (Backend.Update.handleChatMsg message)
+
+        -- ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
         DeliverUserMessage usermessage ->
             --case Share.isCurrentlyShared usermessage.info model.sharedDocumentDict of
             --    Nothing ->

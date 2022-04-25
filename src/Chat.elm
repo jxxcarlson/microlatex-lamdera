@@ -141,7 +141,7 @@ toString chatMsg =
 -- NARROWCAST
 
 
-narrowCast : Types.BackendModel -> Types.ChatMessage -> List (Cmd backendMsg)
+narrowCast : Types.BackendModel -> Chat.Message.ChatMessage -> List (Cmd backendMsg)
 narrowCast model message =
     let
         groupMembers =
@@ -163,7 +163,7 @@ narrowCast model message =
 
 sendChatHistoryCmd groupName model clientId =
     let
-        chatMessages : List Types.ChatMessage
+        chatMessages : List Chat.Message.ChatMessage
         chatMessages =
             Dict.get groupName model.chatDict |> Maybe.withDefault []
 
@@ -179,7 +179,7 @@ getClients username dict =
     Dict.get username dict |> Maybe.map (List.map .client) |> Maybe.withDefault []
 
 
-insert : Types.ChatMessage -> Types.ChatDict -> Types.ChatDict
+insert : Chat.Message.ChatMessage -> Types.ChatDict -> Types.ChatDict
 insert message chatDict =
     case Dict.get message.group chatDict of
         Nothing ->

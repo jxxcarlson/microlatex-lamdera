@@ -9,7 +9,6 @@ module Types exposing
     , BackupOLD
     , ChatDict
     , ChatGroup
-    , ChatMessage
     , ChatMsg(..)
     , ConnectionData
     , ConnectionDict
@@ -57,6 +56,7 @@ import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation
+import Chat.Message
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Dict exposing (Dict)
@@ -387,7 +387,7 @@ type ToBackend
     | SendChatHistory String
     | InsertChatGroup ChatGroup
     | GetChatGroup String
-    | ChatMsgSubmitted ChatMessage
+    | ChatMsgSubmitted Chat.Message.ChatMessage
       -- SHARE
     | Narrowcast String Document -- First arg is the sender's username.  Send the document
     | UpdateSharedDocumentDict Document
@@ -450,7 +450,7 @@ type ToFrontend
 
 
 type alias ChatDict =
-    Dict GroupName (List ChatMessage)
+    Dict GroupName (List Chat.Message.ChatMessage)
 
 
 type alias ChatGroupDict =
@@ -468,20 +468,11 @@ type alias ChatGroup =
 type ChatMsg
     = JoinedChat ClientId Username
     | LeftChat ClientId Username
-    | ChatMsg ClientId ChatMessage
+    | ChatMsg ClientId Chat.Message.ChatMessage
 
 
 type alias GroupName =
     String
-
-
-type alias ChatMessage =
-    { sender : String
-    , group : String
-    , subject : String
-    , content : String
-    , date : Time.Posix
-    }
 
 
 type ToggleChatGroupDisplay
