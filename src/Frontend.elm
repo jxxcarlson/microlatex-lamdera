@@ -1136,10 +1136,7 @@ updateFromBackend msg model =
                             , Cmd.none
                             )
 
-        -- CHAT (updateFromBackend)
-        GotChatHistory ->
-            ( model, Util.delay 400 ScrollChatToBottom )
-
+        -- USER MESSAGES
         UserMessageReceived message ->
             ( { model | userMessage = Just message }, View.Chat.scrollChatToBottom )
 
@@ -1150,6 +1147,10 @@ updateFromBackend msg model =
 
                 Types.FAUnlockCurrentDocument ->
                     Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
+
+        -- CHAT (updateFromBackend)
+        GotChatHistory history ->
+            ( { model | chatMessages = history }, Util.delay 400 ScrollChatToBottom )
 
         GotChatGroup mChatGroup ->
             case mChatGroup of
@@ -1164,8 +1165,6 @@ updateFromBackend msg model =
                     ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )
 
         ChatMessageReceived message ->
-            -- ( { model | chatMessages = Chat.consolidateOne message model.chatMessages }, View.Chat.scrollChatToBottom )
-            -- ( { model | chatMessages = message :: model.chatMessages }, View.Chat.scrollChatToBottom )
             ( { model | chatMessages = Chat.consolidateOne message model.chatMessages }, View.Chat.scrollChatToBottom )
 
 

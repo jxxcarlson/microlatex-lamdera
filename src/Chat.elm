@@ -163,15 +163,21 @@ narrowCast model message =
 
 sendChatHistoryCmd groupName model clientId =
     let
-        chatMessages : List Chat.Message.ChatMessage
-        chatMessages =
-            Dict.get groupName model.chatDict |> Maybe.withDefault []
+        history : List Types.ChatMsg
+        history =
+            Dict.get groupName model.chatDict |> Maybe.withDefault [] |> List.map (\m -> ChatMsg "0" m)
+
+        groupMembers =
+            Dict.get groupName model.chatGroupDict |> Maybe.map .members |> Maybe.withDefault []
+
+        clientIds =
+            List.map (\username -> getClients username model.connectionDict) groupMembers |> List.concat
 
         cmds : List (Cmd backendMsg)
         cmds =
-            List.map (narrowCast model) chatMessages |> List.concat
+            List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.GotChatHistory history)) clientIds
     in
-    Cmd.batch (Lamdera.sendToFrontend clientId Types.GotChatHistory :: cmds)
+    Cmd.batch cmds
 
 
 getClients : Types.Username -> Types.ConnectionDict -> List Lamdera.ClientId

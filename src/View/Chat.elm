@@ -45,7 +45,7 @@ viewCurrentGroup model =
                 [ E.row [ E.paddingEach { left = 0, right = 0, top = 0, bottom = 0 }, E.spacing 8 ]
                     [ View.Button.makeCurrentGroupPreferred, View.Input.group model ]
                 , viewChatGroup model
-                , E.row [ E.spacing 8 ] [ View.Button.setChatCreate model ]
+                , E.row [ E.spacing 8 ] [ View.Button.setChatCreate model, View.Button.clearChatHistory ]
                 ]
 
         TCGShowInputForm ->
@@ -59,7 +59,7 @@ editGroup model =
                 E.none
 
             Types.TCGShowInputForm ->
-                createChatGroup model
+                E.row [ E.spacing 12 ] [ createChatGroup model ]
         )
 
 

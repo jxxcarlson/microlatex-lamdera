@@ -428,7 +428,7 @@ type ToFrontend
     | UndeliverableMessage UserMessage
     | UserSignedUp User
       -- CHAT
-    | GotChatHistory
+    | GotChatHistory (List ChatMsg)
     | GotChatGroup (Maybe ChatGroup)
     | ChatMessageReceived ChatMsg
       -- DOCUMENT
