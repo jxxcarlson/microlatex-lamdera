@@ -359,8 +359,9 @@ update msg model =
         TogglePublicUrl ->
             ( { model | showPublicUrl = not model.showPublicUrl }, Cmd.none )
 
+        -- CHAT
         ToggleChat ->
-            ( { model | chatVisible = not model.chatVisible, chatMessages = [] }, Cmd.batch [ Util.delay 100 ScrollChatToBottom, sendToBackend (SendChatHistory model.inputGroup) ] )
+            ( { model | chatVisible = not model.chatVisible, chatMessages = [] }, Cmd.batch [ Util.delay 200 ScrollChatToBottom, sendToBackend (SendChatHistory model.inputGroup) ] )
 
         ToggleDocTools ->
             ( { model | showDocTools = not model.showDocTools }, Cmd.none )

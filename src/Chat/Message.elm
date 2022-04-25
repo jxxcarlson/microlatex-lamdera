@@ -22,7 +22,7 @@ insert : ChatMessage -> Dict GroupName (List ChatMessage) -> Dict GroupName (Lis
 insert message dict =
     case Dict.get message.group dict of
         Nothing ->
-            dict
+            Dict.insert message.group [ message ] dict
 
         Just messageList ->
             Dict.insert message.group (consolidateOne message messageList) dict

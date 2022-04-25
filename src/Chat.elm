@@ -165,7 +165,7 @@ sendChatHistoryCmd groupName model clientId =
     let
         chatMessages : List Chat.Message.ChatMessage
         chatMessages =
-            Dict.get groupName model.chatDict |> Maybe.withDefault []
+            Dict.get groupName model.chatDict |> Maybe.withDefault [] |> Debug.log "!! HISTORY"
 
         cmds : List (Cmd backendMsg)
         cmds =

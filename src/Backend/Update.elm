@@ -76,6 +76,11 @@ type alias Model =
 -- CHAT
 
 
+handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
+handleChatMsg message model =
+    ( { model | chatDict = Chat.Message.insert message model.chatDict |> Debug.log ("CHAT DICT (" ++ message.content ++ ")") }, Cmd.batch (Chat.narrowCast model message) )
+
+
 handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
 handlePing message model =
     let
@@ -144,11 +149,6 @@ deliverUserMessage model clientId usermessage =
                     List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
             in
             ( model, Cmd.batch commands )
-
-
-handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
-handleChatMsg message model =
-    ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
 
 
 apply :
