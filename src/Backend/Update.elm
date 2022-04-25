@@ -95,15 +95,6 @@ handlePing message model =
     ( model, Cmd.batch commands )
 
 
-type alias ChatMessage2 =
-    { sender : String
-    , group : String
-    , subject : String
-    , content : String
-    , date : Time.Posix
-    }
-
-
 userMessageFromChatMessage : Chat.Message.ChatMessage -> String -> Types.UserMessage
 userMessageFromChatMessage { sender, subject, content } recipient =
     { from = sender
