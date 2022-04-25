@@ -7,6 +7,7 @@ module Config exposing
     , debounceSaveDocumentInterval
     , defaultUrl
     , documentDeletedNotice
+    , fontWidth
     , frontendTickSeconds
     , helpDocumentId
     , host
@@ -35,6 +36,11 @@ module Config exposing
 import Env
 import Parser.Language
 import Url
+
+
+fontWidth : Int
+fontWidth =
+    18
 
 
 {-| Now set at 3 seconds, up from 0.3 seconds before

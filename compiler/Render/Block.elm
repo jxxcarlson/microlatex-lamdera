@@ -2,6 +2,7 @@ module Render.Block exposing (render)
 
 import Compiler.ASTTools as ASTTools
 import Compiler.Acc exposing (Accumulator)
+import Config
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import Element exposing (Element)
@@ -146,12 +147,59 @@ verbatimDict =
         , ( "verbatim", renderVerbatim )
         , ( "comment", renderComment )
         , ( "mathmacros", renderComment )
+        , ( "datatable", datatable )
         ]
 
 
 renderComment : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderComment _ _ _ _ _ _ =
     Element.none
+
+
+datatable : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+datatable count acc settings args id str =
+    let
+        argString =
+            String.join " " args
+
+        newArgs =
+            argString |> String.split ";" |> List.map String.trim
+
+        argDict =
+            Render.Utility.keyValueDict newArgs
+
+        title =
+            case Dict.get "title" argDict of
+                Nothing ->
+                    Element.none
+
+                Just title_ ->
+                    Element.el [ Font.bold ] (Element.text title_)
+
+        lines =
+            String.split "\n" str
+
+        cells : List (List String)
+        cells =
+            List.map (String.split ",") lines
+                |> List.map (List.map String.trim)
+
+        columnWidths : List Int
+        columnWidths =
+            List.map (List.map String.length) cells
+                |> List.Extra.transpose
+                |> List.map (\column -> List.maximum column |> Maybe.withDefault 1)
+                |> List.map (\w -> Config.fontWidth * w)
+
+        renderRow : List Int -> List String -> Element MarkupMsg
+        renderRow widths_ cells_ =
+            let
+                totalWidth =
+                    List.sum widths_ + 20
+            in
+            Element.row [ Element.width (Element.px totalWidth) ] (List.map2 (\cell width -> Element.el [ Element.width (Element.px width) ] (Element.text cell)) cells_ widths_)
+    in
+    Element.column [ Element.spacing 12, Element.paddingEach { left = 36, right = 0, top = 18, bottom = 18 } ] (title :: List.map (renderRow columnWidths) cells)
 
 
 aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
