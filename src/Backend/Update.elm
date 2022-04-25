@@ -78,7 +78,7 @@ type alias Model =
 
 handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
 handleChatMsg message model =
-    ( { model | chatDict = Chat.Message.insert message model.chatDict |> Debug.log ("CHAT DICT (" ++ message.content ++ ")") }, Cmd.batch (Chat.narrowCast model message) )
+    ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
 
 
 handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
