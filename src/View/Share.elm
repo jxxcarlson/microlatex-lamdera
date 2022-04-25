@@ -44,7 +44,7 @@ usermessage mUserMessage =
                 [ row "From:" message.from
                 , row "To:" message.to
                 , row "Subject:" message.subject
-                , row "Message:" message.content
+                , col "Message:" message.content
                 , E.row [ E.spacing 36 ]
                     [ showButton Types.UMOk <|
                         Button.reply "Ok"
@@ -97,6 +97,13 @@ row heading body =
     E.row [ E.spacing 12, Font.size 14 ]
         [ E.el [ Font.bold, E.width (E.px 60) ] (E.text heading)
         , E.paragraph [ E.width (E.px 250) ] [ E.text body ]
+        ]
+
+
+col heading body =
+    E.paragraph [ E.width (E.px 250), Font.size 14 ]
+        [ E.el [ Font.bold ] (E.text (heading ++ " "))
+        , E.paragraph [] [ E.text body ]
         ]
 
 

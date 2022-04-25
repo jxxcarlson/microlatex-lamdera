@@ -4,6 +4,7 @@ module Backend.Update exposing
     , applySpecial
     , authorTags
     , createDocument
+    , deliverUserMessage
     , fetchDocumentById
     , findDocumentByAuthorAndKey
     , getConnectedUsers
@@ -77,7 +78,81 @@ type alias Model =
 
 handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
 handlePing message model =
-    ( model, Cmd.none )
+    let
+        groupMembers =
+            Dict.get message.group model.chatGroupDict
+                |> Maybe.map .members
+                |> Maybe.withDefault []
+                |> List.filter (\name -> name /= message.sender)
+
+        messages =
+            List.map (userMessageFromChatMessage message) groupMembers
+
+        commands : List (Cmd BackendMsg)
+        commands =
+            List.map (\m -> deliverUserMessageCmd model m) messages
+    in
+    ( model, Cmd.batch commands )
+
+
+type alias ChatMessage2 =
+    { sender : String
+    , group : String
+    , subject : String
+    , content : String
+    , date : Time.Posix
+    }
+
+
+userMessageFromChatMessage : Chat.Message.ChatMessage -> String -> Types.UserMessage
+userMessageFromChatMessage { sender, subject, content } recipient =
+    { from = sender
+    , to = recipient
+    , subject = "Ping"
+    , content =
+        if String.left 2 content == "!!" then
+            String.dropLeft 2 content
+
+        else
+            content
+    , show = []
+    , info = ""
+    , action = Types.FENoOp
+    , actionOnFailureToDeliver = Types.FANoOp
+    }
+
+
+deliverUserMessageCmd : BackendModel -> Types.UserMessage -> Cmd BackendMsg
+deliverUserMessageCmd model usermessage =
+    case Dict.get usermessage.to model.connectionDict of
+        Nothing ->
+            Cmd.none
+
+        Just connectionData ->
+            let
+                clientIds =
+                    List.map .client connectionData
+
+                commands =
+                    List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
+            in
+            Cmd.batch commands
+
+
+deliverUserMessage model clientId usermessage =
+    case Dict.get usermessage.to model.connectionDict of
+        Nothing ->
+            ( model, sendToFrontend clientId (UndeliverableMessage usermessage) )
+
+        Just connectionData ->
+            let
+                clientIds =
+                    List.map .client connectionData
+
+                commands =
+                    List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
+            in
+            ( model, Cmd.batch commands )
 
 
 handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )

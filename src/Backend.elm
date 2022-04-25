@@ -173,24 +173,7 @@ updateFromFrontend sessionId clientId msg model =
 
         -- ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
         DeliverUserMessage usermessage ->
-            --case Share.isCurrentlyShared usermessage.info model.sharedDocumentDict of
-            --    Nothing ->
-            --        ( model, sendToFrontend clientId Types.SmartUnLockCurrentDocument )
-            --
-            --    Just userName ->
-            case Dict.get usermessage.to model.connectionDict of
-                Nothing ->
-                    ( model, sendToFrontend clientId (UndeliverableMessage usermessage) )
-
-                Just connectionData ->
-                    let
-                        clientIds =
-                            List.map .client connectionData
-
-                        commands =
-                            List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
-                    in
-                    ( model, Cmd.batch commands )
+            Backend.Update.deliverUserMessage model clientId usermessage
 
         -- SHARE
         UpdateSharedDocumentDict doc ->

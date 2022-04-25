@@ -387,7 +387,7 @@ update msg model =
                 ]
             )
 
-        -- USER
+        -- USER MESSAGES
         DismissUserMessage ->
             ( { model | userMessage = Nothing }, Cmd.none )
 
@@ -399,6 +399,7 @@ update msg model =
             , sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
             )
 
+        -- USER
         SetSignupState state ->
             ( { model
                 | signupState = state
