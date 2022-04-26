@@ -65,6 +65,7 @@ import Docs
 import Document exposing (Document)
 import File.Download as Download
 import Frontend.Cmd
+import IncludeFiles
 import Keyboard
 import Lamdera exposing (sendToBackend)
 import List.Extra
@@ -117,6 +118,65 @@ handleCurrentDocumentChange model currentDocument document =
 
 setDocumentAsCurrent : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent cmd model doc permissions =
+    -- TODO!
+    let
+        filesToInclude =
+            IncludeFiles.getData doc.content
+    in
+    case List.isEmpty filesToInclude of
+        True ->
+            setDocumentAsCurrent_ cmd model doc permissions
+
+        False ->
+            ( model, sendToBackend (GetIncludedFiles filesToInclude) )
+                |> (\( m, c ) ->
+                        let
+                            ( m2, c2 ) =
+                                setDocumentAsCurrent_ cmd m doc permissions
+                        in
+                        ( m2, Cmd.batch (c2 :: c :: []) )
+                   )
+
+
+
+-- Util.delay 200 (SetDocumentCurrent doc)
+
+
+apply :
+    (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+    -> FrontendModel
+    -> ( FrontendModel, Cmd FrontendMsg )
+apply f model =
+    f model
+
+
+andThenApply :
+    (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+    -> ( FrontendModel, Cmd FrontendMsg )
+    -> ( FrontendModel, Cmd FrontendMsg )
+andThenApply f ( model, cmd ) =
+    let
+        ( model2, cmd2 ) =
+            f model
+    in
+    ( model2, Cmd.batch [ cmd, cmd2 ] )
+
+
+joinF : ( FrontendModel, Cmd FrontendMsg ) -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg )) -> ( FrontendModel, Cmd FrontendMsg )
+joinF ( model1, cmd1 ) f =
+    let
+        ( model2, cmd2 ) =
+            f model1
+    in
+    ( model2, Cmd.batch [ cmd1, cmd2 ] )
+
+
+
+-- setDocumentAsCurrent_ cmd model doc permissions
+
+
+setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent_ cmd model doc permissions =
     let
         -- For now, loc the doc in all cases
         currentUserName_ : String
@@ -127,9 +187,8 @@ setDocumentAsCurrent cmd model doc permissions =
         newEditRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
-        filesToInclude =
-            newEditRecord.includedFiles
-
+        -- filesToInclude =
+        --    newEditRecord.includedFiles
         errorMessages : List Types.Message
         errorMessages =
             Message.make (newEditRecord.messages |> String.join "; ") MSYellow
@@ -180,7 +239,6 @@ setDocumentAsCurrent cmd model doc permissions =
         [ View.Utility.setViewPortToTop model.popupState
         , Cmd.batch [ cmd, sendToBackend (SaveDocument updatedDoc) ]
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
-        , sendToBackend (GetIncludedFiles filesToInclude)
         ]
     )
 
@@ -794,15 +852,6 @@ saveDocument mDoc model =
 
         Just doc ->
             ( { model | documentDirty = False }, sendToBackend (SaveDocument doc) )
-
-
-joinF : ( FrontendModel, Cmd FrontendMsg ) -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg )) -> ( FrontendModel, Cmd FrontendMsg )
-joinF ( model1, cmd1 ) f =
-    let
-        ( model2, cmd2 ) =
-            f model1
-    in
-    ( model2, Cmd.batch [ cmd1, cmd2 ] )
 
 
 currentDocumentPostProcess : Document.Document -> FrontendModel -> FrontendModel

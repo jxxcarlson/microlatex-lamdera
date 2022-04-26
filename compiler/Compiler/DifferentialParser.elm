@@ -4,11 +4,13 @@ import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
 import Dict exposing (Dict)
 import L0.Parser.Expression
+import List.Extra
 import Markup
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil
 import Parser.Language exposing (Language(..))
+import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 import Tree exposing (Tree)
 import XMarkdown.Expression
@@ -69,7 +71,7 @@ includeContent : Dict String String -> List (Tree PrimitiveBlock) -> List (Tree 
 includeContent dict trees =
     let
         _ =
-            Debug.log "DICT" dict
+            Debug.log "!! DICT" dict
     in
     List.map (includeContentForTree dict) trees
 
@@ -81,17 +83,34 @@ includeContentForTree dict tree =
 
 includeContentForBlock : Dict String String -> PrimitiveBlock -> PrimitiveBlock
 includeContentForBlock dict block =
+    let
+        _ =
+            Debug.log "!! BLOCK (1)" block
+    in
     case block.name of
         Nothing ->
             block
 
         Just blockName ->
-            case Dict.get blockName dict of
-                Nothing ->
-                    block
+            if blockName /= "include" then
+                block
 
-                Just content ->
-                    { block | content = [ content ] }
+            else
+                case List.Extra.getAt 1 block.content of
+                    Nothing ->
+                        block
+
+                    Just tag ->
+                        case Dict.get tag dict of
+                            Nothing ->
+                                block
+
+                            Just content ->
+                                let
+                                    _ =
+                                        Debug.log "!! BLOCK (2)" content
+                                in
+                                { block | blockType = PBParagraph, name = Nothing, content = [ content ] } |> Debug.log "!! BLOCK (3)"
 
 
 update : EditRecord -> String -> EditRecord
