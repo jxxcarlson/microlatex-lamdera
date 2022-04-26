@@ -24,10 +24,37 @@ init lang str =
         chunks =
             chunker lang str
 
+        includedFiles =
+            case List.head chunks of
+                Nothing ->
+                    []
+
+                Just chunk ->
+                    let
+                        lines =
+                            (Tree.label chunk).content
+                    in
+                    case List.head lines of
+                        Nothing ->
+                            []
+
+                        Just "|| load-files" ->
+                            List.drop 1 lines
+
+                        _ ->
+                            []
+
+        -- Tree { content } ->
         ( newAccumulator, parsed ) =
             (List.map (parser lang) >> Compiler.Acc.transformAcccumulate lang) chunks
     in
-    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator, messages = Markup.messagesFromForest parsed }
+    { lang = lang
+    , chunks = chunks
+    , parsed = parsed
+    , accumulator = newAccumulator
+    , messages = Markup.messagesFromForest parsed
+    , includedFiles = includedFiles
+    }
 
 
 update : EditRecord -> String -> EditRecord
