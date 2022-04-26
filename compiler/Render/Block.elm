@@ -149,6 +149,7 @@ verbatimDict =
         , ( "mathmacros", renderComment )
         , ( "datatable", datatable )
         , ( "load-files", \_ _ _ _ _ _ -> Element.none )
+        , ( "include", \_ _ _ _ _ _ -> Element.none )
         ]
 
 
