@@ -44,6 +44,7 @@ module Frontend.Update exposing
     , syncLR
     , unlockCurrentDocument
     , updateCurrentDocument
+    , updateEditRecord
     , updateKeys
     , updateWithViewport
     )
@@ -60,7 +61,7 @@ import Compiler.Acc
 import Compiler.DifferentialParser
 import Config
 import Debounce
-import Dict
+import Dict exposing (Dict)
 import Docs
 import Document exposing (Document)
 import File.Download as Download
@@ -128,17 +129,18 @@ setDocumentAsCurrent cmd model doc permissions =
             setDocumentAsCurrent_ cmd model doc permissions
 
         False ->
-            ( model, sendToBackend (GetIncludedFiles filesToInclude) )
-                |> (\( m, c ) ->
-                        let
-                            ( m2, c2 ) =
-                                setDocumentAsCurrent_ cmd m doc permissions
-                        in
-                        ( m2, Cmd.batch (c2 :: c :: []) )
-                   )
+            setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
 
+--( model, sendToBackend (GetIncludedFiles doc filesToInclude) )
+--    |> (\( m, c ) ->
+--            let
+--                ( m2, c2 ) =
+--                    setDocumentAsCurrent_ cmd m doc permissions
+--            in
+--            ( m2, Cmd.batch (c2 :: c :: []) )
+--       )
 -- Util.delay 200 (SetDocumentCurrent doc)
 
 
@@ -173,6 +175,11 @@ joinF ( model1, cmd1 ) f =
 
 
 -- setDocumentAsCurrent_ cmd model doc permissions
+
+
+updateEditRecord : Dict String String -> Document -> FrontendModel -> FrontendModel
+updateEditRecord inclusionData doc model =
+    { model | editRecord = Compiler.DifferentialParser.init inclusionData doc.language doc.content }
 
 
 setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )

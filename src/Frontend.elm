@@ -1006,12 +1006,18 @@ updateFromBackend msg model =
             ( { model | connectedUsers = connectedUsers }, Cmd.none )
 
         -- DOCUMENT
-        GotIncludedData listOfData ->
+        GotIncludedData doc listOfData ->
             let
                 includedContent =
                     List.foldl (\( tag, content ) acc -> Dict.insert tag content acc) model.includedContent listOfData
+
+                updateEditRecord : Dict.Dict String String -> Document.Document -> FrontendModel -> FrontendModel
+                updateEditRecord inclusionData doc_ model_ =
+                    Frontend.Update.updateEditRecord inclusionData doc_ model_
             in
-            ( { model | includedContent = includedContent }, Cmd.none )
+            ( { model | includedContent = includedContent } |> (\m -> updateEditRecord includedContent doc m)
+            , Cmd.none
+            )
 
         SmartUnLockCurrentDocument ->
             Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }

@@ -282,7 +282,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         -- DOCUMENTS
-        GetIncludedFiles fileList ->
+        GetIncludedFiles doc fileList ->
             let
                 tuplify : List String -> Maybe ( String, String )
                 tuplify strs =
@@ -313,7 +313,7 @@ updateFromFrontend sessionId clientId msg model =
                     List.foldl (\( author, key ) acc -> ( author ++ ":" ++ key, getContent ( author, key ) ) :: acc) [] authorsAndKeys
 
                 cmd =
-                    sendToFrontend clientId (GotIncludedData data)
+                    sendToFrontend clientId (GotIncludedData doc data)
             in
             ( model, cmd )
 
