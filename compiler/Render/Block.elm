@@ -229,7 +229,7 @@ datatable count acc settings args id str =
         renderRow widths_ cells_ =
             let
                 totalWidth =
-                    List.sum widths_ + 20
+                    List.sum widths_ + 0
             in
             Element.row [ Element.width (Element.px totalWidth) ] (List.map2 (\cell width -> Element.el [ Element.width (Element.px width) ] (Element.text cell)) cells_ widths_)
     in
