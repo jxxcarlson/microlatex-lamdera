@@ -40,7 +40,7 @@ import Url
 
 fontWidth : Int
 fontWidth =
-    18
+    10
 
 
 {-| Now set at 3 seconds, up from 0.3 seconds before

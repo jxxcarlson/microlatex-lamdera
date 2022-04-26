@@ -176,17 +176,51 @@ datatable count acc settings args id str =
                 Just title_ ->
                     Element.el [ Font.bold ] (Element.text title_)
 
+        columnsToDisplay : List Int
+        columnsToDisplay =
+            Dict.get "columns" argDict
+                |> Maybe.map (String.split ",")
+                |> Maybe.withDefault []
+                |> List.map (String.trim >> String.toInt)
+                |> Maybe.Extra.values
+                |> List.map (\n -> n - 1)
+
         lines =
             String.split "\n" str
 
-        cells : List (List String)
-        cells =
+        rawCells : List (List String)
+        rawCells =
             List.map (String.split ",") lines
                 |> List.map (List.map String.trim)
 
+        selectedCells : List (List String)
+        selectedCells =
+            if columnsToDisplay == [] then
+                rawCells
+
+            else
+                let
+                    cols : List ( Int, List String )
+                    cols =
+                        List.Extra.transpose rawCells |> List.indexedMap (\k col -> ( k, col ))
+
+                    updater : ( Int, List String ) -> List (List String) -> List (List String)
+                    updater =
+                        \( k, col ) acc_ ->
+                            if List.member k columnsToDisplay then
+                                col :: acc_
+
+                            else
+                                acc_
+
+                    selectedCols =
+                        List.foldl updater [] cols
+                in
+                List.Extra.transpose (List.reverse selectedCols)
+
         columnWidths : List Int
         columnWidths =
-            List.map (List.map String.length) cells
+            List.map (List.map String.length) selectedCells
                 |> List.Extra.transpose
                 |> List.map (\column -> List.maximum column |> Maybe.withDefault 1)
                 |> List.map (\w -> Config.fontWidth * w)
@@ -199,7 +233,7 @@ datatable count acc settings args id str =
             in
             Element.row [ Element.width (Element.px totalWidth) ] (List.map2 (\cell width -> Element.el [ Element.width (Element.px width) ] (Element.text cell)) cells_ widths_)
     in
-    Element.column [ Element.spacing 12, Element.paddingEach { left = 36, right = 0, top = 18, bottom = 18 } ] (title :: List.map (renderRow columnWidths) cells)
+    Element.column [ Element.spacing 12, Element.paddingEach { left = 36, right = 0, top = 18, bottom = 18 } ] (title :: List.map (renderRow columnWidths) selectedCells)
 
 
 aligned : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
