@@ -144,6 +144,7 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , includedContent : Dict String String
     , documentDirty : Bool
     , seeBackups : Bool
     , publicDocumentSearchKey : String
@@ -393,6 +394,7 @@ type ToBackend
     | UpdateSharedDocumentDict Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
+    | GetIncludedFiles (List String)
     | InsertDocument User Document
     | GetCheatSheetDocument
     | RequestRefresh String
@@ -432,6 +434,7 @@ type ToFrontend
     | GotChatGroup (Maybe ChatGroup)
     | ChatMessageReceived ChatMsg
       -- DOCUMENT
+    | GotIncludedData (List ( String, String ))
     | SmartUnLockCurrentDocument
     | AcceptUserTags (Dict String (List { id : String, title : String }))
     | AcceptPublicTags (Dict String (List { id : String, title : String }))

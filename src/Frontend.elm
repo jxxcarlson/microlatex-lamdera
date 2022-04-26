@@ -135,6 +135,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , includedContent = Dict.empty
       , showPublicUrl = False
       , documentDirty = False
       , seeBackups = False
@@ -1005,6 +1006,13 @@ updateFromBackend msg model =
             ( { model | connectedUsers = connectedUsers }, Cmd.none )
 
         -- DOCUMENT
+        GotIncludedData listOfData ->
+            let
+                includedContent =
+                    List.foldl (\( tag, content ) acc -> Dict.insert tag content acc) model.includedContent listOfData
+            in
+            ( { model | includedContent = includedContent }, Cmd.none )
+
         SmartUnLockCurrentDocument ->
             Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
 

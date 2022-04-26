@@ -30,6 +30,7 @@ import Dict exposing (Dict)
 import Docs
 import Document
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Maybe.Extra
 import Message
 import Random
 import Share
@@ -37,6 +38,7 @@ import Time
 import Tools
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
+import Util
 
 
 type alias Model =
@@ -280,6 +282,41 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         -- DOCUMENTS
+        GetIncludedFiles fileList ->
+            let
+                tuplify : List String -> Maybe ( String, String )
+                tuplify strs =
+                    case strs of
+                        a :: b :: [] ->
+                            Just ( a, b )
+
+                        _ ->
+                            Nothing
+
+                authorsAndKeys : List ( String, String )
+                authorsAndKeys =
+                    List.map (String.split ":" >> tuplify) fileList |> Maybe.Extra.values
+
+                getContent : ( String, String ) -> String
+                getContent ( author, key ) =
+                    Backend.Update.findDocumentByAuthorAndKey_ model author (author ++ ":" ++ key)
+                        |> Maybe.map .content
+                        |> Maybe.withDefault ""
+                        |> String.lines
+                        |> Util.discardLines (\line -> String.startsWith "[tags" line)
+                        |> String.join "\n"
+                        |> String.trim
+
+                -- List (username:tag, content)
+                data : List ( String, String )
+                data =
+                    List.foldl (\( author, key ) acc -> ( author ++ ":" ++ key, getContent ( author, key ) ) :: acc) [] authorsAndKeys
+
+                cmd =
+                    sendToFrontend clientId (GotIncludedData data)
+            in
+            ( model, cmd )
+
         InsertDocument user doc ->
             Backend.Update.insertDocument model clientId user doc
 

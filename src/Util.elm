@@ -1,6 +1,7 @@
 module Util exposing
     ( currentUsername
     , delay
+    , discardLines
     , insertInListOrUpdate
     , liftToMaybe
     , updateDocumentInList
@@ -64,3 +65,43 @@ delay : Float -> msg -> Cmd msg
 delay time msg =
     Process.sleep time
         |> Task.perform (\_ -> msg)
+
+
+type Step state a
+    = Loop state
+    | Done a
+
+
+type alias DiscardLinesState =
+    { input : List String }
+
+
+discardLines : (String -> Bool) -> List String -> List String
+discardLines predicate lines =
+    loop { input = lines } (discardLinesNextStep predicate)
+
+
+{-| Discard lines until the predicate is satisfied; discard that line, then return the rest
+-}
+discardLinesNextStep : (String -> Bool) -> DiscardLinesState -> Step DiscardLinesState (List String)
+discardLinesNextStep predicate state =
+    case List.head state.input of
+        Nothing ->
+            Done state.input
+
+        Just line ->
+            if predicate line then
+                Done (List.drop 1 state.input)
+
+            else
+                Loop { state | input = List.drop 1 state.input }
+
+
+loop : state -> (state -> Step state a) -> a
+loop s nextState_ =
+    case nextState_ s of
+        Loop s_ ->
+            loop s_ nextState_
+
+        Done b ->
+            b
