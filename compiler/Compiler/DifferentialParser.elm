@@ -50,7 +50,7 @@ init inclusionData lang str =
                 chunks
 
             else
-                chunks
+                includeContent inclusionData chunks
 
         -- Tree { content } ->
         ( newAccumulator, parsed ) =
@@ -63,6 +63,35 @@ init inclusionData lang str =
     , messages = Markup.messagesFromForest parsed
     , includedFiles = includedFiles
     }
+
+
+includeContent : Dict String String -> List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
+includeContent dict trees =
+    let
+        _ =
+            Debug.log "DICT" dict
+    in
+    List.map (includeContentForTree dict) trees
+
+
+includeContentForTree : Dict String String -> Tree PrimitiveBlock -> Tree PrimitiveBlock
+includeContentForTree dict tree =
+    Tree.map (includeContentForBlock dict) tree
+
+
+includeContentForBlock : Dict String String -> PrimitiveBlock -> PrimitiveBlock
+includeContentForBlock dict block =
+    case block.name of
+        Nothing ->
+            block
+
+        Just blockName ->
+            case Dict.get blockName dict of
+                Nothing ->
+                    block
+
+                Just content ->
+                    { block | content = [ content ] }
 
 
 update : EditRecord -> String -> EditRecord
