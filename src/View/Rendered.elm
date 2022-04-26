@@ -45,7 +45,7 @@ viewSmall : FrontendModel -> Document -> Int -> Int -> Int -> Element FrontendMs
 viewSmall model doc width_ deltaH indexShift =
     let
         editRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         currentDocId =
             Maybe.map .id model.currentDocument |> Maybe.withDefault "???"

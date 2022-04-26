@@ -40,7 +40,7 @@ viewManual model =
         Just doc ->
             let
                 editRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
+                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
                 w =
                     min (model.windowWidth // 3) 450
@@ -71,7 +71,7 @@ viewCheatSheet model =
         Just doc ->
             let
                 editRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
+                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
                 w =
                     min (model.windowWidth // 3) 450

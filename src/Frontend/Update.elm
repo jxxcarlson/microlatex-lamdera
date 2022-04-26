@@ -125,7 +125,7 @@ setDocumentAsCurrent cmd model doc permissions =
 
         newEditRecord : Compiler.DifferentialParser.EditRecord
         newEditRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         filesToInclude =
             newEditRecord.includedFiles
@@ -197,7 +197,7 @@ handleReceivedDocumentAsCheatsheet model doc =
 handleAsStandardReceivedDocument model doc =
     let
         editRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         errorMessages : List Types.Message
         errorMessages =
@@ -250,7 +250,7 @@ savePreviousCurrentDocumentCmd model =
 handleAsReceivedDocumentWithDelay model doc =
     let
         editRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         errorMessages : List Types.Message
         errorMessages =
@@ -281,7 +281,7 @@ handleAsReceivedDocumentWithDelay model doc =
 handlePinnedDocuments model doc =
     let
         editRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         errorMessages : List Types.Message
         errorMessages =
@@ -353,7 +353,7 @@ setPublicDocumentAsCurrentById model id =
         Just doc ->
             let
                 newEditRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
+                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
             in
             ( { model
                 | currentDocument = Just doc
@@ -810,7 +810,7 @@ currentDocumentPostProcess doc model =
     let
         newEditRecord : Compiler.DifferentialParser.EditRecord
         newEditRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         errorMessages : List Types.Message
         errorMessages =
@@ -1246,7 +1246,7 @@ newDocument model =
                     "| title\n" ++ model.inputTitle ++ "\n\n"
 
         editRecord =
-            Compiler.DifferentialParser.init doc.language doc.content
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         doc =
             { emptyDoc

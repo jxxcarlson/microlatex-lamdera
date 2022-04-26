@@ -144,7 +144,7 @@ init url key =
       , initialText = Config.loadingText
       , documentsCreatedCounter = 0
       , sourceText = Config.loadingText
-      , editRecord = Compiler.DifferentialParser.init L0Lang Config.loadingText
+      , editRecord = Compiler.DifferentialParser.init Dict.empty L0Lang Config.loadingText
       , title = "Loading ..."
       , tableOfContents = Compiler.ASTTools.tableOfContents (Markup.parse L0Lang Config.loadingText)
       , debounce = Debounce.init
@@ -1042,7 +1042,7 @@ updateFromBackend msg model =
         ReceivedNewDocument _ doc ->
             let
                 editRecord =
-                    Compiler.DifferentialParser.init doc.language doc.content
+                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
                 currentMasterDocument =
                     if Frontend.Update.isMaster editRecord then

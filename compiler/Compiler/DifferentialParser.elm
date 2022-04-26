@@ -2,6 +2,7 @@ module Compiler.DifferentialParser exposing (EditRecord, init, update)
 
 import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
+import Dict exposing (Dict)
 import L0.Parser.Expression
 import Markup
 import MicroLaTeX.Parser.Expression
@@ -17,8 +18,8 @@ type alias EditRecord =
     Abstract.EditRecord (Tree PrimitiveBlock) (Tree ExpressionBlock) Compiler.Acc.Accumulator
 
 
-init : Language -> String -> EditRecord
-init lang str =
+init : Dict String String -> Language -> String -> EditRecord
+init inclusionData lang str =
     let
         chunks : List (Tree PrimitiveBlock)
         chunks =
@@ -44,9 +45,16 @@ init lang str =
                         _ ->
                             []
 
+        updatedChunks =
+            if includedFiles == [] then
+                chunks
+
+            else
+                chunks
+
         -- Tree { content } ->
         ( newAccumulator, parsed ) =
-            (List.map (parser lang) >> Compiler.Acc.transformAcccumulate lang) chunks
+            (List.map (parser lang) >> Compiler.Acc.transformAcccumulate lang) updatedChunks
     in
     { lang = lang
     , chunks = chunks
