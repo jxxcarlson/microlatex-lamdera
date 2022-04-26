@@ -69,10 +69,6 @@ init inclusionData lang str =
 
 includeContent : Dict String String -> List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
 includeContent dict trees =
-    let
-        _ =
-            Debug.log "!! DICT" dict
-    in
     List.map (includeContentForTree dict) trees
 
 
@@ -83,10 +79,6 @@ includeContentForTree dict tree =
 
 includeContentForBlock : Dict String String -> PrimitiveBlock -> PrimitiveBlock
 includeContentForBlock dict block =
-    let
-        _ =
-            Debug.log "!! BLOCK (1)" block
-    in
     case block.name of
         Nothing ->
             block
@@ -107,10 +99,18 @@ includeContentForBlock dict block =
 
                             Just content ->
                                 let
-                                    _ =
-                                        Debug.log "!! BLOCK (2)" content
+                                    ( blockType, name, content_ ) =
+                                        case block.args of
+                                            [] ->
+                                                ( PBParagraph, Nothing, String.lines content )
+
+                                            [ "mathmacros" ] ->
+                                                ( PBVerbatim, Just "mathmacros", content |> String.lines |> List.drop 1 )
+
+                                            _ ->
+                                                ( PBParagraph, Nothing, String.lines content )
                                 in
-                                { block | blockType = PBParagraph, name = Nothing, content = [ content ] } |> Debug.log "!! BLOCK (3)"
+                                { block | blockType = blockType, name = name, content = content_ }
 
 
 update : EditRecord -> String -> EditRecord
