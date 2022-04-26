@@ -10,6 +10,7 @@ type alias EditRecord chunk parsedChunk accumulator =
     , accumulator : accumulator
     , lang : Language
     , messages : List String
+    , includedFiles : List String
     }
 
 
@@ -28,7 +29,13 @@ init lang chunker accMaker getMessages text =
         ( newAccumulator, parsed ) =
             accMaker lang chunks
     in
-    { lang = lang, chunks = chunks, parsed = parsed, accumulator = newAccumulator, messages = getMessages parsed }
+    { lang = lang
+    , chunks = chunks
+    , parsed = parsed
+    , accumulator = newAccumulator
+    , messages = getMessages parsed
+    , includedFiles = []
+    }
 
 
 {-| The update function takes an EditRecord and a string, the "text",
@@ -63,7 +70,13 @@ update chunker parser getMessages accMaker editRecord text =
             accMaker editRecord.lang parsed_
     in
     -- TODO: real update of accumulator
-    { lang = editRecord.lang, chunks = newChunks, parsed = parsed, accumulator = newAccumulator, messages = getMessages parsed }
+    { lang = editRecord.lang
+    , chunks = newChunks
+    , parsed = parsed
+    , accumulator = newAccumulator
+    , messages = getMessages parsed
+    , includedFiles = []
+    }
 
 
 differentialParser :

@@ -7,6 +7,7 @@ module Backend.Update exposing
     , deliverUserMessage
     , fetchDocumentById
     , findDocumentByAuthorAndKey
+    , findDocumentByAuthorAndKey_
     , getConnectedUsers
     , getConnectionData
     , getDocumentByAuthorId
@@ -721,16 +722,21 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
 
 findDocumentByAuthorAndKey : BackendModel -> ClientId -> Types.DocumentHandling -> String -> String -> ( BackendModel, Cmd BackendMsg )
 findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey =
-    let
-        foundDocs =
-            getUserDocumentsForAuthor authorName model |> List.filter (\doc -> List.member searchKey doc.tags)
-    in
-    case List.head foundDocs of
+    case findDocumentByAuthorAndKey_ model authorName searchKey of
         Nothing ->
             ( model, Cmd.none )
 
         Just doc ->
             ( model, sendToFrontend clientId (ReceivedDocument documentHandling doc) )
+
+
+findDocumentByAuthorAndKey_ : BackendModel -> String -> String -> Maybe Document
+findDocumentByAuthorAndKey_ model authorName searchKey =
+    let
+        foundDocs =
+            getUserDocumentsForAuthor authorName model |> List.filter (\doc -> List.member searchKey doc.tags)
+    in
+    List.head foundDocs
 
 
 getUserDocumentsForAuthor : String -> Model -> List Document.Document

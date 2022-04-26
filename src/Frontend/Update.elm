@@ -127,6 +127,9 @@ setDocumentAsCurrent cmd model doc permissions =
         newEditRecord =
             Compiler.DifferentialParser.init doc.language doc.content
 
+        filesToInclude =
+            newEditRecord.includedFiles
+
         errorMessages : List Types.Message
         errorMessages =
             Message.make (newEditRecord.messages |> String.join "; ") MSYellow
@@ -177,6 +180,7 @@ setDocumentAsCurrent cmd model doc permissions =
         [ View.Utility.setViewPortToTop model.popupState
         , Cmd.batch [ cmd, sendToBackend (SaveDocument updatedDoc) ]
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
+        , sendToBackend (GetIncludedFiles filesToInclude)
         ]
     )
 
