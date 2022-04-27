@@ -7,6 +7,7 @@ module Network exposing
     , emptyServerState
     , getLocalDocument
     , init
+    , initialServerState
     , updateFromUser
     )
 
@@ -20,12 +21,6 @@ type alias UserId =
     String
 
 
-
---type Event
---    = MovedCursor UserId { xOffset : Int, yOffset : Int } -- Offset relative to the previous cursor position
---    | TypedText UserId String
-
-
 type alias EditEvent =
     { userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
 
@@ -34,6 +29,11 @@ type alias ServerState =
     { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
     , document : OT.Document
     }
+
+
+initialServerState : UserId -> String -> ServerState
+initialServerState userId content =
+    { cursorPositions = Dict.fromList [ ( userId, { x = 0, y = 0, p = 0 } ) ], document = { cursor = 0, x = 0, y = 0, content = content } }
 
 
 emptyServerState =
@@ -56,7 +56,7 @@ createEvent userId_ oldDocument newDocument =
 
         operations : List OT.Operation
         operations =
-            OT.findOps oldDocument newDocument |> Debug.log "!! OT Ops"
+            OT.findOps oldDocument newDocument
     in
     { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations }
 

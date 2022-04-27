@@ -19,7 +19,7 @@ reconcile : Document -> Document -> Document
 reconcile a b =
     let
         ops_ =
-            findOps a b |> Debug.log "OPS"
+            findOps a b
     in
     apply ops_ a
 

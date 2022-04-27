@@ -134,18 +134,6 @@ setDocumentAsCurrent cmd model doc permissions =
             setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
-
---( model, sendToBackend (GetIncludedFiles doc filesToInclude) )
---    |> (\( m, c ) ->
---            let
---                ( m2, c2 ) =
---                    setDocumentAsCurrent_ cmd m doc permissions
---            in
---            ( m2, Cmd.batch (c2 :: c :: []) )
---       )
--- Util.delay 200 (SetDocumentCurrent doc)
-
-
 apply :
     (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
     -> FrontendModel
@@ -187,6 +175,9 @@ updateEditRecord inclusionData doc model =
 setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent_ cmd model doc permissions =
     let
+        newOTDocument =
+            { cursor = 0, x = 0, y = 0, content = doc.content }
+
         -- For now, loc the doc in all cases
         currentUserName_ : String
         currentUserName_ =
@@ -228,6 +219,8 @@ setDocumentAsCurrent_ cmd model doc permissions =
     ( { model
         | currentDocument = Just updatedDoc
         , currentMasterDocument = currentMasterDocument
+        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , oTDocument = newOTDocument
         , sourceText = doc.content
         , initialText = doc.content
         , documents = Util.updateDocumentInList updatedDoc model.documents
@@ -283,6 +276,7 @@ handleAsStandardReceivedDocument model doc =
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
+        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
@@ -335,6 +329,7 @@ handleAsReceivedDocumentWithDelay model doc =
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , currentDocument = Just doc
         , sourceText = doc.content
         , messages = errorMessages
@@ -367,6 +362,7 @@ handlePinnedDocuments model doc =
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , pinned = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
+        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
@@ -424,6 +420,7 @@ setPublicDocumentAsCurrentById model id =
             in
             ( { model
                 | currentDocument = Just doc
+                , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
                 , sourceText = doc.content
                 , initialText = doc.content
                 , editRecord = newEditRecord
@@ -535,23 +532,20 @@ inputText model { position, source } =
                 newLocation =
                     Document.location position source
             in
-            { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
+            { cursor = position, x = newLocation.x, y = newLocation.y, content = source }
 
         userId =
             model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
         ---
         editEvent =
-            Network.createEvent userId model.oTDocument newOTDocument |> Debug.log "!! NEW EVENT"
+            Network.createEvent userId model.oTDocument newOTDocument
 
         newNetworkModel =
-            Network.updateFromUser editEvent model.networkModel |> Debug.log "!! LOCAL MODEL"
+            Network.updateFromUser editEvent model.networkModel
 
         localUpdate =
-            Network.getLocalDocument newNetworkModel |> .content |> Debug.log "!! UPDATED DOC"
-
-        _ =
-            Debug.log "!! SUCCEED" (localUpdate == source)
+            Network.getLocalDocument newNetworkModel
     in
     if Share.canEdit model.currentUser model.currentDocument then
         inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source
@@ -1069,6 +1063,7 @@ openEditor_ doc model =
         , sourceText = doc.content
         , initialText = ""
         , currentDocument = Just updatedDoc
+        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) updatedDoc.content)
       }
     , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20 ]
     )

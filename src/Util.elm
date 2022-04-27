@@ -1,5 +1,6 @@
 module Util exposing
-    ( currentUsername
+    ( currentUserId
+    , currentUsername
     , delay
     , discardLines
     , insertInListOrUpdate
@@ -27,6 +28,11 @@ liftToMaybe f ma =
 currentUsername : Maybe User.User -> String
 currentUsername currentUser =
     Maybe.map .username currentUser |> Maybe.withDefault "(nobody)"
+
+
+currentUserId : Maybe User.User -> String
+currentUserId currentUser =
+    Maybe.map .id currentUser |> Maybe.withDefault "----"
 
 
 batch =
