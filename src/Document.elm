@@ -5,6 +5,7 @@ module Document exposing
     , DocumentId
     , DocumentInfo
     , Share(..)
+    , SourceTextRecord
     , canEditSharedDoc
     , currentAuthor
     , defaultSettings
@@ -19,6 +20,7 @@ module Document exposing
     )
 
 import Element
+import List.Extra
 import Parser.Helpers
 import Parser.Language exposing (Language(..))
 import Render.Settings
@@ -47,6 +49,35 @@ type DocStatus
     = DSNormal
     | DSReadOnly
     | DSSoftDelete
+
+
+type alias Location =
+    { row : Int, column : Int }
+
+
+{-| Get the location of the cursor where the
+row and column positions are 1-based.
+-}
+location : Int -> String -> Location
+location position source =
+    let
+        prefix =
+            String.left position source
+
+        lines =
+            String.lines prefix
+
+        column =
+            List.Extra.last lines |> Maybe.withDefault "1" |> String.length
+
+        row =
+            List.length lines
+    in
+    { row = row, column = column }
+
+
+type alias SourceTextRecord =
+    { position : Int, source : String }
 
 
 {-|

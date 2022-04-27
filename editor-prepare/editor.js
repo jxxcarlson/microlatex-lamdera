@@ -55,6 +55,7 @@ class CodemirrorEditor extends HTMLElement {
             function sendText(editor) {
                 const event = new CustomEvent('text-change', { 'detail': {position: editor.state.selection.main.head, source: editor.state.doc.toString()} , 'bubbles':true, 'composed': true});
                 // const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
+                // console.log("position (a)",  editor.state.selection.main.head, editor.state.lineAt(editor.state.selection.main.head))
                 editor.dom.dispatchEvent(event);
              }
 

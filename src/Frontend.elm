@@ -731,8 +731,8 @@ update msg model =
         SearchText ->
             Frontend.Update.searchText model
 
-        InputText str ->
-            Frontend.Update.inputText model str
+        InputText { position, source } ->
+            Frontend.Update.inputText model { position = position |> Debug.log "!! POS", source = source }
 
         InputTitle str ->
             Frontend.Update.inputTitle model str

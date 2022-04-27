@@ -1,10 +1,26 @@
 module Network exposing (NetworkModel, init, updateFromBackend, updateFromUser)
 
+import Dict exposing (Dict)
 import List.Extra
+
+
+type alias UserId =
+    String
 
 
 type alias NetworkModel msg model =
     { localMsgs : List msg, serverState : model }
+
+
+type Event
+    = MovedCursor UserId { xOffset : Int, yOffset : Int } -- Offset relative to the previous cursor position
+    | TypedText UserId String
+
+
+type alias ServerState =
+    { cursorPositions : Dict UserId { x : Int, y : Int }
+    , document : String
+    }
 
 
 init : model -> NetworkModel msg model
