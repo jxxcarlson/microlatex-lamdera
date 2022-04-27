@@ -74,7 +74,7 @@ location position source =
         row =
             List.length lines
     in
-    { x = row - 1, y = column }
+    { x = column, y = row - 1 }
 
 
 type alias SourceTextRecord =
