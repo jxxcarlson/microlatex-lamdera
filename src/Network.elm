@@ -54,6 +54,7 @@ createEvent userId_ oldDocument newDocument =
         dy =
             newDocument.y - oldDocument.y
 
+        operations : List OT.Operation
         operations =
             OT.findOps oldDocument newDocument |> Debug.log "!! OT Ops"
     in

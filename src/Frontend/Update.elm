@@ -73,6 +73,7 @@ import List.Extra
 import Markup
 import Maybe.Extra
 import Message
+import Network
 import OT
 import Parser.Language exposing (Language(..))
 import Predicate
@@ -529,17 +530,31 @@ inputTitle model str =
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
     let
-        loc =
-            Document.location position source
+        newOTDocument =
+            let
+                newLocation =
+                    Document.location position source
+            in
+            { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
 
-        oTDocument =
-            { cursor = position, x = loc.x, y = loc.y, content = source } |> Debug.log "!! OT DOC"
+        userId =
+            model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
-        operations =
-            OT.findOps model.oTDocument |> Debug.log "!! OT Ops"
+        ---
+        editEvent =
+            Network.createEvent userId model.oTDocument newOTDocument |> Debug.log "!! NEW EVENT"
+
+        newNetworkModel =
+            Network.updateFromUser editEvent model.networkModel |> Debug.log "!! LOCAL MODEL"
+
+        localUpdate =
+            Network.getLocalDocument newNetworkModel |> .content |> Debug.log "!! UPDATED DOC"
+
+        _ =
+            Debug.log "!! SUCCEED" (localUpdate == source)
     in
     if Share.canEdit model.currentUser model.currentDocument then
-        inputText_ { model | oTDocument = oTDocument } source
+        inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source
 
     else if Maybe.map .share model.currentDocument == Just Document.NotShared then
         ( model, Cmd.none )
