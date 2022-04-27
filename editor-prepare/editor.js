@@ -53,7 +53,8 @@ class CodemirrorEditor extends HTMLElement {
         console.log("CM EDITOR: In connectedCallback")
 
             function sendText(editor) {
-                const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
+                const event = new CustomEvent('text-change', { 'detail': {position: editor.state.selection.main.head, source: editor.state.doc.toString()} , 'bubbles':true, 'composed': true});
+                // const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
                 editor.dom.dispatchEvent(event);
              }
 
