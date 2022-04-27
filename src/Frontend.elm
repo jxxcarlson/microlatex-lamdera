@@ -23,6 +23,8 @@ import Keyboard
 import Lamdera exposing (sendToBackend)
 import Markup
 import Message
+import Network
+import OT
 import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
@@ -135,6 +137,9 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , oTDocument = OT.emptyDoc
+      , myCursorPosition = { x = 0, y = 0, p = 0 }
+      , networkModel = Network.init Network.emptyServerState
       , includedContent = Dict.empty
       , showPublicUrl = False
       , documentDirty = False

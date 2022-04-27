@@ -73,6 +73,7 @@ import List.Extra
 import Markup
 import Maybe.Extra
 import Message
+import OT
 import Parser.Language exposing (Language(..))
 import Predicate
 import Process
@@ -528,11 +529,17 @@ inputTitle model str =
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
     let
-        _ =
-            Debug.log "POSITION" position
+        loc =
+            Document.location position source
+
+        oTDocument =
+            { cursor = position, x = loc.x, y = loc.y, content = source } |> Debug.log "!! OT DOC"
+
+        operations =
+            OT.findOps model.oTDocument |> Debug.log "!! OT Ops"
     in
     if Share.canEdit model.currentUser model.currentDocument then
-        inputText_ model source
+        inputText_ { model | oTDocument = oTDocument } source
 
     else if Maybe.map .share model.currentDocument == Just Document.NotShared then
         ( model, Cmd.none )
@@ -882,6 +889,7 @@ currentDocumentPostProcess doc model =
     { model
         | currentDocument = Just doc
         , sourceText = doc.content
+        , oTDocument = { cursor = 0, x = 0, y = 0, content = doc.content } -- TODO? Is this correct??
         , initialText = doc.content
         , editRecord = newEditRecord
         , title =

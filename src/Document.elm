@@ -11,6 +11,7 @@ module Document exposing
     , defaultSettings
     , documentFromListViaId
     , empty
+    , location
     , makeBackup
     , setTags
     , shareToString
@@ -52,7 +53,7 @@ type DocStatus
 
 
 type alias Location =
-    { row : Int, column : Int }
+    { x : Int, y : Int }
 
 
 {-| Get the location of the cursor where the
@@ -73,7 +74,7 @@ location position source =
         row =
             List.length lines
     in
-    { row = row, column = column }
+    { x = row - 1, y = column }
 
 
 type alias SourceTextRecord =

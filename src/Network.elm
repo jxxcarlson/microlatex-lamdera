@@ -1,7 +1,8 @@
-module Network exposing (NetworkModel, init, updateFromBackend, updateFromUser)
+module Network exposing (NetworkModel, emptyServerState, init, updateFromBackend, updateFromUser)
 
 import Dict exposing (Dict)
 import List.Extra
+import OT
 
 
 type alias UserId =
@@ -17,10 +18,38 @@ type Event
     | TypedText UserId String
 
 
+type alias EditEvent =
+    { userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
+
+
 type alias ServerState =
-    { cursorPositions : Dict UserId { x : Int, y : Int }
-    , document : String
+    { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
+    , document : OT.Document
     }
+
+
+emptyServerState =
+    { cursorPositions = Dict.empty
+    , document = OT.emptyDoc
+    }
+
+
+createEvent : String -> OT.Document -> OT.Document -> EditEvent
+createEvent userId_ oldDocument newDocument =
+    let
+        dp =
+            newDocument.cursor - oldDocument.cursor
+
+        dx =
+            newDocument.x - oldDocument.x
+
+        dy =
+            newDocument.y - oldDocument.y
+
+        operations =
+            OT.findOps oldDocument newDocument |> Debug.log "!! OT Ops"
+    in
+    { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations }
 
 
 init : model -> NetworkModel msg model

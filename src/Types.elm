@@ -65,6 +65,7 @@ import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
 import Network
+import OT
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
@@ -144,6 +145,9 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , oTDocument : OT.Document
+    , myCursorPosition : { x : Int, y : Int, p : Int }
+    , networkModel : Network.NetworkModel
     , includedContent : Dict String String
     , documentDirty : Bool
     , seeBackups : Bool
