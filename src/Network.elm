@@ -74,15 +74,11 @@ applyEvent : EditEvent -> ServerState -> ServerState
 applyEvent event serverState =
     case Dict.get event.userId serverState.cursorPositions of
         Nothing ->
-            let
-                _ =
-                    Debug.log ("NO CURSOR POSITION for " ++ event.userId) serverState.cursorPositions
-            in
             serverState
 
         Just { x, y, p } ->
             { cursorPositions = Dict.insert event.userId { x = x + event.dx, y = y + event.dy, p = p + event.dp } serverState.cursorPositions
-            , document = OT.apply (event.operations |> Debug.log "OP to apply") serverState.document
+            , document = OT.apply event.operations serverState.document
             }
 
 
