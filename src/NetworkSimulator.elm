@@ -1,4 +1,6 @@
-module NetworkSimulator exposing (eventStream1, pass, runWithInput)
+module NetworkSimulator exposing (..)
+
+-- (eventStream1, pass, runWithInput)
 
 import Network exposing (EditEvent, NetworkModel)
 import OT exposing (Operation(..))
@@ -24,12 +26,47 @@ pass state =
     Network.getLocalDocument state.a == Network.getLocalDocument state.b
 
 
-eventStream1 =
+events1 =
     [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
     , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
     ]
 
 
+events2 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+    ]
+
+
+events3 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Skip -1 ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Skip -3 ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
+    ]
+
+
+events4 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+    , { userId = "b", dp = -3, dx = -3, dy = 0, operations = [ Insert "X" ] }
+    ]
+
+
+{-|
+
+    > runWithInput eventStream1 |> pass
+    True : Bool
+
+-}
 runWithInput : List EditEvent -> State
 runWithInput events =
     run (init events)
