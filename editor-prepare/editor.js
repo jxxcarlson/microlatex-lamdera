@@ -55,6 +55,8 @@ class CodemirrorEditor extends HTMLElement {
 
         console.log("CM EDITOR: In connectedCallback")
 
+        let editorNode = document.querySelector('#editor-here');
+
             function sendText(editor) {
                 const event = new CustomEvent('text-change', { 'detail': {position: editor.state.selection.main.head, source: editor.state.doc.toString()} , 'bubbles':true, 'composed': true});
                 // const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
@@ -97,6 +99,14 @@ class CodemirrorEditor extends HTMLElement {
                                parent: document.getElementById("editor-here")
 
                              })
+
+                    editorNode.onclick = (event) => { console.log('1. clicked', event.clientX, event.clientY); };
+
+//                    function positionAtEvent(event){
+//                         posAtCoords({x: event.clientX, y: event.clientY})
+//                       }
+//
+//                    editorNode.onclick = (event) => { console.log('2. clicked', positionAtEvent(event)); };
 
                     this.dispatchEvent(new CustomEvent("editor-ready", { bubbles: true, composed: true, detail: editor }))
                     this.editor = editor
