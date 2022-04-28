@@ -8,6 +8,9 @@ import {EditorView, keymap} from "@codemirror/view"
 // import {search} from "@codemirror/search"
 import {indentWithTab} from "@codemirror/commands"
 import {javascript} from "@codemirror/lang-javascript"
+import {bracketMatching} from "@codemirror/matchbrackets"
+import {closeBrackets} from "@codemirror/closebrackets"
+
 
 
 let myTheme = EditorView.theme({
@@ -79,6 +82,9 @@ class CodemirrorEditor extends HTMLElement {
                                    , panelTheme
                                    , EditorView.lineWrapping
                                    , keymap.of([indentWithTab])
+                                   //, bracketMatching({brackets: ["(", "[", "{"]})
+                                   //, bracketMatching({brackets: ["(", ")", "[","]", "{","}", "<", ">"]})
+                                   , closeBrackets()
                                    // Below: send updated text from CM to Elm
                                    , EditorView.updateListener.of((v)=> {
                                        if(v.docChanged) {

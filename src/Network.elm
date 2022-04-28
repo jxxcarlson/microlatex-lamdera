@@ -7,7 +7,11 @@ module Network exposing
     , emptyServerState
     , getLocalDocument
     , init
+    , initWithUserAndContent
+    , initWithUsersAndContent
     , initialServerState
+    , initialServerState2
+    , updateFromBackend
     , updateFromUser
     )
 
@@ -34,6 +38,11 @@ type alias ServerState =
 initialServerState : UserId -> String -> ServerState
 initialServerState userId content =
     { cursorPositions = Dict.fromList [ ( userId, { x = 0, y = 0, p = 0 } ) ], document = { cursor = 0, x = 0, y = 0, content = content } }
+
+
+initialServerState2 : List UserId -> String -> ServerState
+initialServerState2 userIds content =
+    { cursorPositions = Dict.fromList (List.map (\id -> ( id, { x = 0, y = 0, p = 0 } )) userIds), document = { cursor = 0, x = 0, y = 0, content = content } }
 
 
 emptyServerState =
@@ -65,11 +74,15 @@ applyEvent : EditEvent -> ServerState -> ServerState
 applyEvent event serverState =
     case Dict.get event.userId serverState.cursorPositions of
         Nothing ->
+            let
+                _ =
+                    Debug.log ("NO CURSOR POSITION for " ++ event.userId) serverState.cursorPositions
+            in
             serverState
 
         Just { x, y, p } ->
             { cursorPositions = Dict.insert event.userId { x = x + event.dx, y = y + event.dy, p = p + event.dp } serverState.cursorPositions
-            , document = OT.apply event.operations serverState.document
+            , document = OT.apply (event.operations |> Debug.log "OP to apply") serverState.document
             }
 
 
@@ -80,6 +93,16 @@ type alias NetworkModel =
 init : ServerState -> NetworkModel
 init serverState =
     { localMsgs = [], serverState = serverState }
+
+
+initWithUserAndContent : UserId -> String -> NetworkModel
+initWithUserAndContent userId content =
+    init (initialServerState userId content)
+
+
+initWithUsersAndContent : List UserId -> String -> NetworkModel
+initWithUsersAndContent userIds content =
+    init (initialServerState2 userIds content)
 
 
 updateFromUser : EditEvent -> NetworkModel -> NetworkModel
@@ -100,7 +123,7 @@ getLocalDocument localModel =
 
 
 updateFromBackend : (EditEvent -> ServerState -> ServerState) -> EditEvent -> NetworkModel -> NetworkModel
-updateFromBackend updateFunc msg localModel =
-    { localMsgs = List.Extra.remove msg localModel.localMsgs
-    , serverState = updateFunc msg localModel.serverState
+updateFromBackend updateFunc event localModel =
+    { localMsgs = List.Extra.remove event localModel.localMsgs
+    , serverState = updateFunc event localModel.serverState
     }

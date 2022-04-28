@@ -20424,6 +20424,9 @@ window.initCodeMirror = function () {
                                        , panelTheme
                                        , EditorView.lineWrapping
                                        , keymap.of([indentWithTab])
+                                       //, bracketMatching({brackets: ["(", "[", "{"]})
+                                       , bracketMatching({brackets: ["(", ")", "[","]", "{","}", "<", ">"]})
+                                       , closeBrackets()
                                        // Below: send updated text from CM to Elm
                                        , EditorView.updateListener.of((v)=> {
                                            if(v.docChanged) {

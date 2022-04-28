@@ -1,10 +1,12 @@
 module Util exposing
-    ( currentUserId
+    ( Step(..)
+    , currentUserId
     , currentUsername
     , delay
     , discardLines
     , insertInListOrUpdate
     , liftToMaybe
+    , loop
     , updateDocumentInList
     )
 
@@ -73,11 +75,6 @@ delay time msg =
         |> Task.perform (\_ -> msg)
 
 
-type Step state a
-    = Loop state
-    | Done a
-
-
 type alias DiscardLinesState =
     { input : List String }
 
@@ -101,6 +98,11 @@ discardLinesNextStep predicate state =
 
             else
                 Loop { state | input = List.drop 1 state.input }
+
+
+type Step state a
+    = Loop state
+    | Done a
 
 
 loop : state -> (state -> Step state a) -> a
