@@ -65,11 +65,10 @@ class CodemirrorEditor extends HTMLElement {
              }
 
             function sendCursor(editor, position) {
-                            const evnt = new CustomEvent('cursor-change',
+                            const event = new CustomEvent('cursor-change',
                                { 'detail': {position: position}
                                , 'bubbles':true, 'composed': true});
-                            editor.dom.dispatchEvent(evnt);
-                            console.log("!! send pos", position)
+                            editor.dom.dispatchEvent(event);
                          }
 
             let panelTheme = EditorView.theme({

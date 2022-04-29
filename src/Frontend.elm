@@ -137,7 +137,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
-      , editorCursorPosition = 0
+      , editorCursor = 0
       , oTDocument = OT.emptyDoc
       , myCursorPosition = { x = 0, y = 0, p = 0 }
       , networkModel = NetworkModel.init NetworkModel.emptyServerState
@@ -740,8 +740,8 @@ update msg model =
         InputText { position, source } ->
             Frontend.Update.inputText model { position = position, source = source }
 
-        InputCursorChange pos ->
-            ( { model | editorCursorPosition = pos |> Debug.log "!! CURSOR" }, Cmd.none )
+        InputCursor pos ->
+            ( { model | editorCursor = pos |> Debug.log "!! CURSOR" }, Cmd.none )
 
         InputTitle str ->
             Frontend.Update.inputTitle model str

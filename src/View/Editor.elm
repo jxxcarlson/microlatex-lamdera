@@ -59,12 +59,18 @@ htmlId str =
 onCursorChange : Html.Attribute FrontendMsg
 onCursorChange =
     cursorDecoder
-        |> Json.Decode.map InputCursorChange
+        |> Json.Decode.map InputCursor
         |> Html.Events.on "cursor-change"
 
 
 cursorDecoder : Json.Decode.Decoder Int
 cursorDecoder =
+    cursorDecoder_
+        |> Json.Decode.at [ "detail" ]
+
+
+cursorDecoder_ : Json.Decode.Decoder Int
+cursorDecoder_ =
     Json.Decode.field "position" Json.Decode.int
 
 
