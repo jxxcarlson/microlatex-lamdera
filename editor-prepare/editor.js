@@ -100,13 +100,9 @@ class CodemirrorEditor extends HTMLElement {
 
                              })
 
-                    editorNode.onclick = (event) => { console.log('1. clicked', event.clientX, event.clientY); };
+                    //editorNode.onclick = (event) => { console.log('1. clicked', event.clientX, event.clientY); };
 
-//                    function positionAtEvent(event){
-//                         posAtCoords({x: event.clientX, y: event.clientY})
-//                       }
-//
-//                    editorNode.onclick = (event) => { console.log('2. clicked', positionAtEvent(event)); };
+                    editorNode.onclick = (event) => { console.log('Clicked', (editor.posAtCoords({x: event.clientX, y: event.clientY}))) };
 
                     this.dispatchEvent(new CustomEvent("editor-ready", { bubbles: true, composed: true, detail: editor }))
                     this.editor = editor
@@ -119,10 +115,10 @@ class CodemirrorEditor extends HTMLElement {
     attributeChangedCallback(attr, oldVal, newVal) {
 
              function sendSelectedText(editor, str) {
-                                         console.log("sendSelectedText (dispatch)", str)
-                                         const event = new CustomEvent('selected-text', { 'detail': str , 'bubbles':true, 'composed': true});
-                                         editor.dom.dispatchEvent(event);
-                                      }
+                         console.log("sendSelectedText (dispatch)", str)
+                         const event = new CustomEvent('selected-text', { 'detail': str , 'bubbles':true, 'composed': true});
+                         editor.dom.dispatchEvent(event);
+                      }
 
              function setEditorText(editor, str) {
                          console.log("replaceAllText (dispatch)")
