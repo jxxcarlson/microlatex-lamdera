@@ -527,6 +527,14 @@ inputTitle model str =
 
 inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 inputCursor { position, source } model =
+    if Document.numberOfEditors model.currentDocument > 0 then
+        handleCursor { position = position, source = source } model
+
+    else
+        ( model, Cmd.none )
+
+
+handleCursor { position, source } model =
     case Maybe.map .id model.currentUser of
         Nothing ->
             ( model, Cmd.none )

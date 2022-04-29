@@ -13,6 +13,7 @@ module Document exposing
     , empty
     , location
     , makeBackup
+    , numberOfEditors
     , setTags
     , shareToString
     , testDoc
@@ -103,6 +104,11 @@ type DocumentHandling
 
 type alias DocumentId =
     String
+
+
+numberOfEditors : Maybe Document -> Int
+numberOfEditors document =
+    document |> Maybe.map (.currentEditors >> List.length) |> Maybe.withDefault 0
 
 
 documentFromListViaId : DocumentId -> List Document -> Maybe Document
