@@ -4,7 +4,7 @@ module Document exposing
     , DocumentHandling(..)
     , DocumentId
     , DocumentInfo
-    , Share(..)
+    , SharedWith
     , SourceTextRecord
     , canEditSharedDoc
     , currentAuthor
@@ -38,9 +38,10 @@ type alias Document =
     , title : String
     , public : Bool -- document visible to others if public == True
     , author : Maybe String
-    , currentEditors : List { userId : String, username : String } -- the username of the person currently editing the document
     , language : Language
-    , share : Share
+    , currentEditors : List { userId : String, username : String } -- the username of the person currently editing the document
+    , sharedWith : SharedWith
+    , isShared : Bool
     , handling : DocumentHandling
     , tags : List String
     , status : DocStatus
@@ -91,9 +92,8 @@ type alias SourceTextRecord =
     value of the share field.
 
 -}
-type Share
-    = ShareWith { readers : List Username, editors : List Username }
-    | NotShared
+type alias SharedWith =
+    { readers : List Username, editors : List Username }
 
 
 type DocumentHandling
@@ -149,35 +149,30 @@ setTags doc =
     { doc | tags = tags }
 
 
-shareToString : Share -> String
-shareToString share =
-    case share of
-        NotShared ->
-            "not shared"
+shareToString : SharedWith -> String
+shareToString { readers, editors } =
+    let
+        editors1 =
+            editors |> String.join ", "
 
-        ShareWith { readers, editors } ->
-            let
-                editors1 =
-                    editors |> String.join ", "
+        editors2 =
+            if editors1 == "" then
+                ""
 
-                editors2 =
-                    if editors1 == "" then
-                        ""
+            else
+                "editors: " ++ editors1
 
-                    else
-                        "editors: " ++ editors1
+        readers1 =
+            readers |> String.join ", "
 
-                readers1 =
-                    readers |> String.join ", "
+        readers2 =
+            if readers1 == "" then
+                ""
 
-                readers2 =
-                    if readers1 == "" then
-                        ""
-
-                    else
-                        "readers: " ++ readers1
-            in
-            [ editors2, readers2 ] |> String.join "; "
+            else
+                "readers: " ++ readers1
+    in
+    [ editors2, readers2 ] |> String.join "; "
 
 
 canEditSharedDoc username doc =
@@ -185,12 +180,7 @@ canEditSharedDoc username doc =
         True
 
     else
-        case doc.share of
-            NotShared ->
-                False
-
-            ShareWith { editors } ->
-                List.member username editors
+        List.member username doc.sharedWith.editors
 
 
 toDocInfo : Document -> DocumentInfo
@@ -234,7 +224,8 @@ empty =
     , author = Nothing
     , currentEditors = []
     , language = MicroLaTeXLang
-    , share = NotShared
+    , sharedWith = { readers = [], editors = [] }
+    , isShared = False
     , tags = []
     , handling = DHStandard
     , status = DSNormal
@@ -253,7 +244,8 @@ makeBackup doc =
     , author = doc.author
     , currentEditors = []
     , language = doc.language
-    , share = NotShared
+    , sharedWith = doc.sharedWith
+    , isShared = False
     , handling = Backup doc.id
     , tags = doc.tags
     , status = doc.status

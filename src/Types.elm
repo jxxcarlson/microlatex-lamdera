@@ -701,7 +701,7 @@ type alias SharedDocument =
     { title : String
     , id : String
     , author : Maybe String
-    , share : Document.Share
+    , share : Document.SharedWith
     , currentEditors : List { username : String, userId : String } -- users online currently editing this document.
     }
 

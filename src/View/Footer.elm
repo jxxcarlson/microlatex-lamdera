@@ -75,6 +75,7 @@ view model width_ =
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (Button.toggleDocumentStatus model)
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (timeElapsed model)
+        , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.currentDocument)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
@@ -128,8 +129,8 @@ backup zone maybeDocument =
                     E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
-showCurrentEditor : Maybe Document.Document -> E.Element msg
-showCurrentEditor mDoc =
+showCurrentEditors : Maybe Document.Document -> E.Element msg
+showCurrentEditors mDoc =
     let
         message =
             case mDoc of
@@ -139,7 +140,7 @@ showCurrentEditor mDoc =
                 Just doc ->
                     "Editors: " ++ (doc.currentEditors |> List.map .username |> String.join ", ")
     in
-    E.el [ Font.size 14, Font.color Color.white ] (E.text <| message)
+    E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| message)
 
 
 messageRow model =

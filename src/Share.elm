@@ -40,7 +40,7 @@ getSharedDocument doc =
     { title = doc.title
     , id = doc.id
     , author = doc.author
-    , share = doc.share
+    , share = doc.sharedWith
     , currentEditors = [] -- TODO
     }
 
@@ -66,37 +66,26 @@ isSharedByMe username doc =
 
 isMineAndNotShared : String -> Document.Document -> Bool
 isMineAndNotShared username doc =
-    doc.share == Document.NotShared && Just username == doc.author
+    doc.sharedWith == { readers = [], editors = [] } && Just username == doc.author
 
 
 isSharedToMeStrict : String -> Document.Document -> Bool
 isSharedToMeStrict username doc =
-    case doc.share of
-        Document.NotShared ->
-            False
-
-        Document.ShareWith { readers, editors } ->
-            List.member username editors && isSharedByMe username doc
+    List.member username doc.sharedWith.editors && isSharedByMe username doc
 
 
-isSharedToMe : String -> Document.Share -> Bool
-isSharedToMe username share_ =
-    case share_ of
-        Document.NotShared ->
-            False
-
-        Document.ShareWith { readers, editors } ->
-            List.member username readers || List.member username editors
+isSharedToMe : String -> Document.SharedWith -> Bool
+isSharedToMe username sharedWith =
+    List.member username sharedWith.readers || List.member username sharedWith.editors
 
 
 insert : Document.Document -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 insert doc dict =
-    case doc.share of
-        Document.NotShared ->
-            dict
+    if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
+        dict
 
-        Document.ShareWith _ ->
-            Dict.insert doc.id (getSharedDocument doc) dict
+    else
+        Dict.insert doc.id (getSharedDocument doc) dict
 
 
 createShareDocumentDict : Types.DocumentDict -> Types.SharedDocumentDict
@@ -124,13 +113,8 @@ doShare model =
                 editors =
                     model.inputEditors |> String.split "," |> List.map String.trim
 
-                share : Document.Share
-                share =
-                    if List.isEmpty readers && List.isEmpty editors then
-                        Document.NotShared
-
-                    else
-                        Document.ShareWith { readers = readers, editors = editors }
+                sharedWith =
+                    { readers = readers, editors = editors }
 
                 cmdSaveUser =
                     case model.currentUser of
@@ -145,7 +129,7 @@ doShare model =
                             sendToBackend (Types.UpdateUserWith { user | sharedDocumentAuthors = Set.union folks user.sharedDocumentAuthors })
 
                 newDocument =
-                    { doc | share = share }
+                    { doc | sharedWith = sharedWith }
 
                 documents =
                     List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
@@ -168,12 +152,7 @@ shareDocument model =
         ( Just doc, Types.NoPopup ) ->
             let
                 ( inputReaders, inputEditors ) =
-                    case doc.share of
-                        Document.NotShared ->
-                            ( "", "" )
-
-                        Document.ShareWith { readers, editors } ->
-                            ( String.join ", " readers, String.join ", " editors )
+                    ( String.join ", " doc.sharedWith.readers, String.join ", " doc.sharedWith.editors )
             in
             ( { model | popupState = Types.SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
 
@@ -185,24 +164,19 @@ shareDocument model =
 -}
 narrowCast : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 narrowCast sendersName document connectionDict =
-    case document.share of
-        Document.NotShared ->
-            Cmd.none
+    let
+        usernames =
+            case document.author of
+                Nothing ->
+                    document.sharedWith.editors ++ document.sharedWith.readers |> List.filter (\name -> name /= sendersName && name /= "")
 
-        Document.ShareWith { editors, readers } ->
-            let
-                usernames =
-                    case document.author of
-                        Nothing ->
-                            editors ++ readers |> List.filter (\name -> name /= sendersName && name /= "")
+                Just author ->
+                    author :: (document.sharedWith.editors ++ document.sharedWith.readers) |> List.filter (\name -> name /= sendersName && name /= "")
 
-                        Just author ->
-                            author :: (editors ++ readers) |> List.filter (\name -> name /= sendersName && name /= "")
-
-                clientIds =
-                    getClientIds usernames connectionDict
-            in
-            Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.HandleAsCheatSheet document)) clientIds)
+        clientIds =
+            getClientIds usernames connectionDict
+    in
+    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.HandleAsCheatSheet document)) clientIds)
 
 
 getClientIds : List Username -> Types.ConnectionDict -> List ClientId

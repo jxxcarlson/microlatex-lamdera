@@ -56,12 +56,7 @@ getReadersAndEditors mDocument =
             ( "", "" )
 
         Just doc ->
-            case doc.share of
-                Document.NotShared ->
-                    ( "", "" )
-
-                Document.ShareWith { readers, editors } ->
-                    ( readers |> String.join ", ", editors |> String.join ", " )
+            ( doc.sharedWith.readers |> String.join ", ", doc.sharedWith.editors |> String.join ", " )
 
 
 currentDocumentAuthor : Maybe String -> Maybe Document.Document -> Element FrontendMsg
@@ -74,7 +69,7 @@ currentDocumentAuthor mUsername mDoc =
             let
                 color =
                     if mUsername == doc.author then
-                        if doc.share == Document.NotShared then
+                        if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
                             -- my doc, not shared
                             Font.color (Element.rgb 0.5 0.5 1.0)
 
@@ -109,7 +104,7 @@ currentDocumentEditor mUsername mDoc =
             let
                 color =
                     if mUsername == doc.author then
-                        if doc.share == Document.NotShared then
+                        if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
                             -- my doc, not shared
                             Font.color (Element.rgb 0.5 0.5 1.0)
 

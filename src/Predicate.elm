@@ -38,29 +38,7 @@ isSharedToMe mUser mDoc =
             False
 
         ( Just doc, Just user ) ->
-            case doc.share of
-                Document.NotShared ->
-                    False
-
-                Document.ShareWith { readers, editors } ->
-                    List.member user.username readers || List.member user.username editors
-
-
-
---
---isSharedToMe : Maybe User.User -> Document.Document -> Bool
---isSharedToMe mUser doc =
---    case mUser of
---        Nothing ->
---            False
---
---        Just user ->
---            case doc.share of
---                Document.NotShared ->
---                    False
---
---                Document.ShareWith { readers, editors } ->
---                    List.member user.username readers || List.member user.username editors
+            List.member user.username doc.sharedWith.readers || List.member user.username doc.sharedWith.editors
 
 
 isSharedToMe_ : Maybe String -> Document.Document -> Bool
@@ -70,12 +48,7 @@ isSharedToMe_ mUsername doc =
             False
 
         Just username ->
-            case doc.share of
-                Document.NotShared ->
-                    False
-
-                Document.ShareWith { readers, editors } ->
-                    List.member username readers || List.member username editors
+            List.member username doc.sharedWith.readers || List.member username doc.sharedWith.editors
 
 
 isShared_ : Maybe String -> Document.Document -> Bool
@@ -85,9 +58,4 @@ isShared_ mUsername doc =
             False
 
         Just username ->
-            case doc.share of
-                Document.NotShared ->
-                    False
-
-                Document.ShareWith { readers, editors } ->
-                    List.isEmpty readers && List.isEmpty editors |> not
+            List.member username doc.sharedWith.readers || List.member username doc.sharedWith.editors
