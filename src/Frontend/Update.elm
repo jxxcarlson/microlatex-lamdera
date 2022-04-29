@@ -527,7 +527,7 @@ inputTitle model str =
 
 inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 inputCursor { position, source } model =
-    if Document.numberOfEditors model.currentDocument > 0 then
+    if Document.numberOfEditors model.currentDocument > 1 then
         handleCursor { position = position, source = source } model
 
     else
@@ -555,35 +555,25 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
-    let
-        newOTDocument =
-            let
-                newLocation =
-                    Document.location position source
-            in
-            { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
+    if Document.numberOfEditors model.currentDocument > 1 then
+        let
+            newOTDocument =
+                let
+                    newLocation =
+                        Document.location position source
+                in
+                { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
 
-        userId =
-            model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
+            userId =
+                model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
-        ---
-        editEvent =
-            NetworkModel.createEvent userId model.oTDocument newOTDocument
-
-        newNetworkModel =
-            NetworkModel.updateFromUser editEvent model.networkModel
-
-        localUpdate =
-            NetworkModel.getLocalDocument newNetworkModel |> Debug.log "!! LOCAL UPDATE"
-    in
-    if Share.canEdit model.currentUser model.currentDocument then
-        inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source
-
-    else if Maybe.map .share model.currentDocument == Just Document.NotShared then
-        ( model, Cmd.none )
+            editEvent =
+                NetworkModel.createEvent userId model.oTDocument newOTDocument
+        in
+        ( { model | oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
 
     else
-        ( { model | messages = Message.make "Doc shared; lock to edit it." MSRed }, Cmd.none )
+        inputText_ model source
 
 
 inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
@@ -591,7 +581,7 @@ inputText_ model str =
     let
         -- Push your values here.
         -- This is how we throttle saving the document
-        ( debounce, cmd ) =
+        ( debounce, debounceCmd ) =
             Debounce.push debounceConfig str model.debounce
     in
     let
@@ -613,7 +603,7 @@ inputText_ model str =
         , counter = model.counter + 1
         , documentDirty = True
       }
-    , cmd
+    , debounceCmd
     )
 
 

@@ -907,7 +907,7 @@ updateDoc model str =
                 Document.DSNormal ->
                     -- if Share.canEdit model.currentUser (Just doc) then
                     -- if View.Utility.canSaveStrict model.currentUser doc then
-                    if Share.canEdit model.currentUser (Just doc) && doc.handling == Document.DHStandard then
+                    if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
                         updateDoc_ doc str model
 
                     else
