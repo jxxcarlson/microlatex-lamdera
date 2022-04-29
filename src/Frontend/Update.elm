@@ -44,7 +44,6 @@ module Frontend.Update exposing
     , softDeleteDocument
     , syncLR
     , unlockCurrentDocument
-    , updateCurrentDocument
     , updateEditRecord
     , updateKeys
     , updateWithViewport
@@ -1372,23 +1371,8 @@ newDocument model =
     )
 
 
-updateCurrentDocument : Document -> FrontendModel -> FrontendModel
-updateCurrentDocument doc model =
-    { model | currentDocument = Just doc }
-
-
 
 -- SAVE DOCUMENT TOOLS
--- proceedIfDocStatusOK : FrontendModel -> FrontendMsg -> (Document -> FrontendModel -> (FrontendModel, Cmd FrontendMsg)) -> (FrontendModel, Cmd FrontendMsg)
---proceedIfDocStatusOK model doc func =
---    case doc.status of
---                    Document.DSSoftDelete ->
---                        ( model, Cmd.none )
---
---                    Document.DSReadOnly ->
---                        ( model, Cmd.none )
---
---                    Document.DSNormal ->
 
 
 preserveCurrentDocument model =
