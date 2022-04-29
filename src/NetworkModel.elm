@@ -57,6 +57,9 @@ createEvent userId_ oldDocument newDocument =
         dp =
             newDocument.cursor - oldDocument.cursor
 
+        _ =
+            Debug.log "!! (old, new, dp)" ( oldDocument.cursor, newDocument.cursor, dp )
+
         dx =
             newDocument.x - oldDocument.x
 
@@ -67,7 +70,7 @@ createEvent userId_ oldDocument newDocument =
         operations =
             OT.findOps oldDocument newDocument
     in
-    { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations }
+    { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
 
 
 applyEvent : EditEvent -> ServerState -> ServerState

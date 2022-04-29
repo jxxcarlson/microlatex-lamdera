@@ -533,16 +533,16 @@ inputCursor { position, source } model =
 
         Just currentUserId ->
             let
-                newOTDocument =
-                    { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
-
                 newLocation =
                     Document.location position source
 
+                newOTDocument =
+                    { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! NEW OT DOC"
+
                 editEvent =
-                    NetworkModel.createEvent currentUserId model.oTDocument newOTDocument |> Debug.log "!! OT DOC"
+                    NetworkModel.createEvent currentUserId model.oTDocument newOTDocument |> Debug.log "!! NEW EDIT EVENT"
             in
-            ( { model | editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
+            ( { model | oTDocument = newOTDocument, editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
 
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
