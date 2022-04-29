@@ -741,7 +741,7 @@ update msg model =
             Frontend.Update.inputText model { position = position, source = source }
 
         InputCursor pos ->
-            ( { model | editorCursor = pos |> Debug.log "!! CURSOR" }, Cmd.none )
+            Frontend.Update.inputCursor pos model
 
         InputTitle str ->
             Frontend.Update.inputTitle model str

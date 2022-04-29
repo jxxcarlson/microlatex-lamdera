@@ -17,6 +17,7 @@ module Frontend.Update exposing
     , handleSignUp
     , handleUrlRequest
     , hardDeleteDocument
+    , inputCursor
     , inputText
     , inputTitle
     , isMaster
@@ -522,6 +523,11 @@ searchText model =
 
 inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
+
+
+inputCursor : Int -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+inputCursor cursor model =
+    ( { model | editorCursor = cursor |> Debug.log "!! CURSOR" }, Cmd.none )
 
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )

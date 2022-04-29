@@ -26,41 +26,6 @@ pass state =
     NetworkModel.getLocalDocument state.a == NetworkModel.getLocalDocument state.b
 
 
-events1 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    ]
-
-
-events2 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
-    ]
-
-
-events3 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Skip -1 ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Skip -3 ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
-    ]
-
-
-events4 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
-    , { userId = "b", dp = -3, dx = -3, dy = 0, operations = [ Insert "X" ] }
-    ]
-
-
 {-|
 
     > runWithInput eventStream1 |> pass
@@ -112,3 +77,38 @@ update event state =
         |> updatePhase1 event
         |> updatePhase2
         |> (\st -> { st | count = st.count + 1 })
+
+
+events1 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    ]
+
+
+events2 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+    ]
+
+
+events3 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Skip -1 ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Skip -3 ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
+    ]
+
+
+events4 =
+    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+    , { userId = "b", dp = -3, dx = -3, dy = 0, operations = [ Insert "X" ] }
+    ]
