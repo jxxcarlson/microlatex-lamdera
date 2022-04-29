@@ -1,7 +1,7 @@
 module NetworkTest exposing (..)
 
 import Expect exposing (..)
-import Network exposing (EditEvent, NetworkModel)
+import NetworkModel exposing (EditEvent, NetworkModel)
 import NetworkSimulator
 import OT exposing (Document, Operation(..))
 import Test exposing (..)
@@ -14,7 +14,7 @@ test_ label events =
 
 suite : Test
 suite =
-    describe "Network Simulator"
+    describe "NetworkModel Simulator"
         [ test_ "a inserts A, then b insert B" events1
         , test_ "a inserts A, then b insert B, ..., a deletes 1" events2
         , test_ "a inserts A, then b insert B, ..., a deletes 1, a skips -4 and inserts X" events3

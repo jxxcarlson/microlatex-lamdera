@@ -1,4 +1,4 @@
-module Network exposing
+module NetworkModel exposing
     ( EditEvent
     , NetworkModel
     , ServerState

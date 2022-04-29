@@ -23,7 +23,7 @@ import Keyboard
 import Lamdera exposing (sendToBackend)
 import Markup
 import Message
-import Network
+import NetworkModel
 import OT
 import Parser.Language exposing (Language(..))
 import Process
@@ -139,7 +139,7 @@ init url key =
       -- DOCUMENT
       , oTDocument = OT.emptyDoc
       , myCursorPosition = { x = 0, y = 0, p = 0 }
-      , networkModel = Network.init Network.emptyServerState
+      , networkModel = NetworkModel.init NetworkModel.emptyServerState
       , includedContent = Dict.empty
       , showPublicUrl = False
       , documentDirty = False

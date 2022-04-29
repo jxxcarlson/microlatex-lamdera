@@ -64,7 +64,7 @@ import Document exposing (Document)
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
-import Network
+import NetworkModel
 import OT
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
@@ -147,7 +147,7 @@ type alias FrontendModel =
     -- DOCUMENT
     , oTDocument : OT.Document
     , myCursorPosition : { x : Int, y : Int, p : Int }
-    , networkModel : Network.NetworkModel
+    , networkModel : NetworkModel.NetworkModel
     , includedContent : Dict String String
     , documentDirty : Bool
     , seeBackups : Bool

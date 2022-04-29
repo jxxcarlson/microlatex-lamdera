@@ -2,7 +2,7 @@ module NetworkSimulator exposing (..)
 
 -- (eventStream1, pass, runWithInput)
 
-import Network exposing (EditEvent, NetworkModel)
+import NetworkModel exposing (EditEvent, NetworkModel)
 import OT exposing (Operation(..))
 import Util exposing (Step(..), loop)
 
@@ -18,12 +18,12 @@ type alias State =
 
 init : List EditEvent -> State
 init events =
-    { a = Network.initWithUsersAndContent [ "a", "b" ] "", b = Network.initWithUsersAndContent [ "a", "b" ] "", server = [], input = events, count = 0 }
+    { a = NetworkModel.initWithUsersAndContent [ "a", "b" ] "", b = NetworkModel.initWithUsersAndContent [ "a", "b" ] "", server = [], input = events, count = 0 }
 
 
 pass : State -> Bool
 pass state =
-    Network.getLocalDocument state.a == Network.getLocalDocument state.b
+    NetworkModel.getLocalDocument state.a == NetworkModel.getLocalDocument state.b
 
 
 events1 =
@@ -100,8 +100,8 @@ updatePhase2 state =
 
         Just evt ->
             { state
-                | a = Network.updateFromBackend Network.applyEvent evt state.a
-                , b = Network.updateFromBackend Network.applyEvent evt state.b
+                | a = NetworkModel.updateFromBackend NetworkModel.applyEvent evt state.a
+                , b = NetworkModel.updateFromBackend NetworkModel.applyEvent evt state.b
                 , server = List.drop 1 state.server
             }
 

@@ -73,7 +73,7 @@ import List.Extra
 import Markup
 import Maybe.Extra
 import Message
-import Network
+import NetworkModel
 import OT
 import Parser.Language exposing (Language(..))
 import Predicate
@@ -219,7 +219,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
     ( { model
         | currentDocument = Just updatedDoc
         , currentMasterDocument = currentMasterDocument
-        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , oTDocument = newOTDocument
         , sourceText = doc.content
         , initialText = doc.content
@@ -276,7 +276,7 @@ handleAsStandardReceivedDocument model doc =
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
@@ -329,7 +329,7 @@ handleAsReceivedDocumentWithDelay model doc =
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , currentDocument = Just doc
         , sourceText = doc.content
         , messages = errorMessages
@@ -362,7 +362,7 @@ handlePinnedDocuments model doc =
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , pinned = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
@@ -420,7 +420,7 @@ setPublicDocumentAsCurrentById model id =
             in
             ( { model
                 | currentDocument = Just doc
-                , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) doc.content)
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
                 , sourceText = doc.content
                 , initialText = doc.content
                 , editRecord = newEditRecord
@@ -539,13 +539,13 @@ inputText model { position, source } =
 
         ---
         editEvent =
-            Network.createEvent userId model.oTDocument newOTDocument
+            NetworkModel.createEvent userId model.oTDocument newOTDocument
 
         newNetworkModel =
-            Network.updateFromUser editEvent model.networkModel
+            NetworkModel.updateFromUser editEvent model.networkModel
 
         localUpdate =
-            Network.getLocalDocument newNetworkModel
+            NetworkModel.getLocalDocument newNetworkModel
     in
     if Share.canEdit model.currentUser model.currentDocument then
         inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source
@@ -1063,7 +1063,7 @@ openEditor_ doc model =
         , sourceText = doc.content
         , initialText = ""
         , currentDocument = Just updatedDoc
-        , networkModel = Network.init (Network.initialServerState (Util.currentUserId model.currentUser) updatedDoc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) updatedDoc.content)
       }
     , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20 ]
     )
