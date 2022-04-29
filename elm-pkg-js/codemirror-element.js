@@ -20621,10 +20621,11 @@ window.initCodeMirror = function () {
                  }
 
                 function sendCursor(editor, position) {
-                                const event = new CustomEvent('cursor-change',
+                                const evnt = new CustomEvent('cursor-change',
                                    { 'detail': {position: position}
                                    , 'bubbles':true, 'composed': true});
-                                editor.dom.dispatchEvent(event);
+                                editor.dom.dispatchEvent(evnt);
+                                console.log("!! send pos", position);
                              }
 
                 let panelTheme = EditorView.theme({
@@ -20662,12 +20663,8 @@ window.initCodeMirror = function () {
 
                                  });
 
-                        //editorNode.onclick = (event) => { console.log('1. clicked', event.clientX, event.clientY); };
-
                         editorNode.onclick = (event) =>
-                        { console.log('!! Clicked', (editor.posAtCoords({x: event.clientX, y: event.clientY})));
-                          sendCursor(editor, (editor.posAtCoords({x: event.clientX, y: event.clientY})));
-                        };
+                             {  sendCursor(editor, (editor.posAtCoords({x: event.clientX, y: event.clientY}))); };
 
                         this.dispatchEvent(new CustomEvent("editor-ready", { bubbles: true, composed: true, detail: editor }));
                         this.editor = editor;

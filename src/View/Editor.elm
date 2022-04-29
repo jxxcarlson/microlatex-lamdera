@@ -18,6 +18,7 @@ view model =
     Element.Keyed.el
         [ E.htmlAttribute onSelectionChange -- receive info from codemirror
         , E.htmlAttribute onTextChange -- receive info from codemirror
+        , E.htmlAttribute onCursorChange -- receive info from codemirror
         , htmlId "editor-here"
         , E.width (E.px 550)
         , E.height (E.px (Geometry.appHeight_ model - 110))
@@ -53,6 +54,18 @@ stringOfBool bool =
 
 htmlId str =
     E.htmlAttribute (HtmlAttr.id str)
+
+
+onCursorChange : Html.Attribute FrontendMsg
+onCursorChange =
+    cursorDecoder
+        |> Json.Decode.map InputCursorChange
+        |> Html.Events.on "cursor-change"
+
+
+cursorDecoder : Json.Decode.Decoder Int
+cursorDecoder =
+    Json.Decode.field "position" Json.Decode.int
 
 
 onTextChange : Html.Attribute FrontendMsg

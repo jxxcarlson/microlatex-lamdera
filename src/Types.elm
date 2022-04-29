@@ -145,6 +145,7 @@ type alias FrontendModel =
     , doSync : Bool
 
     -- DOCUMENT
+    , editorCursorPosition : Int
     , oTDocument : OT.Document
     , myCursorPosition : { x : Int, y : Int, p : Int }
     , networkModel : NetworkModel.NetworkModel
@@ -322,6 +323,7 @@ type FrontendMsg
     | ShowTOCInPhone
     | InputSearchSource String
     | InputText { position : Int, source : String }
+    | InputCursorChange Int
     | InputTitle String
     | InputReaders String
     | InputEditors String
