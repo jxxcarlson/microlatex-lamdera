@@ -29,6 +29,7 @@ import Config
 import Dict exposing (Dict)
 import Docs
 import Document
+import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
 import Message
@@ -218,7 +219,19 @@ updateFromFrontend sessionId clientId msg model =
                     ( model, Cmd.none )
 
                 Just username ->
-                    Backend.Update.removeSessionClient model sessionId clientId
+                    case Env.mode of
+                        Env.Production ->
+                            Backend.Update.removeSessionClient model sessionId clientId
+
+                        Env.Development ->
+                            Backend.Update.removeSessionClient model sessionId clientId
+                                |> (\( m1, c1 ) ->
+                                        let
+                                            ( m2, c2 ) =
+                                                Backend.Update.cleanup m1 sessionId clientId
+                                        in
+                                        ( m2, Cmd.batch [ c1, c2 ] )
+                                   )
 
         GetSharedDocuments username ->
             Backend.Update.getSharedDocuments model clientId username

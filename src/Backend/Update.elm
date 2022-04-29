@@ -3,6 +3,7 @@ module Backend.Update exposing
     , apply
     , applySpecial
     , authorTags
+    , cleanup
     , createDocument
     , deliverUserMessage
     , fetchDocumentById
@@ -557,6 +558,11 @@ resetCurrentEditorForUser username dict =
     Dict.map (\user shareDocInfo -> Share.resetDocument username shareDocInfo) dict
 
 
+cleanup model sessionId clientId =
+    ( { model | connectionDict = Dict.empty, editEvents = [] }, Cmd.none )
+
+
+removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Cmd BackendMsg )
 removeSessionClient model sessionId clientId =
     case getConnectedUser clientId model.connectionDict of
         Nothing ->
