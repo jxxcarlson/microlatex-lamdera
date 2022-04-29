@@ -220,6 +220,7 @@ type alias BackendModel =
     , connectionDict : ConnectionDict
 
     -- DOCUMENT
+    , collaborationServer : List NetworkModel.EditEvent
     , documents : List Document
     , publicDocuments : List Document
     }

@@ -532,7 +532,7 @@ inputText model { position, source } =
                 newLocation =
                     Document.location position source
             in
-            { cursor = position, x = newLocation.x, y = newLocation.y, content = source }
+            { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
 
         userId =
             model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
@@ -545,7 +545,7 @@ inputText model { position, source } =
             NetworkModel.updateFromUser editEvent model.networkModel
 
         localUpdate =
-            NetworkModel.getLocalDocument newNetworkModel
+            NetworkModel.getLocalDocument newNetworkModel |> Debug.log "!! LOCAL UPDATE"
     in
     if Share.canEdit model.currentUser model.currentDocument then
         inputText_ { model | oTDocument = newOTDocument, networkModel = newNetworkModel } source

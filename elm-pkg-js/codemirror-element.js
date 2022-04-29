@@ -20614,11 +20614,18 @@ window.initCodeMirror = function () {
             let editorNode = document.querySelector('#editor-here');
 
                 function sendText(editor) {
-                    const event = new CustomEvent('text-change', { 'detail': {position: editor.state.selection.main.head, source: editor.state.doc.toString()} , 'bubbles':true, 'composed': true});
-                    // const event = new CustomEvent('text-change', { 'detail': editor.state.doc.toString() , 'bubbles':true, 'composed': true});
-                    // console.log("position (a)",  editor.state.selection.main.head, editor.state.lineAt(editor.state.selection.main.head))
+                    const event = new CustomEvent('text-change',
+                       { 'detail': {position: editor.state.selection.main.head, source: editor.state.doc.toString()}
+                       , 'bubbles':true, 'composed': true});
                     editor.dom.dispatchEvent(event);
                  }
+
+                function sendCursor(editor, position) {
+                                const event = new CustomEvent('cursor-change',
+                                   { 'detail': {position: position}
+                                   , 'bubbles':true, 'composed': true});
+                                editor.dom.dispatchEvent(event);
+                             }
 
                 let panelTheme = EditorView.theme({
                                     '&': { maxHeight: '100%' },
@@ -20657,7 +20664,10 @@ window.initCodeMirror = function () {
 
                         //editorNode.onclick = (event) => { console.log('1. clicked', event.clientX, event.clientY); };
 
-                        editorNode.onclick = (event) => { console.log('Clicked', (editor.posAtCoords({x: event.clientX, y: event.clientY}))); };
+                        editorNode.onclick = (event) =>
+                        { console.log('!! Clicked', (editor.posAtCoords({x: event.clientX, y: event.clientY})));
+                          sendCursor(editor, (editor.posAtCoords({x: event.clientX, y: event.clientY})));
+                        };
 
                         this.dispatchEvent(new CustomEvent("editor-ready", { bubbles: true, composed: true, detail: editor }));
                         this.editor = editor;

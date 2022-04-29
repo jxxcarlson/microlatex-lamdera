@@ -90,6 +90,7 @@ init =
       , connectionDict = Dict.empty
 
       -- DOCUMENTS
+      , collaborationServer = []
       , documents =
             [ Docs.docsNotFound
             , Docs.notSignedIn
