@@ -37,7 +37,7 @@ type alias Document =
     , title : String
     , public : Bool -- document visible to others if public == True
     , author : Maybe String
-    , currentEditor : Maybe String -- the username of the person currently editing the document
+    , currentEditors : List { userId : String, username : String } -- the username of the person currently editing the document
     , language : Language
     , share : Share
     , handling : DocumentHandling
@@ -226,7 +226,7 @@ empty =
     , title = "(Untitled)"
     , public = False
     , author = Nothing
-    , currentEditor = Nothing
+    , currentEditors = []
     , language = MicroLaTeXLang
     , share = NotShared
     , tags = []
@@ -245,7 +245,7 @@ makeBackup doc =
     , title = doc.title ++ " (BAK)"
     , public = doc.public
     , author = doc.author
-    , currentEditor = Nothing
+    , currentEditors = []
     , language = doc.language
     , share = NotShared
     , handling = Backup doc.id

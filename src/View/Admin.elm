@@ -79,7 +79,14 @@ viewSharedDocuments sharedDocuments =
 
 viewSharedDocument : ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
 viewSharedDocument ( author, online, data ) =
-    E.row [ E.spacing 12 ] (List.map E.text [ author ++ isOnline online, data.title, data.share |> Document.shareToString, data.currentEditor |> Maybe.withDefault "No one" |> (\s -> "currentEditor: " ++ s) ])
+    E.row [ E.spacing 12 ]
+        (List.map E.text
+            [ author ++ isOnline online
+            , data.title
+            , data.share |> Document.shareToString
+            , data.currentEditors |> List.map .username |> String.join ", "
+            ]
+        )
 
 
 isOnline : Bool -> String

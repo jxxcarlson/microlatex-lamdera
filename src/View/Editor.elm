@@ -58,7 +58,7 @@ htmlId str =
 
 onCursorChange : Html.Attribute FrontendMsg
 onCursorChange =
-    cursorDecoder
+    dataDecoder
         |> Json.Decode.map InputCursor
         |> Html.Events.on "cursor-change"
 

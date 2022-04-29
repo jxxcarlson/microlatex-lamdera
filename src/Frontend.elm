@@ -614,7 +614,7 @@ update msg model =
             ( model, sendToBackend (Narrowcast username document) )
 
         LockCurrentDocument ->
-            Frontend.Update.lockDocument model
+            Frontend.Update.addCurrentUserAsEditorToCurrentDocument model
 
         UnLockCurrentDocument ->
             Frontend.Update.unlockCurrentDocument model
@@ -740,8 +740,8 @@ update msg model =
         InputText { position, source } ->
             Frontend.Update.inputText model { position = position, source = source }
 
-        InputCursor pos ->
-            Frontend.Update.inputCursor pos model
+        InputCursor { position, source } ->
+            Frontend.Update.inputCursor { position = position, source = source } model
 
         InputTitle str ->
             Frontend.Update.inputTitle model str
@@ -914,7 +914,8 @@ updateDoc model str =
                         let
                             m =
                                 if doc.handling == Document.DHStandard then
-                                    "Oops, this document is being edited by " ++ (Maybe.andThen .currentEditor model.currentDocument |> Maybe.withDefault "nobody")
+                                    "Oops, this document is being edited by other people"
+                                    -- TODO: this is nonsense
 
                                 else
                                     "Oops, this is a backup or version document -- no edits"

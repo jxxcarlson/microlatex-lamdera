@@ -137,12 +137,7 @@ showCurrentEditor mDoc =
                     "No document"
 
                 Just doc ->
-                    case doc.currentEditor of
-                        Nothing ->
-                            "Editor: nobody"
-
-                        Just username ->
-                            "Editor: " ++ username
+                    "Editors: " ++ (doc.currentEditors |> List.map .username |> String.join ", ")
     in
     E.el [ Font.size 14, Font.color Color.white ] (E.text <| message)
 

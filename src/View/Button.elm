@@ -274,7 +274,7 @@ toggleLock mDoc =
             E.none
 
         Just doc ->
-            if doc.currentEditor == Nothing then
+            if doc.currentEditors == [] then
                 -- document is unlocked
                 buttonTemplate [ Font.color Color.white ] LockCurrentDocument (String.fromChar '🔓')
 
@@ -655,6 +655,7 @@ doSignUp =
 -- USER
 
 
+sendUnlockMessage : FrontendModel -> Element FrontendMsg
 sendUnlockMessage model =
     let
         currentUsername_ =
@@ -665,23 +666,22 @@ sendUnlockMessage model =
             E.none
 
         Just doc ->
-            case doc.currentEditor of
-                Nothing ->
-                    E.none
+            let
+                editorNames =
+                    doc.currentEditors |> List.map .username
+            in
+            if List.member currentUsername_ editorNames then
+                sendUnlockMessage_ doc model.currentUser
 
-                Just username ->
-                    if username == currentUsername_ then
-                        E.none
-
-                    else
-                        sendUnlockMessage_ doc model.currentUser
+            else
+                E.none
 
 
 sendUnlockMessage_ doc currentUser =
     let
         message =
             { from = Util.currentUsername currentUser
-            , to = doc.currentEditor |> Maybe.withDefault "anon"
+            , to = "anon" -- TODO: nuke this?
             , subject = "Unlock?"
             , content = "May I unlock " ++ doc.title ++ "?"
             , show = [ Types.UMOk, Types.UMNotYet, Types.UMDismiss ]

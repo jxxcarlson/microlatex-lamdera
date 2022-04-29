@@ -1,5 +1,6 @@
 module Frontend.Update exposing
-    ( addDocToCurrentUser
+    ( addCurrentUserAsEditorToCurrentDocument
+    , addDocToCurrentUser
     , adjustId
     , changeLanguage
     , closeEditor
@@ -22,7 +23,6 @@ module Frontend.Update exposing
     , inputTitle
     , isMaster
     , lockCurrentDocumentUnconditionally
-    , lockDocument
     , newDocument
     , nextSyncLR
     , openEditor
@@ -525,9 +525,24 @@ inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
 
 
-inputCursor : Int -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-inputCursor cursor model =
-    ( { model | editorCursor = cursor |> Debug.log "!! CURSOR" }, Cmd.none )
+inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+inputCursor { position, source } model =
+    case Maybe.map .id model.currentUser of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just currentUserId ->
+            let
+                newOTDocument =
+                    { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
+
+                newLocation =
+                    Document.location position source
+
+                editEvent =
+                    NetworkModel.createEvent currentUserId model.oTDocument newOTDocument |> Debug.log "!! OT DOC"
+            in
+            ( { model | editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
 
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
@@ -924,17 +939,20 @@ currentDocumentPostProcess doc model =
 
 lockCurrentDocumentUnconditionally : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 lockCurrentDocumentUnconditionally model =
-    case model.currentDocument of
-        Nothing ->
+    case ( model.currentUser, model.currentDocument ) of
+        ( Nothing, _ ) ->
             ( model, Cmd.none )
 
-        Just doc_ ->
+        ( _, Nothing ) ->
+            ( model, Cmd.none )
+
+        ( Just user_, Just doc_ ) ->
             let
                 currentUsername =
                     Util.currentUsername model.currentUser
 
                 doc =
-                    { doc_ | currentEditor = Just currentUsername }
+                    { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
             in
             ( { model
                 | currentDocument = Just doc
@@ -950,33 +968,32 @@ lockCurrentDocumentUnconditionally model =
 
 lockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 lockCurrentDocument model =
-    case model.currentDocument of
-        Nothing ->
+    case ( model.currentUser, model.currentDocument ) of
+        ( Nothing, _ ) ->
             ( model, Cmd.none )
 
-        Just doc_ ->
-            if doc_.currentEditor == Nothing then
-                let
-                    currentUsername =
-                        Util.currentUsername model.currentUser
+        ( _, Nothing ) ->
+            ( model, Cmd.none )
 
-                    doc =
-                        { doc_ | currentEditor = Just currentUsername }
-                in
-                ( { model
-                    | currentDocument = Just doc
-                    , documents = Util.updateDocumentInList doc model.documents
-                    , messages = Message.make "Document locked" MSGreen
-                    , documentDirty = False
-                  }
-                , Cmd.batch
-                    [ sendToBackend (SaveDocument doc)
-                    , sendToBackend (Narrowcast currentUsername doc)
-                    ]
-                )
+        ( Just user_, Just doc_ ) ->
+            let
+                currentUsername =
+                    Util.currentUsername model.currentUser
 
-            else
-                ( { model | messages = Message.make "Document is locked already" MSRed }, Cmd.none )
+                doc =
+                    { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
+            in
+            ( { model
+                | currentDocument = Just doc
+                , documents = Util.updateDocumentInList doc model.documents
+                , messages = Message.make "Document locked" MSGreen
+                , documentDirty = False
+              }
+            , Cmd.batch
+                [ sendToBackend (SaveDocument doc)
+                , sendToBackend (Narrowcast currentUsername doc)
+                ]
+            )
 
 
 unlockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
@@ -989,7 +1006,7 @@ unlockCurrentDocument model =
             let
                 doc : Document
                 doc =
-                    { doc_ | currentEditor = Nothing }
+                    { doc_ | currentEditors = [] }
             in
             ( { model
                 | userMessage = Nothing
@@ -1005,35 +1022,34 @@ unlockCurrentDocument model =
             )
 
 
-lockDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-lockDocument model =
-    case model.currentDocument of
-        Nothing ->
+addCurrentUserAsEditorToCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+addCurrentUserAsEditorToCurrentDocument model =
+    case ( model.currentUser, model.currentDocument ) of
+        ( Nothing, _ ) ->
             ( model, Cmd.none )
 
-        Just doc_ ->
-            if doc_.currentEditor == Nothing then
-                let
-                    currentUsername =
-                        Util.currentUsername model.currentUser
+        ( _, Nothing ) ->
+            ( model, Cmd.none )
 
-                    doc =
-                        { doc_ | currentEditor = Just currentUsername }
-                in
-                ( { model
-                    | currentDocument = Just doc
-                    , messages = Message.make "Document is locked" MSGreen
-                    , documents = Util.updateDocumentInList doc model.documents
-                    , documentDirty = False
-                  }
-                , Cmd.batch
-                    [ sendToBackend (SaveDocument doc)
-                    , sendToBackend (Narrowcast currentUsername doc)
-                    ]
-                )
+        ( Just user_, Just doc_ ) ->
+            let
+                currentUsername =
+                    Util.currentUsername model.currentUser
 
-            else
-                ( { model | messages = [ { txt = "Document is locked already", status = MSRed } ] }, Cmd.none )
+                doc =
+                    { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
+            in
+            ( { model
+                | currentDocument = Just doc
+                , messages = Message.make "Document is locked" MSGreen
+                , documents = Util.updateDocumentInList doc model.documents
+                , documentDirty = False
+              }
+            , Cmd.batch
+                [ sendToBackend (SaveDocument doc)
+                , sendToBackend (Narrowcast currentUsername doc)
+                ]
+            )
 
 
 join :
@@ -1085,30 +1101,34 @@ openEditor_ doc model =
 closeEditor : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 closeEditor model =
     let
-        mCurrentEditor : Maybe String
-        mCurrentEditor =
-            model.currentDocument |> Maybe.andThen .currentEditor
-
+        --mCurrentEditor : Maybe String
+        --mCurrentEditor =
+        --    model.currentDocument |> Maybe.andThen .currentEditor
         mCurrentUsername : Maybe String
         mCurrentUsername =
             model.currentUser |> Maybe.map .username
 
-        updatedDoc =
-            Maybe.map (\doc -> { doc | status = Document.DSReadOnly }) model.currentDocument
+        currentEditors =
+            model.currentDocument
+                |> Maybe.map .currentEditors
+                |> Maybe.withDefault []
+                |> List.filter (\item -> Just item.username /= mCurrentUsername)
 
-        cmd =
+        updatedDoc =
+            Maybe.map (\doc -> { doc | status = Document.DSReadOnly, currentEditors = currentEditors }) model.currentDocument
+
+        saveCmd =
             case updatedDoc of
                 Nothing ->
                     Cmd.none
 
                 Just doc ->
                     sendToBackend (SaveDocument doc)
-    in
-    if mCurrentEditor == mCurrentUsername then
-        { model | currentDocument = updatedDoc } |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.none )) unlockCurrentDocument
 
-    else
-        ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, cmd )
+        clearEditEventsCmd =
+            sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
+    in
+    { model | currentDocument = updatedDoc } |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.batch [ saveCmd, clearEditEventsCmd ] )) unlockCurrentDocument
 
 
 

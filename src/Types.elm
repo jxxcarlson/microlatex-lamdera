@@ -221,7 +221,7 @@ type alias BackendModel =
     , connectionDict : ConnectionDict
 
     -- DOCUMENT
-    , collaborationServer : List NetworkModel.EditEvent
+    , editEvents : List NetworkModel.EditEvent
     , documents : List Document
     , publicDocuments : List Document
     }
@@ -323,7 +323,7 @@ type FrontendMsg
     | ShowTOCInPhone
     | InputSearchSource String
     | InputText { position : Int, source : String }
-    | InputCursor Int
+    | InputCursor { position : Int, source : String }
     | InputTitle String
     | InputReaders String
     | InputEditors String
@@ -397,10 +397,12 @@ type ToBackend
     | GetChatGroup String
     | ChatMsgSubmitted Chat.Message.ChatMessage
       -- SHARE
+    | ClearEditEvents UserId
     | Narrowcast String Document -- First arg is the sender's username.  Send the document
     | UpdateSharedDocumentDict Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
+    | PushEditorEvent NetworkModel.EditEvent
     | GetIncludedFiles Document (List String)
     | InsertDocument User Document
     | GetCheatSheetDocument
@@ -700,7 +702,7 @@ type alias SharedDocument =
     , id : String
     , author : Maybe String
     , share : Document.Share
-    , currentEditor : Maybe String -- Just user name of current editor if there is one
+    , currentEditors : List { username : String, userId : String } -- users online currently editing this document.
     }
 
 

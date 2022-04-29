@@ -91,15 +91,10 @@ currentDocumentAuthor mUsername mDoc =
                         Font.color (Element.rgb 0.9 0.9 0.9)
 
                 nowEditing =
-                    case doc.currentEditor of
-                        Nothing ->
-                            ""
-
-                        Just editorName ->
-                            " , editing: " ++ editorName
+                    doc.currentEditors |> List.map .username |> String.join ", "
 
                 str =
-                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault ""
+                    (Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault "") ++ " :: " ++ nowEditing
             in
             Element.el [ color, Font.size 14 ] (Element.text str)
 
@@ -131,12 +126,7 @@ currentDocumentEditor mUsername mDoc =
                         Font.color (Element.rgb 0.9 0.9 0.9)
 
                 nowEditing =
-                    case doc.currentEditor of
-                        Nothing ->
-                            ""
-
-                        Just editorName ->
-                            "editing: " ++ editorName
+                    doc.currentEditors |> List.map .username |> String.join ", "
             in
             Element.el [ color, Font.size 14 ] (Element.text nowEditing)
 

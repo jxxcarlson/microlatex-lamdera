@@ -287,7 +287,7 @@ unlockDocuments model userId =
                 userDocs =
                     List.map (\id -> Dict.get id model.documentDict) userDocIds
                         |> Maybe.Extra.values
-                        |> List.map (\doc -> { doc | currentEditor = Nothing })
+                        |> List.map (\doc -> { doc | currentEditors = [] })
 
                 newDocumentDict =
                     List.foldl (\doc dict -> Dict.insert doc.id doc dict) model.documentDict userDocs
@@ -554,7 +554,7 @@ getConnectedUser clientId dict =
 
 resetCurrentEditorForUser : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 resetCurrentEditorForUser username dict =
-    Dict.map (\user shareDocInfo -> Share.resetUser username shareDocInfo) dict
+    Dict.map (\user shareDocInfo -> Share.resetDocument username shareDocInfo) dict
 
 
 removeSessionClient model sessionId clientId =
@@ -587,7 +587,7 @@ removeSessionClient model sessionId clientId =
                     setDocumentsToReadOnlyWithUserName username model
             in
             ( { updatedModel
-                | sharedDocumentDict = Dict.map Share.resetUser model.sharedDocumentDict
+                | sharedDocumentDict = Dict.map Share.resetDocument model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
             , Cmd.batch <| pushSignOutDocCmd :: notifications

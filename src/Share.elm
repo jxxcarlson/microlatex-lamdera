@@ -7,7 +7,7 @@ module Share exposing
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
-    , resetUser
+    , resetDocument
     , shareDocument
     , unshare
     , updateSharedDocumentDict
@@ -26,13 +26,13 @@ type alias Username =
     String
 
 
-resetUser : Types.Username -> Types.SharedDocument -> Types.SharedDocument
-resetUser username sharedDocument =
-    if Just username == sharedDocument.currentEditor then
-        { sharedDocument | currentEditor = Nothing }
+resetDocument : Types.Username -> Types.SharedDocument -> Types.SharedDocument
+resetDocument username sharedDocument =
+    { sharedDocument | currentEditors = [] }
 
-    else
-        sharedDocument
+
+
+-- TODO: examine
 
 
 getSharedDocument : Document.Document -> Types.SharedDocument
@@ -41,7 +41,7 @@ getSharedDocument doc =
     , id = doc.id
     , author = doc.author
     , share = doc.share
-    , currentEditor = doc.currentEditor
+    , currentEditors = [] -- TODO
     }
 
 
@@ -61,7 +61,7 @@ canEdit currentUser currentDocument =
 
 isSharedByMe : String -> Document.Document -> Bool
 isSharedByMe username doc =
-    Just username == doc.currentEditor
+    List.member username (doc.currentEditors |> List.map .username)
 
 
 isMineAndNotShared : String -> Document.Document -> Bool
@@ -76,7 +76,7 @@ isSharedToMeStrict username doc =
             False
 
         Document.ShareWith { readers, editors } ->
-            List.member username editors && doc.currentEditor == Just username
+            List.member username editors && isSharedByMe username doc
 
 
 isSharedToMe : String -> Document.Share -> Bool
@@ -220,16 +220,30 @@ addClientIdsForUser username dict clientIdList =
             List.map .client data ++ clientIdList
 
 
-isCurrentlyShared : Document.DocumentId -> Types.SharedDocumentDict -> Maybe Types.Username
+
+-- isCurrentlyShared : Document.DocumentId -> Types.SharedDocumentDict -> List {username, userId}
+-- isCurrentlyShared : String -> Dict.Dict comparable Types.SharedDocumentDict -> List { username : String, userId : String }
+
+
+isCurrentlyShared : comparable -> Dict.Dict comparable { a | currentEditors : List b } -> List b
 isCurrentlyShared docId dict =
-    Dict.get docId dict |> Maybe.andThen .currentEditor
+    Dict.get docId dict |> Maybe.map .currentEditors |> Maybe.withDefault []
+
+
+isAnEditorOf : String -> Types.SharedDocument -> Bool
+isAnEditorOf username sharedDocument =
+    List.member username (sharedDocument.currentEditors |> List.map .username)
 
 
 activeDocumentIdsSharedByMe : Types.Username -> Types.SharedDocumentDict -> List Types.SharedDocument
 activeDocumentIdsSharedByMe username dict =
-    dict |> Dict.toList |> List.filter (\( _, data ) -> data.currentEditor == Just username) |> List.map Tuple.second
+    dict |> Dict.toList |> List.filter (\( _, data ) -> isAnEditorOf username data) |> List.map Tuple.second
 
 
 unshare : Document.Document -> Document.Document
 unshare doc =
-    { doc | currentEditor = Nothing }
+    { doc | currentEditors = [] }
+
+
+
+-- TODO: ?? OK

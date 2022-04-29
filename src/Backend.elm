@@ -90,7 +90,7 @@ init =
       , connectionDict = Dict.empty
 
       -- DOCUMENTS
-      , collaborationServer = []
+      , editEvents = []
       , documents =
             [ Docs.docsNotFound
             , Docs.notSignedIn
@@ -101,7 +101,7 @@ init =
 
 
 
--- SendDocument Types.SystemCanEdit newDoc
+-- UPDATE BACKEND
 
 
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
@@ -122,7 +122,7 @@ update msg model =
                 [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
                 , sendToFrontend clientId
                     (MessageReceived
-                        { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing")
+                        { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditors |> List.map .username |> String.join ", ")
                         , status = Types.MSYellow
                         }
                     )
@@ -135,6 +135,10 @@ update msg model =
                 |> updateAbstracts
                 |> Backend.Update.updateDocumentTags
                 |> Cmd.Extra.withNoCmd
+
+
+
+-- UPDATE FROM FRONTEND
 
 
 updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
@@ -179,6 +183,9 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.deliverUserMessage model clientId usermessage
 
         -- SHARE
+        PushEditorEvent event ->
+            ( { model | editEvents = event :: model.editEvents |> Debug.log "!! EVENT QUEUE" }, Cmd.none )
+
         UpdateSharedDocumentDict doc ->
             ( Share.updateSharedDocumentDict doc model, Cmd.none )
 
@@ -196,7 +203,7 @@ updateFromFrontend sessionId clientId msg model =
                 Just doc ->
                     let
                         message =
-                            { txt = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditor |> Maybe.withDefault "Nothing"), status = Types.MSGreen }
+                            { txt = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditors |> List.map .username |> String.join ", "), status = Types.MSGreen }
                     in
                     ( model
                     , Cmd.batch
@@ -283,6 +290,9 @@ updateFromFrontend sessionId clientId msg model =
             ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         -- DOCUMENTS
+        ClearEditEvents userId ->
+            ( { model | editEvents = List.filter (\evt -> evt.userId /= userId) model.editEvents }, Cmd.none )
+
         GetIncludedFiles doc fileList ->
             let
                 tuplify : List String -> Maybe ( String, String )
