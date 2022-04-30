@@ -1045,7 +1045,7 @@ updateFromBackend msg model =
         ProcessEvent event ->
             let
                 _ =
-                    Debug.log ("RECEIVED EVENT FOR " ++ Util.currentUsername model.currentUser) event
+                    Debug.log ("!! RECEIVED EVENT FOR " ++ Util.currentUsername model.currentUser) event
             in
             ( model, Cmd.none )
 

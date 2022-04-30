@@ -401,6 +401,7 @@ type ToBackend
     | ClearEditEvents UserId
     | Narrowcast Username UserId Document -- First arg is the sender's username.  Send the document
     | UpdateSharedDocumentDict User Document
+    | AddNewEditor User Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
     | PushEditorEvent NetworkModel.EditEvent

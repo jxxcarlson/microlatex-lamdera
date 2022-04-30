@@ -39,7 +39,7 @@ type alias Document =
     , public : Bool -- document visible to others if public == True
     , author : Maybe String
     , language : Language
-    , currentEditors : List { userId : String, username : String } -- the username of the person currently editing the document
+    , currentEditorList : List { userId : String, username : String } -- the username of the person currently editing the document
     , sharedWith : SharedWith
     , isShared : Bool
     , handling : DocumentHandling
@@ -108,7 +108,7 @@ type alias DocumentId =
 
 numberOfEditors : Maybe Document -> Int
 numberOfEditors document =
-    document |> Maybe.map (.currentEditors >> List.length) |> Maybe.withDefault 0
+    document |> Maybe.map (.currentEditorList >> List.length) |> Maybe.withDefault 0
 
 
 documentFromListViaId : DocumentId -> List Document -> Maybe Document
@@ -222,7 +222,7 @@ empty =
     , title = "(Untitled)"
     , public = False
     , author = Nothing
-    , currentEditors = []
+    , currentEditorList = []
     , language = MicroLaTeXLang
     , sharedWith = { readers = [], editors = [] }
     , isShared = False
@@ -242,7 +242,7 @@ makeBackup doc =
     , title = doc.title ++ " (BAK)"
     , public = doc.public
     , author = doc.author
-    , currentEditors = []
+    , currentEditorList = []
     , language = doc.language
     , sharedWith = doc.sharedWith
     , isShared = False

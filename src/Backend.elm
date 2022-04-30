@@ -21,6 +21,7 @@ module Backend exposing
 import Abstract exposing (Abstract)
 import Authentication
 import Backend.Cmd
+import Backend.NetworkModel
 import Backend.Update
 import Chat
 import Chat.Message
@@ -124,7 +125,7 @@ update msg model =
                 [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
                 , sendToFrontend clientId
                     (MessageReceived
-                        { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditors |> List.map .username |> String.join ", ")
+                        { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditorList |> List.map .username |> String.join ", ")
                         , status = Types.MSYellow
                         }
                     )
@@ -186,10 +187,14 @@ updateFromFrontend sessionId clientId msg model =
 
         -- SHARE
         PushEditorEvent event ->
-            ( { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }, Cmd.none )
+            { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }
+                |> Backend.NetworkModel.processEvent
 
         UpdateSharedDocumentDict user doc ->
-            ( Share.updateSharedDocumentDict user doc clientId model, Cmd.none )
+            ( Share.updateSharedDocumentDict user doc model, Cmd.none )
+
+        AddNewEditor user doc ->
+            ( model, Cmd.none )
 
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
@@ -205,7 +210,7 @@ updateFromFrontend sessionId clientId msg model =
                 Just doc ->
                     let
                         message =
-                            { txt = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditors |> List.map .username |> String.join ", "), status = Types.MSGreen }
+                            { txt = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditorList |> List.map .username |> String.join ", "), status = Types.MSGreen }
                     in
                     ( model
                     , Cmd.batch

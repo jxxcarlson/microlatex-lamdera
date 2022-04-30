@@ -1,40 +1,40 @@
 module Backend.NetworkModel exposing (processEvent)
 
+import Deque
 import Dict
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import NetworkModel exposing (EditEvent)
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 
 
-processEventList : BackendModel -> ( BackendModel, Cmd BackendMsg )
-processEventList model =
-    let
-        events =
-            List.take 5 model.editEvents
-
-        cmds =
-            List.map (processEventCmd model.sharedDocumentDict) events
-    in
-    ( { model | editEvents = List.drop 5 model.editEvents }, Cmd.batch cmds )
-
-
 processEvent : BackendModel -> ( BackendModel, Cmd BackendMsg )
 processEvent model =
-    case List.head model.editEvents of
-        Nothing ->
-            ( model, Cmd.none )
+    let
+        ( mEvent, deque ) =
+            Deque.popBack model.editEvents
 
-        Just event ->
-            ( { model | editEvents = List.drop 1 model.editEvents }, processEventCmd model.sharedDocumentDict event )
+        cmd =
+            case mEvent of
+                Nothing ->
+                    Cmd.none
+
+                Just evt ->
+                    processEventCmd model.sharedDocumentDict evt
+    in
+    ( { model | editEvents = deque }, cmd )
 
 
 processEventCmd : Types.SharedDocumentDict -> EditEvent -> Cmd BackendMsg
 processEventCmd sharedDocumentDict event =
     case Dict.get event.docId sharedDocumentDict of
         Nothing ->
-            Cmd.none
+            Cmd.none |> Debug.log "PROCESS, Nothing"
 
         Just sharedDoc ->
+            let
+                _ =
+                    Debug.log "PROCESS, currentEditors" sharedDoc.currentEditors
+            in
             Cmd.batch (List.foldl (\editor cmds -> cmdOfEditor editor event :: cmds) [] sharedDoc.currentEditors)
 
 

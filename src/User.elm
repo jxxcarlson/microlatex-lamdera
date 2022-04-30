@@ -44,7 +44,7 @@ addEditor : Maybe User -> Document -> Document
 addEditor mUser doc =
     let
         f user doc_ =
-            { doc_ | status = Document.DSNormal, currentEditors = insertInList { userId = user.id, username = user.username } doc_.currentEditors }
+            { doc_ | status = Document.DSNormal, currentEditorList = insertInList { userId = user.id, username = user.username } doc_.currentEditorList }
     in
     applyIfDefined f mUser doc
 
@@ -68,12 +68,12 @@ mRemoveEditor mUser mDoc =
             mDoc
 
         ( Just user, Just doc ) ->
-            Just { doc | status = Document.DSReadOnly, currentEditors = List.filter (\item -> item.userId /= user.id) doc.currentEditors }
+            Just { doc | status = Document.DSReadOnly, currentEditorList = List.filter (\item -> item.userId /= user.id) doc.currentEditorList }
 
 
 removeEditor : User -> Document -> Document
 removeEditor user doc =
-    { doc | status = Document.DSReadOnly, currentEditors = List.filter (\item -> item.userId /= user.id) doc.currentEditors }
+    { doc | status = Document.DSReadOnly, currentEditorList = List.filter (\item -> item.userId /= user.id) doc.currentEditorList }
 
 
 type alias Preferences =

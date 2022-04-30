@@ -138,7 +138,7 @@ showCurrentEditors mDoc =
                     "No document"
 
                 Just doc ->
-                    "Editors: " ++ (doc.currentEditors |> List.map .username |> String.join ", ")
+                    "Editors: " ++ (doc.currentEditorList |> List.map .username |> String.join ", ")
     in
     E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| message)
 

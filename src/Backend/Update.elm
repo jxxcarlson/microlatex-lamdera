@@ -291,7 +291,7 @@ unlockDocuments model userId =
                 userDocs =
                     List.map (\id -> Dict.get id model.documentDict) userDocIds
                         |> Maybe.Extra.values
-                        |> List.map (\doc -> { doc | currentEditors = [] })
+                        |> List.map (\doc -> { doc | currentEditorList = [] })
 
                 newDocumentDict =
                     List.foldl (\doc dict -> Dict.insert doc.id doc dict) model.documentDict userDocs

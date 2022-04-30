@@ -161,7 +161,7 @@ openEditor doc model =
             , Cmd.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
                 , sendToBackend (SaveDocument updatedDoc)
-                , sendToBackend (UpdateSharedDocumentDict user doc)
+                , sendToBackend (AddNewEditor user doc)
                 , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) updatedDoc)
                 ]
             )
@@ -192,7 +192,7 @@ closeEditor model =
 
         currentEditors =
             model.currentDocument
-                |> Maybe.map .currentEditors
+                |> Maybe.map .currentEditorList
                 |> Maybe.withDefault []
                 |> List.filter (\item -> Just item.username /= mCurrentUsername)
 
@@ -205,12 +205,19 @@ closeEditor model =
                     Cmd.none
 
                 Just doc ->
-                    sendToBackend (SaveDocument doc)
+                    Cmd.batch
+                        [ sendToBackend (SaveDocument doc)
+                        , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc)
+                        ]
 
         clearEditEventsCmd =
             sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
     in
-    { model | currentDocument = updatedDoc } |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.batch [ saveCmd, clearEditEventsCmd ] )) unlockCurrentDocument
+    ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, saveCmd )
+
+
+
+-- |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.batch [ saveCmd, clearEditEventsCmd ] )) unlockCurrentDocument
 
 
 apply :
@@ -1041,7 +1048,7 @@ lockCurrentDocumentUnconditionally model =
                     user_.id
 
                 doc =
-                    { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
+                    { doc_ | currentEditorList = { userId = user_.id, username = user_.username } :: doc_.currentEditorList }
             in
             ( { model
                 | currentDocument = Just doc
@@ -1074,7 +1081,7 @@ lockCurrentDocument model =
                     Util.currentUserId model.currentUser
 
                 doc =
-                    { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
+                    { doc_ | currentEditorList = { userId = user_.id, username = user_.username } :: doc_.currentEditorList }
             in
             ( { model
                 | currentDocument = Just doc
@@ -1099,7 +1106,7 @@ unlockCurrentDocument model =
             let
                 doc : Document
                 doc =
-                    { doc_ | currentEditors = [] }
+                    { doc_ | currentEditorList = [] }
             in
             ( { model
                 | userMessage = Nothing
@@ -1130,7 +1137,7 @@ addCurrentUserAsEditorToCurrentDocument model =
                     Util.currentUsername model.currentUser
 
                 doc =
-                    { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
+                    { doc_ | currentEditorList = { userId = user_.id, username = user_.username } :: doc_.currentEditorList }
             in
             ( { model
                 | currentDocument = Just doc

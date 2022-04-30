@@ -63,7 +63,7 @@ canEdit currentUser currentDocument =
 
 isSharedByMe : String -> Document.Document -> Bool
 isSharedByMe username doc =
-    List.member username (doc.currentEditors |> List.map .username)
+    List.member username (doc.currentEditorList |> List.map .username)
 
 
 isMineAndNotShared : String -> Document.Document -> Bool
@@ -101,8 +101,8 @@ update username userId doc clientId dict =
         Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
 
 
-updateSharedDocumentDict : User.User -> Document.Document -> ClientId -> Types.BackendModel -> Types.BackendModel
-updateSharedDocumentDict user doc clientId model =
+updateSharedDocumentDict : User.User -> Document.Document -> Types.BackendModel -> Types.BackendModel
+updateSharedDocumentDict user doc model =
     -- { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
     { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
 
@@ -229,7 +229,7 @@ activeDocumentIdsSharedByMe username dict =
 
 unshare : Document.Document -> Document.Document
 unshare doc =
-    { doc | currentEditors = [] }
+    { doc | currentEditorList = [] }
 
 
 

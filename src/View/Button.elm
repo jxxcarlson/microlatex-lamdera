@@ -274,7 +274,7 @@ toggleLock mDoc =
             E.none
 
         Just doc ->
-            if doc.currentEditors == [] then
+            if doc.currentEditorList == [] then
                 -- document is unlocked
                 buttonTemplate [ Font.color Color.white ] LockCurrentDocument (String.fromChar '🔓')
 
@@ -668,7 +668,7 @@ sendUnlockMessage model =
         Just doc ->
             let
                 editorNames =
-                    doc.currentEditors |> List.map .username
+                    doc.currentEditorList |> List.map .username
             in
             if List.member currentUsername_ editorNames then
                 sendUnlockMessage_ doc model.currentUser
