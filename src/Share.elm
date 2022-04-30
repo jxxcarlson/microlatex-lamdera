@@ -1,15 +1,16 @@
 module Share exposing
     ( activeDocumentIdsSharedByMe
-    , canEdit
-    , createShareDocumentDict
+    ,  canEdit
+       ---, createShareDocumentDict
+
     , doShare
-    , insert
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
     , resetDocument
     , shareDocument
     , unshare
+    , update
     , updateSharedDocumentDict
     )
 
@@ -20,6 +21,7 @@ import List.Extra
 import Set
 import Types
 import User
+import Util
 
 
 type alias Username =
@@ -79,25 +81,37 @@ isSharedToMe username sharedWith =
     List.member username sharedWith.readers || List.member username sharedWith.editors
 
 
-insert : Document.Document -> Types.SharedDocumentDict -> Types.SharedDocumentDict
-insert doc dict =
+update : Username -> Types.UserId -> Document.Document -> ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+update username userId doc clientId dict =
+    let
+        newEditor =
+            { username = username, userId = userId, clientId = clientId }
+
+        equal a b =
+            a.userId == b.userId
+
+        updater : Types.SharedDocument -> Types.SharedDocument
+        updater sharedDoc =
+            { sharedDoc | currentEditors = Util.insertInListOrUpdate equal newEditor sharedDoc.currentEditors }
+    in
     if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
         dict
 
     else
-        Dict.insert doc.id (getSharedDocument doc) dict
+        Dict.update doc.id (Util.liftToMaybe updater) dict
 
 
-createShareDocumentDict : Types.DocumentDict -> Types.SharedDocumentDict
-createShareDocumentDict documentDict =
-    documentDict
-        |> Dict.values
-        |> List.foldl (\doc dict -> insert doc dict) Dict.empty
+
+--createShareDocumentDict : Types.DocumentDict -> Types.SharedDocumentDict
+--createShareDocumentDict documentDict =
+--    documentDict
+--        |> Dict.values
+--        |> List.foldl (\doc dict -> update doc dict) Dict.empty
 
 
-updateSharedDocumentDict : Document.Document -> Types.BackendModel -> Types.BackendModel
-updateSharedDocumentDict doc model =
-    { model | sharedDocumentDict = insert doc model.sharedDocumentDict }
+updateSharedDocumentDict : User.User -> Document.Document -> ClientId -> Types.BackendModel -> Types.BackendModel
+updateSharedDocumentDict user doc clientId model =
+    { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict }
 
 
 doShare model =
@@ -106,41 +120,46 @@ doShare model =
             ( { model | popupState = Types.NoPopup }, Cmd.none )
 
         Just doc ->
-            let
-                readers =
-                    model.inputReaders |> String.split "," |> List.map String.trim
+            case model.currentUser of
+                Nothing ->
+                    ( { model | popupState = Types.NoPopup }, Cmd.none )
 
-                editors =
-                    model.inputEditors |> String.split "," |> List.map String.trim
+                Just user_ ->
+                    let
+                        readers =
+                            model.inputReaders |> String.split "," |> List.map String.trim
 
-                sharedWith =
-                    { readers = readers, editors = editors }
+                        editors =
+                            model.inputEditors |> String.split "," |> List.map String.trim
 
-                cmdSaveUser =
-                    case model.currentUser of
-                        Nothing ->
-                            Cmd.none
+                        sharedWith =
+                            { readers = readers, editors = editors }
 
-                        Just user ->
-                            let
-                                folks =
-                                    Set.union (Set.fromList readers) (Set.fromList editors)
-                            in
-                            sendToBackend (Types.UpdateUserWith { user | sharedDocumentAuthors = Set.union folks user.sharedDocumentAuthors })
+                        cmdSaveUser =
+                            case model.currentUser of
+                                Nothing ->
+                                    Cmd.none
 
-                newDocument =
-                    { doc | sharedWith = sharedWith }
+                                Just user ->
+                                    let
+                                        folks =
+                                            Set.union (Set.fromList readers) (Set.fromList editors)
+                                    in
+                                    sendToBackend (Types.UpdateUserWith { user | sharedDocumentAuthors = Set.union folks user.sharedDocumentAuthors })
 
-                documents =
-                    List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
-            in
-            ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
-            , Cmd.batch
-                [ sendToBackend (Types.SaveDocument newDocument)
-                , sendToBackend (Types.UpdateSharedDocumentDict newDocument)
-                , cmdSaveUser
-                ]
-            )
+                        newDocument =
+                            { doc | sharedWith = sharedWith }
+
+                        documents =
+                            List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
+                    in
+                    ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
+                    , Cmd.batch
+                        [ sendToBackend (Types.SaveDocument newDocument)
+                        , sendToBackend (Types.UpdateSharedDocumentDict user_ newDocument)
+                        , cmdSaveUser
+                        ]
+                    )
 
 
 shareDocument : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )

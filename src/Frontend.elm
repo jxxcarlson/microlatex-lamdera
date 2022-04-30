@@ -611,7 +611,7 @@ update msg model =
 
         -- SHARE
         Narrow username document ->
-            ( model, sendToBackend (Narrowcast username document) )
+            ( model, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
 
         LockCurrentDocument ->
             Frontend.Update.addCurrentUserAsEditorToCurrentDocument model
@@ -958,7 +958,7 @@ updateDoc_ doc str model =
         , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-    , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument, sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc) ]
+    , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) ]
     )
 
 

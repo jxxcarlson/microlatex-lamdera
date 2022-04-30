@@ -143,22 +143,28 @@ will be shared set of editors among the various users editing the document.
 -}
 openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 openEditor doc model =
-    let
-        updatedDoc =
-            User.addEditor model.currentUser doc |> Debug.log "!! mAddEditor"
-    in
-    ( { model
-        | showEditor = True
-        , sourceText = doc.content
-        , initialText = ""
-        , currentDocument = Just updatedDoc
-      }
-    , Cmd.batch
-        [ Frontend.Cmd.setInitialEditorContent 20
-        , sendToBackend (SaveDocument updatedDoc)
-        , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) updatedDoc)
-        ]
-    )
+    case model.currentUser of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just user ->
+            let
+                updatedDoc =
+                    User.addEditor model.currentUser doc |> Debug.log "!! mAddEditor"
+            in
+            ( { model
+                | showEditor = True
+                , sourceText = doc.content
+                , initialText = ""
+                , currentDocument = Just updatedDoc
+              }
+            , Cmd.batch
+                [ Frontend.Cmd.setInitialEditorContent 20
+                , sendToBackend (SaveDocument updatedDoc)
+                , sendToBackend (UpdateSharedDocumentDict user doc)
+                , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) updatedDoc)
+                ]
+            )
 
 
 endEdit : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
@@ -1019,7 +1025,10 @@ lockCurrentDocumentUnconditionally model =
         ( Just user_, Just doc_ ) ->
             let
                 currentUsername =
-                    Util.currentUsername model.currentUser
+                    user_.username
+
+                currentUserId =
+                    user_.id
 
                 doc =
                     { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
@@ -1031,7 +1040,8 @@ lockCurrentDocumentUnconditionally model =
               }
             , Cmd.batch
                 [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast currentUsername doc)
+                , sendToBackend
+                    (Narrowcast currentUserId currentUsername doc)
                 ]
             )
 
@@ -1050,6 +1060,9 @@ lockCurrentDocument model =
                 currentUsername =
                     Util.currentUsername model.currentUser
 
+                currentUserId =
+                    Util.currentUserId model.currentUser
+
                 doc =
                     { doc_ | currentEditors = { userId = user_.id, username = user_.username } :: doc_.currentEditors }
             in
@@ -1061,7 +1074,7 @@ lockCurrentDocument model =
               }
             , Cmd.batch
                 [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast currentUsername doc)
+                , sendToBackend (Narrowcast currentUserId currentUsername doc)
                 ]
             )
 
@@ -1087,7 +1100,7 @@ unlockCurrentDocument model =
               }
             , Cmd.batch
                 [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) doc)
+                , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc)
                 ]
             )
 
@@ -1117,7 +1130,7 @@ addCurrentUserAsEditorToCurrentDocument model =
               }
             , Cmd.batch
                 [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast currentUsername doc)
+                , sendToBackend (Narrowcast currentUsername user_.id doc)
                 ]
             )
 

@@ -398,8 +398,8 @@ type ToBackend
     | ChatMsgSubmitted Chat.Message.ChatMessage
       -- SHARE
     | ClearEditEvents UserId
-    | Narrowcast String Document -- First arg is the sender's username.  Send the document
-    | UpdateSharedDocumentDict Document
+    | Narrowcast Username UserId Document -- First arg is the sender's username.  Send the document
+    | UpdateSharedDocumentDict User Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
     | PushEditorEvent NetworkModel.EditEvent
@@ -702,7 +702,7 @@ type alias SharedDocument =
     , id : String
     , author : Maybe String
     , share : Document.SharedWith
-    , currentEditors : List { username : String, userId : String } -- users online currently editing this document.
+    , currentEditors : List { username : String, userId : String, clientId : ClientId } -- users online currently editing this document.
     }
 
 

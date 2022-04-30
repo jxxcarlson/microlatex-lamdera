@@ -4,6 +4,7 @@ module Util exposing
     , currentUsername
     , delay
     , discardLines
+    , insertDocumentInListOrUpdate
     , insertInList
     , insertInListOrUpdate
     , liftToMaybe
@@ -52,13 +53,35 @@ updateDocumentInList doc list =
     List.Extra.setIf (\d -> d.id == doc.id) doc list
 
 
-insertInListOrUpdate : Document -> List Document -> List Document
-insertInListOrUpdate doc list =
+insertDocumentInListOrUpdate : Document -> List Document -> List Document
+insertDocumentInListOrUpdate doc list =
     if List.Extra.notMember doc list then
         doc :: list
 
     else
         updateDocumentInList doc list
+
+
+{-|
+
+    > l1 = iou {id = "a", val = 1} []
+    [{ id = "a", val = 1 }]
+
+    > l2 = iou {id = "b", val = 1} l1
+    [{ id = "b", val = 1 },{ id = "a", val = 1 }]
+
+    > l3 = iou {id = "a", val = 3} l2
+    [{ id = "b", val = 1 },{ id = "a", val = 3 }]
+
+-}
+insertInListOrUpdate : (a -> a -> Bool) -> a -> List a -> List a
+insertInListOrUpdate equal a list =
+    case List.head (List.filter (\b -> equal a b) list) of
+        Nothing ->
+            a :: list
+
+        Just _ ->
+            List.Extra.setIf (\x -> equal x a) a list
 
 
 insertInList : a -> List a -> List a

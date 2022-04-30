@@ -187,11 +187,11 @@ updateFromFrontend sessionId clientId msg model =
         PushEditorEvent event ->
             ( { model | editEvents = event :: model.editEvents |> Debug.log "!! EVENT QUEUE" }, Cmd.none )
 
-        UpdateSharedDocumentDict doc ->
-            ( Share.updateSharedDocumentDict doc model, Cmd.none )
+        UpdateSharedDocumentDict user doc ->
+            ( Share.updateSharedDocumentDict user doc clientId model, Cmd.none )
 
-        Narrowcast sendersName document ->
-            ( { model | sharedDocumentDict = Share.insert document model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
+        Narrowcast sendersName sendersId document ->
+            ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
 
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )
