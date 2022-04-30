@@ -89,7 +89,7 @@ currentDocumentAuthor mUsername mDoc =
                     doc.currentEditorList |> List.map .username |> String.join ", "
 
                 str =
-                    (Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault "") ++ " :: " ++ nowEditing
+                    Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault ""
             in
             Element.el [ color, Font.size 14 ] (Element.text str)
 

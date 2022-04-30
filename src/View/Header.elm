@@ -37,10 +37,9 @@ documentControls model =
 sharingControls model =
     E.row [ E.spacing 6, E.paddingXY 18 0 ]
         [ showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) Button.share
-        , View.Utility.currentDocumentEditor (Maybe.map .username model.currentUser) model.currentDocument
-        , showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.sendUnlockMessage model)
 
-        --, Button.sendUnlockMessage model
+        --, View.Utility.currentDocumentEditor (Maybe.map .username model.currentUser) model.currentDocument
+        --, showIfDocumentIsShared model (model.currentUser /= Nothing) (Button.sendUnlockMessage model)
         ]
 
 
