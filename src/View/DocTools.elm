@@ -34,8 +34,7 @@ view model =
             , E.width (E.px 300)
             , E.height (E.px 300)
             ]
-            [ Button.toggleLock model.currentDocument
-            , Button.toggleBackupVisibility model.seeBackups
+            [ Button.toggleBackupVisibility model.seeBackups
             , creationDate model
             , dateCreated model.zone model.currentDocument
             , docId model

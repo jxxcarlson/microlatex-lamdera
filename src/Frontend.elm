@@ -613,12 +613,11 @@ update msg model =
         Narrow username document ->
             ( model, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
 
-        LockCurrentDocument ->
-            Frontend.Update.addCurrentUserAsEditorToCurrentDocument model
-
-        UnLockCurrentDocument ->
-            Frontend.Update.unlockCurrentDocument model
-
+        --LockCurrentDocument ->
+        --    Frontend.Update.addCurrentUserAsEditorToCurrentDocument model
+        --
+        --UnLockCurrentDocument ->
+        --    Frontend.Update.unlockCurrentDocument model
         -- DOCUMENT
         ChangeLanguage ->
             case model.currentDocument of
@@ -904,7 +903,7 @@ updateDoc model str =
                 Document.DSReadOnly ->
                     ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
 
-                Document.DSNormal ->
+                Document.DSCanEdit ->
                     -- if Share.canEdit model.currentUser (Just doc) then
                     -- if View.Utility.canSaveStrict model.currentUser doc then
                     if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
@@ -1030,12 +1029,11 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
-        SmartUnLockCurrentDocument ->
-            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
-
-        UnlockDocument docId ->
-            Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
-
+        --SmartUnLockCurrentDocument ->
+        --    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
+        --
+        --UnlockDocument docId ->
+        --    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
 
@@ -1192,13 +1190,14 @@ updateFromBackend msg model =
             ( { model | userMessage = Just message }, View.Chat.scrollChatToBottom )
 
         UndeliverableMessage message ->
-            case message.actionOnFailureToDeliver of
-                Types.FANoOp ->
-                    ( model, Cmd.none )
+            ( model, Cmd.none )
 
-                Types.FAUnlockCurrentDocument ->
-                    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
-
+        --case message.actionOnFailureToDeliver of
+        --    Types.FANoOp ->
+        --        ( model, Cmd.none )
+        --
+        --    Types.FAUnlockCurrentDocument ->
+        --        Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
         -- CHAT (updateFromBackend)
         GotChatHistory history ->
             ( { model | chatMessages = history }, Util.delay 400 ScrollChatToBottom )

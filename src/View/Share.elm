@@ -54,7 +54,7 @@ usermessage mUserMessage =
                             , content = "Ok!"
                             , info = ""
                             , show = [ Types.UMDismiss, Types.UMUnlock ]
-                            , action = Types.UnLockCurrentDocument
+                            , action = Types.FENoOp
                             , actionOnFailureToDeliver = Types.FANoOp
                             }
                     , showButton Types.UMNotYet <|
@@ -69,11 +69,7 @@ usermessage mUserMessage =
                             , actionOnFailureToDeliver = Types.FANoOp
                             }
                     ]
-                , if List.member Types.UMUnlock message.show then
-                    Button.unlock
-
-                  else
-                    Button.dismissUserMessage
+                , Button.dismissUserMessage
                 ]
 
 

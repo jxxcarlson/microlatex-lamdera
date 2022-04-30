@@ -22,6 +22,7 @@ module Document exposing
     )
 
 import Element
+import Lamdera exposing (ClientId)
 import List.Extra
 import Parser.Helpers
 import Parser.Language exposing (Language(..))
@@ -39,7 +40,7 @@ type alias Document =
     , public : Bool -- document visible to others if public == True
     , author : Maybe String
     , language : Language
-    , currentEditorList : List { userId : String, username : String } -- the username of the person currently editing the document
+    , currentEditorList : List { userId : String, username : String, clientId : ClientId } -- the username of the person currently editing the document
     , sharedWith : SharedWith
     , isShared : Bool
     , handling : DocumentHandling
@@ -49,7 +50,7 @@ type alias Document =
 
 
 type DocStatus
-    = DSNormal
+    = DSCanEdit
     | DSReadOnly
     | DSSoftDelete
 
@@ -228,7 +229,7 @@ empty =
     , isShared = False
     , tags = []
     , handling = DHStandard
-    , status = DSNormal
+    , status = DSCanEdit
     }
 
 

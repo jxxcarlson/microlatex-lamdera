@@ -1,6 +1,5 @@
 module Frontend.Update exposing
-    ( addCurrentUserAsEditorToCurrentDocument
-    , addDocToCurrentUser
+    ( addDocToCurrentUser
     , adjustId
     , changeLanguage
     , closeEditor
@@ -22,7 +21,6 @@ module Frontend.Update exposing
     , inputText
     , inputTitle
     , isMaster
-    , lockCurrentDocumentUnconditionally
     , newDocument
     , nextSyncLR
     , openEditor
@@ -43,7 +41,6 @@ module Frontend.Update exposing
     , signOut
     , softDeleteDocument
     , syncLR
-    , unlockCurrentDocument
     , updateEditRecord
     , updateKeys
     , updateWithViewport
@@ -93,7 +90,7 @@ import View.Utility
 
 
 handleCurrentDocumentChange model currentDocument document =
-    if model.documentDirty && currentDocument.status == Document.DSNormal then
+    if model.documentDirty && currentDocument.status == Document.DSCanEdit then
         -- we are leaving the old current document.
         -- make sure that the content is saved and its status is set to read only
         let
@@ -105,7 +102,7 @@ handleCurrentDocumentChange model currentDocument document =
         in
         setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
 
-    else if currentDocument.status == Document.DSNormal then
+    else if currentDocument.status == Document.DSCanEdit then
         let
             updatedDoc =
                 { currentDocument | status = Document.DSReadOnly }
@@ -150,7 +147,7 @@ openEditor doc model =
         Just user ->
             let
                 updatedDoc =
-                    User.addEditor model.currentUser doc |> Debug.log "!! mAddEditor"
+                    { doc | status = Document.DSCanEdit }
             in
             ( { model
                 | showEditor = True
@@ -160,9 +157,11 @@ openEditor doc model =
               }
             , Cmd.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
-                , sendToBackend (SaveDocument updatedDoc)
-                , sendToBackend (AddNewEditor user doc)
-                , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) updatedDoc)
+
+                --, sendToBackend (SaveDocument updatedDoc)
+                , sendToBackend (AddNewEditor user updatedDoc)
+
+                --, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) updatedDoc)
                 ]
             )
 
@@ -214,10 +213,6 @@ closeEditor model =
             sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
     in
     ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, saveCmd )
-
-
-
--- |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.batch [ saveCmd, clearEditEventsCmd ] )) unlockCurrentDocument
 
 
 apply :
@@ -294,7 +289,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
 
         newDocumentStatus =
             if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
-                Document.DSNormal
+                Document.DSCanEdit
 
             else
                 Document.DSReadOnly
@@ -382,7 +377,7 @@ savePreviousCurrentDocumentCmd model =
             Cmd.none
 
         Just previousDoc ->
-            if model.documentDirty && previousDoc.status == Document.DSNormal then
+            if model.documentDirty && previousDoc.status == Document.DSCanEdit then
                 let
                     previousDoc2 =
                         -- TODO: change content
@@ -536,7 +531,7 @@ softDeleteDocument model =
 
                 ( newDoc, currentDocument, newDocuments ) =
                     if doc.status == Document.DSSoftDelete then
-                        ( { doc | status = Document.DSNormal }, model.currentDocument, model.documents )
+                        ( { doc | status = Document.DSCanEdit }, model.currentDocument, model.documents )
 
                     else
                         ( { doc | status = Document.DSSoftDelete }, Just Docs.deleted, List.filter (\d -> d.id /= doc.id) model.documents )
@@ -550,10 +545,6 @@ softDeleteDocument model =
               }
             , Cmd.batch [ sendToBackend (SaveDocument newDoc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
-
-
-
--- |> (\( m, c ) -> ( currentDocumentPostProcess newDoc m, c ))
 
 
 hardDeleteDocument model =
@@ -1030,128 +1021,6 @@ documentPostProcess doc model =
 -- OPEN AND CLOSE EDITOR
 
 
-lockCurrentDocumentUnconditionally : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-lockCurrentDocumentUnconditionally model =
-    case ( model.currentUser, model.currentDocument ) of
-        ( Nothing, _ ) ->
-            ( model, Cmd.none )
-
-        ( _, Nothing ) ->
-            ( model, Cmd.none )
-
-        ( Just user_, Just doc_ ) ->
-            let
-                currentUsername =
-                    user_.username
-
-                currentUserId =
-                    user_.id
-
-                doc =
-                    { doc_ | currentEditorList = { userId = user_.id, username = user_.username } :: doc_.currentEditorList }
-            in
-            ( { model
-                | currentDocument = Just doc
-                , documentDirty = False
-                , documents = Util.updateDocumentInList doc model.documents
-              }
-            , Cmd.batch
-                [ sendToBackend (SaveDocument doc)
-                , sendToBackend
-                    (Narrowcast currentUserId currentUsername doc)
-                ]
-            )
-
-
-lockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-lockCurrentDocument model =
-    case ( model.currentUser, model.currentDocument ) of
-        ( Nothing, _ ) ->
-            ( model, Cmd.none )
-
-        ( _, Nothing ) ->
-            ( model, Cmd.none )
-
-        ( Just user_, Just doc_ ) ->
-            let
-                currentUsername =
-                    Util.currentUsername model.currentUser
-
-                currentUserId =
-                    Util.currentUserId model.currentUser
-
-                doc =
-                    { doc_ | currentEditorList = { userId = user_.id, username = user_.username } :: doc_.currentEditorList }
-            in
-            ( { model
-                | currentDocument = Just doc
-                , documents = Util.updateDocumentInList doc model.documents
-                , messages = Message.make "Document locked" MSGreen
-                , documentDirty = False
-              }
-            , Cmd.batch
-                [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast currentUserId currentUsername doc)
-                ]
-            )
-
-
-unlockCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-unlockCurrentDocument model =
-    case model.currentDocument of
-        Nothing ->
-            ( model, Cmd.none )
-
-        Just doc_ ->
-            let
-                doc : Document
-                doc =
-                    { doc_ | currentEditorList = [] }
-            in
-            ( { model
-                | userMessage = Nothing
-                , messages = Message.make "Document unlocked" MSGreen
-                , currentDocument = Just doc
-                , documentDirty = False
-                , documents = Util.updateDocumentInList doc model.documents
-              }
-            , Cmd.batch
-                [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc)
-                ]
-            )
-
-
-addCurrentUserAsEditorToCurrentDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-addCurrentUserAsEditorToCurrentDocument model =
-    case ( model.currentUser, model.currentDocument ) of
-        ( Nothing, _ ) ->
-            ( model, Cmd.none )
-
-        ( _, Nothing ) ->
-            ( model, Cmd.none )
-
-        ( Just user_, Just doc_ ) ->
-            let
-                currentUsername =
-                    Util.currentUsername model.currentUser
-
-                doc =
-                    { doc_ | currentEditorList = { userId = user_.id, username = user_.username } :: doc_.currentEditorList }
-            in
-            ( { model
-                | currentDocument = Just doc
-                , messages = Message.make "Document is locked" MSGreen
-                , documents = Util.updateDocumentInList doc model.documents
-                , documentDirty = False
-              }
-            , Cmd.batch
-                [ sendToBackend (SaveDocument doc)
-                , sendToBackend (Narrowcast currentUsername user_.id doc)
-                ]
-            )
-
-
 join :
     (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
     -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
@@ -1429,7 +1298,7 @@ preserveCurrentDocument model =
                 Document.DSReadOnly ->
                     Cmd.none
 
-                Document.DSNormal ->
+                Document.DSCanEdit ->
                     saveDocumentToBackend { doc | content = model.sourceText }
 
 
@@ -1442,7 +1311,7 @@ saveDocumentToBackend doc =
         Document.DSReadOnly ->
             sendToBackend (SaveDocument doc)
 
-        Document.DSNormal ->
+        Document.DSCanEdit ->
             sendToBackend (SaveDocument doc)
 
 
@@ -1460,7 +1329,7 @@ saveCurrentDocumentToBackend mDoc =
                 Document.DSReadOnly ->
                     Cmd.none
 
-                Document.DSNormal ->
+                Document.DSCanEdit ->
                     sendToBackend (SaveDocument doc)
 
 

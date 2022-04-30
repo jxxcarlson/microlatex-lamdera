@@ -197,8 +197,23 @@ updateFromFrontend sessionId clientId msg model =
             let
                 sharedDocumentDict =
                     Share.update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "!! AddNewEditor"
+
+                equal a b =
+                    a.userId == b.userId
+
+                editorItem =
+                    { userId = user.id, username = user.username, clientId = clientId }
+
+                oldEditorList =
+                    doc.currentEditorList
+
+                currentEditorList =
+                    Util.insertInListOrUpdate equal editorItem oldEditorList
+
+                document =
+                    { doc | currentEditorList = currentEditorList }
             in
-            ( { model | sharedDocumentDict = sharedDocumentDict }, Cmd.none )
+            ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCast user.username document model.connectionDict )
 
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )

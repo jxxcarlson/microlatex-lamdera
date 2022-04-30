@@ -27,7 +27,6 @@ module View.Button exposing
     , iLink
     , languageMenu
     , linkTemplate
-    , lock
     , makeBackup
     , makeCurrentGroupPreferred
     , maximizeMyDocs
@@ -69,12 +68,10 @@ module View.Button exposing
     , toggleDocumentStatus
     , toggleEditor
     , toggleExtrasSidebar
-    , toggleLock
     , toggleManuals
     , togglePublic
     , togglePublicUrl
     , toggleTagsSidebar
-    , unlock
     , workingDocs
     )
 
@@ -251,44 +248,6 @@ languageMenu popupState lang =
 
 
 -- DOCUMENT
---toggleLock : Maybe Document.Document -> Element FrontendMsg
---toggleLock mDoc =
---    case mDoc of
---        Nothing ->
---            E.none
---
---        Just doc ->
---            if doc.currentEditor == Nothing then
---                -- document is unlocked
---                buttonTemplate [ Font.color Color.white ] FENoOp (String.fromChar '🔓')
---
---            else
---                -- document is locked
---                buttonTemplate [ Font.color Color.white ] FENoOp (String.fromChar '🔒')
-
-
-toggleLock : Maybe Document.Document -> Element FrontendMsg
-toggleLock mDoc =
-    case mDoc of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            if doc.currentEditorList == [] then
-                -- document is unlocked
-                buttonTemplate [ Font.color Color.white ] LockCurrentDocument (String.fromChar '🔓')
-
-            else
-                -- document is locked
-                buttonTemplate [ Font.color Color.white ] UnLockCurrentDocument (String.fromChar '🔒')
-
-
-lock =
-    buttonTemplate [] LockCurrentDocument (String.fromChar '🔒')
-
-
-unlock =
-    buttonTemplate [] UnLockCurrentDocument (String.fromChar '🔓')
 
 
 share : Element FrontendMsg
@@ -318,14 +277,14 @@ toggleDocumentStatus model =
         Just doc ->
             if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
                 case doc.status of
-                    Document.DSNormal ->
+                    Document.DSCanEdit ->
                         buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
 
                     Document.DSReadOnly ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSNormal) "Doc: Read only"
+                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Read only"
 
                     Document.DSSoftDelete ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSNormal) "Doc: Soft-deleted"
+                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Soft-deleted"
 
             else
                 E.none
@@ -352,7 +311,7 @@ softDeleteDocument model =
                     Document.DSSoftDelete ->
                         deleteDocument_ "Undelete" model
 
-                    Document.DSNormal ->
+                    Document.DSCanEdit ->
                         deleteDocument_ "Delete" model
 
                     Document.DSReadOnly ->
@@ -383,7 +342,7 @@ hardDeleteDocument model =
                     Document.DSSoftDelete ->
                         hardDelete "Hard delete" model
 
-                    Document.DSNormal ->
+                    Document.DSCanEdit ->
                         E.none
 
                     Document.DSReadOnly ->
