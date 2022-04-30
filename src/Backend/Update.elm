@@ -250,7 +250,9 @@ getSharedDocuments model clientId username =
         docList =
             model.sharedDocumentDict
                 |> Dict.toList
+                |> Debug.log "sharedDocumentDict"
                 |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
+                |> Debug.log "DOCLIST"
 
         connectedUsers =
             getConnectedUsers model

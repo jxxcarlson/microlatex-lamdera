@@ -37,8 +37,8 @@ resetDocument username sharedDocument =
 -- TODO: examine
 
 
-getSharedDocument : Document.Document -> Types.SharedDocument
-getSharedDocument doc =
+toSharedDocument : Document.Document -> Types.SharedDocument
+toSharedDocument doc =
     { title = doc.title
     , id = doc.id
     , author = doc.author
@@ -85,7 +85,7 @@ update : Username -> Types.UserId -> Document.Document -> ClientId -> Types.Shar
 update username userId doc clientId dict =
     let
         newEditor =
-            { username = username, userId = userId, clientId = clientId }
+            { username = username, userId = userId, clientId = clientId } |> Debug.log "NEW EDITOR"
 
         equal a b =
             a.userId == b.userId
@@ -95,25 +95,19 @@ update username userId doc clientId dict =
             { sharedDoc | currentEditors = Util.insertInListOrUpdate equal newEditor sharedDoc.currentEditors }
     in
     if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
-        dict
+        dict |> Debug.log "NULL Path"
 
     else
-        Dict.update doc.id (Util.liftToMaybe updater) dict
-
-
-
---createShareDocumentDict : Types.DocumentDict -> Types.SharedDocumentDict
---createShareDocumentDict documentDict =
---    documentDict
---        |> Dict.values
---        |> List.foldl (\doc dict -> update doc dict) Dict.empty
+        Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
 
 
 updateSharedDocumentDict : User.User -> Document.Document -> ClientId -> Types.BackendModel -> Types.BackendModel
 updateSharedDocumentDict user doc clientId model =
-    { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict }
+    -- { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
+    { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
 
 
+doShare : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
 doShare model =
     case model.currentDocument of
         Nothing ->
