@@ -160,7 +160,7 @@ openEditor doc model =
 
                 --, sendToBackend (SaveDocument updatedDoc)
                 , if Predicate.documentIsMineOrIAmAnEditor (Just doc) model.currentUser then
-                    sendToBackend (AddNewEditor user updatedDoc)
+                    sendToBackend (AddEditor user updatedDoc)
 
                   else
                     Cmd.none

@@ -1,13 +1,12 @@
 module Share exposing
     ( activeDocumentIdsSharedByMe
-    ,  canEdit
-       ---, createShareDocumentDict
-
+    , canEdit
     , doShare
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
     , removeConnectionFromSharedDocumentDict
+    , removeEditor
     , resetDocument
     , shareDocument
     , unshare
@@ -119,6 +118,22 @@ update username userId doc clientId dict =
         Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
 
 
+{-| Remove the editor with given userId from the currentEditor list of the corresponding SharedDoc
+-}
+removeEditor : Types.UserId -> Document.Document -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+removeEditor userId doc dict =
+    let
+        updater : Types.SharedDocument -> Types.SharedDocument
+        updater sharedDoc =
+            { sharedDoc | currentEditors = List.filter (\ed -> ed.userId /= userId) sharedDoc.currentEditors }
+    in
+    if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
+        dict |> Debug.log "NULL Path"
+
+    else
+        Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
+
+
 updateSharedDocumentDict : User.User -> Document.Document -> Types.BackendModel -> Types.BackendModel
 updateSharedDocumentDict user doc model =
     -- { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
@@ -199,11 +214,13 @@ narrowCast sendersName document connectionDict =
         usernames =
             case document.author of
                 Nothing ->
-                    document.sharedWith.editors ++ document.sharedWith.readers |> List.filter (\name -> name /= sendersName && name /= "")
+                    document.sharedWith.editors ++ document.sharedWith.readers |> List.filter (\name -> name /= "")
 
+                --|> List.filter (\name -> name /= sendersName && name /= "")
                 Just author ->
-                    author :: (document.sharedWith.editors ++ document.sharedWith.readers) |> List.filter (\name -> name /= sendersName && name /= "")
+                    author :: (document.sharedWith.editors ++ document.sharedWith.readers) |> List.filter (\name -> name /= "")
 
+        --|> List.filter (\name -> name /= sendersName && name /= "")
         clientIds =
             getClientIds usernames connectionDict
     in
