@@ -255,7 +255,7 @@ setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document ->
 setDocumentAsCurrent_ cmd model doc permissions =
     let
         newOTDocument =
-            { cursor = 0, x = 0, y = 0, content = doc.content }
+            { id = doc.id, cursor = 0, x = 0, y = 0, content = doc.content }
 
         -- For now, loc the doc in all cases
         currentUserName_ : String
@@ -298,7 +298,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
     ( { model
         | currentDocument = Just updatedDoc
         , currentMasterDocument = currentMasterDocument
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , oTDocument = newOTDocument
         , sourceText = doc.content
         , initialText = doc.content
@@ -355,7 +355,7 @@ handleAsStandardReceivedDocument model doc =
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
@@ -408,7 +408,7 @@ handleAsReceivedDocumentWithDelay model doc =
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , currentDocument = Just doc
         , sourceText = doc.content
         , messages = errorMessages
@@ -441,7 +441,7 @@ handlePinnedDocuments model doc =
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , pinned = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
@@ -499,7 +499,7 @@ setPublicDocumentAsCurrentById model id =
             in
             ( { model
                 | currentDocument = Just doc
-                , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) doc.content)
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
                 , sourceText = doc.content
                 , initialText = doc.content
                 , editRecord = newEditRecord
@@ -622,8 +622,11 @@ handleCursor { position, source } model =
                 newLocation =
                     Document.location position source
 
+                id =
+                    model.oTDocument.id
+
                 newOTDocument =
-                    { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! NEW OT DOC"
+                    { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! NEW OT DOC"
 
                 editEvent =
                     NetworkModel.createEvent currentUserId model.oTDocument newOTDocument |> Debug.log "!! NEW EDIT EVENT"
@@ -639,8 +642,11 @@ inputText model { position, source } =
                 let
                     newLocation =
                         Document.location position source
+
+                    id =
+                        Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
                 in
-                { cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
+                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
 
             userId =
                 model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
@@ -995,7 +1001,7 @@ currentDocumentPostProcess doc model =
     { model
         | currentDocument = Just doc
         , sourceText = doc.content
-        , oTDocument = { cursor = 0, x = 0, y = 0, content = doc.content } -- TODO? Is this correct??
+        , oTDocument = { id = doc.id, cursor = 0, x = 0, y = 0, content = doc.content } -- TODO? Is this correct??
         , initialText = doc.content
         , editRecord = newEditRecord
         , title =

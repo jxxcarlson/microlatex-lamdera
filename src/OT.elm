@@ -8,11 +8,11 @@ type Operation
 
 
 type alias Document =
-    { cursor : Int, x : Int, y : Int, content : String }
+    { id : String, cursor : Int, x : Int, y : Int, content : String }
 
 
 emptyDoc =
-    { cursor = 0, x = 0, y = 0, content = "" }
+    { id = "no-id", cursor = 0, x = 0, y = 0, content = "" }
 
 
 reconcile : Document -> Document -> Document
@@ -40,20 +40,40 @@ findOps before after =
 
 
 applyOp : Operation -> Document -> Document
-applyOp op { cursor, x, y, content } =
+applyOp op { id, cursor, x, y, content } =
     case op of
         Insert str ->
-            { x = x + String.length str, y = y, cursor = cursor + String.length str, content = String.left cursor content ++ str ++ String.dropLeft cursor content }
+            { id = id
+            , x = x + String.length str
+            , y = y
+            , cursor = cursor + String.length str
+            , content = String.left cursor content ++ str ++ String.dropLeft cursor content
+            }
 
         Delete n ->
             if cursor == String.length content - 1 then
-                { x = x - 1, y = y, cursor = cursor - 1, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
+                { id = id
+                , x = x - 1
+                , y = y
+                , cursor = cursor - 1
+                , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
+                }
 
             else
-                { x = x, y = y, cursor = cursor, content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content) }
+                { id = id
+                , x = x
+                , y = y
+                , cursor = cursor
+                , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
+                }
 
         Skip n ->
-            { x = x + n, y = y, cursor = cursor + n, content = content }
+            { id = id
+            , x = x + n
+            , y = y
+            , cursor = cursor + n
+            , content = content
+            }
 
 
 apply : List Operation -> Document -> Document

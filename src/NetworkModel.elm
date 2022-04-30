@@ -16,7 +16,6 @@ module NetworkModel exposing
     )
 
 import Dict exposing (Dict)
-import Document
 import List.Extra
 import OT
 
@@ -25,8 +24,12 @@ type alias UserId =
     String
 
 
+type alias DocId =
+    String
+
+
 type alias EditEvent =
-    { userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
+    { docId : String, userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
 
 
 type alias ServerState =
@@ -35,14 +38,18 @@ type alias ServerState =
     }
 
 
-initialServerState : UserId -> String -> ServerState
-initialServerState userId content =
-    { cursorPositions = Dict.fromList [ ( userId, { x = 0, y = 0, p = 0 } ) ], document = { cursor = 0, x = 0, y = 0, content = content } }
+initialServerState : DocId -> UserId -> String -> ServerState
+initialServerState docId userId content =
+    { cursorPositions = Dict.fromList [ ( userId, { x = 0, y = 0, p = 0 } ) ]
+    , document = { id = docId, cursor = 0, x = 0, y = 0, content = content }
+    }
 
 
-initialServerState2 : List UserId -> String -> ServerState
-initialServerState2 userIds content =
-    { cursorPositions = Dict.fromList (List.map (\id -> ( id, { x = 0, y = 0, p = 0 } )) userIds), document = { cursor = 0, x = 0, y = 0, content = content } }
+initialServerState2 : DocId -> List UserId -> String -> ServerState
+initialServerState2 docId userIds content =
+    { cursorPositions = Dict.fromList (List.map (\id -> ( id, { x = 0, y = 0, p = 0 } )) userIds)
+    , document = { id = docId, cursor = 0, x = 0, y = 0, content = content }
+    }
 
 
 emptyServerState =
@@ -70,7 +77,7 @@ createEvent userId_ oldDocument newDocument =
         operations =
             OT.findOps oldDocument newDocument
     in
-    { userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
+    { docId = oldDocument.id, userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
 
 
 applyEvent : EditEvent -> ServerState -> ServerState
@@ -94,14 +101,14 @@ init serverState =
     { localMsgs = [], serverState = serverState }
 
 
-initWithUserAndContent : UserId -> String -> NetworkModel
-initWithUserAndContent userId content =
-    init (initialServerState userId content)
+initWithUserAndContent : DocId -> UserId -> String -> NetworkModel
+initWithUserAndContent docId userId content =
+    init (initialServerState docId userId content)
 
 
-initWithUsersAndContent : List UserId -> String -> NetworkModel
-initWithUsersAndContent userIds content =
-    init (initialServerState2 userIds content)
+initWithUsersAndContent : DocId -> List UserId -> String -> NetworkModel
+initWithUsersAndContent docId userIds content =
+    init (initialServerState2 docId userIds content)
 
 
 updateFromUser : EditEvent -> NetworkModel -> NetworkModel
