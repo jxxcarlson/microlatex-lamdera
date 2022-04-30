@@ -59,6 +59,7 @@ import Browser.Navigation
 import Chat.Message
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
+import Deque exposing (Deque)
 import Dict exposing (Dict)
 import Document exposing (Document)
 import Http
@@ -221,7 +222,7 @@ type alias BackendModel =
     , connectionDict : ConnectionDict
 
     -- DOCUMENT
-    , editEvents : List NetworkModel.EditEvent
+    , editEvents : Deque NetworkModel.EditEvent
     , documents : List Document
     , publicDocuments : List Document
     }
@@ -443,6 +444,7 @@ type ToFrontend
     | GotChatGroup (Maybe ChatGroup)
     | ChatMessageReceived ChatMsg
       -- DOCUMENT
+    | ProcessEvent NetworkModel.EditEvent
     | GotIncludedData Document (List ( String, String ))
     | SmartUnLockCurrentDocument
     | AcceptUserTags (Dict String (List { id : String, title : String }))

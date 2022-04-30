@@ -722,7 +722,7 @@ update msg model =
             Frontend.Update.debounceMsg model msg_
 
         Saved str ->
-            -- TODO
+            -- This is the only route to function updateDoc, updateDoc_
             updateDoc model str
 
         Search ->
@@ -958,7 +958,8 @@ updateDoc_ doc str model =
         , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-    , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) ]
+      -- , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) ]
+    , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument ]
     )
 
 
@@ -1040,6 +1041,13 @@ updateFromBackend msg model =
 
         AcceptPublicTags tagDict ->
             ( { model | publicTagDict = tagDict }, Cmd.none )
+
+        ProcessEvent event ->
+            let
+                _ =
+                    Debug.log ("RECEIVED EVENT FOR " ++ Util.currentUsername model.currentUser) event
+            in
+            ( model, Cmd.none )
 
         ReceivedDocument documentHandling doc ->
             case documentHandling of

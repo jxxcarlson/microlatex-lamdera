@@ -26,6 +26,7 @@ import Chat
 import Chat.Message
 import Cmd.Extra
 import Config
+import Deque
 import Dict exposing (Dict)
 import Docs
 import Document
@@ -91,7 +92,7 @@ init =
       , connectionDict = Dict.empty
 
       -- DOCUMENTS
-      , editEvents = []
+      , editEvents = Deque.empty
       , documents =
             [ Docs.docsNotFound
             , Docs.notSignedIn
@@ -185,7 +186,7 @@ updateFromFrontend sessionId clientId msg model =
 
         -- SHARE
         PushEditorEvent event ->
-            ( { model | editEvents = event :: model.editEvents |> Debug.log "!! EVENT QUEUE" }, Cmd.none )
+            ( { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }, Cmd.none )
 
         UpdateSharedDocumentDict user doc ->
             ( Share.updateSharedDocumentDict user doc clientId model, Cmd.none )
@@ -304,7 +305,7 @@ updateFromFrontend sessionId clientId msg model =
 
         -- DOCUMENTS
         ClearEditEvents userId ->
-            ( { model | editEvents = List.filter (\evt -> evt.userId /= userId) model.editEvents }, Cmd.none )
+            ( { model | editEvents = Deque.filter (\evt -> evt.userId /= userId) model.editEvents }, Cmd.none )
 
         GetIncludedFiles doc fileList ->
             let

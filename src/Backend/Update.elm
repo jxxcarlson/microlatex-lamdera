@@ -49,6 +49,7 @@ import Chat.Message
 import Cmd.Extra
 import Config
 import DateTimeUtility
+import Deque
 import Dict
 import Document exposing (Document)
 import DocumentTools
@@ -559,7 +560,7 @@ resetCurrentEditorForUser username dict =
 
 
 cleanup model sessionId clientId =
-    ( { model | connectionDict = Dict.empty, editEvents = [] }, Cmd.none )
+    ( { model | connectionDict = Dict.empty, editEvents = Deque.empty }, Cmd.none )
 
 
 removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Cmd BackendMsg )

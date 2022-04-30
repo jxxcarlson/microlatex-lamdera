@@ -636,6 +636,10 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
+    let
+        _ =
+            Debug.log "!! Number of Editors" (Document.numberOfEditors model.currentDocument)
+    in
     if Document.numberOfEditors model.currentDocument > 1 then
         let
             newOTDocument =
