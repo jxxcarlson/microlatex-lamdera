@@ -134,6 +134,79 @@ setDocumentAsCurrent cmd model doc permissions =
             setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
+{-| }
+When the editor is opened, the current user is added to the document's
+current editor list. This changed needs to saved to the backend and
+narrowcast to the other users who to whom this document is shared,
+so that **all** relevant frontends remain in sync. Otherwise there
+will be shared set of editors among the various users editing the document.
+-}
+openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+openEditor doc model =
+    let
+        updatedDoc =
+            User.addEditor model.currentUser doc |> Debug.log "!! mAddEditor"
+    in
+    ( { model
+        | showEditor = True
+        , sourceText = doc.content
+        , initialText = ""
+        , currentDocument = Just updatedDoc
+      }
+    , Cmd.batch
+        [ Frontend.Cmd.setInitialEditorContent 20
+        , sendToBackend (SaveDocument updatedDoc)
+        , sendToBackend (Narrowcast (Util.currentUsername model.currentUser) updatedDoc)
+        ]
+    )
+
+
+endEdit : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+endEdit model =
+    case ( model.currentUser, model.currentDocument ) of
+        ( Nothing, _ ) ->
+            ( model, Cmd.none )
+
+        ( _, Nothing ) ->
+            ( model, Cmd.none )
+
+        ( Just user, Just doc ) ->
+            ( { model | currentDocument = Just (User.removeEditor user doc) }, Cmd.none )
+
+
+closeEditor : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+closeEditor model =
+    let
+        --mCurrentEditor : Maybe String
+        --mCurrentEditor =
+        --    model.currentDocument |> Maybe.andThen .currentEditor
+        mCurrentUsername : Maybe String
+        mCurrentUsername =
+            model.currentUser |> Maybe.map .username
+
+        currentEditors =
+            model.currentDocument
+                |> Maybe.map .currentEditors
+                |> Maybe.withDefault []
+                |> List.filter (\item -> Just item.username /= mCurrentUsername)
+
+        updatedDoc =
+            User.mRemoveEditor model.currentUser model.currentDocument
+
+        saveCmd =
+            case updatedDoc of
+                Nothing ->
+                    Cmd.none
+
+                Just doc ->
+                    sendToBackend (SaveDocument doc)
+
+        clearEditEventsCmd =
+            sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
+    in
+    { model | currentDocument = updatedDoc } |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.batch [ saveCmd, clearEditEventsCmd ] )) unlockCurrentDocument
+
+
 apply :
     (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
     -> FrontendModel
@@ -1063,69 +1136,6 @@ join f g =
                 g m1
         in
         ( m2, Cmd.batch [ cmd1, cmd2 ] )
-
-
-openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-openEditor doc model =
-    -- model |> join (openEditor_ doc) lockCurrentDocument
-    openEditor_ doc model
-
-
-openEditor_ : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-openEditor_ doc model =
-    let
-        updatedDoc =
-            { doc | status = Document.DSNormal }
-    in
-    ( { model
-        | showEditor = True
-        , sourceText = doc.content
-        , initialText = ""
-        , currentDocument = Just updatedDoc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState (Util.currentUserId model.currentUser) updatedDoc.content)
-      }
-    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20 ]
-    )
-
-
-
--- |> requestLock doc
-----|> requestUnlockPreviousThenLockCurrent doc SystemCanEdit
---|>
---|> batch
-
-
-closeEditor : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-closeEditor model =
-    let
-        --mCurrentEditor : Maybe String
-        --mCurrentEditor =
-        --    model.currentDocument |> Maybe.andThen .currentEditor
-        mCurrentUsername : Maybe String
-        mCurrentUsername =
-            model.currentUser |> Maybe.map .username
-
-        currentEditors =
-            model.currentDocument
-                |> Maybe.map .currentEditors
-                |> Maybe.withDefault []
-                |> List.filter (\item -> Just item.username /= mCurrentUsername)
-
-        updatedDoc =
-            Maybe.map (\doc -> { doc | status = Document.DSReadOnly, currentEditors = currentEditors }) model.currentDocument
-
-        saveCmd =
-            case updatedDoc of
-                Nothing ->
-                    Cmd.none
-
-                Just doc ->
-                    sendToBackend (SaveDocument doc)
-
-        clearEditEventsCmd =
-            sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
-    in
-    { model | currentDocument = updatedDoc } |> join (\m -> ( { m | initialText = "", popupState = NoPopup, showEditor = False }, Cmd.batch [ saveCmd, clearEditEventsCmd ] )) unlockCurrentDocument
 
 
 

@@ -4,6 +4,7 @@ module Util exposing
     , currentUsername
     , delay
     , discardLines
+    , insertInList
     , insertInListOrUpdate
     , liftToMaybe
     , loop
