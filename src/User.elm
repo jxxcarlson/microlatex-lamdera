@@ -44,7 +44,10 @@ addEditor : Maybe User -> Document -> Document
 addEditor mUser doc =
     let
         f user doc_ =
-            { doc_ | status = Document.DSNormal, currentEditorList = insertInList { userId = user.id, username = user.username } doc_.currentEditorList }
+            { doc_
+                | status = Document.DSNormal
+                , currentEditorList = insertInList { userId = user.id, username = user.username } doc_.currentEditorList
+            }
     in
     applyIfDefined f mUser doc
 

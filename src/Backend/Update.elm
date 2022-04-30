@@ -562,7 +562,17 @@ resetCurrentEditorForUser username dict =
 
 
 cleanup model sessionId clientId =
-    ( { model | connectionDict = Dict.empty, editEvents = Deque.empty }, Cmd.none )
+    let
+        _ =
+            Debug.log "CLEANING" "UP"
+    in
+    ( { model
+        | connectionDict = Dict.empty
+        , editEvents = Deque.empty
+        , sharedDocumentDict = Share.removeConnectionFromSharedDocumentDict clientId model.sharedDocumentDict
+      }
+    , Cmd.none
+    )
 
 
 removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Cmd BackendMsg )

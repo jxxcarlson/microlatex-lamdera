@@ -633,7 +633,7 @@ update msg model =
                     ( model
                     , sendToBackend (SaveDocument newDocument)
                     )
-                        |> (\( m, c ) -> ( Frontend.Update.currentDocumentPostProcess newDocument m, c ))
+                        |> (\( m, c ) -> ( Frontend.Update.documentPostProcess newDocument m, c ))
 
         ToggleBackupVisibility ->
             ( { model | seeBackups = not model.seeBackups }, Cmd.none )
@@ -805,7 +805,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just doc ->
-                    ( Frontend.Update.currentDocumentPostProcess doc model, Cmd.none )
+                    ( Frontend.Update.documentPostProcess doc model, Cmd.none )
 
         SetPublic doc public ->
             Frontend.Update.setPublic model doc public
@@ -1046,8 +1046,25 @@ updateFromBackend msg model =
             let
                 _ =
                     Debug.log ("!! RECEIVED EVENT FOR " ++ Util.currentUsername model.currentUser) event
+
+                networkModel =
+                    NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
+                        |> Debug.log "!! NETWORK MODEL"
+
+                doc =
+                    NetworkModel.getLocalDocument networkModel |> Debug.log "!! DOC"
+
+                currentDocument =
+                    Maybe.map (\d -> { d | content = doc.content }) model.currentDocument
+
+                -- |> Debug.log ("!! DOC (" ++ Util.currentUsername model.currentUser ++ ")")
             in
-            ( model, Cmd.none )
+            case currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc_ ->
+                    ( Frontend.Update.documentPostProcess doc_ { model | networkModel = networkModel }, Cmd.none )
 
         ReceivedDocument documentHandling doc ->
             case documentHandling of
@@ -1166,7 +1183,7 @@ updateFromBackend msg model =
                             )
 
                         _ ->
-                            ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.currentDocumentPostProcess doc
+                            ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.documentPostProcess doc
                             , Cmd.none
                             )
 

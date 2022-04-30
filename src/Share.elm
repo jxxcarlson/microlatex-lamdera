@@ -7,6 +7,7 @@ module Share exposing
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
+    , removeConnectionFromSharedDocumentDict
     , resetDocument
     , shareDocument
     , unshare
@@ -26,6 +27,23 @@ import Util
 
 type alias Username =
     String
+
+
+removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+removeConnectionFromSharedDocumentDict clientId dict =
+    dict
+        |> Dict.toList
+        |> List.map (\( docId, sharedDoc ) -> ( docId, removeConnectionFromSharedDoc clientId sharedDoc ))
+        |> Dict.fromList
+
+
+removeConnectionFromSharedDoc : ClientId -> Types.SharedDocument -> Types.SharedDocument
+removeConnectionFromSharedDoc clientId sharedDoc =
+    let
+        currentEditors =
+            List.filter (\ed -> ed.clientId /= clientId) sharedDoc.currentEditors
+    in
+    { sharedDoc | currentEditors = currentEditors }
 
 
 resetDocument : Types.Username -> Types.SharedDocument -> Types.SharedDocument
