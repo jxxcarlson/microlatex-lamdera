@@ -194,7 +194,11 @@ updateFromFrontend sessionId clientId msg model =
             ( Share.updateSharedDocumentDict user doc model, Cmd.none )
 
         AddNewEditor user doc ->
-            ( model, Cmd.none )
+            let
+                sharedDocumentDict =
+                    Share.update user.username user.id doc clientId model.sharedDocumentDict
+            in
+            ( { model | sharedDocumentDict = sharedDocumentDict }, Cmd.none )
 
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
