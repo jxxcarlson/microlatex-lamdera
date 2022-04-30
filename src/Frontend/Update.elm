@@ -159,24 +159,15 @@ openEditor doc model =
                 [ Frontend.Cmd.setInitialEditorContent 20
 
                 --, sendToBackend (SaveDocument updatedDoc)
-                , sendToBackend (AddNewEditor user updatedDoc)
+                , if Predicate.documentIsMineOrIAmAnEditor (Just doc) model.currentUser then
+                    sendToBackend (AddNewEditor user updatedDoc)
+
+                  else
+                    Cmd.none
 
                 --, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) updatedDoc)
                 ]
             )
-
-
-endEdit : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-endEdit model =
-    case ( model.currentUser, model.currentDocument ) of
-        ( Nothing, _ ) ->
-            ( model, Cmd.none )
-
-        ( _, Nothing ) ->
-            ( model, Cmd.none )
-
-        ( Just user, Just doc ) ->
-            ( { model | currentDocument = Just (User.removeEditor user doc) }, Cmd.none )
 
 
 closeEditor : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )

@@ -1,5 +1,6 @@
 module Predicate exposing
     ( documentIsMine
+    , documentIsMineOrIAmAnEditor
     , documentIsMineOrSharedToMe
     , isSharedToMe
     , isSharedToMe_
@@ -26,6 +27,24 @@ documentIsMine maybeDoc maybeUser =
 
         ( Just doc, Just user ) ->
             doc.author == Just user.username
+
+
+documentIsMineOrIAmAnEditor : Maybe Document.Document -> Maybe User.User -> Bool
+documentIsMineOrIAmAnEditor mDoc mUser =
+    documentIsMine mDoc mUser || iAmAnEditor mDoc mUser
+
+
+iAmAnEditor : Maybe Document.Document -> Maybe User.User -> Bool
+iAmAnEditor mDoc mUser =
+    case ( mUser, mDoc ) of
+        ( Nothing, _ ) ->
+            False
+
+        ( _, Nothing ) ->
+            False
+
+        ( Just user, Just doc ) ->
+            List.member user.username doc.sharedWith.editors
 
 
 isSharedToMe : Maybe Document.Document -> Maybe User.User -> Bool
