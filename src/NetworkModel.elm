@@ -10,7 +10,7 @@ module NetworkModel exposing
     , initWithUserAndContent
     , initWithUsersAndContent
     , initialServerState
-    , initialServerState2
+    , manyUserInitialServerState
     , updateFromBackend
     , updateFromUser
     )
@@ -45,8 +45,8 @@ initialServerState docId userId content =
     }
 
 
-initialServerState2 : DocId -> List UserId -> String -> ServerState
-initialServerState2 docId userIds content =
+manyUserInitialServerState : DocId -> List UserId -> String -> ServerState
+manyUserInitialServerState docId userIds content =
     { cursorPositions = Dict.fromList (List.map (\id -> ( id, { x = 0, y = 0, p = 0 } )) userIds)
     , document = { id = docId, cursor = 0, x = 0, y = 0, content = content }
     }
@@ -108,7 +108,7 @@ initWithUserAndContent docId userId content =
 
 initWithUsersAndContent : DocId -> List UserId -> String -> NetworkModel
 initWithUsersAndContent docId userIds content =
-    init (initialServerState2 docId userIds content)
+    init (manyUserInitialServerState docId userIds content)
 
 
 updateFromUser : EditEvent -> NetworkModel -> NetworkModel

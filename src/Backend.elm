@@ -196,7 +196,7 @@ updateFromFrontend sessionId clientId msg model =
         AddNewEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.update user.username user.id doc clientId model.sharedDocumentDict
+                    Share.update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "!! AddNewEditor"
             in
             ( { model | sharedDocumentDict = sharedDocumentDict }, Cmd.none )
 
