@@ -260,9 +260,14 @@ doShare =
     buttonTemplate [] DoShare "Update"
 
 
-startCollaborativeEditing : Element FrontendMsg
-startCollaborativeEditing =
-    buttonTemplate [] StartCollaborativeEditing "Collaborate"
+startCollaborativeEditing : FrontendModel -> Element FrontendMsg
+startCollaborativeEditing model =
+    case model.collaborativeEditing of
+        True ->
+            buttonTemplate [] ToggleCollaborativeEditing "Collab: On"
+
+        False ->
+            buttonTemplate [] ToggleCollaborativeEditing "Collab: Off"
 
 
 toggleDocTools : FrontendModel -> Element FrontendMsg

@@ -152,6 +152,7 @@ type alias FrontendModel =
     , linenumber : Int
 
     -- COLLABORATIVE EDITING
+    , collaborativeEditing : Bool
     , editorCursor : Int
     , oTDocument : OT.Document
     , myCursorPosition : { x : Int, y : Int, p : Int }
@@ -321,7 +322,7 @@ type FrontendMsg
     | MessageSubmitted
     | InputChoseGroup String
       -- DOCUMENT
-    | StartCollaborativeEditing
+    | ToggleCollaborativeEditing
     | SetDocumentStatus Document.DocStatus
     | ChangeLanguage
     | MakeBackup
@@ -419,6 +420,7 @@ type ToBackend
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
     | InitializeNetworkModelsWithDocument Document
+    | ResetNetworkModelForDocument Document
     | PushEditorEvent NetworkModel.EditEvent
     | GetIncludedFiles Document (List String)
     | InsertDocument User Document
@@ -460,6 +462,7 @@ type ToFrontend
     | GotChatGroup (Maybe ChatGroup)
     | ChatMessageReceived ChatMsg
       -- DOCUMENT
+    | ResetNetworkModel NetworkModel.NetworkModel Document
     | InitializeNetworkModel NetworkModel.NetworkModel
     | ProcessEvent NetworkModel.EditEvent
     | GotIncludedData Document (List ( String, String ))

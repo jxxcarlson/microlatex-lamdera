@@ -137,6 +137,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- DOCUMENT
+      , collaborativeEditing = False
       , editorCursor = 0
       , oTDocument = OT.emptyDoc
       , myCursorPosition = { x = 0, y = 0, p = 0 }
@@ -663,13 +664,18 @@ update msg model =
         DoShare ->
             Share.doShare model
 
-        StartCollaborativeEditing ->
+        ToggleCollaborativeEditing ->
             case model.currentDocument of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just doc ->
-                    ( model, sendToBackend (InitializeNetworkModelsWithDocument doc) )
+                    case model.collaborativeEditing of
+                        False ->
+                            ( model, sendToBackend (InitializeNetworkModelsWithDocument doc) )
+
+                        True ->
+                            ( model, sendToBackend (ResetNetworkModelForDocument doc) )
 
         GetPinnedDocuments ->
             ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin") )
@@ -1020,7 +1026,18 @@ updateFromBackend msg model =
 
         -- DOCUMENT
         InitializeNetworkModel networkModel ->
-            ( { model | networkModel = networkModel }, Cmd.none )
+            ( { model | collaborativeEditing = True, networkModel = networkModel }, Cmd.none )
+
+        ResetNetworkModel networkModel document ->
+            ( { model
+                | collaborativeEditing = False
+                , networkModel = networkModel
+                , currentDocument = Just document
+                , documents = Util.updateDocumentInList document model.documents
+                , showEditor = False
+              }
+            , Cmd.none
+            )
 
         GotIncludedData doc listOfData ->
             let

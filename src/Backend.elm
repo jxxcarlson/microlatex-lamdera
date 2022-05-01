@@ -206,6 +206,25 @@ updateFromFrontend sessionId clientId msg model =
             in
             ( model, Cmd.batch cmds )
 
+        ResetNetworkModelForDocument doc ->
+            let
+                currentEditorList =
+                    doc.currentEditorList
+
+                document =
+                    { doc | currentEditorList = [] }
+
+                clientIds =
+                    List.map .clientId currentEditorList
+
+                networkModel =
+                    NetworkModel.initWithUsersAndContent "--fake--" [] ""
+
+                cmds =
+                    List.map (\clientId_ -> sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clientIds
+            in
+            ( model, Cmd.batch cmds )
+
         PushEditorEvent event ->
             { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }
                 |> Backend.NetworkModel.processEvent
