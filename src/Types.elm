@@ -307,6 +307,7 @@ type FrontendMsg
     | MessageSubmitted
     | InputChoseGroup String
       -- DOCUMENT
+    | StartCollaborativeEditing
     | SetDocumentStatus Document.DocStatus
     | ChangeLanguage
     | MakeBackup
@@ -403,6 +404,7 @@ type ToBackend
     | RemoveEditor User Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
+    | InitializeNetworkModelsWithDocument Document
     | PushEditorEvent NetworkModel.EditEvent
     | GetIncludedFiles Document (List String)
     | InsertDocument User Document
@@ -444,6 +446,7 @@ type ToFrontend
     | GotChatGroup (Maybe ChatGroup)
     | ChatMessageReceived ChatMsg
       -- DOCUMENT
+    | InitializeNetworkModel NetworkModel.NetworkModel
     | ProcessEvent NetworkModel.EditEvent
     | GotIncludedData Document (List ( String, String ))
     | AcceptUserTags (Dict String (List { id : String, title : String }))

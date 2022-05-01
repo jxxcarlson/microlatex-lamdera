@@ -56,6 +56,7 @@ module View.Button exposing
     , signUp
     , softDeleteDocument
     , standardDocs
+    , startCollaborativeEditing
     , startupHelp
     , syncButton
     , syncLR
@@ -257,6 +258,11 @@ share =
 
 doShare =
     buttonTemplate [] DoShare "Update"
+
+
+startCollaborativeEditing : Element FrontendMsg
+startCollaborativeEditing =
+    buttonTemplate [] StartCollaborativeEditing "Collaborate"
 
 
 toggleDocTools : FrontendModel -> Element FrontendMsg

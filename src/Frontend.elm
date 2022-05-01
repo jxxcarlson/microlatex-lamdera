@@ -613,11 +613,6 @@ update msg model =
         Narrow username document ->
             ( model, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
 
-        --LockCurrentDocument ->
-        --    Frontend.Update.addCurrentUserAsEditorToCurrentDocument model
-        --
-        --UnLockCurrentDocument ->
-        --    Frontend.Update.unlockCurrentDocument model
         -- DOCUMENT
         ChangeLanguage ->
             case model.currentDocument of
@@ -667,6 +662,14 @@ update msg model =
 
         DoShare ->
             Share.doShare model
+
+        StartCollaborativeEditing ->
+            case model.currentDocument of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    ( model, sendToBackend (InitializeNetworkModelsWithDocument doc) )
 
         GetPinnedDocuments ->
             ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin") )
@@ -1016,6 +1019,9 @@ updateFromBackend msg model =
             ( { model | connectedUsers = connectedUsers }, Cmd.none )
 
         -- DOCUMENT
+        InitializeNetworkModel networkModel ->
+            ( { model | networkModel = networkModel }, Cmd.none )
+
         GotIncludedData doc listOfData ->
             let
                 includedContent =
@@ -1029,11 +1035,6 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
-        --SmartUnLockCurrentDocument ->
-        --    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
-        --
-        --UnlockDocument docId ->
-        --    Frontend.Update.lockCurrentDocumentUnconditionally { model | messages = Message.make "Transferring lock to you" MSRed }
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Cmd.none )
 
@@ -1043,11 +1044,11 @@ updateFromBackend msg model =
         ProcessEvent event ->
             let
                 _ =
-                    Debug.log ("!! RECEIVED EVENT FOR " ++ Util.currentUsername model.currentUser) event
+                    Debug.log ("!!! EVENT FOR " ++ Util.currentUsername model.currentUser) event
 
                 networkModel =
                     NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
-                        |> Debug.log "!! NETWORK MODEL"
+                        |> Debug.log ("!!! MODEL" ++ Util.currentUsername model.currentUser)
 
                 doc =
                     NetworkModel.getLocalDocument networkModel |> Debug.log "!! DOC"
@@ -1057,12 +1058,13 @@ updateFromBackend msg model =
 
                 -- |> Debug.log ("!! DOC (" ++ Util.currentUsername model.currentUser ++ ")")
             in
-            case currentDocument of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just doc_ ->
-                    ( Frontend.Update.documentPostProcess doc_ { model | networkModel = networkModel }, Cmd.none )
+            --case currentDocument of
+            --    Nothing ->
+            --        ( model, Cmd.none )
+            --
+            --    Just doc_ ->
+            --        ( Frontend.Update.documentPostProcess doc_ { model | networkModel = networkModel }, Cmd.none )
+            ( model, Cmd.none )
 
         ReceivedDocument documentHandling doc ->
             case documentHandling of

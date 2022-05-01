@@ -35,6 +35,7 @@ import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
 import Message
+import NetworkModel
 import Random
 import Share
 import Time
@@ -186,6 +187,25 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.deliverUserMessage model clientId usermessage
 
         -- SHARE
+        InitializeNetworkModelsWithDocument doc ->
+            let
+                currentEditorList =
+                    doc.currentEditorList
+
+                userIds =
+                    List.map .userId currentEditorList
+
+                clientIds =
+                    List.map .clientId currentEditorList
+
+                networkModel =
+                    NetworkModel.initWithUsersAndContent doc.id userIds doc.content
+
+                cmds =
+                    List.map (\clientId_ -> sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clientIds
+            in
+            ( model, Cmd.batch cmds )
+
         PushEditorEvent event ->
             { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }
                 |> Backend.NetworkModel.processEvent
