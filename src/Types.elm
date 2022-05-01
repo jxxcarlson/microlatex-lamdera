@@ -81,7 +81,8 @@ import User exposing (User)
 
 
 type alias FrontendModel =
-    { key : Browser.Navigation.Key
+    { --SYSTEM
+      key : Browser.Navigation.Key
     , url : Url
     , messages : List Message
     , currentTime : Time.Posix
@@ -99,12 +100,20 @@ type alias FrontendModel =
     -- USER
     , userMessage : Maybe UserMessage
     , currentUser : Maybe User
+
+    -- INPUT
     , inputUsername : String
     , inputPassword : String
     , inputPasswordAgain : String
     , inputRealname : String
     , inputEmail : String
+    , inputTitle : String
     , inputLanguage : Language
+    , inputSearchTagsKey : String
+    , inputReaders : String
+    , inputEditors : String
+
+    -- TAGS
     , tagDict : Dict String (List { id : String, title : String })
     , publicTagDict : Dict String (List { id : String, title : String })
     , documentList : DocumentList
@@ -114,11 +123,9 @@ type alias FrontendModel =
     , windowWidth : Int
     , windowHeight : Int
     , popupStatus : PopupStatus
-    , showEditor : Bool
     , authorId : String
     , phoneMode : PhoneMode
     , pressedKeys : List Keyboard.Key
-    , activeDocList : ActiveDocList
     , maximizedIndex : MaximizedIndex
     , sidebarExtrasState : SidebarExtrasState
     , sidebarTagsState : SidebarTagsState
@@ -143,45 +150,52 @@ type alias FrontendModel =
     , selectedId : String
     , syncRequestIndex : Int
     , linenumber : Int
-    , doSync : Bool
 
-    -- DOCUMENT
+    -- COLLABORATIVE EDITING
     , editorCursor : Int
     , oTDocument : OT.Document
     , myCursorPosition : { x : Int, y : Int, p : Int }
     , networkModel : NetworkModel.NetworkModel
-    , includedContent : Dict String String
+
+    -- FLAGS
     , documentDirty : Bool
     , seeBackups : Bool
-    , publicDocumentSearchKey : String
-    , docLoaded : DocLoaded
-    , documentsCreatedCounter : Int
-    , initialText : String
-    , sourceText : String
-    , inputTitle : String
+    , showEditor : Bool
     , showDocTools : Bool
     , showPublicUrl : Bool
+    , doSync : Bool
 
-    --, ast : Markup.SyntaxTree
-    , editRecord : Compiler.DifferentialParser.EditRecord
-    , tableOfContents : List ExpressionBlock
-    , title : String
-    , searchCount : Int
-    , searchSourceText : String
-    , lineNumber : Int
-    , permissions : DocumentHandling
-    , debounce : Debounce String
+    -- DOCUMENT
+    -- DATA STRUCTURES
+    , activeDocList : ActiveDocList
+    , includedContent : Dict String String
     , currentDocument : Maybe Document
     , currentCheatsheet : Maybe Document
     , currentMasterDocument : Maybe Document
     , documents : List Document
     , pinnedDocuments : List Document.DocumentInfo
     , publicDocuments : List Document
+    , initialText : String
+    , sourceText : String
+    , editRecord : Compiler.DifferentialParser.EditRecord
+    , tableOfContents : List ExpressionBlock
+
+    -- Unclassified
+    , title : String
+    , lineNumber : Int
+    , permissions : DocumentHandling
+    , debounce : Debounce String
+
+    -- SEARCH
+    , publicDocumentSearchKey : String
+    , documentsCreatedCounter : Int
+    , searchCount : Int
+    , searchSourceText : String
     , inputSearchKey : String
     , actualSearchKey : String
-    , inputSearchTagsKey : String
-    , inputReaders : String
-    , inputEditors : String
+
+    -- STATE
+    , docLoaded : DocLoaded
     , printingState : PrintingState
     , documentDeleteState : DocumentDeleteState
     , counter : Int
