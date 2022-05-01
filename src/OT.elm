@@ -1,10 +1,33 @@
-module OT exposing (Document, Operation(..), apply, emptyDoc, findOps, reconcile)
+module OT exposing
+    ( Document
+    , Operation(..)
+    , apply
+    , emptyDoc
+    , encodeOperation
+    , findOps
+    , reconcile
+    )
+
+import Json.Encode as E
 
 
 type Operation
     = Insert String
     | Delete Int
     | Skip Int
+
+
+encodeOperation : Operation -> E.Value
+encodeOperation op =
+    case op of
+        Insert str ->
+            E.object [ ( "op", E.string "insert" ), ( "strval", E.string str ) ]
+
+        Delete k ->
+            E.object [ ( "op", E.string "delete" ), ( "intval", E.int k ) ]
+
+        Skip k ->
+            E.object [ ( "op", E.string "skip" ), ( "intval", E.int k ) ]
 
 
 type alias Document =

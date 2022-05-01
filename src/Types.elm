@@ -152,6 +152,8 @@ type alias FrontendModel =
     , linenumber : Int
 
     -- COLLABORATIVE EDITING
+    , editorEvent : ( Int, Maybe NetworkModel.EditEvent )
+    , eventQueue : Deque NetworkModel.EditEvent
     , collaborativeEditing : Bool
     , editorCursor : Int
     , oTDocument : OT.Document

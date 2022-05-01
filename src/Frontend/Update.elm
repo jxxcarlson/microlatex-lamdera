@@ -647,7 +647,7 @@ inputText model { position, source } =
             editEvent =
                 NetworkModel.createEvent userId model.oTDocument newOTDocument
         in
-        ( { model | oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
+        ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
 
     else
         inputText_ model source

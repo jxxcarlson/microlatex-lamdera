@@ -9,6 +9,7 @@ import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
 import Debounce
+import Deque
 import Dict
 import Docs
 import Document
@@ -136,12 +137,16 @@ init url key =
       , searchSourceText = ""
       , syncRequestIndex = 0
 
-      -- DOCUMENT
+      -- COLLABORATIVE EDITING
+      , editorEvent = ( 0, Nothing )
+      , eventQueue = Deque.empty
       , collaborativeEditing = False
       , editorCursor = 0
       , oTDocument = OT.emptyDoc
       , myCursorPosition = { x = 0, y = 0, p = 0 }
       , networkModel = NetworkModel.init NetworkModel.emptyServerState
+
+      -- DOCUMENT
       , includedContent = Dict.empty
       , showPublicUrl = False
       , documentDirty = False
@@ -1024,7 +1029,7 @@ updateFromBackend msg model =
         GotConnectionList connectedUsers ->
             ( { model | connectedUsers = connectedUsers }, Cmd.none )
 
-        -- DOCUMENT
+        -- COLLABORATIVE EDITING
         InitializeNetworkModel networkModel ->
             ( { model | collaborativeEditing = True, networkModel = networkModel }, Cmd.none )
 
@@ -1039,6 +1044,7 @@ updateFromBackend msg model =
             , Cmd.none
             )
 
+        -- DOCUMENT
         GotIncludedData doc listOfData ->
             let
                 includedContent =
@@ -1058,6 +1064,7 @@ updateFromBackend msg model =
         AcceptPublicTags tagDict ->
             ( { model | publicTagDict = tagDict }, Cmd.none )
 
+        -- COLLABORATIVE EDITING
         ProcessEvent event ->
             let
                 _ =
@@ -1074,8 +1081,22 @@ updateFromBackend msg model =
                 newEditRecord : Compiler.DifferentialParser.EditRecord
                 newEditRecord =
                     Compiler.DifferentialParser.init model.includedContent model.language doc.content
+
+                editorEvent =
+                    if Util.currentUserId model.currentUser /= event.userId then
+                        ( model.counter, Just event ) |> Debug.log "!!! Add Event"
+
+                    else
+                        model.editorEvent
             in
-            ( { model | networkModel = networkModel, editRecord = newEditRecord }, Cmd.none )
+            ( { model
+                | editorEvent = editorEvent
+                , eventQueue = Deque.pushFront event model.eventQueue
+                , networkModel = networkModel
+                , editRecord = newEditRecord
+              }
+            , Cmd.none
+            )
 
         ReceivedDocument documentHandling doc ->
             case documentHandling of

@@ -20597,7 +20597,7 @@ window.initCodeMirror = function () {
 
     class CodemirrorEditor extends HTMLElement {
 
-        static get observedAttributes() { return ['selection', 'linenumber', 'text']; }
+        static get observedAttributes() { return ['editorevent','selection', 'linenumber', 'text']; }
 
         constructor(self) {
 
@@ -20697,6 +20697,10 @@ window.initCodeMirror = function () {
                 function attributeChangedCallback_(editor, attr, oldVal, newVal) {
                    switch (attr) {
 
+                      case "editorevent":
+                            console.log("editor event!!!", newVal);
+                            break
+
                       case "linenumber":
                               // receive info from Elm (see Main.editor_)
                               // scroll the editor to the given line
@@ -20707,6 +20711,7 @@ window.initCodeMirror = function () {
                                editor.dispatch({selection: {anchor: parseInt(loc.from)}});
                                editor.scrollPosIntoView(loc.from);
                             break
+
                       case "text":
                             // receive info from Elm (see Main.editor_):
                             // replace editor text with what was sent from Elm

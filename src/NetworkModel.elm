@@ -11,11 +11,14 @@ module NetworkModel exposing
     , initWithUsersAndContent
     , initialServerState
     , manyUserInitialServerState
+    , nullEvent
+    , toString
     , updateFromBackend
     , updateFromUser
     )
 
 import Dict exposing (Dict)
+import Json.Encode as E
 import List.Extra
 import OT
 
@@ -36,6 +39,33 @@ type alias ServerState =
     { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
     , document : OT.Document
     }
+
+
+toString : ( Int, Maybe EditEvent ) -> String
+toString ( k, mEvent ) =
+    case mEvent of
+        Nothing ->
+            "null: " ++ String.fromInt k
+
+        Just event ->
+            ( k, event ) |> encodeEvent |> E.encode 2
+
+
+encodeEvent : ( Int, EditEvent ) -> E.Value
+encodeEvent ( k, event ) =
+    E.object
+        [ ( "name", E.string "OTOp" )
+        , ( "dp", E.int event.dp )
+        , ( "dx", E.int event.dx )
+        , ( "dy", E.int event.dy )
+        , ( "ops", E.list OT.encodeOperation event.operations )
+        , ( "count", E.int k )
+        ]
+
+
+nullEvent : E.Value
+nullEvent =
+    E.object [ ( "name", E.string "OTNull" ) ]
 
 
 initialServerState : DocId -> UserId -> String -> ServerState

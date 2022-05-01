@@ -9,6 +9,7 @@ import Html
 import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
+import NetworkModel
 import Types exposing (FrontendModel, FrontendMsg(..))
 import View.Geometry as Geometry
 
@@ -33,6 +34,7 @@ view model =
                 [ HtmlAttr.attribute "text" model.initialText -- send info to codemirror
                 , HtmlAttr.attribute "linenumber" (String.fromInt (model.linenumber - 1)) -- send info to codemirror
                 , HtmlAttr.attribute "selection" (stringOfBool model.doSync) -- send info to codemirror
+                , HtmlAttr.attribute "editorevent" (NetworkModel.toString model.editorEvent)
                 ]
                 []
             )
