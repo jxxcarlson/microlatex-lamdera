@@ -143,7 +143,7 @@ class CodemirrorEditor extends HTMLElement {
                switch (attr) {
 
                   case "editorevent":
-                        console.log("editor event!!!", newVal)
+                        console.log("editor event!!!", JSON.parse(newVal))
                         break
 
                   case "linenumber":
