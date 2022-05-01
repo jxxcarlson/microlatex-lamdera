@@ -4,7 +4,6 @@ module Frontend.Update exposing
     , changeLanguage
     , closeEditor
     , debounceMsg
-    , documentPostProcess
     , exportToLaTeX
     , exportToMarkdown
     , firstSyncLR
@@ -23,6 +22,7 @@ module Frontend.Update exposing
     , newDocument
     , nextSyncLR
     , openEditor
+    , postProcessDocument
     , preserveCurrentDocument
     , render
     , runSpecial
@@ -964,7 +964,7 @@ changeLanguage model =
             ( { model | documentDirty = False }
             , sendToBackend (SaveDocument newDoc)
             )
-                |> (\( m, c ) -> ( documentPostProcess newDoc m, c ))
+                |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
 
 
 saveDocument : Maybe Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
@@ -977,8 +977,8 @@ saveDocument mDoc model =
             ( { model | documentDirty = False }, sendToBackend (SaveDocument doc) )
 
 
-documentPostProcess : Document.Document -> FrontendModel -> FrontendModel
-documentPostProcess doc model =
+postProcessDocument : Document.Document -> FrontendModel -> FrontendModel
+postProcessDocument doc model =
     let
         newEditRecord : Compiler.DifferentialParser.EditRecord
         newEditRecord =
