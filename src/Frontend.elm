@@ -1050,6 +1050,7 @@ updateFromBackend msg model =
                     NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
                         |> Debug.log ("!!! MODEL " ++ Util.currentUsername model.currentUser)
 
+                doc : OT.Document
                 doc =
                     NetworkModel.getLocalDocument networkModel |> Debug.log "!! DOC"
 
