@@ -653,7 +653,7 @@ signIn model sessionId clientId username encryptedPassword =
                             Just groupName ->
                                 Dict.get groupName model.chatGroupDict
                 in
-                ( { model | connectionDict = newConnectionDict_ }
+                ( { model | connectionDict = newConnectionDict_ |> Debug.log "!!! Sign In, ConnectionDict" }
                 , Cmd.batch
                     [ -- TODO: restore the below
                       sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)

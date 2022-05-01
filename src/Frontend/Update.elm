@@ -13,7 +13,6 @@ module Frontend.Update exposing
     , handleCurrentDocumentChange
     , handlePinnedDocuments
     , handleReceivedDocumentAsCheatsheet
-    , handleSignIn
     , handleSignUp
     , handleUrlRequest
     , hardDeleteDocument
@@ -38,6 +37,7 @@ module Frontend.Update exposing
     , setPublicDocumentAsCurrentById
     , setUserLanguage
     , setViewportForElement
+    , signIn
     , signOut
     , softDeleteDocument
     , syncLR
@@ -1125,7 +1125,7 @@ signOut model =
 --     , Cmd.batch (narrowCastDocs model username documents)
 
 
-handleSignIn model =
+signIn model =
     if String.length model.inputPassword >= 8 then
         case Config.defaultUrl of
             Nothing ->

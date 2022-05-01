@@ -33,7 +33,10 @@ processEventCmd sharedDocumentDict event =
         Just sharedDoc ->
             let
                 _ =
-                    Debug.log "PROCESS, currentEditors" sharedDoc.currentEditors
+                    Debug.log "!!! PROCESS, currentEditors" (sharedDoc.currentEditors |> List.length)
+
+                _ =
+                    Debug.log "!!! PROCESS, currentEditors" sharedDoc.currentEditors
             in
             Cmd.batch (List.foldl (\editor cmds -> cmdOfEditor editor event :: cmds) [] sharedDoc.currentEditors)
 

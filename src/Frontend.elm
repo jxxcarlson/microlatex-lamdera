@@ -426,7 +426,7 @@ update msg model =
             Frontend.Update.handleSignUp model
 
         SignIn ->
-            Frontend.Update.handleSignIn model
+            Frontend.Update.signIn model
 
         SignOut ->
             Frontend.Update.signOut model
@@ -1048,7 +1048,7 @@ updateFromBackend msg model =
 
                 networkModel =
                     NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
-                        |> Debug.log ("!!! MODEL" ++ Util.currentUsername model.currentUser)
+                        |> Debug.log ("!!! MODEL " ++ Util.currentUsername model.currentUser)
 
                 doc =
                     NetworkModel.getLocalDocument networkModel |> Debug.log "!! DOC"
@@ -1064,7 +1064,7 @@ updateFromBackend msg model =
             --
             --    Just doc_ ->
             --        ( Frontend.Update.documentPostProcess doc_ { model | networkModel = networkModel }, Cmd.none )
-            ( model, Cmd.none )
+            ( { model | networkModel = networkModel }, Cmd.none )
 
         ReceivedDocument documentHandling doc ->
             case documentHandling of
