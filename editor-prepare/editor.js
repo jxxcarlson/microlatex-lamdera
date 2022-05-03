@@ -48,7 +48,7 @@ function editTransaction(editor, editEvent) {
             var op = ops[0]
 
             if (typeof(op) != 'undefined') {
-                switch (op) {
+                switch (op.op) {
 
                        case "insert":
                            (editTransactionForInsert(editor, editEvent.dp, op.strval))

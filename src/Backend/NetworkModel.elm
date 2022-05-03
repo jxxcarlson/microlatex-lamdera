@@ -26,6 +26,10 @@ processEvent model =
 
 processEventCmd : Types.SharedDocumentDict -> EditEvent -> Cmd BackendMsg
 processEventCmd sharedDocumentDict event =
+    let
+        _ =
+            Debug.log "!!! sharedDocumentDict" sharedDocumentDict
+    in
     case Dict.get event.docId sharedDocumentDict of
         Nothing ->
             Cmd.none |> Debug.log "PROCESS, Nothing"

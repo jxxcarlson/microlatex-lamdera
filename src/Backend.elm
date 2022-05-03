@@ -190,7 +190,7 @@ updateFromFrontend sessionId clientId msg model =
         InitializeNetworkModelsWithDocument doc ->
             let
                 currentEditorList =
-                    doc.currentEditorList
+                    doc.currentEditorList |> Debug.log "!!! Network init, editors"
 
                 userIds =
                     List.map .userId currentEditorList
@@ -201,10 +201,19 @@ updateFromFrontend sessionId clientId msg model =
                 networkModel =
                     NetworkModel.initWithUsersAndContent doc.id userIds doc.content
 
+                sharedDocument_ =
+                    Share.toSharedDocument doc
+
+                sharedDocument =
+                    { sharedDocument_ | currentEditors = doc.currentEditorList }
+
+                sharedDocumentDict =
+                    Dict.insert doc.id sharedDocument model.sharedDocumentDict
+
                 cmds =
                     List.map (\clientId_ -> sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clientIds
             in
-            ( model, Cmd.batch cmds )
+            ( { model | sharedDocumentDict = sharedDocumentDict }, Cmd.batch cmds )
 
         ResetNetworkModelForDocument doc ->
             let

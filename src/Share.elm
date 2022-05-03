@@ -9,6 +9,7 @@ module Share exposing
     , removeEditor
     , resetDocument
     , shareDocument
+    , toSharedDocument
     , unshare
     , update
     , updateSharedDocumentDict
