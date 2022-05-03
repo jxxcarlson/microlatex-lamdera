@@ -731,7 +731,7 @@ type alias SharedDocument =
 {-| key = docId
 -}
 type alias SharedDocumentDict =
-    Dict String SharedDocument
+    Dict DocId SharedDocument
 
 
 

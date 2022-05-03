@@ -37,7 +37,56 @@ let myTheme = EditorView.theme({
 }, {dark: true})
 
 
+function editTransaction(editor, editEvent) {
+    console.log("!!! editTransaction, ENTER", editEvent)
+//    var pos = editor.state.selection.main.head
+//    console.log("!!! editTransaction, position", pos)
 
+//    var op = editEvent.ops[0]
+//    console.log=("!!! op", op)
+//    switch (op) {
+//
+//       case "insert":
+//           (editTransactionForInsert(editor, pos, editEvent.dp, op.strval))
+//           break;
+//
+//       case "skip":
+//           (editTransactionForSkip(editor, pos, editEvent.dp, op.intval))
+//           break;
+//
+//       case "delete":
+//            (editTransactionForDelete(editor, pos, editEvent.dp, op.intval))
+//            break;
+//
+//     }
+
+}
+//
+//function editTransactionForInsert(editor, pos, dp, str) {
+//
+//    return
+//      {
+//        changes: {from: pos + dp, insert: str}
+//      }
+//
+//
+//}
+//
+//function editTransactionForSkip(editor, pos, dp, k) {
+//
+//    return
+//      {
+//        changes: {from: pos + dp, insert: ""}
+//      }
+//}
+//
+//function editTransactionForDelete(editor, pos, dp, k) {
+//
+//    return
+//      {
+//        changes: {from: pos + dp, to: pos + dp + k, insert: ""}
+//      }
+//}
 
 class CodemirrorEditor extends HTMLElement {
 
@@ -56,6 +105,7 @@ class CodemirrorEditor extends HTMLElement {
         console.log("CM EDITOR: In connectedCallback")
 
         let editorNode = document.querySelector('#editor-here');
+
 
             function sendText(editor) {
                 const event = new CustomEvent('text-change',
@@ -143,7 +193,9 @@ class CodemirrorEditor extends HTMLElement {
                switch (attr) {
 
                   case "editorevent":
-                        console.log("editor event!!!", JSON.parse(newVal))
+                        var editEvent = JSON.parse(newVal)
+                        console.log("editor event!!!",editEvent)
+                        editTransaction(editor, editEvent)
                         break
 
                   case "linenumber":

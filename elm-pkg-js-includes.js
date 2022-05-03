@@ -2,7 +2,7 @@
 // For now, its presence will mean Lamdera detects the extra JS and packages
 // In future this will be more structured + restricted once the design is done
 const elm_katex= require('./elm-pkg-js/elm-katex.js')
-const mhchem_package= require('./elm-pkg-js/mhchem.js')
+// const mhchem_package= require('./elm-pkg-js/mhchem.js')
 const codemirror_element= require('./elm-pkg-js/codemirror-element.js')
 
 

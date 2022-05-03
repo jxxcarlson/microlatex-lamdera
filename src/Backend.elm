@@ -235,7 +235,7 @@ updateFromFrontend sessionId clientId msg model =
         AddEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "!! AddEditor"
+                    Share.update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "!!@ AddEditor"
 
                 equal a b =
                     a.userId == b.userId
@@ -257,7 +257,7 @@ updateFromFrontend sessionId clientId msg model =
         RemoveEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.removeEditor user.id doc model.sharedDocumentDict |> Debug.log "!! RemoveEditor"
+                    Share.removeEditor user.id doc model.sharedDocumentDict |> Debug.log "!!@ RemoveEditor"
 
                 oldEditorList =
                     doc.currentEditorList
@@ -268,7 +268,8 @@ updateFromFrontend sessionId clientId msg model =
                 document =
                     { doc | currentEditorList = currentEditorList }
             in
-            ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCast user.username document model.connectionDict )
+            -- ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCast user.username document model.connectionDict )
+            ( model, Cmd.none )
 
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
@@ -301,14 +302,15 @@ updateFromFrontend sessionId clientId msg model =
                 Just username ->
                     case Env.mode of
                         Env.Production ->
-                            Backend.Update.removeSessionClient model sessionId clientId
+                            Backend.Update.signOut model username clientId
 
                         Env.Development ->
-                            Backend.Update.removeSessionClient model sessionId clientId
+                            Backend.Update.signOut model username clientId
                                 |> (\( m1, c1 ) ->
                                         let
                                             ( m2, c2 ) =
-                                                Backend.Update.cleanup m1 sessionId clientId
+                                                -- Backend.Update.cleanup m1 sessionId clientId
+                                                ( m1, c1 )
                                         in
                                         ( m2, Cmd.batch [ c1, c2 ] )
                                    )

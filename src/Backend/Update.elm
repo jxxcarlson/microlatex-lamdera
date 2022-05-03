@@ -35,6 +35,7 @@ module Backend.Update exposing
     , searchForDocumentsByAuthorAndKey
     , searchForPublicDocuments
     , signIn
+    , signOut
     , signUpUser
     , unlockDocuments
     , updateAbstracts
@@ -572,6 +573,49 @@ cleanup model sessionId clientId =
         , sharedDocumentDict = Share.removeConnectionFromSharedDocumentDict clientId model.sharedDocumentDict
       }
     , Cmd.none
+    )
+
+
+{-|
+
+        This function differs from  removeSessionClient only in (a) it does not use the sessionId,
+        (b) it treats the connectionDict more gingerely.
+
+-}
+signOut : BackendModel -> Types.Username -> ClientId -> ( BackendModel, Cmd BackendMsg )
+signOut model username clientId =
+    let
+        userConnections : List ConnectionData
+        userConnections =
+            Dict.get username model.connectionDict |> Maybe.withDefault []
+
+        connectionDict =
+            Dict.remove username model.connectionDict
+
+        activeSharedDocIds =
+            Share.activeDocumentIdsSharedByMe username model.sharedDocumentDict |> List.map .id
+
+        documents : List Document.Document
+        documents =
+            List.foldl (\id list -> Dict.get id model.documentDict :: list) [] activeSharedDocIds
+                |> Maybe.Extra.values
+                |> List.map (\doc -> Share.unshare doc)
+
+        pushSignOutDocCmd : Cmd BackendMsg
+        pushSignOutDocCmd =
+            fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
+
+        notifications =
+            broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
+
+        updatedModel =
+            setDocumentsToReadOnlyWithUserName username model
+    in
+    ( { updatedModel
+        | sharedDocumentDict = Dict.map Share.resetDocument model.sharedDocumentDict
+        , connectionDict = connectionDict
+      }
+    , Cmd.batch <| pushSignOutDocCmd :: notifications
     )
 
 
