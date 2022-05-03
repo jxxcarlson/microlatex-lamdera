@@ -18,7 +18,7 @@ type alias State =
 
 init : List EditEvent -> State
 init events =
-    { a = NetworkModel.initWithUsersAndContent [ "a", "b" ] "", b = NetworkModel.initWithUsersAndContent [ "a", "b" ] "", server = [], input = events, count = 0 }
+    { a = NetworkModel.initWithUsersAndContent "x" [ "a", "b" ] "", b = NetworkModel.initWithUsersAndContent "x" [ "a", "b" ] "", server = [], input = events, count = 0 }
 
 
 pass : State -> Bool

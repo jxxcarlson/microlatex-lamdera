@@ -22,7 +22,7 @@ toCommand cursor event =
             Just (CInsert cursor str)
 
         (OT.Skip k) :: [] ->
-            Just (CSkip cursor k)
+            Just (CSkip 0 k)
 
         (OT.Skip _) :: (OT.Delete k) :: [] ->
             Just (CDelete cursor k)
