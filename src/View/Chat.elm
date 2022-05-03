@@ -141,8 +141,12 @@ viewMessages_ h model =
                 , Background.color Color.transparentBlue
                 , E.paddingXY 6 16
                 ]
-        , chatInput model MessageFieldChanged |> E.html
-        , button (onClick MessageSubmitted :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
+
+        -- , chatInput model MessageFieldChanged |> E.html
+        , chatInput model InputCommand |> E.html
+
+        -- , button (onClick MessageSubmitted :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
+        , button (onClick RunCommand :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
         ]
 
 
@@ -153,9 +157,11 @@ chatInput model msg =
          , type_ "text"
          , onInput msg
          , style "height" "30px"
-         , onEnter Types.MessageSubmitted
+         , onEnter Types.RunCommand --- Types.MessageSubmitted
          , placeholder model.chatMessageFieldContent
-         , value model.chatMessageFieldContent
+
+         -- , value model.chatMessageFieldContent
+         , value model.inputCommand
          , style "width" "353px"
          , autofocus True
          ]

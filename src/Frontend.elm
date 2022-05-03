@@ -26,6 +26,7 @@ import Markup
 import Message
 import NetworkModel
 import OT
+import OTCommand
 import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
@@ -138,7 +139,8 @@ init url key =
       , syncRequestIndex = 0
 
       -- COLLABORATIVE EDITING
-      , editorEvent = ( 0, Nothing )
+      , editCommand = { counter = -1, command = Nothing }
+      , editorEvent = { counter = 0, cursor = 0, event = Nothing }
       , eventQueue = Deque.empty
       , collaborativeEditing = False
       , editorCursor = 0
@@ -181,6 +183,7 @@ init url key =
       , inputTitle = ""
       , inputReaders = ""
       , inputEditors = ""
+      , inputCommand = ""
       }
     , Cmd.batch
         [ Frontend.Cmd.setupWindow
@@ -753,6 +756,9 @@ update msg model =
         InputText { position, source } ->
             Frontend.Update.inputText model { position = position, source = source }
 
+        InputCommand str ->
+            ( { model | inputCommand = str }, Cmd.none )
+
         InputCursor { position, source } ->
             Frontend.Update.inputCursor { position = position, source = source } model
 
@@ -868,6 +874,9 @@ update msg model =
 
         Export ->
             issueCommandIfDefined model.currentDocument model exportDoc
+
+        RunCommand ->
+            ( { model | counter = model.counter + 1, editCommand = { counter = model.counter, command = OTCommand.parseCommand model.inputCommand |> Debug.log "!!!@ Edit Command" } }, Cmd.none )
 
         PrintToPDF ->
             PDF.print model
@@ -1087,15 +1096,16 @@ updateFromBackend msg model =
 
                 editorEvent =
                     if Util.currentUserId model.currentUser /= event.userId then
-                        ( model.counter, Just event ) |> Debug.log "!!! Add Event"
+                        Just event |> Debug.log "!!! Add Event"
 
                     else
-                        model.editorEvent
+                        model.editorEvent.event
             in
             ( { model
-                | --editorEvent = editorEvent
-                  -- ,  eventQueue = Deque.pushFront event model.eventQueue
-                  networkModel = networkModel
+                | editorEvent = { counter = model.counter, cursor = cursor, event = editorEvent }
+
+                -- ,  eventQueue = Deque.pushFront event model.eventQueue
+                , networkModel = networkModel
                 , editRecord = newEditRecord
               }
             , Cmd.none

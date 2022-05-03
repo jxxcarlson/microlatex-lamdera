@@ -67,6 +67,7 @@ import Keyboard
 import Lamdera exposing (ClientId, SessionId)
 import NetworkModel
 import OT
+import OTCommand
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
@@ -102,6 +103,7 @@ type alias FrontendModel =
     , currentUser : Maybe User
 
     -- INPUT
+    , inputCommand : String
     , inputUsername : String
     , inputPassword : String
     , inputPasswordAgain : String
@@ -152,7 +154,8 @@ type alias FrontendModel =
     , linenumber : Int
 
     -- COLLABORATIVE EDITING
-    , editorEvent : ( Int, Maybe NetworkModel.EditEvent )
+    , editCommand : { counter : Int, command : Maybe OTCommand.Command }
+    , editorEvent : { counter : Int, cursor : Int, event : Maybe NetworkModel.EditEvent }
     , eventQueue : Deque NetworkModel.EditEvent
     , collaborativeEditing : Bool
     , editorCursor : Int
@@ -282,6 +285,8 @@ type FrontendMsg
     | SetSignupState SignupState
     | DoSignUp
     | SignOut
+    | InputCommand String
+    | RunCommand
     | InputUsername String
     | InputPassword String
     | InputPasswordAgain String

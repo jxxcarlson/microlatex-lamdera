@@ -38,36 +38,23 @@ let myTheme = EditorView.theme({
 
 
 function editTransaction(editor, editEvent) {
-    var evt = editEvent
-    console.log("!!! editTransaction, EVENT", evt)
+    var event = editEvent
+    console.log("!!!@@ editTransaction, EVENT", event)
 
-    if (typeof(evt.ops) != 'undefined')
-       {
-            var ops = evt.ops
-            console.log("!!! EVENT, operations",ops)
-            var op = ops[0]
+        switch (event.op) {
 
-            if (typeof(op) != 'undefined') {
-                switch (op.op) {
+               case "insert":
+                   (editTransactionForInsert(editor, event.cursor, event.strval))
+                   break;
 
-                       case "insert":
-                           (editTransactionForInsert(editor, editEvent.dp, op.strval))
-                           break;
+               case "skip":
+                   (editTransactionForSkip(editor, event.cursor, event.intval))
+                   break;
 
-                       case "skip":
-                           (editTransactionForSkip(editor, editEvent.dp, op.intval))
-                           break;
-
-                       case "delete":
-                            (editTransactionForDelete(editor, editEvent.dp, op.intval))
-                            break;
-                }
-           }
-           else
-           { console.log("op is undefined (array ops is empty)")}
-       }
-    else
-       {console.log("evt.ops is undefined")}
+               case "delete":
+                    (editTransactionForDelete(editor, event.cursor, event.intval))
+                    break;
+        }
 
 
 
@@ -80,24 +67,24 @@ function editTransaction(editor, editEvent) {
 
 }
 
-function editTransactionForInsert(editor, dp, str) {
-   console.log("T.Insert", dp, str)
-   editor.dispatch({ changes: {from: dp, insert: str}})
+function editTransactionForInsert(editor, cursor, str) {
+   console.log("T.Insert (cursor, str)", cursor, str)
+   editor.dispatch({ changes: {from: cursor, insert: str}})
   }
 
-function editTransactionForSkip(editor, dp, k) {
-    console.log("T.skip", dp, k)
-    editor.dispatch({ changes: {from: dp, to: k, insert: ""}})
+function editTransactionForSkip(editor, cursor, k) {
+    console.log("T.skip (cursor, skip)", cursor, k)
+    editor.dispatch({ changes: {from: cursor + k, insert: ""}})
 }
 
-function editTransactionForDelete(editor, dp, k) {
-   console.log("T.delete", dp, k)
-   editor.dispatch({ changes: {from: dp, to: dp + k, insert: ""}})
+function editTransactionForDelete(editor, cursor, k) {
+   console.log("T.delete (cursor, k)", k)
+   editor.dispatch({ changes: {from: cursor, to: cursor + k, insert: ""}})
 }
 
 class CodemirrorEditor extends HTMLElement {
 
-    static get observedAttributes() { return ['editorevent','selection', 'linenumber', 'text']; }
+    static get observedAttributes() { return ['editcommand','selection', 'linenumber', 'text']; }
 
     constructor(self) {
 
@@ -199,13 +186,16 @@ class CodemirrorEditor extends HTMLElement {
             function attributeChangedCallback_(editor, attr, oldVal, newVal) {
                switch (attr) {
 
-                  case "editorevent":
+                  case "editcommand":
+                        console.log("!!!@ IN EDIT COMMAND !")
                         var editEvent = JSON.parse(newVal)
+
                         console.log("editor event!!!",editEvent)
                         editTransaction(editor, editEvent)
                         break
 
                   case "linenumber":
+                         console.log("!!!@ IN linenumber !")
                           // receive info from Elm (see Main.editor_)
                           // scroll the editor to the given line
                            var lineNumber = parseInt(newVal) + 2

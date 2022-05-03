@@ -41,25 +41,26 @@ type alias ServerState =
     }
 
 
-toString : ( Int, Maybe EditEvent ) -> String
-toString ( k, mEvent ) =
-    case mEvent of
+toString : { counter : Int, cursor : Int, event : Maybe EditEvent } -> String
+toString { counter, cursor, event } =
+    case event of
         Nothing ->
-            "null: " ++ String.fromInt k
+            "null: " ++ String.fromInt counter
 
-        Just event ->
-            ( k, event ) |> encodeEvent |> E.encode 2
+        Just event_ ->
+            { counter = counter, cursor = cursor, event = event_ } |> encodeEvent |> E.encode 2
 
 
-encodeEvent : ( Int, EditEvent ) -> E.Value
-encodeEvent ( k, event ) =
+encodeEvent : { counter : Int, cursor : Int, event : EditEvent } -> E.Value
+encodeEvent { counter, cursor, event } =
     E.object
         [ ( "name", E.string "OTOp" )
         , ( "dp", E.int event.dp )
         , ( "dx", E.int event.dx )
         , ( "dy", E.int event.dy )
         , ( "ops", E.list OT.encodeOperation event.operations )
-        , ( "count", E.int k )
+        , ( "cursor", E.int cursor )
+        , ( "counter", E.int counter )
         ]
 
 
