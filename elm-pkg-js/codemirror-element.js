@@ -20594,55 +20594,61 @@ window.initCodeMirror = function () {
 
 
     function editTransaction(editor, editEvent) {
-        console.log("!!! editTransaction, ENTER", editEvent);
+        var evt = editEvent;
+        console.log("!!! editTransaction, EVENT", evt);
+
+        if (typeof(evt.ops) != 'undefined')
+           {
+                var ops = evt.ops;
+                console.log("!!! EVENT, operations",ops);
+                var op = ops[0];
+
+                if (typeof(op) != 'undefined') {
+                    switch (op) {
+
+                           case "insert":
+                               (editTransactionForInsert(editor, editEvent.dp, op.strval));
+                               break;
+
+                           case "skip":
+                               (editTransactionForSkip(editor, editEvent.dp, op.intval));
+                               break;
+
+                           case "delete":
+                                (editTransactionForDelete(editor, editEvent.dp, op.intval));
+                                break;
+                    }
+               }
+               else
+               { console.log("op is undefined (array ops is empty)");}
+           }
+        else
+           {console.log("evt.ops is undefined");}
+
+
+
     //    var pos = editor.state.selection.main.head
     //    console.log("!!! editTransaction, position", pos)
 
-    //    var op = editEvent.ops[0]
-    //    console.log=("!!! op", op)
-    //    switch (op) {
-    //
-    //       case "insert":
-    //           (editTransactionForInsert(editor, pos, editEvent.dp, op.strval))
-    //           break;
-    //
-    //       case "skip":
-    //           (editTransactionForSkip(editor, pos, editEvent.dp, op.intval))
-    //           break;
-    //
-    //       case "delete":
-    //            (editTransactionForDelete(editor, pos, editEvent.dp, op.intval))
-    //            break;
-    //
-    //     }
+        // var op = editEvent.ops[0]
+
+
 
     }
-    //
-    //function editTransactionForInsert(editor, pos, dp, str) {
-    //
-    //    return
-    //      {
-    //        changes: {from: pos + dp, insert: str}
-    //      }
-    //
-    //
-    //}
-    //
-    //function editTransactionForSkip(editor, pos, dp, k) {
-    //
-    //    return
-    //      {
-    //        changes: {from: pos + dp, insert: ""}
-    //      }
-    //}
-    //
-    //function editTransactionForDelete(editor, pos, dp, k) {
-    //
-    //    return
-    //      {
-    //        changes: {from: pos + dp, to: pos + dp + k, insert: ""}
-    //      }
-    //}
+
+    function editTransactionForInsert(editor, dp, str) {
+          console.log("T.Insert", dp, str);
+
+
+    }
+
+    function editTransactionForSkip(editor, dp, k) {
+          console.log("T.skip", dp, k);
+    }
+
+    function editTransactionForDelete(editor, dp, k) {
+           console.log("T.delete", dp, k);
+    }
 
     class CodemirrorEditor extends HTMLElement {
 
