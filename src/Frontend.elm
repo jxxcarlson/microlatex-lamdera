@@ -1094,16 +1094,27 @@ updateFromBackend msg model =
                 cursor =
                     model.networkModel.serverState.document.cursor
 
-                editorEvent =
+                --editorEvent =
+                --    if Util.currentUserId model.currentUser /= event.userId then
+                --        Just event |> Debug.log "!!! Add Event"
+                --
+                --    else
+                --        model.editorEvent.event
+                editCommand_ =
+                    { counter = model.counter, command = event |> OTCommand.toCommand cursor |> Debug.log "!!! Edit Command" }
+
+                editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
-                        Just event |> Debug.log "!!! Add Event"
+                        editCommand_
 
                     else
-                        model.editorEvent.event
+                        { counter = model.counter, command = Nothing }
             in
             ( { model
-                | editorEvent = { counter = model.counter, cursor = cursor, event = editorEvent }
+                | editCommand = editCommand
 
+                -- editorEvent = { counter = model.counter, cursor = cursor, event = editorEvent }
+                -- TODO!!
                 -- ,  eventQueue = Deque.pushFront event model.eventQueue
                 , networkModel = networkModel
                 , editRecord = newEditRecord

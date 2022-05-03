@@ -1,16 +1,34 @@
-module OTCommand exposing (Command, parseCommand, toString)
+module OTCommand exposing (Command, parseCommand, toCommand, toString)
 
 -- insert CURSOR foo
 -- skip CURSOR K
 -- delete CURSOR k
 
 import Json.Encode as E
+import NetworkModel
+import OT
 import Parser exposing (..)
 
 
 toString : Int -> Maybe Command -> String
 toString counter command =
     encodeCommand counter command |> E.encode 2
+
+
+toCommand : Int -> NetworkModel.EditEvent -> Maybe Command
+toCommand cursor event =
+    case event.operations of
+        (OT.Insert str) :: [] ->
+            Just (CInsert cursor str)
+
+        (OT.Skip k) :: [] ->
+            Just (CSkip cursor k)
+
+        (OT.Skip _) :: (OT.Delete k) :: [] ->
+            Just (CDelete cursor k)
+
+        _ ->
+            Nothing
 
 
 encodeCommand : Int -> Maybe Command -> E.Value
