@@ -1082,6 +1082,9 @@ updateFromBackend msg model =
                 newEditRecord =
                     Compiler.DifferentialParser.init model.includedContent model.language doc.content
 
+                cursor =
+                    model.networkModel.serverState.document.cursor
+
                 editorEvent =
                     if Util.currentUserId model.currentUser /= event.userId then
                         ( model.counter, Just event ) |> Debug.log "!!! Add Event"
@@ -1090,9 +1093,9 @@ updateFromBackend msg model =
                         model.editorEvent
             in
             ( { model
-                | editorEvent = editorEvent
-                , eventQueue = Deque.pushFront event model.eventQueue
-                , networkModel = networkModel
+                | --editorEvent = editorEvent
+                  -- ,  eventQueue = Deque.pushFront event model.eventQueue
+                  networkModel = networkModel
                 , editRecord = newEditRecord
               }
             , Cmd.none

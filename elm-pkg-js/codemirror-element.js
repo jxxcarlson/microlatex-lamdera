@@ -20604,7 +20604,7 @@ window.initCodeMirror = function () {
                 var op = ops[0];
 
                 if (typeof(op) != 'undefined') {
-                    switch (op) {
+                    switch (op.op) {
 
                            case "insert":
                                (editTransactionForInsert(editor, editEvent.dp, op.strval));
@@ -20637,17 +20637,18 @@ window.initCodeMirror = function () {
     }
 
     function editTransactionForInsert(editor, dp, str) {
-          console.log("T.Insert", dp, str);
-
-
-    }
+       console.log("T.Insert", dp, str);
+       editor.dispatch({ changes: {from: dp, insert: str}});
+      }
 
     function editTransactionForSkip(editor, dp, k) {
-          console.log("T.skip", dp, k);
+        console.log("T.skip", dp, k);
+        editor.dispatch({ changes: {from: dp, to: k, insert: ""}});
     }
 
     function editTransactionForDelete(editor, dp, k) {
-           console.log("T.delete", dp, k);
+       console.log("T.delete", dp, k);
+       editor.dispatch({ changes: {from: dp, to: dp + k, insert: ""}});
     }
 
     class CodemirrorEditor extends HTMLElement {

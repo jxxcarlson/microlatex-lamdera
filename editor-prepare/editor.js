@@ -81,32 +81,18 @@ function editTransaction(editor, editEvent) {
 }
 
 function editTransactionForInsert(editor, dp, str) {
-
-    var transaction =
-      {
-        changes: {from: dp, insert: str}
-      }
-      console.log("T.Insert", dp, str)
-
-
-}
+   console.log("T.Insert", dp, str)
+   editor.dispatch({ changes: {from: dp, insert: str}})
+  }
 
 function editTransactionForSkip(editor, dp, k) {
-
-    var transaction =
-      {
-        changes: {from: dp, to: k, insert: ""}
-      }
-      console.log("T.skip", dp, k)
+    console.log("T.skip", dp, k)
+    editor.dispatch({ changes: {from: dp, to: k, insert: ""}})
 }
 
 function editTransactionForDelete(editor, dp, k) {
-
-   var transaction =
-      {
-        changes: {from: dp, to: dp + k, insert: ""}
-      }
-       console.log("T.delete", dp, k)
+   console.log("T.delete", dp, k)
+   editor.dispatch({ changes: {from: dp, to: dp + k, insert: ""}})
 }
 
 class CodemirrorEditor extends HTMLElement {
