@@ -1,4 +1,4 @@
-module OTCommand exposing (Command, parseCommand, toCommand, toString)
+module OTCommand exposing (Command(..), parseCommand, toCommand, toString)
 
 -- insert CURSOR foo
 -- skip CURSOR K
@@ -8,6 +8,12 @@ import Json.Encode as E
 import NetworkModel
 import OT
 import Parser exposing (..)
+
+
+type Command
+    = CInsert Int String
+    | CSkip Int Int
+    | CDelete Int Int
 
 
 toString : Int -> Maybe Command -> String
@@ -22,7 +28,7 @@ toCommand cursor event =
             Just (CInsert cursor str)
 
         (OT.Skip k) :: [] ->
-            Just (CSkip 0 k)
+            Just (CSkip (cursor + k) 0)
 
         (OT.Skip _) :: (OT.Delete k) :: [] ->
             Just (CDelete cursor k)
@@ -47,12 +53,6 @@ encodeCommand counter mCommand =
 
                 CDelete cursor k ->
                     E.object [ ( "op", E.string "delete" ), ( "cursor", E.int cursor ), ( "intval", E.int k ), ( "counter", E.int counter ) ]
-
-
-type Command
-    = CInsert Int String
-    | CSkip Int Int
-    | CDelete Int Int
 
 
 parseCommand : String -> Maybe Command

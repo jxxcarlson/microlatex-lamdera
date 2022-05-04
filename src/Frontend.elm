@@ -1040,7 +1040,7 @@ updateFromBackend msg model =
 
         -- COLLABORATIVE EDITING
         InitializeNetworkModel networkModel ->
-            ( { model | collaborativeEditing = True, networkModel = networkModel }, Cmd.none )
+            ( { model | collaborativeEditing = True, networkModel = networkModel, editCommand = { counter = model.counter, command = Just (OTCommand.CSkip 0 0) } }, Cmd.none )
 
         ResetNetworkModel networkModel document ->
             ( { model

@@ -645,7 +645,7 @@ inputText model { position, source } =
                 model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
             editEvent =
-                NetworkModel.createEvent userId model.oTDocument newOTDocument
+                NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "!!!@@ Create editEvent"
         in
         ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
 
