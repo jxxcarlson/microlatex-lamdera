@@ -144,7 +144,6 @@ init url key =
       , eventQueue = Deque.empty
       , collaborativeEditing = False
       , editorCursor = 0
-      , oTDocument = OT.emptyDoc
       , myCursorPosition = { x = 0, y = 0, p = 0 }
       , networkModel = NetworkModel.init NetworkModel.emptyServerState
 
@@ -1043,7 +1042,6 @@ updateFromBackend msg model =
             ( { model
                 | collaborativeEditing = True
                 , networkModel = networkModel
-                , oTDocument = NetworkModel.getLocalDocument networkModel
                 , editCommand = { counter = model.counter, command = Just (OTCommand.CMoveCursor 0 0) }
               }
             , Cmd.none

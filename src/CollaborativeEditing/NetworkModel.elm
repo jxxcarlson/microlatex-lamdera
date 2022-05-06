@@ -33,7 +33,7 @@ type alias DocId =
 
 
 type alias EditEvent =
-    { docId : String, userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
+    { docId : String, userId : String, dp : Int, operations : List OT.Operation }
 
 
 type alias NetworkModel =
@@ -41,7 +41,7 @@ type alias NetworkModel =
 
 
 type alias ServerState =
-    { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
+    { cursorPositions : Dict UserId Int
     , document : OT.Document
     }
 
@@ -69,8 +69,6 @@ encodeEvent { counter, cursor, event } =
     E.object
         [ ( "name", E.string "OTOp" )
         , ( "dp", E.int event.dp )
-        , ( "dx", E.int event.dx )
-        , ( "dy", E.int event.dy )
         , ( "ops", E.list OT.encodeOperation event.operations )
         , ( "cursor", E.int cursor )
         , ( "counter", E.int counter )
@@ -84,15 +82,15 @@ nullEvent =
 
 initialServerState : DocId -> UserId -> String -> ServerState
 initialServerState docId userId content =
-    { cursorPositions = Dict.fromList [ ( userId, { x = 0, y = 0, p = 0 } ) ]
-    , document = { id = docId, cursor = 0, x = 0, y = 0, content = content }
+    { cursorPositions = Dict.fromList [ ( userId, 0 ) ]
+    , document = { id = docId, cursor = 0, content = content }
     }
 
 
 manyUserInitialServerState : DocId -> List UserId -> String -> ServerState
 manyUserInitialServerState docId userIds content =
-    { cursorPositions = Dict.fromList (List.map (\id -> ( id, { x = 0, y = 0, p = 0 } )) userIds)
-    , document = { id = docId, cursor = 0, x = 0, y = 0, content = content }
+    { cursorPositions = Dict.fromList (List.map (\id -> ( id, 0 )) userIds)
+    , document = { id = docId, cursor = 0, content = content }
     }
 
 
@@ -111,17 +109,11 @@ createEvent userId_ oldDocument newDocument =
         _ =
             Debug.log "!! (old, new, dp)" ( oldDocument.cursor, newDocument.cursor, dp )
 
-        dx =
-            newDocument.x - oldDocument.x
-
-        dy =
-            newDocument.y - oldDocument.y
-
         operations : List OT.Operation
         operations =
             OT.findOps oldDocument newDocument
     in
-    { docId = oldDocument.id, userId = userId_, dx = dx, dy = dy, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
+    { docId = oldDocument.id, userId = userId_, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
 
 
 applyEvent : EditEvent -> ServerState -> ServerState
@@ -130,8 +122,8 @@ applyEvent event serverState =
         Nothing ->
             serverState
 
-        Just { x, y, p } ->
-            { cursorPositions = Dict.insert event.userId { x = x + event.dx, y = y + event.dy, p = p + event.dp } serverState.cursorPositions
+        Just p ->
+            { cursorPositions = Dict.insert event.userId (p + event.dp) serverState.cursorPositions
             , document = OT.apply event.operations serverState.document
             }
 

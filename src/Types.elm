@@ -159,7 +159,6 @@ type alias FrontendModel =
     , eventQueue : Deque NetworkModel.EditEvent
     , collaborativeEditing : Bool
     , editorCursor : Int
-    , oTDocument : OT.Document
     , myCursorPosition : { x : Int, y : Int, p : Int }
     , networkModel : NetworkModel.NetworkModel
 

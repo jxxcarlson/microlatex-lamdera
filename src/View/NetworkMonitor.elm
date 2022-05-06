@@ -36,8 +36,7 @@ view model =
                 , E.text <| "Source length: " ++ String.fromInt (String.length model.sourceText)
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Editor event: " ++ Debug.toString model.editorEvent ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
-                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document: " ++ Debug.toString model.oTDocument ]
-                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document (2): " ++ Debug.toString model.networkModel.serverState.document ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document: " ++ Debug.toString model.networkModel.serverState.document ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Local Msgs: " ++ Debug.toString model.networkModel.localMsgs ]
                 , E.paragraph [ E.width (E.px 350) ]
                     [ E.text <|

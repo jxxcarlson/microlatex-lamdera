@@ -292,7 +292,6 @@ setDocumentAsCurrent_ cmd model doc permissions =
         | currentDocument = Just updatedDoc
         , currentMasterDocument = currentMasterDocument
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
-        , oTDocument = newOTDocument
         , sourceText = doc.content
         , initialText = doc.content
         , documents = Util.updateDocumentInList updatedDoc model.documents
@@ -601,6 +600,7 @@ inputCursor { position, source } model =
         ( model, Cmd.none )
 
 
+handleCursor : { a | position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 handleCursor { position, source } model =
     case Maybe.map .id model.currentUser of
         Nothing ->
@@ -608,45 +608,39 @@ handleCursor { position, source } model =
 
         Just currentUserId ->
             let
-                newLocation =
-                    Document.location position source
-
                 id =
-                    model.oTDocument.id
+                    model.networkModel.serverState.document.id
 
                 newOTDocument =
-                    { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! NEW OT DOC"
+                    { id = id, cursor = position, content = source } |> Debug.log "!! NEW OT DOC"
 
                 editEvent =
-                    NetworkModel.createEvent currentUserId model.oTDocument newOTDocument |> Debug.log "!! NEW EDIT EVENT"
+                    NetworkModel.createEvent currentUserId model.networkModel.serverState.document newOTDocument |> Debug.log "!! NEW EDIT EVENT"
             in
-            ( { model | oTDocument = newOTDocument, editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
+            ( { model | editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
 
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
     if Document.numberOfEditors model.currentDocument > 1 then
         let
-            _ =
-                Debug.log "I0, !!! OLD OT DOC" model.oTDocument
-
             newOTDocument =
                 let
-                    newLocation =
-                        Document.location position source
-
                     id =
                         Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
                 in
-                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "I1, !!! NEW OT DOC"
+                { id = id, cursor = position, content = source } |> Debug.log "I1, !!! NEW OT DOC"
 
             userId =
                 model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
+            oldDocument =
+                model.networkModel.serverState.document
+
             editEvent =
-                NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "I2, !!!Create editEvent"
+                NetworkModel.createEvent userId oldDocument newOTDocument |> Debug.log "I2, !!!Create editEvent"
         in
-        ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
+        ( { model | counter = model.counter + 1 }, sendToBackend (PushEditorEvent editEvent) )
 
     else
         inputText_ model source
@@ -993,7 +987,6 @@ postProcessDocument doc model =
     { model
         | currentDocument = Just doc
         , sourceText = doc.content
-        , oTDocument = { id = doc.id, cursor = 0, x = 0, y = 0, content = doc.content } -- TODO? Is this correct??
         , initialText = doc.content
         , editRecord = newEditRecord
         , title =

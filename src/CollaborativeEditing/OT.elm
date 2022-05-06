@@ -12,7 +12,7 @@ import Json.Encode as E
 
 
 type alias Document =
-    { id : String, cursor : Int, x : Int, y : Int, content : String }
+    { id : String, cursor : Int, content : String }
 
 
 type Operation
@@ -39,7 +39,7 @@ encodeOperation op =
 
 
 emptyDoc =
-    { id = "no-id", cursor = 0, x = 0, y = 0, content = "" }
+    { id = "no-id", cursor = 0, content = "" }
 
 
 reconcile : Document -> Document -> Document
@@ -69,12 +69,10 @@ findOps before after =
 
 
 applyOp : Operation -> Document -> Document
-applyOp op { id, cursor, x, y, content } =
+applyOp op { id, cursor, content } =
     case op of
         Insert str ->
             { id = id
-            , x = x + String.length str
-            , y = y
             , cursor = cursor + String.length str
             , content = String.left cursor content ++ str ++ String.dropLeft cursor content
             }
@@ -82,32 +80,24 @@ applyOp op { id, cursor, x, y, content } =
         Delete n ->
             if cursor == String.length content - 1 then
                 { id = id
-                , x = x - 1
-                , y = y
                 , cursor = cursor - 1
                 , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
                 }
 
             else
                 { id = id
-                , x = x
-                , y = y
                 , cursor = cursor
                 , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
                 }
 
         MoveCursor n ->
             { id = id
-            , x = x + n
-            , y = y
             , cursor = cursor + n
             , content = content
             }
 
         OTNoOp ->
             { id = id
-            , x = x
-            , y = y
             , cursor = cursor
             , content = content
             }
