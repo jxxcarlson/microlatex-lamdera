@@ -57,6 +57,9 @@ import Browser exposing (UrlRequest)
 import Browser.Dom as Dom
 import Browser.Navigation
 import Chat.Message
+import CollaborativeEditing.NetworkModel as NetworkModel
+import CollaborativeEditing.OT as OT
+import CollaborativeEditing.OTCommand as OTCommand
 import Compiler.DifferentialParser
 import Debounce exposing (Debounce)
 import Deque exposing (Deque)
@@ -65,9 +68,6 @@ import Document exposing (Document)
 import Http
 import Keyboard
 import Lamdera exposing (ClientId, SessionId)
-import NetworkModel
-import OT
-import OTCommand
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random

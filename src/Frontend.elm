@@ -5,6 +5,9 @@ import Browser.Navigation as Nav
 import Chat
 import Chat.Message
 import Cmd.Extra exposing (withNoCmd)
+import CollaborativeEditing.NetworkModel as NetworkModel
+import CollaborativeEditing.OT as OT
+import CollaborativeEditing.OTCommand as OTCommand
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
@@ -24,9 +27,6 @@ import Keyboard
 import Lamdera exposing (sendToBackend)
 import Markup
 import Message
-import NetworkModel
-import OT
-import OTCommand
 import Parser.Language exposing (Language(..))
 import Process
 import Render.MicroLaTeX
@@ -1040,11 +1040,14 @@ updateFromBackend msg model =
 
         -- COLLABORATIVE EDITING
         InitializeNetworkModel networkModel ->
-            ( { model | collaborativeEditing = True
-            , networkModel = networkModel
-            , oTDocument = NetworkModel.getLocalDocument networkModel
-            , editCommand = { counter = model.counter, command = Just (OTCommand.CMoveCursor 0 0) } }
-            , Cmd.none )
+            ( { model
+                | collaborativeEditing = True
+                , networkModel = networkModel
+                , oTDocument = NetworkModel.getLocalDocument networkModel
+                , editCommand = { counter = model.counter, command = Just (OTCommand.CMoveCursor 0 0) }
+              }
+            , Cmd.none
+            )
 
         ResetNetworkModel networkModel document ->
             ( { model
@@ -1098,11 +1101,12 @@ updateFromBackend msg model =
                 cursor0 =
                     model.networkModel.serverState.document.cursor |> Debug.log "P4a. !!! CURSOR from network model"
 
-                cursor1 =  newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
+                cursor1 =
+                    newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
 
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
-                         { counter = model.counter, command = event |> OTCommand.toCommand cursor0 |> Debug.log "P5a. !!! Edit Command" }
+                        { counter = model.counter, command = event |> OTCommand.toCommand cursor0 |> Debug.log "P5a. !!! Edit Command" }
 
                     else
                         { counter = model.counter, command = Nothing } |> Debug.log "P5b. !!! Edit Command"

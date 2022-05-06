@@ -53,6 +53,8 @@ import BoundedDeque exposing (BoundedDeque)
 import Browser exposing (UrlRequest(..))
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
+import CollaborativeEditing.NetworkModel as NetworkModel
+import CollaborativeEditing.OT as OT
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
@@ -70,8 +72,6 @@ import List.Extra
 import Markup
 import Maybe.Extra
 import Message
-import NetworkModel
-import OT
 import Parser.Language exposing (Language(..))
 import Predicate
 import Process
@@ -627,7 +627,8 @@ inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd F
 inputText model { position, source } =
     if Document.numberOfEditors model.currentDocument > 1 then
         let
-            _ = Debug.log "I0, !!! OLD OT DOC" model.oTDocument
+            _ =
+                Debug.log "I0, !!! OLD OT DOC" model.oTDocument
 
             newOTDocument =
                 let

@@ -26,6 +26,7 @@ import Backend.Update
 import Chat
 import Chat.Message
 import Cmd.Extra
+import CollaborativeEditing.NetworkModel as NetworkModel
 import Config
 import Deque
 import Dict exposing (Dict)
@@ -35,7 +36,6 @@ import Env
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import Maybe.Extra
 import Message
-import NetworkModel
 import Random
 import Share
 import Time

@@ -1,5 +1,7 @@
 module View.Editor exposing (view)
 
+import CollaborativeEditing.NetworkModel as NetworkModel
+import CollaborativeEditing.OTCommand as OTCommand
 import Document
 import Element as E exposing (Element)
 import Element.Background as Background
@@ -9,8 +11,6 @@ import Html
 import Html.Attributes as HtmlAttr
 import Html.Events
 import Json.Decode
-import NetworkModel
-import OTCommand
 import Types exposing (FrontendModel, FrontendMsg(..))
 import View.Geometry as Geometry
 

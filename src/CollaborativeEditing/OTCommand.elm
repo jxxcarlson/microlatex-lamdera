@@ -1,4 +1,4 @@
-module OTCommand exposing (Command(..), parseCommand, toCommand, toString)
+module CollaborativeEditing.OTCommand exposing (Command(..), parseCommand, toCommand, toString)
 
 -- insert CURSOR foo
 -- skip CURSOR K
