@@ -2,6 +2,7 @@ module CollaborativeEditing.NetworkSimulator2 exposing (..)
 
 import CollaborativeEditing.NetworkModel as NetworkModel exposing (EditEvent, NetworkModel)
 import CollaborativeEditing.OT as OT exposing (Operation(..))
+import Deque exposing (Deque)
 import Dict
 import String.Extra
 import Util exposing (Step(..), loop)
@@ -14,7 +15,7 @@ import Util exposing (Step(..), loop)
 type alias State =
     { a : UserState
     , b : UserState
-    , server : List EditEvent
+    , server : Deque EditEvent
     , input : List EditorAction
     , count : Int
     }
@@ -64,13 +65,21 @@ performEdit : EditorAction -> State -> State
 performEdit action state =
     case action.user of
         UserA ->
-            { state | a = performEditOnUserState "a" action state.a }
+            let
+                ( userState, event ) =
+                    performEditOnUserState "a" action state.a
+            in
+            { state | a = userState, server = Deque.pushFront event state.server }
 
         UserB ->
-            { state | b = performEditOnUserState "b" action state.b }
+            let
+                ( userState, event ) =
+                    performEditOnUserState "a" action state.a
+            in
+            { state | b = userState, server = Deque.pushFront event state.server }
 
 
-performEditOnUserState : String -> EditorAction -> UserState -> UserState
+performEditOnUserState : String -> EditorAction -> UserState -> ( UserState, EditEvent )
 performEditOnUserState userId action state =
     let
         editor =
@@ -91,7 +100,9 @@ performEditOnUserState userId action state =
                 , document = editor
             }
     in
-    { state | editor = editor, model = { localMsgs = [ event ], serverState = serverState } }
+    ( { state | editor = editor, model = { localMsgs = [ event ], serverState = serverState } }
+    , event
+    )
 
 
 
@@ -102,7 +113,7 @@ performEditOnUserState userId action state =
 initialState source =
     { a = { user = UserA, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
     , b = { user = UserB, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
-    , server = []
+    , server = Deque.empty
     , input = []
     , count = 0
     }
