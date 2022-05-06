@@ -99,9 +99,9 @@ events3 =
     , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
     , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
     , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Skip -1 ] }
+    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -1 ] }
     , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Skip -3 ] }
+    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -3 ] }
     , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
     ]
 

@@ -12,8 +12,9 @@ import Parser exposing (..)
 
 type Command
     = CInsert Int String
-    | CSkip Int Int
+    | CMoveCursor Int Int
     | CDelete Int Int
+    | CNoOp Int
 
 
 toString : Int -> Maybe Command -> String
@@ -27,12 +28,13 @@ toCommand cursor event =
         (OT.Insert str) :: [] ->
             Just (CInsert cursor str)
 
-        (OT.Skip k) :: [] ->
-            Just (CSkip (cursor + k) 0)
+        (OT.MoveCursor cursor_) :: [] ->
+            Just (CMoveCursor cursor_ 0)
 
-        (OT.Skip _) :: (OT.Delete k) :: [] ->
+        (OT.MoveCursor _) :: (OT.Delete k) :: [] ->
             Just (CDelete cursor k)
 
+        (OT.OTNoOp ::[]) -> Just (CNoOp cursor)
         _ ->
             Nothing
 
@@ -48,12 +50,15 @@ encodeCommand counter mCommand =
                 CInsert cursor str ->
                     E.object [ ( "op", E.string "insert" ), ( "cursor", E.int cursor ), ( "strval", E.string str ), ( "counter", E.int counter ) ]
 
-                CSkip cursor skip ->
-                    E.object [ ( "op", E.string "skip" ), ( "cursor", E.int cursor ), ( "intval", E.int skip ), ( "counter", E.int counter ) ]
+                CMoveCursor cursor skip ->
+                    -- cursor is the new absolute value of the cursor
+                    E.object [ ( "op", E.string "movecursor" ), ( "cursor", E.int cursor ), ( "intval", E.int skip ), ( "counter", E.int counter ) ]
 
                 CDelete cursor k ->
                     E.object [ ( "op", E.string "delete" ), ( "cursor", E.int cursor ), ( "intval", E.int k ), ( "counter", E.int counter ) ]
 
+                CNoOp cursor ->
+                    E.object [ ( "op", E.string "noop" ), ( "cursor", E.int cursor ), ( "intval", E.int 0 ), ( "counter", E.int counter ) ]
 
 parseCommand : String -> Maybe Command
 parseCommand str =
@@ -81,7 +86,7 @@ insertionParser =
 
 skipParser : Parser Command
 skipParser =
-    succeed (\c k -> CSkip c k)
+    succeed (\c k -> CMoveCursor c k)
         |. symbol "skip"
         |. spaces
         |= int

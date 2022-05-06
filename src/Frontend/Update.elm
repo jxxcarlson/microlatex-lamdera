@@ -625,12 +625,10 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
-    let
-        _ =
-            Debug.log "!! Number of Editors" (Document.numberOfEditors model.currentDocument)
-    in
     if Document.numberOfEditors model.currentDocument > 1 then
         let
+            _ = Debug.log "I0, !!! OLD OT DOC" model.oTDocument
+
             newOTDocument =
                 let
                     newLocation =
@@ -639,13 +637,13 @@ inputText model { position, source } =
                     id =
                         Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
                 in
-                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
+                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "I1, !!! NEW OT DOC"
 
             userId =
                 model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
             editEvent =
-                NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "!!!@@ Create editEvent"
+                NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "I2, !!!Create editEvent"
         in
         ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
 

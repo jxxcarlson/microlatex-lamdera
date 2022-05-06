@@ -44,7 +44,7 @@ events3 =
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
     , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
-    , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Skip -4 ] }
+    , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -4 ] }
     , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "X" ] }
     ]
 
@@ -62,8 +62,8 @@ events5 =
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
-    , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Skip -1 ] }
+    , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -1 ] }
     , { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
-    , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Skip -3 ] }
+    , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -3 ] }
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
     ]

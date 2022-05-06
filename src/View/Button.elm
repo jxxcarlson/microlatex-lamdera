@@ -1,5 +1,6 @@
 module View.Button exposing
     ( buttonTemplate
+    , runCommand
     , cancelDeleteDocument
     , cancelSignUp
     , clearChatHistory
@@ -9,6 +10,7 @@ module View.Button exposing
     , createChatGroup
     , createDocument
     , dismissPopup
+    , popupMonitor
     , dismissUserMessage
     , doShare
     , doSignUp
@@ -167,6 +169,10 @@ linkStyle =
 
 
 -- UI
+runCommand : Element FrontendMsg
+runCommand =
+    buttonTemplate [] RunCommand "Run command"
+
 
 
 toggleBackupVisibility : Bool -> Element FrontendMsg
@@ -572,6 +578,15 @@ popupNewDocumentForm popupState =
         _ ->
             buttonTemplate [] (ChangePopup NoPopup) "New"
 
+
+popupMonitor : PopupState -> Element FrontendMsg
+popupMonitor popupState =
+    case popupState of
+        NoPopup ->
+            buttonTemplate [] (ChangePopup NetworkMonitorPopup) "Monitor off"
+
+        _ ->
+            buttonTemplate [] (ChangePopup NoPopup) "Monitor of"
 
 dismissPopup : Element FrontendMsg
 dismissPopup =

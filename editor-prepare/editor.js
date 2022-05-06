@@ -47,13 +47,17 @@ function editTransaction(editor, editEvent) {
                    (editTransactionForInsert(editor, event.cursor, event.strval))
                    break;
 
-               case "skip":
-                   (editTransactionForSkip(editor, event.cursor, event.intval))
+               case "movecursor":
+                   (editTransactionForMoveCursor(editor, event.cursor, event.intval))
                    break;
 
                case "delete":
                     (editTransactionForDelete(editor, event.cursor, event.intval))
                     break;
+
+               case "noop":
+                    (editTransactionForNoOp(editor, event.cursor))
+                     break;
         }
 
 
@@ -72,14 +76,19 @@ function editTransactionForInsert(editor, cursor, str) {
    editor.dispatch({ changes: {from: cursor, insert: str}})
   }
 
-function editTransactionForSkip(editor, cursor, k) {
-    console.log("T.skip (cursor, skip)", cursor, k)
-    editor.dispatch({ changes: {from: cursor + k, insert: ""}})
+function editTransactionForMoveCursor(editor, cursor) {
+    console.log("T.movecursor (cursor)", cursor)
+    editor.dispatch({ changes: {from: cursor, insert: ""}})
 }
 
 function editTransactionForDelete(editor, cursor, k) {
    console.log("T.delete (cursor, k)", k)
    editor.dispatch({ changes: {from: cursor, to: cursor + k, insert: ""}})
+}
+
+function editTransactionForNoOp(editor, cursor) {
+    console.log("T.noOp (cursor)", cursor)
+    editor.dispatch({ changes: {from: cursor, insert: ""}})
 }
 
 class CodemirrorEditor extends HTMLElement {

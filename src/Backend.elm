@@ -235,8 +235,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Cmd.batch cmds )
 
         PushEditorEvent event ->
-            { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }
-                |> Backend.NetworkModel.processEvent
+            Backend.NetworkModel.processEvent event model
 
         UpdateSharedDocumentDict user doc ->
             ( Share.updateSharedDocumentDict user doc model, Cmd.none )

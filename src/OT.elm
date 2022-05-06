@@ -10,11 +10,15 @@ module OT exposing
 
 import Json.Encode as E
 
+type alias Document =
+    { id : String, cursor : Int, x : Int, y : Int, content : String }
+
 
 type Operation
     = Insert String
     | Delete Int
-    | Skip Int
+    | MoveCursor Int
+    | OTNoOp
 
 
 encodeOperation : Operation -> E.Value
@@ -26,12 +30,13 @@ encodeOperation op =
         Delete k ->
             E.object [ ( "op", E.string "delete" ), ( "intval", E.int k ) ]
 
-        Skip k ->
-            E.object [ ( "op", E.string "skip" ), ( "intval", E.int k ) ]
+        MoveCursor k ->
+            E.object [ ( "op", E.string "movecursor" ), ( "intval", E.int k ) ]
+
+        OTNoOp ->
+             E.object [ ( "op", E.string "otnoop" ), ( "intval", E.int 0 ) ]
 
 
-type alias Document =
-    { id : String, cursor : Int, x : Int, y : Int, content : String }
 
 
 emptyDoc =
@@ -49,14 +54,17 @@ reconcile a b =
 
 findOps : Document -> Document -> List Operation
 findOps before after =
+    -- No Change of content
     if after.content == before.content then
-        [ Skip (after.cursor - before.cursor) ]
+        [ MoveCursor (after.cursor - before.cursor) ]
 
+
+    -- From here on, we know that there is change of content
     else if after.cursor > before.cursor then
         [ Insert (String.slice before.cursor after.cursor after.content) ]
 
     else if after.cursor < before.cursor then
-        [ Skip (after.cursor - before.cursor + 1), Delete (before.cursor - after.cursor) ]
+        [ MoveCursor (after.cursor - before.cursor + 1), Delete (before.cursor - after.cursor) ]
 
     else
         [ Delete (String.length before.content - String.length after.content) ]
@@ -90,13 +98,21 @@ applyOp op { id, cursor, x, y, content } =
                 , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
                 }
 
-        Skip n ->
+        MoveCursor n ->
             { id = id
             , x = x + n
             , y = y
             , cursor = cursor + n
             , content = content
             }
+
+        OTNoOp ->
+         { id = id
+         , x = x
+         , y = y
+         , cursor = cursor
+         , content = content
+         }
 
 
 apply : List Operation -> Document -> Document

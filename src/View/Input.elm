@@ -6,6 +6,7 @@ module View.Input exposing
     , groupAssistant
     , groupMembers
     , groupName
+    , editorCommand
     , password
     , passwordAgain
     , passwordLarge
@@ -89,6 +90,12 @@ passwordTemplate width_ default msg text =
         , placeholder = Just <| Input.placeholder [ E.moveUp 5 ] (E.text default)
         , show = False
         }
+
+
+editorCommand : Int -> FrontendModel -> Element FrontendMsg
+editorCommand width_ model =
+    inputFieldTemplate (E.px width_) "Editor command" InputCommand model.inputCommand
+
 
 
 groupMembers : Int -> Int -> FrontendModel -> Element FrontendMsg

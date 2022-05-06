@@ -15,6 +15,7 @@ import View.Chat
 import View.Color as Color
 import View.DocTools
 import View.Geometry as Geometry
+import View.NetworkMonitor
 import View.Style
 import View.Utility
 
@@ -32,6 +33,7 @@ view model width_ =
         [ E.spacing 1
         , E.inFront (View.DocTools.view model)
         , E.inFront (View.DocTools.urlPopup model)
+        , E.inFront (View.NetworkMonitor.view model)
         , E.paddingXY 8 8
         , E.height (E.px 35)
         , Background.color Color.black
@@ -42,10 +44,10 @@ view model width_ =
                 (E.el
                     [ case model.chatDisplay of
                         Types.TCGDisplay ->
-                            E.moveUp 738
+                            E.moveUp (toFloat <| Geometry.appHeight_ model - 100)
 
                         Types.TCGShowInputForm ->
-                            E.moveUp 738
+                            E.moveUp (toFloat <| Geometry.appHeight_ model - 100)
                     , E.moveRight (toFloat dy)
                     ]
                     (View.Chat.view model)
@@ -77,6 +79,7 @@ view model width_ =
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (timeElapsed model)
         , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.currentDocument)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
+        , Button.popupMonitor model.popupState
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]

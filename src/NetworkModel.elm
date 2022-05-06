@@ -4,6 +4,7 @@ module NetworkModel exposing
     , ServerState
     , applyEvent
     , createEvent
+    , shortenDictKeys
     , emptyServerState
     , getLocalDocument
     , init
@@ -22,7 +23,6 @@ import Json.Encode as E
 import List.Extra
 import OT
 
-
 type alias UserId =
     String
 
@@ -34,12 +34,21 @@ type alias DocId =
 type alias EditEvent =
     { docId : String, userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
 
+type alias NetworkModel =
+    { localMsgs : List EditEvent, serverState : ServerState }
 
 type alias ServerState =
     { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
     , document : OT.Document
     }
 
+
+shortenDictKeys : Dict String a -> Dict String a
+shortenDictKeys dict =
+    dict
+     |> Dict.toList
+     |> List.map (\(k, v) -> (String.right 3 k, v))
+     |> Dict.fromList
 
 toString : { counter : Int, cursor : Int, event : Maybe EditEvent } -> String
 toString { counter, cursor, event } =
@@ -123,8 +132,6 @@ applyEvent event serverState =
             }
 
 
-type alias NetworkModel =
-    { localMsgs : List EditEvent, serverState : ServerState }
 
 
 init : ServerState -> NetworkModel

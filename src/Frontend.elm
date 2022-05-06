@@ -1040,7 +1040,7 @@ updateFromBackend msg model =
 
         -- COLLABORATIVE EDITING
         InitializeNetworkModel networkModel ->
-            ( { model | collaborativeEditing = True, networkModel = networkModel, editCommand = { counter = model.counter, command = Just (OTCommand.CSkip 0 0) } }, Cmd.none )
+            ( { model | collaborativeEditing = True, networkModel = networkModel, editCommand = { counter = model.counter, command = Just (OTCommand.CMoveCursor 0 0) } }, Cmd.none )
 
         ResetNetworkModel networkModel document ->
             ( { model
@@ -1076,39 +1076,32 @@ updateFromBackend msg model =
         -- COLLABORATIVE EDITING
         ProcessEvent event ->
             let
-                _ =
-                    Debug.log ("!!! EVENT FOR " ++ Util.currentUsername model.currentUser) event
+                debugLabel =
+                    "P1. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
 
-                networkModel =
-                    NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
-                        |> Debug.log ("!!! MODEL " ++ Util.currentUsername model.currentUser)
+                newNetworkModel =
+                    NetworkModel.updateFromBackend NetworkModel.applyEvent (Debug.log debugLabel event) model.networkModel
+                        |> Debug.log ("P2. !!! New Network Model " ++ Util.currentUsername model.currentUser)
 
                 doc : OT.Document
                 doc =
-                    NetworkModel.getLocalDocument networkModel |> Debug.log "!! DOC"
+                    NetworkModel.getLocalDocument newNetworkModel |> Debug.log "P3. !!! new network model, DOC"
 
                 newEditRecord : Compiler.DifferentialParser.EditRecord
                 newEditRecord =
                     Compiler.DifferentialParser.init model.includedContent model.language doc.content
 
-                cursor =
-                    model.networkModel.serverState.document.cursor
+                cursor0 =
+                    model.networkModel.serverState.document.cursor |> Debug.log "P4a. !!! CURSOR from network model"
 
-                --editorEvent =
-                --    if Util.currentUserId model.currentUser /= event.userId then
-                --        Just event |> Debug.log "!!! Add Event"
-                --
-                --    else
-                --        model.editorEvent.event
-                editCommand_ =
-                    { counter = model.counter, command = event |> OTCommand.toCommand cursor |> Debug.log "!!! Edit Command" }
+                cursor1 =  newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
 
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
-                        editCommand_
+                         { counter = model.counter, command = event |> OTCommand.toCommand cursor0 |> Debug.log "P5a. !!! Edit Command" }
 
                     else
-                        { counter = model.counter, command = Nothing }
+                        { counter = model.counter, command = Nothing } |> Debug.log "P5b. !!! Edit Command"
             in
             ( { model
                 | editCommand = editCommand
@@ -1116,7 +1109,7 @@ updateFromBackend msg model =
                 -- editorEvent = { counter = model.counter, cursor = cursor, event = editorEvent }
                 -- TODO!!
                 -- ,  eventQueue = Deque.pushFront event model.eventQueue
-                , networkModel = networkModel
+                , networkModel = newNetworkModel
                 , editRecord = newEditRecord
               }
             , Cmd.none

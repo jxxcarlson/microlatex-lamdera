@@ -7,29 +7,13 @@ import NetworkModel exposing (EditEvent)
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 
 
-processEvent : BackendModel -> ( BackendModel, Cmd BackendMsg )
-processEvent model =
-    let
-        ( mEvent, deque ) =
-            Deque.popBack model.editEvents
-
-        cmd =
-            case mEvent of
-                Nothing ->
-                    Cmd.none
-
-                Just evt ->
-                    processEventCmd model.sharedDocumentDict evt
-    in
-    ( { model | editEvents = deque }, cmd )
+processEvent : EditEvent -> BackendModel -> ( BackendModel, Cmd BackendMsg )
+processEvent editEvent model =
+    ( model , processEventCmd model.sharedDocumentDict editEvent )
 
 
 processEventCmd : Types.SharedDocumentDict -> EditEvent -> Cmd BackendMsg
 processEventCmd sharedDocumentDict event =
-    let
-        _ =
-            Debug.log "!!! sharedDocumentDict" sharedDocumentDict
-    in
     case Dict.get event.docId sharedDocumentDict of
         Nothing ->
             Cmd.none |> Debug.log "PROCESS, Nothing"

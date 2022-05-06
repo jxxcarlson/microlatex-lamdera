@@ -546,6 +546,7 @@ type PopupState
     | CheatSheetPopup
     | ManualsPopup
     | SharePopup
+    | NetworkMonitorPopup
 
 
 type TagSelection
