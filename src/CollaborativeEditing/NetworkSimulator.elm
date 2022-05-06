@@ -1,9 +1,9 @@
-module NetworkSimulator exposing (..)
+module CollaborativeEditing.NetworkSimulator exposing (..)
 
 -- (eventStream1, pass, runWithInput)
 
-import NetworkModel exposing (EditEvent, NetworkModel)
-import OT exposing (Operation(..))
+import CollaborativeEditing.NetworkModel as NetworkModel exposing (EditEvent, NetworkModel)
+import CollaborativeEditing.OT exposing (Operation(..))
 import Util exposing (Step(..), loop)
 
 

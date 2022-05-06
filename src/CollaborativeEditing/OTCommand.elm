@@ -4,9 +4,9 @@ module OTCommand exposing (Command(..), parseCommand, toCommand, toString)
 -- skip CURSOR K
 -- delete CURSOR k
 
+import CollaborativeEditing.NetworkModel as NetworkModel
+import CollaborativeEditing.OT as OT
 import Json.Encode as E
-import NetworkModel
-import OT
 import Parser exposing (..)
 
 
@@ -34,7 +34,9 @@ toCommand cursor event =
         (OT.MoveCursor _) :: (OT.Delete k) :: [] ->
             Just (CDelete cursor k)
 
-        (OT.OTNoOp ::[]) -> Just (CNoOp cursor)
+        OT.OTNoOp :: [] ->
+            Just (CNoOp cursor)
+
         _ ->
             Nothing
 
@@ -59,6 +61,7 @@ encodeCommand counter mCommand =
 
                 CNoOp cursor ->
                     E.object [ ( "op", E.string "noop" ), ( "cursor", E.int cursor ), ( "intval", E.int 0 ), ( "counter", E.int counter ) ]
+
 
 parseCommand : String -> Maybe Command
 parseCommand str =

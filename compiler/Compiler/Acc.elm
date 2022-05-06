@@ -160,7 +160,7 @@ listData accumulator name =
         ( _, Nothing ) ->
             -- Don't change state if there are anonymous blocks
             -- TODO: think about this, consistent with markdown semantics but not LaTeX
-            -- TODO: however it does fix a numbering bug (see MicroLaTeX Visual Test)
+            -- TODO: however it does fix a numbering bug (see MicroLaTeX Visual OTNetworkTest)
             ( accumulator.inList, Nothing )
 
         ( False, _ ) ->

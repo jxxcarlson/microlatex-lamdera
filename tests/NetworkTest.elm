@@ -1,9 +1,9 @@
 module NetworkTest exposing (..)
 
+import CollaborativeEditing.NetworkModel exposing (EditEvent, NetworkModel)
+import CollaborativeEditing.NetworkSimulator as NetworkSimulator
+import CollaborativeEditing.OT exposing (Document, Operation(..))
 import Expect exposing (..)
-import NetworkModel exposing (EditEvent, NetworkModel)
-import NetworkSimulator
-import OT exposing (Document, Operation(..))
 import Test exposing (..)
 
 
@@ -25,6 +25,13 @@ suite =
 
 events1 =
     [ { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    ]
+
+
+events1a =
+    [ { docId = "x", userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+    , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
     , { docId = "x", userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
     ]
 

@@ -1,7 +1,7 @@
 module OTTest exposing (suite)
 
+import CollaborativeEditing.OT as OT exposing (Document, Operation(..))
 import Expect exposing (..)
-import OT exposing (Document, Operation(..))
 import Test exposing (..)
 
 

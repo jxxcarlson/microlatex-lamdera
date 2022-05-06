@@ -1,10 +1,9 @@
-module NetworkModel exposing
+module CollaborativeEditing.NetworkModel exposing
     ( EditEvent
     , NetworkModel
     , ServerState
     , applyEvent
     , createEvent
-    , shortenDictKeys
     , emptyServerState
     , getLocalDocument
     , init
@@ -13,15 +12,17 @@ module NetworkModel exposing
     , initialServerState
     , manyUserInitialServerState
     , nullEvent
+    , shortenDictKeys
     , toString
     , updateFromBackend
     , updateFromUser
     )
 
+import CollaborativeEditing.OT as OT
 import Dict exposing (Dict)
 import Json.Encode as E
 import List.Extra
-import OT
+
 
 type alias UserId =
     String
@@ -34,8 +35,10 @@ type alias DocId =
 type alias EditEvent =
     { docId : String, userId : String, dp : Int, dx : Int, dy : Int, operations : List OT.Operation }
 
+
 type alias NetworkModel =
     { localMsgs : List EditEvent, serverState : ServerState }
+
 
 type alias ServerState =
     { cursorPositions : Dict UserId { x : Int, y : Int, p : Int }
@@ -46,9 +49,10 @@ type alias ServerState =
 shortenDictKeys : Dict String a -> Dict String a
 shortenDictKeys dict =
     dict
-     |> Dict.toList
-     |> List.map (\(k, v) -> (String.right 3 k, v))
-     |> Dict.fromList
+        |> Dict.toList
+        |> List.map (\( k, v ) -> ( String.right 3 k, v ))
+        |> Dict.fromList
+
 
 toString : { counter : Int, cursor : Int, event : Maybe EditEvent } -> String
 toString { counter, cursor, event } =
@@ -130,8 +134,6 @@ applyEvent event serverState =
             { cursorPositions = Dict.insert event.userId { x = x + event.dx, y = y + event.dy, p = p + event.dp } serverState.cursorPositions
             , document = OT.apply event.operations serverState.document
             }
-
-
 
 
 init : ServerState -> NetworkModel
