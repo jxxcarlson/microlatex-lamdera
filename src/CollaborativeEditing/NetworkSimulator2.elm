@@ -100,8 +100,8 @@ performEditOnUserState userId action state =
 
 
 initialState source =
-    { a = { user = UserA, editor = { cursor = 0, content = source }, model = initialNetworkModel source }
-    , b = { user = UserB, editor = { cursor = 0, content = source }, model = initialNetworkModel source }
+    { a = { user = UserA, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
+    , b = { user = UserB, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
     , server = []
     , input = []
     , count = 0
@@ -112,8 +112,6 @@ initialDocument source =
     { content = source
     , cursor = 0
     , id = "111"
-    , x = 0
-    , y = 0
     }
 
 
@@ -142,9 +140,14 @@ deleteAt i n str =
 -- SIMULATION BY HAND
 
 
+state0 : State
 state0 =
     initialState "abcd"
 
 
 editAction1 =
     { user = UserA, op = SMoveCursor 3 }
+
+
+state1 =
+    performEdit editAction1 state0
