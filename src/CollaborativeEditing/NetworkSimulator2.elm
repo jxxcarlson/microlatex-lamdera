@@ -22,11 +22,55 @@ type alias State =
     }
 
 
+nextStep : State -> Step State State
+nextStep state =
+    case List.head state.input of
+        Nothing ->
+            Done state
+
+        Just editorAction ->
+            let
+                _ =
+                    Debug.log "ACTION" editorAction
+            in
+            Loop (updateState editorAction state)
+
+
+updateState : EditorAction -> State -> State
+updateState action state =
+    state
+        |> performEdit action
+        |> updateFromBackend
+        |> (\state_ -> { state_ | input = List.drop 1 state.input })
+
+
+run : String -> List EditorAction -> State
+run content actions =
+    let
+        state_ =
+            initialState content
+
+        state =
+            { state_ | input = actions }
+    in
+    loop state nextStep
+
+
+loop : state -> (state -> Step state a) -> a
+loop s f =
+    case f s of
+        Loop s_ ->
+            loop s_ f
+
+        Done b ->
+            b
+
+
 type alias UserState =
-    { user : SimUser, editor : OT.Document, model : NetworkModel }
+    { user : SUser, editor : OT.Document, model : NetworkModel }
 
 
-type SimUser
+type SUser
     = UserA
     | UserB
 
@@ -36,14 +80,14 @@ type alias Cursor =
 
 
 type EditOp
-    = SInsert Cursor String
-    | SDelete Cursor Int
-    | SMoveCursor Cursor
-    | SNoOp
+    = EInsert Cursor String
+    | EDelete Cursor Int
+    | EMoveCursor Cursor
+    | ENoOp
 
 
 type alias EditorAction =
-    { user : SimUser, op : EditOp }
+    { user : SUser, op : EditOp }
 
 
 type Step a b
@@ -70,10 +114,10 @@ toEditOpAux cursor ( event, ops ) =
         Just op ->
             case op of
                 Insert cur str ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, SInsert cur str :: ops )
+                    Loop ( { event | operations = List.drop 1 event.operations }, EInsert cur str :: ops )
 
                 Delete cur n ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, SDelete cur n :: ops )
+                    Loop ( { event | operations = List.drop 1 event.operations }, EDelete cur n :: ops )
 
                 MoveCursor _ ->
                     Loop ( { event | operations = List.drop 1 event.operations }, ops )
@@ -82,16 +126,16 @@ toEditOpAux cursor ( event, ops ) =
 applyEditOp : EditOp -> OT.Document -> OT.Document
 applyEditOp op doc =
     case op of
-        SInsert cursor str ->
+        EInsert cursor str ->
             { doc | cursor = cursor + String.length str, content = String.Extra.insertAt str cursor doc.content }
 
-        SDelete cursor n ->
+        EDelete cursor n ->
             { doc | cursor = cursor, content = deleteAt cursor n doc.content }
 
-        SMoveCursor cursor ->
+        EMoveCursor cursor ->
             { doc | cursor = cursor }
 
-        SNoOp ->
+        ENoOp ->
             doc
 
 
@@ -242,7 +286,7 @@ state0 =
 
 
 editAction1 =
-    { user = UserA, op = SMoveCursor 2 }
+    { user = UserA, op = EMoveCursor 2 }
 
 
 state1 =
@@ -254,7 +298,7 @@ state1b =
 
 
 editAction2 =
-    { user = UserA, op = SInsert 2 "X" }
+    { user = UserA, op = EInsert 2 "X" }
 
 
 state2 =
@@ -266,7 +310,7 @@ state2b =
 
 
 editAction3 =
-    { user = UserA, op = SInsert 5 "Y" }
+    { user = UserA, op = EInsert 5 "Y" }
 
 
 state3 =
