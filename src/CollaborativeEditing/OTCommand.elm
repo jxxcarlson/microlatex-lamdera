@@ -22,20 +22,14 @@ toString counter command =
     encodeCommand counter command |> E.encode 2
 
 
-toCommand : Int -> NetworkModel.EditEvent -> Maybe Command
-toCommand cursor event =
+toCommand : NetworkModel.EditEvent -> Maybe Command
+toCommand event =
     case event.operations of
-        (OT.Insert str) :: [] ->
+        (OT.Insert cursor str) :: [] ->
             Just (CInsert cursor str)
 
-        (OT.MoveCursor cursor_) :: [] ->
-            Just (CMoveCursor cursor_ 0)
-
-        (OT.MoveCursor _) :: (OT.Delete k) :: [] ->
+        (OT.Delete cursor k) :: [] ->
             Just (CDelete cursor k)
-
-        OT.OTNoOp :: [] ->
-            Just (CNoOp cursor)
 
         _ ->
             Nothing

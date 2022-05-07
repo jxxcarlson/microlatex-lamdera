@@ -3,6 +3,7 @@ module CollaborativeEditing.NetworkModel exposing
     , NetworkModel
     , ServerState
     , applyEvent
+    , applyEvent2
     , createEvent
     , emptyServerState
     , getLocalDocument
@@ -118,6 +119,18 @@ createEvent userId_ oldDocument newDocument =
 
 applyEvent : EditEvent -> ServerState -> ServerState
 applyEvent event serverState =
+    case Dict.get event.userId serverState.cursorPositions of
+        Nothing ->
+            serverState
+
+        Just p ->
+            { cursorPositions = Dict.insert event.userId (p + event.dp) serverState.cursorPositions
+            , document = OT.apply event.operations serverState.document
+            }
+
+
+applyEvent2 : EditEvent -> ServerState -> ServerState
+applyEvent2 event serverState =
     case Dict.get event.userId serverState.cursorPositions of
         Nothing ->
             serverState

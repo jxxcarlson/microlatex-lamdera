@@ -591,6 +591,10 @@ inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
 
 
+
+-- INPUT FROM THE CODEMIRROR EDITOR (CHANGES IN CURSOR, TEXT)
+
+
 inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 inputCursor { position, source } model =
     if Document.numberOfEditors model.currentDocument > 1 then
@@ -607,43 +611,56 @@ handleCursor { position, source } model =
             ( model, Cmd.none )
 
         Just currentUserId ->
-            let
-                id =
-                    model.networkModel.serverState.document.id
-
-                newOTDocument =
-                    { id = id, cursor = position, content = source } |> Debug.log "!! NEW OT DOC"
-
-                editEvent =
-                    NetworkModel.createEvent currentUserId model.networkModel.serverState.document newOTDocument |> Debug.log "!! NEW EDIT EVENT"
-            in
-            ( { model | editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
+            --let
+            --    id =
+            --        model.networkModel.serverState.document.id
+            --
+            --    newOTDocument =
+            --        { id = id, cursor = position, content = source } |> Debug.log "!!! NEW OT DOC"
+            --
+            --    editEvent =
+            --        NetworkModel.createEvent currentUserId model.networkModel.serverState.document newOTDocument |> Debug.log "!! NEW EDIT EVENT"
+            --in
+            --( { model | editorCursor = position |> Debug.log "!!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
+            handleEditorChange model position source
 
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
     if Document.numberOfEditors model.currentDocument > 1 then
-        let
-            newOTDocument =
-                let
-                    id =
-                        Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
-                in
-                { id = id, cursor = position, content = source } |> Debug.log "I1, !!! NEW OT DOC"
-
-            userId =
-                model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
-
-            oldDocument =
-                model.networkModel.serverState.document
-
-            editEvent =
-                NetworkModel.createEvent userId oldDocument newOTDocument |> Debug.log "I2, !!!Create editEvent"
-        in
-        ( { model | counter = model.counter + 1 }, sendToBackend (PushEditorEvent editEvent) )
+        handleEditorChange model position source
 
     else
         inputText_ model source
+
+
+{-|
+
+    From the cursor, content information received from the editor (on cursor or text change),
+    compute the editEvent, where it will be sent to the backend, then narrowcast to
+    the clients current editing the given shared document.
+
+-}
+handleEditorChange : FrontendModel -> Int -> String -> ( FrontendModel, Cmd FrontendMsg )
+handleEditorChange model cursor content =
+    let
+        newOTDocument =
+            let
+                id =
+                    Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
+            in
+            { id = id, cursor = cursor, content = content } |> Debug.log "I1, !!! NEW OT DOC"
+
+        userId =
+            model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
+
+        oldDocument =
+            model.networkModel.serverState.document
+
+        editEvent =
+            NetworkModel.createEvent userId oldDocument newOTDocument |> Debug.log "I2, !!!Create editEvent"
+    in
+    ( { model | counter = model.counter + 1 }, sendToBackend (PushEditorEvent editEvent) )
 
 
 inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )

@@ -18,6 +18,7 @@ import Docs
 import Document
 import DocumentTools
 import Element
+import Env
 import File.Download as Download
 import Frontend.Cmd
 import Frontend.PDF as PDF
@@ -194,6 +195,12 @@ init url key =
           else
             Cmd.none
         , Task.perform AdjustTimeZone Time.here
+        , case Env.mode of
+            Env.Development ->
+                sendToBackend ClearConnectionDictBE
+
+            Env.Production ->
+                Cmd.none
 
         --- TODO: ???, sendToBackend GetCheatSheetDocument
         ]
@@ -1096,15 +1103,15 @@ updateFromBackend msg model =
                 newEditRecord =
                     Compiler.DifferentialParser.init model.includedContent model.language doc.content
 
-                cursor0 =
-                    model.networkModel.serverState.document.cursor |> Debug.log "P4a. !!! CURSOR from network model"
-
-                cursor1 =
-                    newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
-
+                --
+                --cursor0 =
+                --    model.networkModel.serverState.document.cursor |> Debug.log "P4a. !!! CURSOR from network model"
+                --
+                --cursor1 =
+                --    newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
-                        { counter = model.counter, command = event |> OTCommand.toCommand cursor0 |> Debug.log "P5a. !!! Edit Command" }
+                        { counter = model.counter, command = event |> OTCommand.toCommand |> Debug.log "P5a. !!! Edit Command" }
 
                     else
                         { counter = model.counter, command = Nothing } |> Debug.log "P5b. !!! Edit Command"

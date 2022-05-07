@@ -15,27 +15,27 @@ type alias Document =
     { id : String, cursor : Int, content : String }
 
 
+type alias Cursor =
+    Int
+
+
 type Operation
-    = Insert String
-    | Delete Int
-    | MoveCursor Int
-    | OTNoOp
+    = Insert Cursor String
+    | Delete Cursor Int
+    | MoveCursor Cursor
 
 
 encodeOperation : Operation -> E.Value
 encodeOperation op =
     case op of
-        Insert str ->
-            E.object [ ( "op", E.string "insert" ), ( "strval", E.string str ) ]
+        Insert cursor str ->
+            E.object [ ( "op", E.string "insert" ), ( "cursor", E.int cursor ), ( "strval", E.string str ) ]
 
-        Delete k ->
-            E.object [ ( "op", E.string "delete" ), ( "intval", E.int k ) ]
+        Delete cursor k ->
+            E.object [ ( "op", E.string "delete" ), ( "cursor", E.int cursor ), ( "intval", E.int k ) ]
 
-        MoveCursor k ->
-            E.object [ ( "op", E.string "movecursor" ), ( "intval", E.int k ) ]
-
-        OTNoOp ->
-            E.object [ ( "op", E.string "otnoop" ), ( "intval", E.int 0 ) ]
+        MoveCursor cursor ->
+            E.object [ ( "op", E.string "movecursor" ), ( "cursor", E.int cursor ) ]
 
 
 emptyDoc =
@@ -53,53 +53,61 @@ reconcile a b =
 
 findOps : Document -> Document -> List Operation
 findOps before after =
-    -- No Change of content
-    if after.content == before.content then
+    if before.content == after.content then
         [ MoveCursor (after.cursor - before.cursor) ]
-        -- From here on, we know that there is change of content
 
     else if after.cursor > before.cursor then
-        [ Insert (String.slice before.cursor after.cursor after.content) ]
+        [ Insert before.cursor (String.slice before.cursor after.cursor after.content) ]
+
+    else if after.cursor == before.cursor then
+        let
+            tailAfter =
+                String.dropLeft after.cursor after.content
+
+            tailBefore =
+                String.dropLeft before.cursor before.content
+
+            n =
+                String.length tailBefore - String.length tailAfter
+        in
+        [ Delete after.cursor n ]
 
     else if after.cursor < before.cursor then
-        [ MoveCursor (after.cursor - before.cursor + 1), Delete (before.cursor - after.cursor) ]
+        let
+            tailAfter =
+                String.dropLeft after.cursor after.content
+
+            tailBefore =
+                String.dropLeft before.cursor before.content
+
+            n =
+                String.length tailBefore - String.length tailAfter
+        in
+        [ Delete before.cursor n ]
 
     else
-        [ Delete (String.length before.content - String.length after.content) ]
+        []
 
 
 applyOp : Operation -> Document -> Document
-applyOp op { id, cursor, content } =
+applyOp op doc =
     case op of
-        Insert str ->
-            { id = id
+        Insert cursor str ->
+            { id = doc.id
             , cursor = cursor + String.length str
-            , content = String.left cursor content ++ str ++ String.dropLeft cursor content
+            , content = String.left cursor str ++ str ++ String.dropLeft cursor str
             }
 
-        Delete n ->
-            if cursor == String.length content - 1 then
-                { id = id
-                , cursor = cursor - 1
-                , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
-                }
-
-            else
-                { id = id
-                , cursor = cursor
-                , content = String.left cursor content ++ String.dropLeft n (String.dropLeft cursor content)
-                }
-
-        MoveCursor n ->
-            { id = id
-            , cursor = cursor + n
-            , content = content
+        Delete cursor n ->
+            { id = doc.id
+            , cursor = cursor - 1
+            , content = String.left cursor doc.content ++ String.dropLeft n (String.dropLeft cursor doc.content)
             }
 
-        OTNoOp ->
-            { id = id
+        MoveCursor cursor ->
+            { id = doc.id
             , cursor = cursor
-            , content = content
+            , content = doc.content
             }
 
 
