@@ -23,6 +23,7 @@ type Operation
     = Insert Cursor String
     | Delete Cursor Int
     | MoveCursor Cursor
+    | OTNoOp
 
 
 encodeOperation : Operation -> E.Value
@@ -36,6 +37,9 @@ encodeOperation op =
 
         MoveCursor cursor ->
             E.object [ ( "op", E.string "movecursor" ), ( "cursor", E.int cursor ) ]
+
+        OTNoOp ->
+            E.object [ ( "op", E.string "noop" ) ]
 
 
 emptyDoc =
@@ -91,6 +95,10 @@ findOps before after =
 
 applyOp : Operation -> Document -> Document
 applyOp op doc =
+    let
+        _ =
+            Debug.log "DOC" doc
+    in
     case op of
         Insert cursor str ->
             { id = doc.id
@@ -107,6 +115,12 @@ applyOp op doc =
         MoveCursor cursor ->
             { id = doc.id
             , cursor = cursor
+            , content = doc.content
+            }
+
+        OTNoOp ->
+            { id = doc.id
+            , cursor = doc.cursor
             , content = doc.content
             }
 

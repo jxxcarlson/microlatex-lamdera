@@ -1,4 +1,4 @@
-module NetworkModelTest exposing (..)
+module NetworkModelTest exposing (doc1a)
 
 import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT exposing (Document, Operation(..))

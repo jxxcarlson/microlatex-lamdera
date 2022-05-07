@@ -16,10 +16,41 @@ import Util exposing (Step(..), loop)
 type alias State =
     { a : UserState
     , b : UserState
-    , server : Deque EditEvent
+    , server : Server
     , input : List EditorAction
     , count : Int
     }
+
+
+type alias Server =
+    { events : Deque EditEvent, document : OT.Document }
+
+
+sendEventToServer : EditEvent -> Server -> Server
+sendEventToServer event server =
+    { server | events = Deque.pushFront event server.events }
+
+
+type alias UserState =
+    { user : SUser, editor : OT.Document, model : NetworkModel }
+
+
+type SUser
+    = UserA
+    | UserB
+
+
+type alias Cursor =
+    Int
+
+
+type alias EditorAction =
+    { user : SUser, op : OT.Operation }
+
+
+type Step a b
+    = Loop a
+    | Done b
 
 
 nextStep : State -> Step State State
@@ -66,47 +97,8 @@ loop s f =
             b
 
 
-type alias UserState =
-    { user : SUser, editor : OT.Document, model : NetworkModel }
-
-
-type SUser
-    = UserA
-    | UserB
-
-
-type alias Cursor =
-    Int
-
-
-type EditOp
-    = EInsert Cursor String
-    | EDelete Cursor Int
-    | EMoveCursor Cursor
-    | ENoOp
-
-
-type alias EditorAction =
-    { user : SUser, op : EditOp }
-
-
-type Step a b
-    = Loop a
-    | Done b
-
-
-toEditOps : Cursor -> EditEvent -> List EditOp
-toEditOps cursor event =
-    case toEditOpAux cursor ( event, [] ) of
-        Loop _ ->
-            []
-
-        Done ops ->
-            ops
-
-
-toEditOpAux : Cursor -> ( EditEvent, List EditOp ) -> Step ( EditEvent, List EditOp ) (List EditOp)
-toEditOpAux cursor ( event, ops ) =
+toOps : Cursor -> ( EditEvent, List OT.Operation ) -> Step ( EditEvent, List OT.Operation ) (List OT.Operation)
+toOps cursor ( event, ops ) =
     case List.head event.operations of
         Nothing ->
             Done ops
@@ -114,28 +106,35 @@ toEditOpAux cursor ( event, ops ) =
         Just op ->
             case op of
                 Insert cur str ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, EInsert cur str :: ops )
+                    Loop ( { event | operations = List.drop 1 event.operations }, Insert cur str :: ops )
 
                 Delete cur n ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, EDelete cur n :: ops )
+                    Loop ( { event | operations = List.drop 1 event.operations }, Delete cur n :: ops )
 
                 MoveCursor _ ->
                     Loop ( { event | operations = List.drop 1 event.operations }, ops )
 
+                OTNoOp ->
+                    Loop ( { event | operations = List.drop 1 event.operations }, ops )
 
-applyEditOp : EditOp -> OT.Document -> OT.Document
+
+applyEditOp : OT.Operation -> OT.Document -> OT.Document
 applyEditOp op doc =
     case op of
-        EInsert cursor str ->
+        Insert cursor str ->
             { doc | cursor = cursor + String.length str, content = String.Extra.insertAt str cursor doc.content }
 
-        EDelete cursor n ->
-            { doc | cursor = cursor, content = deleteAt cursor n doc.content }
+        Delete cursor n ->
+            let
+                _ =
+                    Debug.log "Delete" ( cursor, n )
+            in
+            { doc | cursor = cursor, content = deleteAt n (cursor - 1) doc.content |> Debug.log "DELETE" }
 
-        EMoveCursor cursor ->
+        MoveCursor cursor ->
             { doc | cursor = cursor }
 
-        ENoOp ->
+        OTNoOp ->
             doc
 
 
@@ -151,14 +150,20 @@ performEdit action state =
                 ( userState, event ) =
                     performEditOnUserState "A" action state.a
             in
-            { state | a = userState, server = Deque.pushFront event state.server }
+            { state
+                | a = userState
+                , server = sendEventToServer event state.server
+            }
 
         UserB ->
             let
                 ( userState, event ) =
                     performEditOnUserState "B" action state.a
             in
-            { state | b = userState, server = Deque.pushFront event state.server }
+            { state
+                | b = userState
+                , server = sendEventToServer event state.server
+            }
 
 
 performEditOnUserState : String -> EditorAction -> UserState -> ( UserState, EditEvent )
@@ -193,7 +198,7 @@ performEditOnUserState userId action state =
 
 updateFromBackend : State -> State
 updateFromBackend state =
-    case Deque.last state.server of
+    case Deque.last state.server.events of
         Nothing ->
             state
 
@@ -203,33 +208,42 @@ updateFromBackend state =
                     state.a.model |> Debug.log "modelA"
 
                 newNetworkModelA =
+                    let
+                        _ =
+                            Debug.log "Network Model" "A"
+                    in
                     NetworkModel.updateFromBackend NetworkModel.applyEvent2 event state.a.model
                         |> Debug.log "newNetworkModelA"
 
                 cursorA =
                     modelA.serverState.document.cursor
 
-                editOpsA =
-                    toEditOps cursorA event
-
+                --editOpsA =
+                --    toOps cursorA event
                 modelB =
                     state.b.model
 
                 newNetworkModelB =
+                    let
+                        _ =
+                            Debug.log "Network Model" "B"
+                    in
                     NetworkModel.updateFromBackend NetworkModel.applyEvent2 event state.b.model
 
                 cursorB =
                     modelB.serverState.document.cursor
 
-                editOpsB =
-                    toEditOps cursorB event
-
+                --editOpsB =
+                --    toOps cursorB event
                 ( _, deque ) =
-                    Deque.popBack state.server
+                    Deque.popBack state.server.events
+
+                oldServer =
+                    state.server
             in
             { a = { user = state.a.user, editor = newNetworkModelA.serverState.document, model = newNetworkModelA }
             , b = { user = state.b.user, editor = newNetworkModelB.serverState.document, model = newNetworkModelB }
-            , server = deque
+            , server = { oldServer | events = deque }
             , input = List.drop 1 state.input
             , count = state.count + 1
             }
@@ -239,10 +253,11 @@ updateFromBackend state =
 -- INITIALIZERS
 
 
+initialState : String -> State
 initialState source =
     { a = { user = UserA, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
     , b = { user = UserB, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
-    , server = Deque.empty
+    , server = { events = Deque.empty, document = { id = "doc", cursor = 0, content = source } }
     , input = []
     , count = 0
     }
@@ -286,7 +301,7 @@ state0 =
 
 
 editAction1 =
-    { user = UserA, op = EMoveCursor 2 }
+    { user = UserA, op = MoveCursor 2 }
 
 
 state1 =
@@ -298,7 +313,7 @@ state1b =
 
 
 editAction2 =
-    { user = UserA, op = EInsert 2 "X" }
+    { user = UserA, op = Insert 2 "X" }
 
 
 state2 =
@@ -310,7 +325,7 @@ state2b =
 
 
 editAction3 =
-    { user = UserA, op = EInsert 5 "Y" }
+    { user = UserA, op = Insert 5 "Y" }
 
 
 state3 =
