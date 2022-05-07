@@ -1089,10 +1089,12 @@ updateFromBackend msg model =
         ProcessEvent event ->
             let
                 debugLabel =
-                    "P1. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
+                    "P1a. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
 
                 newNetworkModel =
-                    NetworkModel.updateFromBackend NetworkModel.applyEvent (Debug.log debugLabel event) model.networkModel
+                    NetworkModel.updateFromBackend NetworkModel.applyEvent
+                        (Debug.log debugLabel event)
+                        (Debug.log "P1b !!! Old Network Model" model.networkModel)
                         |> Debug.log ("P2. !!! New Network Model " ++ Util.currentUsername model.currentUser)
 
                 doc : OT.Document

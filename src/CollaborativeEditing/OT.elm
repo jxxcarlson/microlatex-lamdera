@@ -94,8 +94,8 @@ applyOp op doc =
     case op of
         Insert cursor str ->
             { id = doc.id
-            , cursor = cursor + String.length str
-            , content = String.left cursor str ++ str ++ String.dropLeft cursor str
+            , cursor = Debug.log "CURSOR" cursor + String.length str
+            , content = (String.left cursor doc.content |> Debug.log "LEFT") ++ str ++ (String.dropLeft cursor doc.content |> Debug.log "RIGHT")
             }
 
         Delete cursor n ->
