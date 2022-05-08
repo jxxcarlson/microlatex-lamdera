@@ -7,9 +7,10 @@ import Dict exposing (Dict)
 import Json.Encode as E
 import List.Extra
 import String.Extra
+import Util
 
 
-type alias UserId =
+type alias Username =
     String
 
 
@@ -28,7 +29,8 @@ type alias EditEvent =
 
 
 type alias LocalModel =
-    { pendingChanges : Deque EditEvent
+    { username : Username
+    , pendingChanges : Deque EditEvent
     , sentChanges : List EditEvent
     , localDocument : OT.Document
     , revisions : List Revision
@@ -39,9 +41,9 @@ type alias Revision =
     { revision : Int, doc : OT.Document }
 
 
-type alias CollaborationServer =
+type alias Server =
     { revisionLog : Dict DocId (List EditEvent)
-    , pendingChanges : Dict DocId (List EditEvent)
+    , pendingChanges : Dict DocId (Deque ( Username, EditEvent ))
     , documents : Dict DocId OT.Document
     }
 
@@ -51,6 +53,8 @@ type alias LocalState =
 
 
 {-|
+
+    1.
 
     Given: a list of OT.operation, representing user actions in the text editor
       - Update the editor (cursor, content) via using OT.apply
@@ -69,6 +73,11 @@ applyEditorOperations operations model =
     ( { model | editor = OT.apply operations model.editor }, editEvent )
 
 
+{-|
+
+    2.
+
+-}
 applyEventToLocalState : ( LocalState, EditEvent ) -> ( LocalState, EditEvent )
 applyEventToLocalState ( state, editEvent ) =
     let
@@ -82,6 +91,53 @@ applyEventToLocalState ( state, editEvent ) =
             }
     in
     ( { state | localModel = newModel }, editEvent )
+
+
+{-|
+
+    3.
+
+-}
+sendChanges : ( LocalState, Server ) -> ( LocalState, Server )
+sendChanges ( localState, server ) =
+    let
+        getEvent : LocalModel -> ( LocalModel, Maybe EditEvent )
+        getEvent localModel =
+            case Deque.popBack localModel.pendingChanges of
+                ( Nothing, deque ) ->
+                    ( localModel, Nothing )
+
+                ( Just event, deque ) ->
+                    ( { localModel | pendingChanges = deque, sentChanges = event :: localModel.sentChanges }, Just event )
+
+        ( model, mEvent ) =
+            getEvent localState.localModel
+
+        username =
+            localState.localModel.username
+
+        docId =
+            localState.localModel.localDocument.docId
+
+        newServer =
+            case mEvent of
+                Nothing ->
+                    server
+
+                Just event ->
+                    { server | pendingChanges = insertEvent docId ( username, event ) server.pendingChanges }
+    in
+    ( { localState | localModel = model }, newServer )
+
+
+insertEvent : DocId -> ( Username, EditEvent ) -> Dict DocId (Deque ( Username, EditEvent )) -> Dict DocId (Deque ( Username, EditEvent ))
+insertEvent docId ( username, editEvent ) dict =
+    Dict.update docId (Util.liftToMaybe (updateDeque ( username, editEvent ))) dict
+
+
+updateDeque : ( Username, EditEvent ) -> Deque ( Username, EditEvent ) -> Deque ( Username, EditEvent )
+updateDeque ( username, event ) deque =
+    Deque.pushFront ( username, event ) deque
 
 
 applyEvent : EditEvent -> OT.Document -> OT.Document
@@ -122,34 +178,35 @@ setSharedDocument docId source =
     }
 
 
-setLocalState : DocId -> String -> LocalState
-setLocalState docId source =
-    { editor = setSharedDocument docId source, localModel = setLocalModel docId source }
+setLocalState : Username -> DocId -> String -> LocalState
+setLocalState username docId source =
+    { editor = setSharedDocument docId source, localModel = setLocalModel username docId source }
 
 
-setLocalModel : DocId -> String -> LocalModel
-setLocalModel docId source =
+setLocalModel : Username -> DocId -> String -> LocalModel
+setLocalModel username docId source =
     let
         doc =
             setSharedDocument docId source
     in
-    { pendingChanges = Deque.empty
+    { username = username
+    , pendingChanges = Deque.empty
     , sentChanges = []
     , localDocument = doc
     , revisions = { revision = 0, doc = doc } :: []
     }
 
 
-startSession : DocId -> String -> CollaborationServer -> CollaborationServer
+startSession : DocId -> String -> Server -> Server
 startSession docId source server =
     { server
         | revisionLog = Dict.insert docId [] server.revisionLog
-        , pendingChanges = Dict.insert docId [] server.pendingChanges
+        , pendingChanges = Dict.insert docId Deque.empty server.pendingChanges
         , documents = Dict.insert docId (setSharedDocument docId source) server.documents
     }
 
 
-removeSession : DocId -> CollaborationServer -> CollaborationServer
+removeSession : DocId -> Server -> Server
 removeSession docId server =
     { server
         | revisionLog = Dict.remove docId server.revisionLog
@@ -158,9 +215,21 @@ removeSession docId server =
     }
 
 
-initialCollobarationServer : CollaborationServer
-initialCollobarationServer =
+initialServer : Server
+initialServer =
     { revisionLog = Dict.empty
     , pendingChanges = Dict.empty
     , documents = Dict.empty
     }
+
+
+
+--fii =
+--    ( { editor = { content = "abc", cursor = 3, docId = "doc" }
+--      , localModel = { localDocument = { content = "abc", cursor = 3, docId = "doc" }, pendingChanges = Deque { front = [], rear = [], sizeF = 0, sizeR = 0 }, revisions = [ { doc = { content = "", cursor = 0, docId = "doc" }, revision = 0 } ]
+--      , sentChanges = [], username = "Andrew " }
+--      }
+--    , { documents = Dict.fromList [ ( "doc", { content = "", cursor = 0, docId = "doc" } ) ]
+--    , pendingChanges = Dict.fromList [ ( "doc", Deque { front = [ ( "Andrew ", { cursorChange = 3, operations = [ Insert 0 "abc" ] } ) ], rear = [], sizeF = 1, sizeR = 0 } ) ]
+--    , revisionLog = Dict.fromList [ ( "doc", [] ) ] }
+--    )

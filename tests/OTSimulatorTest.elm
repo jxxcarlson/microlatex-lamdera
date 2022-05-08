@@ -1,9 +1,18 @@
-module OTSimulatorTest exposing (..)
+module OTSimulatorTest exposing (suite)
 
-import CollaborativeEditing.NetworkModel exposing (EditEvent, NetworkModel)
-import CollaborativeEditing.NetworkSimulator2 as NetworkSimulator exposing (SUser(..), performEdit, run)
+import CollaborativeEditing.NetworkModel2
+    exposing
+        ( applyEditorOperations
+        , applyEventToLocalState
+        , initialServer
+        , removeSession
+        , sendChanges
+        , setLocalState
+        , startSession
+        )
 import CollaborativeEditing.OT exposing (Document, Operation(..))
-import Dict exposing (Dict)
+import Deque exposing (Deque)
+import Dict
 import Expect exposing (..)
 import Test exposing (..)
 
@@ -15,89 +24,36 @@ test_ label expr expected =
 suite : Test
 suite =
     describe "NetworkModel Simulator"
-        [ test_ "move to end, add one letter" out1.a result1
-        , test_ "add one letter at beginning" out2.a result2
-        , test_ "delete one letter at beginning" out3.a result3
+        [ test_ "initializeServer, start and remove session"
+            (initialServer |> startSession "doc" "abc" |> removeSession "doc")
+            initialServer
+        , test_ "Insert 'abc' at cursor = 0" sa1.localModel.localDocument { content = "abc", cursor = 3, docId = "doc" }
+        , test_ "sendChanges"
+            (sendChanges ( sa1, server0 )
+                |> Tuple.second
+                |> .pendingChanges
+                |> Dict.get "doc"
+                |> Maybe.andThen Deque.first
+                |> Maybe.map Tuple.second
+            )
+            (Just { cursorChange = 3, operations = [ Insert 0 "abc" ] })
         ]
 
 
-out1 =
-    NetworkSimulator.initialState "abcd"
-        |> performEdit { user = UserA, op = MoveCursor 4 }
-        |> performEdit { user = UserA, op = Insert 4 "X" }
+server0 =
+    initialServer |> startSession "doc" ""
 
 
-out2 =
-    NetworkSimulator.initialState "abcd"
-        |> performEdit { user = UserA, op = Insert 0 "X" }
+foo =
+    sendChanges ( sa1, server0 )
 
 
-out3 =
-    NetworkSimulator.initialState "abcd"
-        |> performEdit { user = UserA, op = Delete 0 2 }
+sa0 =
+    setLocalState "Andrew " "doc" ""
 
 
-result1 =
-    { editor = { content = "abcdX", cursor = 5, id = "doc" }
-    , model =
-        { localMsgs =
-            [ { docId = "doc"
-              , dp = 1
-              , operations = [ Insert 4 "X" ]
-              , userId = "A"
-              }
-            ]
-        , serverState =
-            { cursorPositions = Dict.fromList [ ( "A", 5 ), ( "B", 0 ) ]
-            , document = { content = "abcdX", cursor = 5, id = "doc" }
-            }
-        }
-    , user = UserA
-    }
-
-
-result2 =
-    { editor = { content = "Xabcd", cursor = 1, id = "doc" }
-    , model =
-        { localMsgs =
-            [ { docId = "doc"
-              , dp = 1
-              , operations = [ Insert 0 "X" ]
-              , userId = "A"
-              }
-            ]
-        , serverState =
-            { cursorPositions = Dict.fromList [ ( "A", 1 ), ( "B", 0 ) ]
-            , document = { content = "Xabcd", cursor = 1, id = "doc" }
-            }
-        }
-    , user = UserA
-    }
-
-
-result3 =
-    { editor = { content = "cd", cursor = 0, id = "doc" }
-    , model =
-        { localMsgs =
-            [ { docId = "doc"
-              , dp = 0
-              , operations = [ Delete 0 2 ]
-              , userId = "A"
-              }
-            ]
-        , serverState =
-            { cursorPositions = Dict.fromList [ ( "A", 0 ), ( "B", 0 ) ]
-            , document = { content = "cd", cursor = 0, id = "doc" }
-            }
-        }
-    , user = UserA
-    }
-
-
-
---run2 =
---    run "abcd" [ { user = UserA, op = MoveCursor 4 }, { user = UserA, op = Insert 4 "X" } ]
---
---
---out2 =
---    { editor = { content = "abcdX", cursor = 5, id = "doc" }, model = { localMsgs = [], serverState = { cursorPositions = Dict.fromList [ ( "A", 5 ), ( "B", 0 ) ], document = { content = "abcdX", cursor = 5, id = "doc" } } }, user = UserA }
+sa1 =
+    sa0
+        |> applyEditorOperations [ Insert 0 "abc" ]
+        |> applyEventToLocalState
+        |> Tuple.first
