@@ -649,7 +649,7 @@ handleEditorChange model cursor content =
                 id =
                     Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
             in
-            { id = id, cursor = cursor, content = content } |> Debug.log "I1, !!! NEW OT DOC"
+            { docId = id, cursor = cursor, content = content } |> Debug.log "I1, !!! NEW OT DOC"
 
         userId =
             model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"

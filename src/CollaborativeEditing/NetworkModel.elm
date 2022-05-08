@@ -84,14 +84,14 @@ nullEvent =
 initialServerState : DocId -> UserId -> String -> ServerState
 initialServerState docId userId content =
     { cursorPositions = Dict.fromList [ ( userId, 0 ) ]
-    , document = { id = docId, cursor = 0, content = content }
+    , document = { docId = docId, cursor = 0, content = content }
     }
 
 
 manyUserInitialServerState : DocId -> List UserId -> String -> ServerState
 manyUserInitialServerState docId userIds content =
     { cursorPositions = Dict.fromList (List.map (\id -> ( id, 0 )) userIds)
-    , document = { id = docId, cursor = 0, content = content }
+    , document = { docId = docId, cursor = 0, content = content }
     }
 
 
@@ -114,7 +114,7 @@ createEvent userId_ oldDocument newDocument =
         operations =
             OT.findOps oldDocument newDocument
     in
-    { docId = oldDocument.id, userId = userId_, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
+    { docId = oldDocument.docId, userId = userId_, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
 
 
 applyEvent : EditEvent -> ServerState -> ServerState

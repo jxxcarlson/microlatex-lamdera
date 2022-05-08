@@ -12,7 +12,7 @@ import Json.Encode as E
 
 
 type alias Document =
-    { id : String, cursor : Int, content : String }
+    { docId : String, cursor : Int, content : String }
 
 
 type alias Cursor =
@@ -101,25 +101,25 @@ applyOp op doc =
     in
     case op of
         Insert cursor str ->
-            { id = doc.id
+            { docId = doc.docId
             , cursor = Debug.log "CURSOR" cursor + String.length str
             , content = (String.left cursor doc.content |> Debug.log "LEFT") ++ str ++ (String.dropLeft cursor doc.content |> Debug.log "RIGHT")
             }
 
         Delete cursor n ->
-            { id = doc.id
+            { docId = doc.docId
             , cursor = cursor - 1
             , content = String.left cursor doc.content ++ String.dropLeft n (String.dropLeft cursor doc.content)
             }
 
         MoveCursor cursor ->
-            { id = doc.id
+            { docId = doc.docId
             , cursor = cursor
             , content = doc.content
             }
 
         OTNoOp ->
-            { id = doc.id
+            { docId = doc.docId
             , cursor = doc.cursor
             , content = doc.content
             }

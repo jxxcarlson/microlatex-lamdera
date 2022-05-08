@@ -26,11 +26,6 @@ type alias Server =
     { events : Deque EditEvent, document : OT.Document }
 
 
-sendEventToServer : EditEvent -> Server -> Server
-sendEventToServer event server =
-    { server | events = Deque.pushFront event server.events }
-
-
 type alias UserState =
     { user : SUser, editor : OT.Document, model : NetworkModel }
 
@@ -142,6 +137,8 @@ applyEditOp op doc =
 -- PERFORM EDIT
 
 
+{-| perform edit on document, update local state, and send message to the server
+-}
 performEdit : EditorAction -> State -> State
 performEdit action state =
     case action.user of
@@ -164,6 +161,11 @@ performEdit action state =
                 | b = userState
                 , server = sendEventToServer event state.server
             }
+
+
+sendEventToServer : EditEvent -> Server -> Server
+sendEventToServer event server =
+    { server | events = Deque.pushFront event server.events }
 
 
 performEditOnUserState : String -> EditorAction -> UserState -> ( UserState, EditEvent )
@@ -255,9 +257,9 @@ updateFromBackend state =
 
 initialState : String -> State
 initialState source =
-    { a = { user = UserA, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
-    , b = { user = UserB, editor = { id = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
-    , server = { events = Deque.empty, document = { id = "doc", cursor = 0, content = source } }
+    { a = { user = UserA, editor = { docId = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
+    , b = { user = UserB, editor = { docId = "doc", cursor = 0, content = source }, model = initialNetworkModel source }
+    , server = { events = Deque.empty, document = { docId = "doc", cursor = 0, content = source } }
     , input = []
     , count = 0
     }
