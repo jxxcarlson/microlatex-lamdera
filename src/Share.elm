@@ -5,6 +5,9 @@ module Share exposing
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
+    , narrowCastIfShared
+    , narrowCastIfShared2
+    , narrowCastToEditorsExceptForSender
     , removeConnectionFromSharedDocumentDict
     , removeEditor
     , resetDocument
@@ -17,7 +20,7 @@ module Share exposing
 
 import Dict
 import Document
-import Lamdera exposing (ClientId, sendToBackend)
+import Lamdera exposing (ClientId, sendToBackend, sendToFrontend)
 import List.Extra
 import Set
 import Types
@@ -27,6 +30,32 @@ import Util
 
 type alias Username =
     String
+
+
+narrowCastIfShared2 : Maybe User.User -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared2 currentUser document =
+    if List.isEmpty document.currentEditorList then
+        Cmd.none
+
+    else
+        let
+            editors =
+                List.filter (\editor_ -> Just editor_.username /= Maybe.map .username currentUser) document.currentEditorList
+        in
+        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
+
+
+narrowCastIfShared : ClientId -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared clientId document =
+    if List.isEmpty document.currentEditorList then
+        Cmd.none
+
+    else
+        let
+            editors =
+                List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
+        in
+        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
 
 
 removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
@@ -222,6 +251,23 @@ narrowCast sendersName document connectionDict =
                     author :: (document.sharedWith.editors ++ document.sharedWith.readers) |> List.filter (\name -> name /= "")
 
         --|> List.filter (\name -> name /= sendersName && name /= "")
+        clientIds =
+            getClientIds usernames connectionDict
+    in
+    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
+
+
+narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
+narrowCastToEditorsExceptForSender sendersName document connectionDict =
+    let
+        usernames =
+            case document.author of
+                Nothing ->
+                    document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
+
+                Just author ->
+                    author :: document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
+
         clientIds =
             getClientIds usernames connectionDict
     in

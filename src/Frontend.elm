@@ -947,6 +947,9 @@ updateDoc model str =
                                 else
                                     "Oops, this is a backup or version document -- no edits"
                         in
+                        -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
+                        -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
+                        -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
                         ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
 
 

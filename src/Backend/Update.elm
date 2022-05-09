@@ -437,6 +437,10 @@ fetchDocumentByIdCmd model clientId docId documentHandling =
 
 saveDocument model clientId currentUser document =
     -- TODO: review this for safety
+    let
+        _ =
+            Predicate.documentIsMineOrIAmAnEditor_ document currentUser |> Debug.log "PREDICATE"
+    in
     if Predicate.documentIsMineOrIAmAnEditor_ document currentUser then
         let
             updateDoc : Document.Document -> Document.Document
@@ -449,10 +453,19 @@ saveDocument model clientId currentUser document =
             updateDocumentDict2 doc dict =
                 Dict.update doc.id mUpdateDoc dict
         in
-        ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen }) )
+        ( { model | documentDict = updateDocumentDict2 document model.documentDict }
+        , Cmd.batch
+            [ sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
+            , Share.narrowCastIfShared clientId document
+            ]
+        )
 
     else
         ( model, Cmd.none )
+
+
+
+-- { userId : String, username : String, clientId : ClientId }
 
 
 createDocument model clientId maybeCurrentUser doc_ =

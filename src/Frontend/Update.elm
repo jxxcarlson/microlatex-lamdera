@@ -622,28 +622,29 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
-    if Document.numberOfEditors model.currentDocument > 1 then
-        let
-            newOTDocument =
-                let
-                    newLocation =
-                        Document.location position source
-
-                    id =
-                        Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
-                in
-                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source }
-
-            userId =
-                model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
-
-            editEvent =
-                NetworkModel.createEvent userId model.oTDocument newOTDocument
-        in
-        ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
-
-    else
-        inputText_ model source
+    -- TEMPORARILY DISABLED
+    --if Document.numberOfEditors model.currentDocument > 1 then
+    --    let
+    --        newOTDocument =
+    --            let
+    --                newLocation =
+    --                    Document.location position source
+    --
+    --                id =
+    --                    Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
+    --            in
+    --            { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source }
+    --
+    --        userId =
+    --            model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
+    --
+    --        editEvent =
+    --            NetworkModel.createEvent userId model.oTDocument newOTDocument
+    --    in
+    --    ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
+    --
+    --else
+    inputText_ model source
 
 
 inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
