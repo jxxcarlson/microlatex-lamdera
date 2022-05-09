@@ -269,13 +269,13 @@ getSharedDocuments model clientId username =
                 |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
                 |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
 
-        docs2 =
-            docList
-                |> List.filter (\( _, data ) -> data.author == Just username)
-                |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
+        --docs2 =
+        --    docList
+        --        |> List.filter (\( _, data ) -> data.author == Just username)
+        --        |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
     in
     ( model
-    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, _, doc ) -> doc.title)))
+    , sendToFrontend clientId (GotShareDocumentList (docs1 |> List.sortBy (\( _, _, doc ) -> doc.title)))
     )
 
 
