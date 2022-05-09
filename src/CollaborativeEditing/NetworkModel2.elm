@@ -29,7 +29,7 @@ type alias EditEvent =
 
 
 type alias LocalModel =
-    { username : Username
+    { userData : UserData
     , pendingChanges : Deque EditEvent
     , sentChanges : List EditEvent
     , localDocument : OT.Document
@@ -37,12 +37,17 @@ type alias LocalModel =
     }
 
 
+type alias UserData =
+    { username : Username, clientId : String }
+
+
 type alias Revision =
     { revision : Int, doc : OT.Document }
 
 
 type alias Server =
-    { revisionLog : Dict DocId (List EditEvent)
+    { clients : Dict DocId (List UserData)
+    , revisionLog : Dict DocId (List EditEvent)
     , pendingChanges : Dict DocId (Deque ( Username, EditEvent ))
     , documents : Dict DocId OT.Document
     }
@@ -95,7 +100,7 @@ applyEventToLocalState ( state, editEvent ) =
 
 {-|
 
-    3.
+    3 . Send local changes to server
 
 -}
 sendChanges : ( LocalState, Server ) -> ( LocalState, Server )
@@ -114,7 +119,7 @@ sendChanges ( localState, server ) =
             getEvent localState.localModel
 
         username =
-            localState.localModel.username
+            localState.localModel.userData.username
 
         docId =
             localState.localModel.localDocument.docId
@@ -128,6 +133,16 @@ sendChanges ( localState, server ) =
                     { server | pendingChanges = insertEvent docId ( username, event ) server.pendingChanges }
     in
     ( { localState | localModel = model }, newServer )
+
+
+{-|
+
+        4. At Server: Apply one Change
+
+-}
+updateServer : Server -> Server
+updateServer server =
+    server
 
 
 insertEvent : DocId -> ( Username, EditEvent ) -> Dict DocId (Deque ( Username, EditEvent )) -> Dict DocId (Deque ( Username, EditEvent ))
@@ -178,18 +193,18 @@ setSharedDocument docId source =
     }
 
 
-setLocalState : Username -> DocId -> String -> LocalState
-setLocalState username docId source =
-    { editor = setSharedDocument docId source, localModel = setLocalModel username docId source }
+setLocalState : DocId -> UserData -> String -> LocalState
+setLocalState docId userData source =
+    { editor = setSharedDocument docId source, localModel = setLocalModel docId userData source }
 
 
-setLocalModel : Username -> DocId -> String -> LocalModel
-setLocalModel username docId source =
+setLocalModel : DocId -> UserData -> String -> LocalModel
+setLocalModel docId userData source =
     let
         doc =
             setSharedDocument docId source
     in
-    { username = username
+    { userData = userData
     , pendingChanges = Deque.empty
     , sentChanges = []
     , localDocument = doc
@@ -197,10 +212,11 @@ setLocalModel username docId source =
     }
 
 
-startSession : DocId -> String -> Server -> Server
-startSession docId source server =
+startSession : DocId -> List UserData -> String -> Server -> Server
+startSession docId userList source server =
     { server
-        | revisionLog = Dict.insert docId [] server.revisionLog
+        | clients = Dict.insert docId userList server.clients
+        , revisionLog = Dict.insert docId [] server.revisionLog
         , pendingChanges = Dict.insert docId Deque.empty server.pendingChanges
         , documents = Dict.insert docId (setSharedDocument docId source) server.documents
     }
@@ -209,7 +225,8 @@ startSession docId source server =
 removeSession : DocId -> Server -> Server
 removeSession docId server =
     { server
-        | revisionLog = Dict.remove docId server.revisionLog
+        | clients = Dict.remove docId server.clients
+        , revisionLog = Dict.remove docId server.revisionLog
         , pendingChanges = Dict.remove docId server.pendingChanges
         , documents = Dict.remove docId server.documents
     }
@@ -217,7 +234,8 @@ removeSession docId server =
 
 initialServer : Server
 initialServer =
-    { revisionLog = Dict.empty
+    { clients = Dict.empty
+    , revisionLog = Dict.empty
     , pendingChanges = Dict.empty
     , documents = Dict.empty
     }

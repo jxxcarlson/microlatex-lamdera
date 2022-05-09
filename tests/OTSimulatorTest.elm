@@ -25,7 +25,7 @@ suite : Test
 suite =
     describe "NetworkModel Simulator"
         [ test_ "initializeServer, start and remove session"
-            (initialServer |> startSession "doc" "abc" |> removeSession "doc")
+            (initialServer |> startSession "doc" users "" |> removeSession "doc")
             initialServer
         , test_ "Insert 'abc' at cursor = 0" sa1.localModel.localDocument { content = "abc", cursor = 3, docId = "doc" }
         , test_ "sendChanges"
@@ -40,8 +40,20 @@ suite =
         ]
 
 
+userA =
+    { username = "Alice", clientId = "1" }
+
+
+userB =
+    { username = "Bob", clientId = "2" }
+
+
+users =
+    [ userA, userB ]
+
+
 server0 =
-    initialServer |> startSession "doc" ""
+    initialServer |> startSession "doc" users ""
 
 
 foo =
@@ -49,7 +61,7 @@ foo =
 
 
 sa0 =
-    setLocalState "Andrew " "doc" ""
+    setLocalState "doc" userA ""
 
 
 sa1 =
