@@ -439,7 +439,7 @@ saveDocument model clientId currentUser document =
     -- TODO: review this for safety
     let
         _ =
-            Predicate.documentIsMineOrIAmAnEditor_ document currentUser |> Debug.log "PREDICATE"
+            Predicate.documentIsMineOrIAmAnEditor_ document currentUser
     in
     if Predicate.documentIsMineOrIAmAnEditor_ document currentUser then
         let
