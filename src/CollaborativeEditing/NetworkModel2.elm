@@ -2,30 +2,19 @@ module CollaborativeEditing.NetworkModel2 exposing (..)
 
 import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT
+import CollaborativeEditing.Types
+    exposing
+        ( DocId
+        , EditEvent
+        , Msg(..)
+        , Username
+        )
 import Deque exposing (Deque)
 import Dict exposing (Dict)
 import Json.Encode as E
 import List.Extra
 import String.Extra
 import Util
-
-
-type alias Username =
-    String
-
-
-type alias DocId =
-    String
-
-
-{-|
-
-    EditEvents are deduced from changes in {cursor, content} emitted by the
-    text editor.
-
--}
-type alias EditEvent =
-    { cursorChange : Int, operations : List OT.Operation }
 
 
 type alias LocalModel =
@@ -67,15 +56,15 @@ type alias LocalState =
 
 -}
 applyEditorOperations : List OT.Operation -> LocalState -> ( LocalState, EditEvent )
-applyEditorOperations operations model =
+applyEditorOperations operations localState =
     let
         editor =
-            OT.apply operations model.editor
+            OT.apply operations localState.editor
 
         editEvent =
-            createEvent model.editor editor
+            createEvent localState.editor editor
     in
-    ( { model | editor = OT.apply operations model.editor }, editEvent )
+    ( { localState | editor = OT.apply operations localState.editor }, editEvent )
 
 
 {-|
@@ -100,44 +89,48 @@ applyEventToLocalState ( state, editEvent ) =
 
 {-|
 
-    3 . Send local changes to server
+    Send one pending change if the sent changes list is empty.
+    Note that changes are moved from the sent changes list
+    when they are acknowledged by the server
 
 -}
-sendChanges : ( LocalState, Server ) -> ( LocalState, Server )
-sendChanges ( localState, server ) =
-    let
-        getEvent : LocalModel -> ( LocalModel, Maybe EditEvent )
-        getEvent localModel =
-            case Deque.popBack localModel.pendingChanges of
-                ( Nothing, deque ) ->
-                    ( localModel, Nothing )
+sendChanges : LocalState -> ( LocalState, Msg )
+sendChanges localState =
+    if List.isEmpty localState.localModel.sentChanges then
+        sendChanges_ localState
 
-                ( Just event, deque ) ->
-                    ( { localModel | pendingChanges = deque, sentChanges = event :: localModel.sentChanges }, Just event )
-
-        ( model, mEvent ) =
-            getEvent localState.localModel
-
-        username =
-            localState.localModel.userData.username
-
-        docId =
-            localState.localModel.localDocument.docId
-
-        newServer =
-            case mEvent of
-                Nothing ->
-                    server
-
-                Just event ->
-                    { server | pendingChanges = insertEvent docId ( username, event ) server.pendingChanges }
-    in
-    ( { localState | localModel = model }, newServer )
+    else
+        ( localState, CENoOp )
 
 
 {-|
 
-        4. At Server: Apply one Change
+    3b. Send local changes to server
+
+-}
+sendChanges_ : LocalState -> ( LocalState, Msg )
+sendChanges_ localState =
+    let
+        getEvent : LocalModel -> ( LocalModel, Msg )
+        getEvent localModel =
+            case Deque.popBack localModel.pendingChanges of
+                ( Nothing, _ ) ->
+                    ( localModel, CENoOp )
+
+                ( Just event, deque ) ->
+                    ( { localModel | pendingChanges = deque, sentChanges = event :: localModel.sentChanges }
+                    , ProcessEvent localModel.userData.username event
+                    )
+
+        ( model, mEvent ) =
+            getEvent localState.localModel
+    in
+    ( { localState | localModel = model }, mEvent )
+
+
+{-|
+
+        4. At Server: Apply one change
 
 -}
 updateServer : Server -> Server
@@ -193,8 +186,8 @@ setSharedDocument docId source =
     }
 
 
-setLocalState : DocId -> UserData -> String -> LocalState
-setLocalState docId userData source =
+setLocalState : DocId -> String -> UserData -> LocalState
+setLocalState docId source userData =
     { editor = setSharedDocument docId source, localModel = setLocalModel docId userData source }
 
 

@@ -27,9 +27,9 @@ suite =
         [ test_ "initializeServer, start and remove session"
             (initialServer |> startSession "doc" users "" |> removeSession "doc")
             initialServer
-        , test_ "Insert 'abc' at cursor = 0" sa1.localModel.localDocument { content = "abc", cursor = 3, docId = "doc" }
+        , test_ "Insert 'abc' at cursor = 0" s1.localModel.localDocument { content = "abc", cursor = 3, docId = "doc" }
         , test_ "sendChanges"
-            (sendChanges ( sa1, server0 )
+            (sendChanges ( s1, server0 )
                 |> Tuple.second
                 |> .pendingChanges
                 |> Dict.get "doc"
@@ -56,16 +56,12 @@ server0 =
     initialServer |> startSession "doc" users ""
 
 
-foo =
-    sendChanges ( sa1, server0 )
+s0 =
+    setLocalState "doc" "" userA
 
 
-sa0 =
-    setLocalState "doc" userA ""
-
-
-sa1 =
-    sa0
+s1 =
+    s0
         |> applyEditorOperations [ Insert 0 "abc" ]
         |> applyEventToLocalState
         |> Tuple.first
