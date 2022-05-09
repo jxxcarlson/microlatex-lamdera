@@ -183,7 +183,7 @@ doShare model =
                     in
                     ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
                     , Cmd.batch
-                        [ sendToBackend (Types.SaveDocument newDocument)
+                        [ sendToBackend (Types.SaveDocument model.currentUser newDocument)
                         , sendToBackend (Types.UpdateSharedDocumentDict user_ newDocument)
                         , cmdSaveUser
                         ]

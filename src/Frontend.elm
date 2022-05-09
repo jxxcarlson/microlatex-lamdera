@@ -28,6 +28,7 @@ import NetworkModel
 import OT
 import OTCommand
 import Parser.Language exposing (Language(..))
+import Predicate
 import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
@@ -256,7 +257,7 @@ update msg model =
                         documents =
                             Util.updateDocumentInList updatedDoc model.documents
                     in
-                    ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend updatedDoc )
+                    ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend model.currentUser updatedDoc )
 
         FETick newTime ->
             let
@@ -634,7 +635,7 @@ update msg model =
                             { doc | language = model.language }
                     in
                     ( model
-                    , sendToBackend (SaveDocument newDocument)
+                    , sendToBackend (SaveDocument model.currentUser newDocument)
                     )
                         |> (\( m, c ) -> ( Frontend.Update.postProcessDocument newDocument m, c ))
 
@@ -739,7 +740,11 @@ update msg model =
 
         Saved str ->
             -- This is the only route to function updateDoc, updateDoc_
-            updateDoc model str
+            if Predicate.documentIsMineOrIAmAnEditor model.currentDocument model.currentUser then
+                updateDoc model str
+
+            else
+                ( model, Cmd.none )
 
         Search ->
             ( { model
@@ -980,8 +985,7 @@ updateDoc_ doc str model =
         , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-      -- , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) ]
-    , Cmd.batch [ Frontend.Update.saveDocumentToBackend newDocument ]
+    , Cmd.batch [ Frontend.Update.saveDocumentToBackend model.currentUser newDocument ]
     )
 
 

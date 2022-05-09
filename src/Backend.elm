@@ -444,8 +444,8 @@ updateFromFrontend sessionId clientId msg model =
         CreateDocument maybeCurrentUser doc_ ->
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
-        SaveDocument document ->
-            Backend.Update.saveDocument model clientId document
+        SaveDocument currentUser document ->
+            Backend.Update.saveDocument model clientId currentUser document
 
         GetCheatSheetDocument ->
             Backend.Update.fetchDocumentById model clientId Config.l0CheetsheetId Types.HandleAsCheatSheet

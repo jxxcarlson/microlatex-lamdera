@@ -438,7 +438,7 @@ type ToBackend
     | FetchDocumentById DocumentHandling Document.DocumentId
     | FindDocumentByAuthorAndKey DocumentHandling Username String
     | GetPublicDocuments SortMode (Maybe String)
-    | SaveDocument Document
+    | SaveDocument (Maybe User) Document
     | SearchForDocumentsWithAuthorAndKey String
     | SearchForDocuments DocumentHandling (Maybe String) String
     | GetDocumentByPublicId String
