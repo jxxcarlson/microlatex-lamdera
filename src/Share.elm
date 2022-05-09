@@ -103,7 +103,7 @@ update : Username -> Types.UserId -> Document.Document -> ClientId -> Types.Shar
 update username userId doc clientId dict =
     let
         newEditor =
-            { username = username, userId = userId, clientId = clientId } |> Debug.log "NEW EDITOR"
+            { username = username, userId = userId, clientId = clientId }
 
         equal a b =
             a.userId == b.userId
@@ -113,10 +113,10 @@ update username userId doc clientId dict =
             { sharedDoc | currentEditors = Util.insertInListOrUpdate equal newEditor sharedDoc.currentEditors }
     in
     if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
-        dict |> Debug.log "NULL Path"
+        dict
 
     else
-        Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
+        Dict.update doc.id (Util.liftToMaybe updater) dict
 
 
 {-| Remove the editor with given userId from the currentEditor list of the corresponding SharedDoc
@@ -129,16 +129,16 @@ removeEditor userId doc dict =
             { sharedDoc | currentEditors = List.filter (\ed -> ed.userId /= userId) sharedDoc.currentEditors }
     in
     if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
-        dict |> Debug.log "NULL Path"
+        dict
 
     else
-        Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
+        Dict.update doc.id (Util.liftToMaybe updater) dict
 
 
 updateSharedDocumentDict : User.User -> Document.Document -> Types.BackendModel -> Types.BackendModel
 updateSharedDocumentDict user doc model =
     -- { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
-    { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
+    { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict }
 
 
 doShare : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )

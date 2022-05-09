@@ -876,7 +876,7 @@ update msg model =
             issueCommandIfDefined model.currentDocument model exportDoc
 
         RunCommand ->
-            ( { model | counter = model.counter + 1, editCommand = { counter = model.counter, command = OTCommand.parseCommand model.inputCommand |> Debug.log "!!!@ Edit Command" } }, Cmd.none )
+            ( { model | counter = model.counter + 1, editCommand = { counter = model.counter, command = OTCommand.parseCommand model.inputCommand } }, Cmd.none )
 
         PrintToPDF ->
             PDF.print model
@@ -1076,16 +1076,12 @@ updateFromBackend msg model =
         -- COLLABORATIVE EDITING
         ProcessEvent event ->
             let
-                _ =
-                    Debug.log ("!!! EVENT FOR " ++ Util.currentUsername model.currentUser) event
-
                 networkModel =
                     NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
-                        |> Debug.log ("!!! MODEL " ++ Util.currentUsername model.currentUser)
 
                 doc : OT.Document
                 doc =
-                    NetworkModel.getLocalDocument networkModel |> Debug.log "!! DOC"
+                    NetworkModel.getLocalDocument networkModel
 
                 newEditRecord : Compiler.DifferentialParser.EditRecord
                 newEditRecord =
@@ -1101,7 +1097,7 @@ updateFromBackend msg model =
                 --    else
                 --        model.editorEvent.event
                 editCommand_ =
-                    { counter = model.counter, command = event |> OTCommand.toCommand cursor |> Debug.log "!!! Edit Command" }
+                    { counter = model.counter, command = event |> OTCommand.toCommand cursor }
 
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then

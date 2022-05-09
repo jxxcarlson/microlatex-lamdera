@@ -26,22 +26,11 @@ processEvent model =
 
 processEventCmd : Types.SharedDocumentDict -> EditEvent -> Cmd BackendMsg
 processEventCmd sharedDocumentDict event =
-    let
-        _ =
-            Debug.log "!!! sharedDocumentDict" sharedDocumentDict
-    in
     case Dict.get event.docId sharedDocumentDict of
         Nothing ->
-            Cmd.none |> Debug.log "PROCESS, Nothing"
+            Cmd.none
 
         Just sharedDoc ->
-            let
-                _ =
-                    Debug.log "!!! PROCESS, currentEditors" (sharedDoc.currentEditors |> List.length)
-
-                _ =
-                    Debug.log "!!! PROCESS, currentEditors" sharedDoc.currentEditors
-            in
             Cmd.batch (List.foldl (\editor cmds -> cmdOfEditor editor event :: cmds) [] sharedDoc.currentEditors)
 
 

@@ -251,9 +251,7 @@ getSharedDocuments model clientId username =
         docList =
             model.sharedDocumentDict
                 |> Dict.toList
-                |> Debug.log "sharedDocumentDict"
                 |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
-                |> Debug.log "DOCLIST"
 
         connectedUsers =
             getConnectedUsers model
@@ -563,10 +561,6 @@ resetCurrentEditorForUser username dict =
 
 
 cleanup model sessionId clientId =
-    let
-        _ =
-            Debug.log "CLEANING" "UP"
-    in
     ( { model
         | connectionDict = Dict.empty
         , editEvents = Deque.empty
@@ -697,7 +691,7 @@ signIn model sessionId clientId username encryptedPassword =
                             Just groupName ->
                                 Dict.get groupName model.chatGroupDict
                 in
-                ( { model | connectionDict = newConnectionDict_ |> Debug.log "!!! Sign In, ConnectionDict" }
+                ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
                     [ -- TODO: restore the below
                       sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)

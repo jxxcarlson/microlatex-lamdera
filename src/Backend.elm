@@ -190,7 +190,7 @@ updateFromFrontend sessionId clientId msg model =
         InitializeNetworkModelsWithDocument doc ->
             let
                 currentEditorList =
-                    doc.currentEditorList |> Debug.log "!!! Network init, editors"
+                    doc.currentEditorList
 
                 userIds =
                     List.map .userId currentEditorList
@@ -235,7 +235,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Cmd.batch cmds )
 
         PushEditorEvent event ->
-            { model | editEvents = Deque.pushFront event model.editEvents |> Debug.log "!! EVENT QUEUE" }
+            { model | editEvents = Deque.pushFront event model.editEvents }
                 |> Backend.NetworkModel.processEvent
 
         UpdateSharedDocumentDict user doc ->
@@ -244,7 +244,7 @@ updateFromFrontend sessionId clientId msg model =
         AddEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "!!@ AddEditor"
+                    Share.update user.username user.id doc clientId model.sharedDocumentDict
 
                 equal a b =
                     a.userId == b.userId
@@ -266,7 +266,7 @@ updateFromFrontend sessionId clientId msg model =
         RemoveEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.removeEditor user.id doc model.sharedDocumentDict |> Debug.log "!!@ RemoveEditor"
+                    Share.removeEditor user.id doc model.sharedDocumentDict
 
                 oldEditorList =
                     doc.currentEditorList

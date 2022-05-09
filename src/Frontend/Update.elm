@@ -615,20 +615,16 @@ handleCursor { position, source } model =
                     model.oTDocument.id
 
                 newOTDocument =
-                    { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! NEW OT DOC"
+                    { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source }
 
                 editEvent =
-                    NetworkModel.createEvent currentUserId model.oTDocument newOTDocument |> Debug.log "!! NEW EDIT EVENT"
+                    NetworkModel.createEvent currentUserId model.oTDocument newOTDocument
             in
-            ( { model | oTDocument = newOTDocument, editorCursor = position |> Debug.log "!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
+            ( { model | oTDocument = newOTDocument, editorCursor = position }, sendToBackend (PushEditorEvent editEvent) )
 
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
-    let
-        _ =
-            Debug.log "!! Number of Editors" (Document.numberOfEditors model.currentDocument)
-    in
     if Document.numberOfEditors model.currentDocument > 1 then
         let
             newOTDocument =
@@ -639,13 +635,13 @@ inputText model { position, source } =
                     id =
                         Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
                 in
-                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source } |> Debug.log "!! OT DOC"
+                { id = id, cursor = position, x = newLocation.x, y = newLocation.y, content = source }
 
             userId =
                 model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
             editEvent =
-                NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "!!!@@ Create editEvent"
+                NetworkModel.createEvent userId model.oTDocument newOTDocument
         in
         ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, sendToBackend (PushEditorEvent editEvent) )
 
