@@ -97,7 +97,11 @@ handleCurrentDocumentChange model currentDocument document =
                 { currentDocument | content = model.sourceText, status = Document.DSReadOnly }
 
             newModel =
-                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
+                { model
+                    | documentDirty = False
+                    , language = document.language
+                    , documents = Util.updateDocumentInList updatedDoc model.documents
+                }
         in
         setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
@@ -107,7 +111,7 @@ handleCurrentDocumentChange model currentDocument document =
                 { currentDocument | status = Document.DSReadOnly }
 
             newModel =
-                { model | documents = Util.updateDocumentInList updatedDoc model.documents }
+                { model | documents = Util.updateDocumentInList updatedDoc model.documents, language = document.language }
         in
         setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
