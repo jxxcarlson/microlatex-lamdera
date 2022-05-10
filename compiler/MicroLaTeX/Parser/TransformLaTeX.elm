@@ -1,4 +1,28 @@
-module MicroLaTeX.Parser.TransformLaTeX exposing (Arity(..), LXStatus(..), State, Step(..), endBlockOfLXStatus, fakeDebugLog, fixArgs, handleError, leadingBlanks, loop, nextState, nextState2, substitutions, toL0, toL0Aux, transformBegin, transformHeader, transformOther, verbatimBlockNames, xx1, xx2, xx3, xx4)
+module MicroLaTeX.Parser.TransformLaTeX exposing
+    ( Arity(..)
+    , LXStatus(..)
+    , State
+    , Step(..)
+    , endBlockOfLXStatus
+    , fakeDebugLog
+    , fixArgs
+    , handleError
+    , leadingBlanks
+    , loop
+    , nextState
+    , nextState2
+    , substitutions
+    , toL0
+    , toL0Aux
+    , transformBegin
+    , transformHeader
+    , transformOther
+    , verbatimBlockNames
+    , xx1
+    , xx2
+    , xx3
+    , xx4
+    )
 
 --( toL0
 --, toL0Aux
@@ -147,10 +171,10 @@ nextState2 line (MyMacro name args) state =
             List.head args |> Maybe.withDefault "((no-first-arg))"
     in
     if name == "begin" && List.member firstArg [ "code", "equation", "aligned" ] then
-        -- HANDLE CODE BLOCKS, BEGIN
+        -- HANDLE VERBATIM BLOCKS (CODE, EQUATION, ALIGNED), BEGIN
         { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog state.i "(1)"
 
-    else if name == "end" && args == [ "code" ] then
+    else if name == "end" && List.member firstArg [ "code", "equation", "aligned" ] then
         -- HANDLE CODE BLOCKS, END
         { state | output = "" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(2)"
 
@@ -198,7 +222,7 @@ nextState2 line (MyMacro name args) state =
             newStack =
                 List.drop 1 state.stack
         in
-        if name == "end" && List.Extra.last state.stack /= Just (InVerbatimBlock "code") then
+        if name == "end" && not (List.member (List.Extra.last state.stack) [ Just (InVerbatimBlock "code"), Just (InVerbatimBlock "equation"), Just (InVerbatimBlock "aligned") ]) then
             { state | output = "\\red{^^^ missmatched end tags}" :: "" :: state.output, stack = newStack } |> fakeDebugLog state.i "(12)"
 
         else
