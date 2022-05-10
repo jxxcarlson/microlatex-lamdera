@@ -364,6 +364,10 @@ startCollaborativeEditing model =
             buttonTemplate [] ToggleCollaborativeEditing "Collab: Off"
 
 
+
+-- DELETE DOCUMENT
+
+
 softDeleteDocument : FrontendModel -> Element FrontendMsg
 softDeleteDocument model =
     let
@@ -1027,10 +1031,22 @@ togglePublic maybeDoc =
         Just doc ->
             case doc.public of
                 False ->
-                    buttonTemplate [] (SetPublic doc True) "Private"
+                    buttonTemplateWithTooltip
+                        { tooltipText = "Toggle document access (public/private)"
+                        , tooltipPlacement = E.below
+                        , attributes = [ Font.color Color.white ]
+                        , msg = SetPublic doc True
+                        , label = "Private"
+                        }
 
                 True ->
-                    buttonTemplate [] (SetPublic doc False) "Public"
+                    buttonTemplateWithTooltip
+                        { tooltipText = "Toggle document access (public/private)"
+                        , tooltipPlacement = E.below
+                        , attributes = [ Font.color Color.white ]
+                        , msg = SetPublic doc False
+                        , label = "Public"
+                        }
 
 
 toggleAppMode : FrontendModel -> Element FrontendMsg
