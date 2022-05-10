@@ -110,6 +110,25 @@ buttonTemplate attrList msg label_ =
         ]
 
 
+buttonTemplateWithTooltip : ButtonData -> Element FrontendMsg
+buttonTemplateWithTooltip buttonData =
+    E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ buttonData.attributes)
+        [ Input.button View.Style.buttonStyle
+            { onPress = Just buttonData.msg
+            , label = View.Utility.addTooltip buttonData.tooltipPlacement buttonData.tooltipText (E.el [ E.centerX, E.centerY, Font.size 14 ] (E.text buttonData.label))
+            }
+        ]
+
+
+type alias ButtonData =
+    { tooltipText : String
+    , tooltipPlacement : Element FrontendMsg -> E.Attribute FrontendMsg
+    , attributes : List (E.Attribute FrontendMsg)
+    , msg : FrontendMsg
+    , label : String
+    }
+
+
 buttonTemplateSmall : List (E.Attribute msg) -> List (E.Attribute msg) -> msg -> String -> Element msg
 buttonTemplateSmall attrList attrList2 msg label_ =
     E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ attrList)
@@ -680,7 +699,13 @@ toggleActiveDocList name =
 
 togglePublicUrl : Element FrontendMsg
 togglePublicUrl =
-    buttonTemplate [ Font.color Color.white ] TogglePublicUrl "URL"
+    buttonTemplateWithTooltip
+        { tooltipText = "External link to public document"
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = TogglePublicUrl
+        , label = "URL"
+        }
 
 
 
