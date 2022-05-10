@@ -24,7 +24,7 @@ viewExtras model =
             E.column
                 [ E.width (E.px Geometry.sidebarWidth)
                 , E.spacing 4
-                , E.height (E.px (Geometry.appHeight_ model - 110))
+                , E.height (E.px (Geometry.appHeight model - 110))
                 , E.paddingXY 12 12
                 , Font.size 14
                 , Background.color Color.lightGray
@@ -67,7 +67,7 @@ viewTags model =
             E.column
                 [ E.width (E.px Geometry.sidebarWidth)
                 , E.spacing 4
-                , E.height (E.px (Geometry.appHeight_ model - 110))
+                , E.height (E.px (Geometry.appHeight model - 110))
                 , E.paddingXY 8 0
                 , Background.color Color.lightGray
                 ]
@@ -95,7 +95,7 @@ viewTagDict model =
         [ E.scrollbarY
         , E.width (E.px Geometry.sidebarWidth)
         , E.spacing 4
-        , E.height (E.px (Geometry.appHeight_ model - 190))
+        , E.height (E.px (Geometry.appHeight model - 190))
         ]
         (header :: viewTagDict_ model.inputSearchTagsKey dictItems)
 

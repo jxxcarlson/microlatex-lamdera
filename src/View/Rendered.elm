@@ -55,7 +55,7 @@ viewSmall model doc width_ deltaH indexShift =
         , Background.color (E.rgb 1.0 1.0 0.9)
         , Style.bgGray 1.0
         , E.width (E.px <| Geometry.indexWidth model.windowWidth)
-        , E.height (E.px (Geometry.appHeight_ model - deltaH + indexShift))
+        , E.height (E.px (Geometry.appHeight model - deltaH + indexShift))
         , Font.size 14
         , E.alignTop
         , E.scrollbarY

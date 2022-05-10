@@ -1,6 +1,8 @@
 module View.Geometry exposing
-    ( appHeight_
+    ( appHeight
     , appWidth
+    , chatPaneWidth
+    , editorWidth
     , indexWidth
     , panelHeight_
     , panelWidth2_
@@ -11,7 +13,7 @@ module View.Geometry exposing
     , smallPanelWidth
     )
 
-import Types exposing (SidebarExtrasState(..), SidebarTagsState(..))
+import Types exposing (FrontendModel, SidebarExtrasState(..), SidebarTagsState(..))
 
 
 appWidth : SidebarExtrasState -> SidebarTagsState -> Int -> Int
@@ -27,12 +29,21 @@ appWidth sidebarExtrasState sidebarTags ww =
             ramp 700 1400 ww
 
 
-appHeight_ model =
+appHeight : FrontendModel -> Int
+appHeight model =
     model.windowHeight - 60
 
 
+editorWidth =
+    550
+
+
+chatPaneWidth =
+    360
+
+
 panelHeight_ model =
-    appHeight_ model - 110
+    appHeight model - 110
 
 
 panelWidth_ : SidebarExtrasState -> SidebarTagsState -> Int -> Int

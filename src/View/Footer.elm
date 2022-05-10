@@ -21,12 +21,12 @@ import View.Utility
 
 view model width_ =
     let
-        dy =
+        dx =
             if model.showEditor then
-                Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth - 370
+                width_ - Geometry.chatPaneWidth
 
             else
-                Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth - 800
+                width_ - Geometry.chatPaneWidth
     in
     E.row
         [ E.spacing 1
@@ -42,11 +42,11 @@ view model width_ =
                 (E.el
                     [ case model.chatDisplay of
                         Types.TCGDisplay ->
-                            E.moveUp 738
+                            E.moveUp (toFloat <| Geometry.appHeight model - 110)
 
                         Types.TCGShowInputForm ->
-                            E.moveUp 738
-                    , E.moveRight (toFloat dy)
+                            E.moveUp (toFloat <| Geometry.appHeight model - 110)
+                    , E.moveRight (toFloat dx)
                     ]
                     (View.Chat.view model)
                 )

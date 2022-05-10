@@ -54,7 +54,7 @@ viewRenderedTextOnly : Model -> Element FrontendMsg
 viewRenderedTextOnly model =
     let
         deltaH =
-            (Geometry.appHeight_ model - 100) // 2 + 135
+            (Geometry.appHeight model - 100) // 2 + 135
     in
     E.column (Style.mainColumn model)
         [ E.column
@@ -65,7 +65,7 @@ viewRenderedTextOnly model =
             , E.inFront (E.el [ E.moveDown 93, E.moveRight 570 ] (CheatSheet.view model))
             , E.centerX
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
-            , E.height (E.px (Geometry.appHeight_ model))
+            , E.height (E.px (Geometry.appHeight model))
             ]
             [ headerRow model
             , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
@@ -83,7 +83,7 @@ viewEditorAndRenderedText : Model -> Element FrontendMsg
 viewEditorAndRenderedText model =
     let
         deltaH =
-            (Geometry.appHeight_ model - 100) // 2 + 135
+            (Geometry.appHeight model - 100) // 2 + 135
     in
     E.column (Style.mainColumn model)
         [ E.column
@@ -93,7 +93,7 @@ viewEditorAndRenderedText model =
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
             , E.inFront (E.el [ E.moveDown 93, E.moveRight 1070 ] (CheatSheet.view model))
             , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
-            , E.height (E.px (Geometry.appHeight_ model))
+            , E.height (E.px (Geometry.appHeight model))
             ]
             [ headerRow model
             , E.row [ E.spacing 12 ]

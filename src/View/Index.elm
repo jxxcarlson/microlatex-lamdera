@@ -105,7 +105,7 @@ viewSharedDocs model deltaH indexShift =
     in
     E.column
         [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
-        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , E.height (E.px (Geometry.appHeight model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.9 0.9 1.0)
@@ -182,7 +182,7 @@ viewWorkingDocs model deltaH indexShift =
     in
     E.column
         [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
-        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , E.height (E.px (Geometry.appHeight model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 1.0 0.93 0.93)
@@ -238,7 +238,7 @@ viewMydocs model deltaH indexShift =
     in
     E.column
         [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
-        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , E.height (E.px (Geometry.appHeight model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
@@ -277,7 +277,7 @@ viewPinnedDocs model deltaH indexShift =
     in
     E.column
         [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
-        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , E.height (E.px (Geometry.appHeight model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
@@ -308,7 +308,7 @@ viewPublicDocs model deltaH indexShift =
     in
     E.column
         [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
-        , E.height (E.px (Geometry.appHeight_ model - deltaH - indexShift))
+        , E.height (E.px (Geometry.appHeight model - deltaH - indexShift))
         , Font.size 14
         , E.scrollbarY
         , Background.color (E.rgb 0.95 0.95 1.0)
