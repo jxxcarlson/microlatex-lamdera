@@ -197,7 +197,7 @@ toggleDocTools model =
 
     else
         buttonTemplateWithTooltip
-            { tooltipText = "Make backup, hide/show backups, word count, ..."
+            { tooltipText = "Make backup, hide/show backups, ..."
             , tooltipPlacement = E.above
             , attributes = [ Font.color Color.white ]
             , msg = ToggleDocTools

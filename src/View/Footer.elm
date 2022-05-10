@@ -74,13 +74,25 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (Button.toggleDocumentStatus model)
-        , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
+
+        --, View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (timeElapsed model)
         , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.currentDocument)
+        , E.el [] (wordCount model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
+
+
+wordCount : Types.FrontendModel -> E.Element Types.FrontendMsg
+wordCount model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
 isCurrentDocumentDirty dirty =
