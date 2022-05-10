@@ -844,6 +844,9 @@ update msg model =
         ExportToLaTeX ->
             Frontend.Update.exportToLaTeX model
 
+        ExportToRawLaTeX ->
+            Frontend.Update.exportToRawLaTeX model
+
         ExportTo lang ->
             case model.currentDocument of
                 Nothing ->

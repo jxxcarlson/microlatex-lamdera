@@ -6,6 +6,7 @@ module Frontend.Update exposing
     , debounceMsg
     , exportToLaTeX
     , exportToMarkdown
+    , exportToRawLaTeX
     , firstSyncLR
     , handleAsReceivedDocumentWithDelay
     , handleAsStandardReceivedDocument
@@ -449,6 +450,17 @@ exportToLaTeX model =
     let
         textToExport =
             LaTeX.export Settings.defaultSettings model.editRecord.parsed
+
+        fileName =
+            (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
+    in
+    ( model, Download.string fileName "application/x-latex" textToExport )
+
+
+exportToRawLaTeX model =
+    let
+        textToExport =
+            LaTeX.rawExport Settings.defaultSettings model.editRecord.parsed
 
         fileName =
             (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"

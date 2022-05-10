@@ -59,6 +59,7 @@ view model width_ =
         , View.Utility.showIf (model.currentUser /= Nothing)
             (E.row [ E.spacing 1 ]
                 [ View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) Button.exportToLaTeX
+                , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) Button.exportToLaTeXRaw
                 , Button.printToPDF model
                 ]
             )

@@ -14,6 +14,7 @@ module View.Button exposing
     , doSignUp
     , export
     , exportToLaTeX
+    , exportToLaTeXRaw
     , exportToMarkown
     , getDocument
     , getDocumentByPrivateId
@@ -530,6 +531,11 @@ exportToMarkown =
 exportToLaTeX : Element FrontendMsg
 exportToLaTeX =
     buttonTemplate [] ExportToLaTeX "Export"
+
+
+exportToLaTeXRaw : Element FrontendMsg
+exportToLaTeXRaw =
+    buttonTemplate [] ExportToRawLaTeX "Export Raw"
 
 
 export : Element FrontendMsg
