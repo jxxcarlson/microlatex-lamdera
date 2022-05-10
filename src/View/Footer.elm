@@ -132,16 +132,24 @@ backup zone maybeDocument =
 
 showCurrentEditors : Maybe Document.Document -> E.Element msg
 showCurrentEditors mDoc =
-    let
-        message =
-            case mDoc of
-                Nothing ->
-                    "No document"
+    case mDoc of
+        Nothing ->
+            E.none
 
-                Just doc ->
-                    "Editors: " ++ (doc.currentEditorList |> List.map .username |> String.join ", ")
-    in
-    E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| message)
+        Just doc ->
+            let
+                editors =
+                    doc.currentEditorList
+            in
+            if List.isEmpty editors then
+                E.none
+
+            else
+                let
+                    label =
+                        "Editors: " ++ (editors |> List.map .username |> String.join ", ")
+                in
+                E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| label)
 
 
 messageRow model =

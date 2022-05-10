@@ -190,6 +190,55 @@ linkStyle =
 -- TOGGLES
 
 
+toggleDocTools : FrontendModel -> Element FrontendMsg
+toggleDocTools model =
+    if model.showDocTools then
+        buttonTemplate [] ToggleDocTools "Hide DocTools"
+
+    else
+        buttonTemplateWithTooltip
+            { tooltipText = "Make backup, hide/show backups, word count, ..."
+            , tooltipPlacement = E.above
+            , attributes = [ Font.color Color.white ]
+            , msg = ToggleDocTools
+            , label = "Show DocTools"
+            }
+
+
+toggleDocumentStatus : FrontendModel -> Element FrontendMsg
+toggleDocumentStatus model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
+                case doc.status of
+                    Document.DSCanEdit ->
+                        buttonTemplateWithTooltip
+                            { tooltipText = "Toggle between 'Can edit' and 'Read only'"
+                            , tooltipPlacement = E.above
+                            , attributes = [ Font.color Color.white ]
+                            , msg = SetDocumentStatus Document.DSReadOnly
+                            , label = "Doc: Can Edit"
+                            }
+
+                    Document.DSReadOnly ->
+                        buttonTemplateWithTooltip
+                            { tooltipText = "Toggle between 'Can edit' and 'Read only'"
+                            , tooltipPlacement = E.above
+                            , attributes = [ Font.color Color.white ]
+                            , msg = SetDocumentStatus Document.DSCanEdit
+                            , label = "Doc: Read only"
+                            }
+
+                    Document.DSSoftDelete ->
+                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Soft-deleted"
+
+            else
+                E.none
+
+
 toggleBackupVisibility : Bool -> Element FrontendMsg
 toggleBackupVisibility seeBackups =
     if seeBackups then
@@ -274,7 +323,13 @@ languageMenu popupState lang =
                     "lang: XMarkdown"
     in
     if popupState == NoPopup then
-        buttonTemplate [] (ChangePopup LanguageMenuPopup) langString
+        buttonTemplateWithTooltip
+            { tooltipText = "Set markup language of current document"
+            , tooltipPlacement = E.above
+            , attributes = [ Font.color Color.white ]
+            , msg = ChangePopup LanguageMenuPopup
+            , label = langString
+            }
 
     else
         buttonTemplate [] (ChangePopup NoPopup) langString
@@ -286,7 +341,13 @@ languageMenu popupState lang =
 
 share : Element FrontendMsg
 share =
-    buttonTemplate [] ShareDocument "Share"
+    buttonTemplateWithTooltip
+        { tooltipText = "Share the current document"
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = ShareDocument
+        , label = "Share"
+        }
 
 
 doShare =
@@ -301,37 +362,6 @@ startCollaborativeEditing model =
 
         False ->
             buttonTemplate [] ToggleCollaborativeEditing "Collab: Off"
-
-
-toggleDocTools : FrontendModel -> Element FrontendMsg
-toggleDocTools model =
-    if model.showDocTools then
-        buttonTemplate [] ToggleDocTools "Hide DocTools"
-
-    else
-        buttonTemplate [] ToggleDocTools "Show DocTools"
-
-
-toggleDocumentStatus : FrontendModel -> Element FrontendMsg
-toggleDocumentStatus model =
-    case model.currentDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
-                case doc.status of
-                    Document.DSCanEdit ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
-
-                    Document.DSReadOnly ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Read only"
-
-                    Document.DSSoftDelete ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Soft-deleted"
-
-            else
-                E.none
 
 
 softDeleteDocument : FrontendModel -> Element FrontendMsg
@@ -562,12 +592,24 @@ exportToMarkown =
 
 exportToLaTeX : Element FrontendMsg
 exportToLaTeX =
-    buttonTemplate [] ExportToLaTeX "Export"
+    buttonTemplateWithTooltip
+        { tooltipText = "Export to LaTeX file"
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = ExportToLaTeX
+        , label = "Export"
+        }
 
 
 exportToLaTeXRaw : Element FrontendMsg
 exportToLaTeXRaw =
-    buttonTemplate [] ExportToRawLaTeX "Export Raw"
+    buttonTemplateWithTooltip
+        { tooltipText = "Export to raw LaTeX file (no preamble, etc)."
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = ExportToRawLaTeX
+        , label = "Raw"
+        }
 
 
 export : Element FrontendMsg
@@ -811,7 +853,13 @@ toggleExtrasSidebar sidebarState =
             buttonTemplate [] ToggleExtrasSidebar (String.fromChar '⋮')
 
         SidebarExtrasIn ->
-            buttonTemplate [] ToggleExtrasSidebar (String.fromChar '⋮')
+            buttonTemplateWithTooltip
+                { tooltipText = "Show online users"
+                , tooltipPlacement = E.below
+                , attributes = [ Font.color Color.white ]
+                , msg = ToggleExtrasSidebar
+                , label = String.fromChar '⋮'
+                }
 
 
 toggleTagsSidebar : Types.SidebarTagsState -> Element FrontendMsg
