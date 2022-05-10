@@ -187,6 +187,7 @@ linkStyle =
 
 
 -- UI
+-- TOGGLES
 
 
 toggleBackupVisibility : Bool -> Element FrontendMsg
@@ -200,12 +201,24 @@ toggleBackupVisibility seeBackups =
 
 toggleCheatSheet : Element FrontendMsg
 toggleCheatSheet =
-    buttonTemplate [] ToggleCheatsheet "Cheat Sheet"
+    buttonTemplateWithTooltip
+        { tooltipText = "Cheat sheet for the current markup language"
+        , tooltipPlacement = E.below
+        , attributes = [ Font.color Color.white ]
+        , msg = ToggleCheatsheet
+        , label = "Cheat Sheet"
+        }
 
 
 toggleManuals : Element FrontendMsg
 toggleManuals =
-    buttonTemplate [] ToggleManuals "Manuals"
+    buttonTemplateWithTooltip
+        { tooltipText = "Manuals, templates, answers to common questions"
+        , tooltipPlacement = E.below
+        , attributes = [ Font.color Color.white ]
+        , msg = ToggleManuals
+        , label = "Manuals"
+        }
 
 
 reply : String -> Types.UserMessage -> Element FrontendMsg
@@ -766,7 +779,7 @@ getUserTags tagSelection user =
         Nothing ->
             E.none
 
-        Just user_ ->
+        Just _ ->
             let
                 style =
                     if tagSelection == TagUser then
@@ -808,7 +821,14 @@ toggleTagsSidebar sidebarState =
             buttonTemplate [] ToggleTagsSidebar "Tags"
 
         SidebarTagsIn ->
-            buttonTemplate [] ToggleTagsSidebar "Tags"
+            -- buttonTemplate [] ToggleTagsSidebar "Tags"
+            buttonTemplateWithTooltip
+                { tooltipText = "List documents by tag"
+                , tooltipPlacement = E.below
+                , attributes = [ Font.color Color.white ]
+                , msg = ToggleTagsSidebar
+                , label = "Tags"
+                }
 
 
 maximizeMyDocs : MaximizedIndex -> Element FrontendMsg

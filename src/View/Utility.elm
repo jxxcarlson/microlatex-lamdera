@@ -36,6 +36,7 @@ import Predicate
 import Task exposing (Task)
 import Types exposing (FrontendModel, FrontendMsg)
 import User
+import View.Color as Color
 
 
 htmlId str =
@@ -298,7 +299,8 @@ tooltip usher tooltip_ =
             , E.transparent True
             , E.mouseOver [ E.transparent False ]
             , (usher << E.map never) <|
-                E.el [ E.htmlAttribute (HA.style "pointerEvents" "none") ]
+                E.el
+                    [ E.htmlAttribute (HA.style "pointerEvents" "none") ]
                     tooltip_
             ]
             E.none
@@ -309,7 +311,9 @@ tooltip usher tooltip_ =
 
 
 addTooltip placement label element =
-    E.el [ tooltip placement (myTooltip label) ] element
+    E.el
+        [ tooltip placement (myTooltip label) ]
+        element
 
 
 
