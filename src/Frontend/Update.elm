@@ -640,7 +640,7 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
 inputText model { position, source } =
-    if Document.numberOfEditors model.currentDocument > 1 then
+    if Document.numberOfEditors model.currentDocument > 123 then
         handleEditorChange model position source
 
     else

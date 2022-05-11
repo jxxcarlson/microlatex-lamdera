@@ -943,23 +943,25 @@ updateDoc model str =
                 Document.DSCanEdit ->
                     -- if Share.canEdit model.currentUser (Just doc) then
                     -- if View.Utility.canSaveStrict model.currentUser doc then
-                    if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
-                        updateDoc_ doc str model
+                    -- if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
+                    updateDoc_ doc str model
 
-                    else
-                        let
-                            m =
-                                if doc.handling == Document.DHStandard then
-                                    "Oops, this document is being edited by other people"
-                                    -- TODO: this is nonsense
 
-                                else
-                                    "Oops, this is a backup or version document -- no edits"
-                        in
-                        -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
-                        -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
-                        -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
-                        ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
+
+--else
+--    let
+--        m =
+--            if doc.handling == Document.DHStandard then
+--                "Oops, this document is being edited by other people"
+--                -- TODO: this is nonsense
+--
+--            else
+--                "Oops, this is a backup or version document -- no edits"
+--    in
+--    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
+--    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
+--    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
+--    ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
 
 
 updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
