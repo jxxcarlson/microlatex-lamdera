@@ -20,13 +20,13 @@ appWidth : SidebarExtrasState -> SidebarTagsState -> Int -> Int
 appWidth sidebarExtrasState sidebarTags ww =
     case ( sidebarExtrasState, sidebarTags ) of
         ( SidebarExtrasOut, _ ) ->
-            ramp 700 1400 ww
+            ramp 700 2400 ww
 
         ( _, SidebarTagsOut ) ->
-            ramp 700 1400 ww
+            ramp 700 2400 ww
 
         ( SidebarExtrasIn, SidebarTagsIn ) ->
-            ramp 700 1400 ww
+            ramp 700 2400 ww
 
 
 appHeight : FrontendModel -> Int
