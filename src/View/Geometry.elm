@@ -78,7 +78,7 @@ sidebarWidth =
 
 
 smallAppWidth ww =
-    ramp 700 900 ww
+    ramp 700 1000 ww
 
 
 ramp a b x =

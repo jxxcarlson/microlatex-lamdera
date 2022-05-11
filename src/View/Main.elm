@@ -65,6 +65,8 @@ viewRenderedTextOnly model =
             , E.inFront (E.el [ E.moveDown 93, E.moveRight 570 ] (CheatSheet.view model))
             , E.centerX
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
+
+            --, E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
             , E.height (E.px (Geometry.appHeight model))
             ]
             [ headerRow model

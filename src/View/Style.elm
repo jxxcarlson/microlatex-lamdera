@@ -1,44 +1,27 @@
 module View.Style exposing
-    ( bgBlack
-    , bgGray
-    , bgWhite
+    ( bgGray
     , buttonStyle
     , buttonStyle2
     , buttonStyle3
     , buttonStyleSmall
-    , fgBlack
     , fgGray
-    , fgWhite
     , mainColumn
     )
 
 import Element
 import Element.Background as Background
 import Element.Font as Font
+import View.Geometry as Geometry
 
 
 mainColumn model =
     [ bgGray 0.5
     , Element.paddingEach { top = 20, bottom = 0, left = 0, right = 0 }
-    , Element.width (Element.px model.windowWidth)
+
+    ---, Element.width (Element.px model.windowWidth)
+    , Element.width (Element.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
     , Element.height (Element.px model.windowHeight)
     ]
-
-
-fgBlack =
-    fgGray 0
-
-
-fgWhite =
-    fgGray 1
-
-
-bgBlack =
-    bgGray 0
-
-
-bgWhite =
-    bgGray 1
 
 
 fgGray : Float -> Element.Attr decorative msg

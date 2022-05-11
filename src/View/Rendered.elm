@@ -37,7 +37,7 @@ view model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.75 -650 (Geometry.panelWidth2_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument width_ model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -88,7 +88,7 @@ viewForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument (affine 1.8 0 (Geometry.panelWidth_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth)) model.counter model.selectedId model.editRecord)
+                    (viewDocument width_ model.counter model.selectedId model.editRecord)
                 ]
 
 
@@ -142,9 +142,18 @@ setSelectedId id settings =
 
 renderSettings : String -> Int -> Render.Settings.Settings
 renderSettings id w =
-    Render.Settings.makeSettings id 0.38 w
+    Render.Settings.makeSettings id 0.85 w
+
+
+affine1 : Float -> Float -> Int -> Int
+affine1 a b x =
+    a * toFloat x + b |> truncate
 
 
 affine : Float -> Float -> Int -> Int
 affine a b x =
-    a * toFloat x + b |> truncate
+    996
+
+
+
+-- 1.0 * toFloat x + 500 |> truncate
