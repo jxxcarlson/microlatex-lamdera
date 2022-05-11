@@ -662,7 +662,7 @@ handleEditorChange model cursor content =
                 id =
                     Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
             in
-            { docId = id, cursor = cursor, content = content } |> Debug.log "I1, !!! NEW OT DOC"
+            { docId = id, cursor = cursor, content = content }
 
         userId =
             model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
@@ -671,7 +671,7 @@ handleEditorChange model cursor content =
             model.networkModel.serverState.document
 
         editEvent =
-            NetworkModel.createEvent userId oldDocument newOTDocument |> Debug.log "I2, !!!Create editEvent"
+            NetworkModel.createEvent userId oldDocument newOTDocument
     in
     ( { model | counter = model.counter + 1 }, sendToBackend (PushEditorEvent editEvent) )
 

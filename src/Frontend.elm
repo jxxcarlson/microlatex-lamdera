@@ -1105,13 +1105,12 @@ updateFromBackend msg model =
 
                 newNetworkModel =
                     NetworkModel.updateFromBackend NetworkModel.applyEvent
-                        (Debug.log debugLabel event)
-                        (Debug.log "P1b !!! Old Network Model" model.networkModel)
-                        |> Debug.log ("P2. !!! New Network Model " ++ Util.currentUsername model.currentUser)
+                        event
+                        model.networkModel
 
                 doc : OT.Document
                 doc =
-                    NetworkModel.getLocalDocument newNetworkModel |> Debug.log "P3. !!! new network model, DOC"
+                    NetworkModel.getLocalDocument newNetworkModel
 
                 newEditRecord : Compiler.DifferentialParser.EditRecord
                 newEditRecord =
@@ -1125,10 +1124,10 @@ updateFromBackend msg model =
                 --    newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
-                        { counter = model.counter, command = event |> OTCommand.toCommand |> Debug.log "P5a. !!! Edit Command" }
+                        { counter = model.counter, command = event |> OTCommand.toCommand }
 
                     else
-                        { counter = model.counter, command = Nothing } |> Debug.log "P5b. !!! Edit Command"
+                        { counter = model.counter, command = Nothing }
             in
             ( { model
                 | editCommand = editCommand

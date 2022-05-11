@@ -107,9 +107,6 @@ createEvent userId_ oldDocument newDocument =
         dp =
             newDocument.cursor - oldDocument.cursor
 
-        _ =
-            Debug.log "!! (old, new, dp)" ( oldDocument.cursor, newDocument.cursor, dp )
-
         operations : List OT.Operation
         operations =
             OT.findOps oldDocument newDocument

@@ -159,14 +159,11 @@ createEvent oldDocument newDocument =
         cursorChange =
             newDocument.cursor - oldDocument.cursor
 
-        _ =
-            Debug.log "!! (old, new, dp)" ( oldDocument.cursor, newDocument.cursor, cursorChange )
-
         operations : List OT.Operation
         operations =
             OT.findOps oldDocument newDocument
     in
-    { cursorChange = cursorChange, operations = operations } |> Debug.log "!! CREATE EVENT"
+    { cursorChange = cursorChange, operations = operations }
 
 
 deleteAt i n str =

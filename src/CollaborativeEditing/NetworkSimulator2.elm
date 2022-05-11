@@ -55,10 +55,6 @@ nextStep state =
             Done state
 
         Just editorAction ->
-            let
-                _ =
-                    Debug.log "ACTION" editorAction
-            in
             Loop (updateState editorAction state)
 
 
@@ -120,10 +116,6 @@ applyEditOp op doc =
             { doc | cursor = cursor + String.length str, content = String.Extra.insertAt str cursor doc.content }
 
         Delete cursor n ->
-            let
-                _ =
-                    Debug.log "Delete" ( cursor, n )
-            in
             { doc | cursor = cursor, content = deleteAt n (cursor - 1) doc.content |> Debug.log "DELETE" }
 
         MoveCursor cursor ->
@@ -172,10 +164,10 @@ performEditOnUserState : String -> EditorAction -> UserState -> ( UserState, Edi
 performEditOnUserState userId action state =
     let
         editor =
-            applyEditOp (Debug.log "OP" action.op) state.editor |> Debug.log "editor after OP"
+            applyEditOp action.op state.editor
 
         event =
-            NetworkModel.createEvent userId (Debug.log "OLD" state.editor) (Debug.log "NEW" editor)
+            NetworkModel.createEvent userId state.editor editor
 
         oldServerState =
             state.model.serverState
@@ -207,15 +199,10 @@ updateFromBackend state =
         Just event ->
             let
                 modelA =
-                    state.a.model |> Debug.log "modelA"
+                    state.a.model
 
                 newNetworkModelA =
-                    let
-                        _ =
-                            Debug.log "Network Model" "A"
-                    in
                     NetworkModel.updateFromBackend NetworkModel.applyEvent2 event state.a.model
-                        |> Debug.log "newNetworkModelA"
 
                 cursorA =
                     modelA.serverState.document.cursor
@@ -226,10 +213,6 @@ updateFromBackend state =
                     state.b.model
 
                 newNetworkModelB =
-                    let
-                        _ =
-                            Debug.log "Network Model" "B"
-                    in
                     NetworkModel.updateFromBackend NetworkModel.applyEvent2 event state.b.model
 
                 cursorB =

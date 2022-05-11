@@ -95,14 +95,10 @@ findOps before after =
 
 applyOp : Operation -> Document -> Document
 applyOp op doc =
-    let
-        _ =
-            Debug.log "DOC" doc
-    in
     case op of
         Insert cursor str ->
             { docId = doc.docId
-            , cursor = Debug.log "CURSOR" cursor + String.length str
+            , cursor = cursor + String.length str
             , content = (String.left cursor doc.content |> Debug.log "LEFT") ++ str ++ (String.dropLeft cursor doc.content |> Debug.log "RIGHT")
             }
 
