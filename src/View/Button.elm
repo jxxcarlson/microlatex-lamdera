@@ -1,6 +1,5 @@
 module View.Button exposing
     ( buttonTemplate
-    , runCommand
     , cancelDeleteDocument
     , cancelSignUp
     , clearChatHistory
@@ -10,12 +9,12 @@ module View.Button exposing
     , createChatGroup
     , createDocument
     , dismissPopup
-    , popupMonitor
     , dismissUserMessage
     , doShare
     , doSignUp
     , export
     , exportToLaTeX
+    , exportToLaTeXRaw
     , exportToMarkown
     , getDocument
     , getDocumentByPrivateId
@@ -36,9 +35,11 @@ module View.Button exposing
     , nextSyncButton
     , openEditor
     , pinnedDocs
+    , popupMonitor
     , popupNewDocumentForm
     , printToPDF
     , reply
+    , runCommand
     , runSpecial
     , sendUnlockMessage
     , setChatCreate
@@ -97,6 +98,11 @@ import View.Style
 import View.Utility
 
 
+runCommand : Element FrontendMsg
+runCommand =
+    buttonTemplate [] RunCommand "Run command"
+
+
 
 -- TEMPLATES
 
@@ -109,6 +115,25 @@ buttonTemplate attrList msg label_ =
             , label = E.el [ E.centerX, E.centerY, Font.size 14 ] (E.text label_)
             }
         ]
+
+
+buttonTemplateWithTooltip : ButtonData -> Element FrontendMsg
+buttonTemplateWithTooltip buttonData =
+    E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ buttonData.attributes)
+        [ Input.button View.Style.buttonStyle
+            { onPress = Just buttonData.msg
+            , label = View.Utility.addTooltip buttonData.tooltipPlacement buttonData.tooltipText (E.el [ E.centerX, E.centerY, Font.size 14 ] (E.text buttonData.label))
+            }
+        ]
+
+
+type alias ButtonData =
+    { tooltipText : String
+    , tooltipPlacement : Element FrontendMsg -> E.Attribute FrontendMsg
+    , attributes : List (E.Attribute FrontendMsg)
+    , msg : FrontendMsg
+    , label : String
+    }
 
 
 buttonTemplateSmall : List (E.Attribute msg) -> List (E.Attribute msg) -> msg -> String -> Element msg
@@ -169,10 +194,56 @@ linkStyle =
 
 
 -- UI
-runCommand : Element FrontendMsg
-runCommand =
-    buttonTemplate [] RunCommand "Run command"
+-- TOGGLES
 
+
+toggleDocTools : FrontendModel -> Element FrontendMsg
+toggleDocTools model =
+    if model.showDocTools then
+        buttonTemplate [] ToggleDocTools "Hide DocTools"
+
+    else
+        buttonTemplateWithTooltip
+            { tooltipText = "Make backup, hide/show backups, ..."
+            , tooltipPlacement = E.above
+            , attributes = [ Font.color Color.white ]
+            , msg = ToggleDocTools
+            , label = "Show DocTools"
+            }
+
+
+toggleDocumentStatus : FrontendModel -> Element FrontendMsg
+toggleDocumentStatus model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
+                case doc.status of
+                    Document.DSCanEdit ->
+                        buttonTemplateWithTooltip
+                            { tooltipText = "Toggle between 'Can edit' and 'Read only'"
+                            , tooltipPlacement = E.above
+                            , attributes = [ Font.color Color.white ]
+                            , msg = SetDocumentStatus Document.DSReadOnly
+                            , label = "Doc: Can Edit"
+                            }
+
+                    Document.DSReadOnly ->
+                        buttonTemplateWithTooltip
+                            { tooltipText = "Toggle between 'Can edit' and 'Read only'"
+                            , tooltipPlacement = E.above
+                            , attributes = [ Font.color Color.white ]
+                            , msg = SetDocumentStatus Document.DSCanEdit
+                            , label = "Doc: Read only"
+                            }
+
+                    Document.DSSoftDelete ->
+                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Soft-deleted"
+
+            else
+                E.none
 
 
 toggleBackupVisibility : Bool -> Element FrontendMsg
@@ -186,12 +257,24 @@ toggleBackupVisibility seeBackups =
 
 toggleCheatSheet : Element FrontendMsg
 toggleCheatSheet =
-    buttonTemplate [] ToggleCheatsheet "Cheat Sheet"
+    buttonTemplateWithTooltip
+        { tooltipText = "Cheat sheet for the current markup language"
+        , tooltipPlacement = E.below
+        , attributes = [ Font.color Color.white ]
+        , msg = ToggleCheatsheet
+        , label = "Cheat Sheet"
+        }
 
 
 toggleManuals : Element FrontendMsg
 toggleManuals =
-    buttonTemplate [] ToggleManuals "Manuals"
+    buttonTemplateWithTooltip
+        { tooltipText = "Manuals, templates, answers to common questions"
+        , tooltipPlacement = E.below
+        , attributes = [ Font.color Color.white ]
+        , msg = ToggleManuals
+        , label = "Manuals"
+        }
 
 
 reply : String -> Types.UserMessage -> Element FrontendMsg
@@ -247,7 +330,13 @@ languageMenu popupState lang =
                     "lang: XMarkdown"
     in
     if popupState == NoPopup then
-        buttonTemplate [] (ChangePopup LanguageMenuPopup) langString
+        buttonTemplateWithTooltip
+            { tooltipText = "Set markup language of current document"
+            , tooltipPlacement = E.above
+            , attributes = [ Font.color Color.white ]
+            , msg = ChangePopup LanguageMenuPopup
+            , label = langString
+            }
 
     else
         buttonTemplate [] (ChangePopup NoPopup) langString
@@ -259,7 +348,13 @@ languageMenu popupState lang =
 
 share : Element FrontendMsg
 share =
-    buttonTemplate [] ShareDocument "Share"
+    buttonTemplateWithTooltip
+        { tooltipText = "Share the current document"
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = ShareDocument
+        , label = "Share"
+        }
 
 
 doShare =
@@ -276,35 +371,8 @@ startCollaborativeEditing model =
             buttonTemplate [] ToggleCollaborativeEditing "Collab: Off"
 
 
-toggleDocTools : FrontendModel -> Element FrontendMsg
-toggleDocTools model =
-    if model.showDocTools then
-        buttonTemplate [] ToggleDocTools "Hide DocTools"
 
-    else
-        buttonTemplate [] ToggleDocTools "Show DocTools"
-
-
-toggleDocumentStatus : FrontendModel -> Element FrontendMsg
-toggleDocumentStatus model =
-    case model.currentDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
-                case doc.status of
-                    Document.DSCanEdit ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSReadOnly) "Doc: Can Edit"
-
-                    Document.DSReadOnly ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Read only"
-
-                    Document.DSSoftDelete ->
-                        buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Soft-deleted"
-
-            else
-                E.none
+-- DELETE DOCUMENT
 
 
 softDeleteDocument : FrontendModel -> Element FrontendMsg
@@ -535,7 +603,24 @@ exportToMarkown =
 
 exportToLaTeX : Element FrontendMsg
 exportToLaTeX =
-    buttonTemplate [] ExportToLaTeX "Export"
+    buttonTemplateWithTooltip
+        { tooltipText = "Export to LaTeX file"
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = ExportToLaTeX
+        , label = "Export"
+        }
+
+
+exportToLaTeXRaw : Element FrontendMsg
+exportToLaTeXRaw =
+    buttonTemplateWithTooltip
+        { tooltipText = "Export to raw LaTeX file (no preamble, etc)."
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = ExportToRawLaTeX
+        , label = "Raw"
+        }
 
 
 export : Element FrontendMsg
@@ -587,6 +672,7 @@ popupMonitor popupState =
 
         _ ->
             buttonTemplate [] (ChangePopup NoPopup) "Monitor of"
+
 
 dismissPopup : Element FrontendMsg
 dismissPopup =
@@ -689,7 +775,13 @@ toggleActiveDocList name =
 
 togglePublicUrl : Element FrontendMsg
 togglePublicUrl =
-    buttonTemplate [ Font.color Color.white ] TogglePublicUrl "URL"
+    buttonTemplateWithTooltip
+        { tooltipText = "External link to public document"
+        , tooltipPlacement = E.above
+        , attributes = [ Font.color Color.white ]
+        , msg = TogglePublicUrl
+        , label = "URL"
+        }
 
 
 
@@ -750,7 +842,7 @@ getUserTags tagSelection user =
         Nothing ->
             E.none
 
-        Just user_ ->
+        Just _ ->
             let
                 style =
                     if tagSelection == TagUser then
@@ -782,7 +874,13 @@ toggleExtrasSidebar sidebarState =
             buttonTemplate [] ToggleExtrasSidebar (String.fromChar '⋮')
 
         SidebarExtrasIn ->
-            buttonTemplate [] ToggleExtrasSidebar (String.fromChar '⋮')
+            buttonTemplateWithTooltip
+                { tooltipText = "Show online users"
+                , tooltipPlacement = E.below
+                , attributes = [ Font.color Color.white ]
+                , msg = ToggleExtrasSidebar
+                , label = String.fromChar '⋮'
+                }
 
 
 toggleTagsSidebar : Types.SidebarTagsState -> Element FrontendMsg
@@ -792,7 +890,14 @@ toggleTagsSidebar sidebarState =
             buttonTemplate [] ToggleTagsSidebar "Tags"
 
         SidebarTagsIn ->
-            buttonTemplate [] ToggleTagsSidebar "Tags"
+            -- buttonTemplate [] ToggleTagsSidebar "Tags"
+            buttonTemplateWithTooltip
+                { tooltipText = "List documents by tag"
+                , tooltipPlacement = E.below
+                , attributes = [ Font.color Color.white ]
+                , msg = ToggleTagsSidebar
+                , label = "Tags"
+                }
 
 
 maximizeMyDocs : MaximizedIndex -> Element FrontendMsg
@@ -943,10 +1048,22 @@ togglePublic maybeDoc =
         Just doc ->
             case doc.public of
                 False ->
-                    buttonTemplate [] (SetPublic doc True) "Private"
+                    buttonTemplateWithTooltip
+                        { tooltipText = "Toggle document access (public/private)"
+                        , tooltipPlacement = E.below
+                        , attributes = [ Font.color Color.white ]
+                        , msg = SetPublic doc True
+                        , label = "Private"
+                        }
 
                 True ->
-                    buttonTemplate [] (SetPublic doc False) "Public"
+                    buttonTemplateWithTooltip
+                        { tooltipText = "Toggle document access (public/private)"
+                        , tooltipPlacement = E.below
+                        , attributes = [ Font.color Color.white ]
+                        , msg = SetPublic doc False
+                        , label = "Public"
+                        }
 
 
 toggleAppMode : FrontendModel -> Element FrontendMsg

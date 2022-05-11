@@ -16,13 +16,21 @@ import Types exposing (..)
 import Util
 import View.Button
 import View.Color as Color
+import View.Geometry as Geometry
 import View.Input
 import View.Utility
 
 
 view : FrontendModel -> E.Element FrontendMsg
 view model =
-    E.column [ E.spacing 0, Background.color Color.black, E.padding 1, E.height (E.px (model.windowHeight - 150)) ]
+    E.column
+        [ E.spacing 0
+        , Background.color Color.black
+        , E.padding 1
+
+        --, E.height (E.px (model.windowHeight - 150))
+        , E.height (E.px <| Geometry.appHeight model - 100)
+        ]
         [ viewMessages model
         , viewCurrentGroup model
         , editGroup model
@@ -32,10 +40,10 @@ view model =
 viewMessages model =
     case model.chatDisplay of
         Types.TCGDisplay ->
-            E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 450) model)
+            E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 500) model)
 
         TCGShowInputForm ->
-            E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 720) model)
+            E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 770) model)
 
 
 viewCurrentGroup model =

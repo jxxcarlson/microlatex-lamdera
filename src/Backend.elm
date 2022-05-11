@@ -190,7 +190,7 @@ updateFromFrontend sessionId clientId msg model =
         InitializeNetworkModelsWithDocument doc ->
             let
                 currentEditorList =
-                    doc.currentEditorList |> Debug.log "!!! Network init, editors"
+                    doc.currentEditorList
 
                 userIds =
                     List.map .userId currentEditorList
@@ -243,7 +243,7 @@ updateFromFrontend sessionId clientId msg model =
         AddEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "!!@ AddEditor"
+                    Share.update user.username user.id doc clientId model.sharedDocumentDict
 
                 equal a b =
                     a.userId == b.userId
@@ -265,7 +265,7 @@ updateFromFrontend sessionId clientId msg model =
         RemoveEditor user doc ->
             let
                 sharedDocumentDict =
-                    Share.removeEditor user.id doc model.sharedDocumentDict |> Debug.log "!!@ RemoveEditor"
+                    Share.removeEditor user.id doc model.sharedDocumentDict
 
                 oldEditorList =
                     doc.currentEditorList
@@ -281,6 +281,9 @@ updateFromFrontend sessionId clientId msg model =
 
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
+
+        NarrowcastExceptToSender sendersName sendersId document ->
+            ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender sendersName document model.connectionDict )
 
         ClearConnectionDictBE ->
             ( { model | connectionDict = Dict.empty }, Cmd.none )
@@ -443,8 +446,8 @@ updateFromFrontend sessionId clientId msg model =
         CreateDocument maybeCurrentUser doc_ ->
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
 
-        SaveDocument document ->
-            Backend.Update.saveDocument model clientId document
+        SaveDocument currentUser document ->
+            Backend.Update.saveDocument model clientId currentUser document
 
         GetCheatSheetDocument ->
             Backend.Update.fetchDocumentById model clientId Config.l0CheetsheetId Types.HandleAsCheatSheet

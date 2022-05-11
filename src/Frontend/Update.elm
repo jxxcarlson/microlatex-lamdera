@@ -6,6 +6,7 @@ module Frontend.Update exposing
     , debounceMsg
     , exportToLaTeX
     , exportToMarkdown
+    , exportToRawLaTeX
     , firstSyncLR
     , handleAsReceivedDocumentWithDelay
     , handleAsStandardReceivedDocument
@@ -23,7 +24,6 @@ module Frontend.Update exposing
     , nextSyncLR
     , openEditor
     , postProcessDocument
-    , preserveCurrentDocument
     , render
     , runSpecial
     , saveCurrentDocumentToBackend
@@ -98,9 +98,13 @@ handleCurrentDocumentChange model currentDocument document =
                 { currentDocument | content = model.sourceText, status = Document.DSReadOnly }
 
             newModel =
-                { model | documentDirty = False, documents = Util.updateDocumentInList updatedDoc model.documents }
+                { model
+                    | documentDirty = False
+                    , language = document.language
+                    , documents = Util.updateDocumentInList updatedDoc model.documents
+                }
         in
-        setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
+        setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
     else if currentDocument.status == Document.DSCanEdit then
         let
@@ -108,9 +112,9 @@ handleCurrentDocumentChange model currentDocument document =
                 { currentDocument | status = Document.DSReadOnly }
 
             newModel =
-                { model | documents = Util.updateDocumentInList updatedDoc model.documents }
+                { model | documents = Util.updateDocumentInList updatedDoc model.documents, language = document.language }
         in
-        setDocumentAsCurrent (sendToBackend (SaveDocument updatedDoc)) newModel document StandardHandling
+        setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
     else
         setDocumentAsCurrent Cmd.none model document StandardHandling
@@ -157,8 +161,6 @@ openEditor doc model =
               }
             , Cmd.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
-
-                --, sendToBackend (SaveDocument updatedDoc)
                 , if Predicate.documentIsMineOrIAmAnEditor (Just doc) model.currentUser then
                     sendToBackend (AddEditor user updatedDoc)
 
@@ -196,7 +198,7 @@ closeEditor model =
 
                 Just doc ->
                     Cmd.batch
-                        [ sendToBackend (SaveDocument doc)
+                        [ sendToBackend (SaveDocument model.currentUser doc)
                         , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc)
                         ]
 
@@ -310,7 +312,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
       }
     , Cmd.batch
         [ View.Utility.setViewPortToTop model.popupState
-        , Cmd.batch [ cmd, sendToBackend (SaveDocument updatedDoc) ]
+        , Cmd.batch [ cmd, sendToBackend (SaveDocument model.currentUser updatedDoc) ]
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
         ]
     )
@@ -373,7 +375,7 @@ savePreviousCurrentDocumentCmd model =
                         -- TODO: change content
                         { previousDoc | content = model.sourceText }
                 in
-                sendToBackend (SaveDocument previousDoc2)
+                sendToBackend (SaveDocument model.currentUser previousDoc2)
 
             else
                 Cmd.none
@@ -454,6 +456,17 @@ exportToLaTeX model =
     ( model, Download.string fileName "application/x-latex" textToExport )
 
 
+exportToRawLaTeX model =
+    let
+        textToExport =
+            LaTeX.rawExport Settings.defaultSettings model.editRecord.parsed
+
+        fileName =
+            (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
+    in
+    ( model, Download.string fileName "application/x-latex" textToExport )
+
+
 exportToMarkdown model =
     let
         markdownText =
@@ -475,7 +488,7 @@ setPublic model doc public =
         documents =
             List.Extra.setIf (\d -> d.id == newDocument_.id) newDocument_ model.documents
     in
-    ( { model | documents = documents, documentDirty = False, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument newDocument_) )
+    ( { model | documents = documents, documentDirty = False, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument model.currentUser newDocument_) )
 
 
 setPublicDocumentAsCurrentById : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
@@ -533,7 +546,7 @@ softDeleteDocument model =
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = newUser
               }
-            , Cmd.batch [ sendToBackend (SaveDocument newDoc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            , Cmd.batch [ sendToBackend (SaveDocument model.currentUser newDoc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
 
@@ -972,7 +985,7 @@ changeLanguage model =
                     { doc | language = model.language }
             in
             ( { model | documentDirty = False }
-            , sendToBackend (SaveDocument newDoc)
+            , sendToBackend (SaveDocument model.currentUser newDoc)
             )
                 |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
 
@@ -984,7 +997,7 @@ saveDocument mDoc model =
             ( model, Cmd.none )
 
         Just doc ->
-            ( { model | documentDirty = False }, sendToBackend (SaveDocument doc) )
+            ( { model | documentDirty = False }, sendToBackend (SaveDocument model.currentUser doc) )
 
 
 postProcessDocument : Document.Document -> FrontendModel -> FrontendModel
@@ -1284,39 +1297,21 @@ newDocument model =
 -- SAVE DOCUMENT TOOLS
 
 
-preserveCurrentDocument model =
-    -- TODO: use this function!
-    case model.currentDocument of
-        Nothing ->
-            Cmd.none
-
-        Just doc ->
-            case doc.status of
-                Document.DSSoftDelete ->
-                    Cmd.none
-
-                Document.DSReadOnly ->
-                    Cmd.none
-
-                Document.DSCanEdit ->
-                    saveDocumentToBackend { doc | content = model.sourceText }
-
-
-saveDocumentToBackend : Document.Document -> Cmd FrontendMsg
-saveDocumentToBackend doc =
+saveDocumentToBackend : Maybe User -> Document.Document -> Cmd FrontendMsg
+saveDocumentToBackend currentUser doc =
     case doc.status of
         Document.DSSoftDelete ->
-            sendToBackend (SaveDocument doc)
+            sendToBackend (SaveDocument currentUser doc)
 
         Document.DSReadOnly ->
-            sendToBackend (SaveDocument doc)
+            sendToBackend (SaveDocument currentUser doc)
 
         Document.DSCanEdit ->
-            sendToBackend (SaveDocument doc)
+            sendToBackend (SaveDocument currentUser doc)
 
 
-saveCurrentDocumentToBackend : Maybe Document.Document -> Cmd FrontendMsg
-saveCurrentDocumentToBackend mDoc =
+saveCurrentDocumentToBackend : Maybe Document.Document -> Maybe User -> Cmd FrontendMsg
+saveCurrentDocumentToBackend mDoc mUser =
     case mDoc of
         Nothing ->
             Cmd.none
@@ -1330,7 +1325,7 @@ saveCurrentDocumentToBackend mDoc =
                     Cmd.none
 
                 Document.DSCanEdit ->
-                    sendToBackend (SaveDocument doc)
+                    sendToBackend (SaveDocument mUser doc)
 
 
 

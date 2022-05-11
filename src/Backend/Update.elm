@@ -251,9 +251,7 @@ getSharedDocuments model clientId username =
         docList =
             model.sharedDocumentDict
                 |> Dict.toList
-                |> Debug.log "sharedDocumentDict"
                 |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
-                |> Debug.log "DOCLIST"
 
         connectedUsers =
             getConnectedUsers model
@@ -271,13 +269,13 @@ getSharedDocuments model clientId username =
                 |> List.filter (\( _, data ) -> Share.isSharedToMe username data.share)
                 |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
 
-        docs2 =
-            docList
-                |> List.filter (\( _, data ) -> data.author == Just username)
-                |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
+        --docs2 =
+        --    docList
+        --        |> List.filter (\( _, data ) -> data.author == Just username)
+        --        |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
     in
     ( model
-    , sendToFrontend clientId (GotShareDocumentList (docs1 ++ docs2 |> List.sortBy (\( _, _, doc ) -> doc.title)))
+    , sendToFrontend clientId (GotShareDocumentList (docs1 |> List.sortBy (\( _, _, doc ) -> doc.title)))
     )
 
 
@@ -437,20 +435,37 @@ fetchDocumentByIdCmd model clientId docId documentHandling =
             sendToFrontend clientId (ReceivedDocument documentHandling document)
 
 
-saveDocument model clientId document =
+saveDocument model clientId currentUser document =
     -- TODO: review this for safety
     let
-        updateDoc : Document.Document -> Document.Document
-        updateDoc =
-            \d -> { document | modified = model.currentTime }
-
-        mUpdateDoc =
-            Util.liftToMaybe updateDoc
-
-        updateDocumentDict2 doc dict =
-            Dict.update doc.id mUpdateDoc dict
+        _ =
+            Predicate.documentIsMineOrIAmAnEditor_ document currentUser
     in
-    ( { model | documentDict = updateDocumentDict2 document model.documentDict }, sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen }) )
+    if Predicate.documentIsMineOrIAmAnEditor_ document currentUser then
+        let
+            updateDoc : Document.Document -> Document.Document
+            updateDoc =
+                \d -> { document | modified = model.currentTime }
+
+            mUpdateDoc =
+                Util.liftToMaybe updateDoc
+
+            updateDocumentDict2 doc dict =
+                Dict.update doc.id mUpdateDoc dict
+        in
+        ( { model | documentDict = updateDocumentDict2 document model.documentDict }
+        , Cmd.batch
+            [ sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
+            , Share.narrowCastIfShared clientId document
+            ]
+        )
+
+    else
+        ( model, Cmd.none )
+
+
+
+-- { userId : String, username : String, clientId : ClientId }
 
 
 createDocument model clientId maybeCurrentUser doc_ =
@@ -563,10 +578,6 @@ resetCurrentEditorForUser username dict =
 
 
 cleanup model sessionId clientId =
-    let
-        _ =
-            Debug.log "CLEANING" "UP"
-    in
     ( { model
         | connectionDict = Dict.empty
         , editEvents = Deque.empty
@@ -697,7 +708,7 @@ signIn model sessionId clientId username encryptedPassword =
                             Just groupName ->
                                 Dict.get groupName model.chatGroupDict
                 in
-                ( { model | connectionDict = newConnectionDict_ |> Debug.log "!!! Sign In, ConnectionDict" }
+                ( { model | connectionDict = newConnectionDict_ }
                 , Cmd.batch
                     [ -- TODO: restore the below
                       sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)

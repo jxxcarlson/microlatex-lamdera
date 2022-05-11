@@ -1,5 +1,6 @@
 module View.Utility exposing
-    ( cssNode
+    ( addTooltip
+    , cssNode
     , currentDocumentAuthor
     , currentDocumentEditor
     , elementAttribute
@@ -23,21 +24,23 @@ module View.Utility exposing
 import Browser.Dom as Dom
 import Config
 import Document
-import Element exposing (Element)
+import Element as E exposing (Element)
+import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
-import Html
+import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events exposing (keyCode, on)
 import Json.Decode as D
 import Predicate
-import String.Extra
 import Task exposing (Task)
 import Types exposing (FrontendModel, FrontendMsg)
 import User
+import View.Color as Color
 
 
 htmlId str =
-    Element.htmlAttribute (HA.id str)
+    E.htmlAttribute (HA.id str)
 
 
 isAdmin : FrontendModel -> Bool
@@ -63,7 +66,7 @@ currentDocumentAuthor : Maybe String -> Maybe Document.Document -> Element Front
 currentDocumentAuthor mUsername mDoc =
     case mDoc of
         Nothing ->
-            Element.none
+            E.none
 
         Just doc ->
             let
@@ -71,19 +74,19 @@ currentDocumentAuthor mUsername mDoc =
                     if mUsername == doc.author then
                         if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
                             -- my doc, not shared
-                            Font.color (Element.rgb 0.5 0.5 1.0)
+                            Font.color (E.rgb 0.5 0.5 1.0)
 
                         else
                             -- my doc, shared to someone
-                            Font.color (Element.rgb 0.5 0.8 0.8)
+                            Font.color (E.rgb 0.5 0.8 0.8)
 
                     else if Predicate.isSharedToMe_ mUsername doc then
                         -- not my doc, shared to me
-                        Font.color (Element.rgb 0.9 0.8 0.6)
+                        Font.color (E.rgb 0.9 0.8 0.6)
 
                     else
                         -- not my doc, not shared to me
-                        Font.color (Element.rgb 0.9 0.9 0.9)
+                        Font.color (E.rgb 0.9 0.9 0.9)
 
                 nowEditing =
                     doc.currentEditorList |> List.map .username |> String.join ", "
@@ -91,14 +94,14 @@ currentDocumentAuthor mUsername mDoc =
                 str =
                     Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault ""
             in
-            Element.el [ color, Font.size 14 ] (Element.text str)
+            E.el [ color, Font.size 14 ] (E.text str)
 
 
 currentDocumentEditor : Maybe String -> Maybe Document.Document -> Element FrontendMsg
 currentDocumentEditor mUsername mDoc =
     case mDoc of
         Nothing ->
-            Element.none
+            E.none
 
         Just doc ->
             let
@@ -106,24 +109,24 @@ currentDocumentEditor mUsername mDoc =
                     if mUsername == doc.author then
                         if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
                             -- my doc, not shared
-                            Font.color (Element.rgb 0.5 0.5 1.0)
+                            Font.color (E.rgb 0.5 0.5 1.0)
 
                         else
                             -- my doc, shared to someone
-                            Font.color (Element.rgb 0.5 0.8 0.8)
+                            Font.color (E.rgb 0.5 0.8 0.8)
 
                     else if Predicate.isSharedToMe_ mUsername doc then
                         -- not my doc, shared to me
-                        Font.color (Element.rgb 0.9 0.8 0.6)
+                        Font.color (E.rgb 0.9 0.8 0.6)
 
                     else
                         -- not my doc, not shared to me
-                        Font.color (Element.rgb 0.9 0.9 0.9)
+                        Font.color (E.rgb 0.9 0.9 0.9)
 
                 nowEditing =
                     doc.currentEditorList |> List.map .username |> String.join ", "
             in
-            Element.el [ color, Font.size 14 ] (Element.text nowEditing)
+            E.el [ color, Font.size 14 ] (E.text nowEditing)
 
 
 truncateString : Int -> String -> String
@@ -177,13 +180,13 @@ showIf isVisible element =
         element
 
     else
-        Element.none
+        E.none
 
 
 hideIf : Bool -> Element msg -> Element msg
 hideIf condition element =
     if condition then
-        Element.none
+        E.none
 
     else
         element
@@ -237,7 +240,7 @@ getElementWithViewPort vp id =
         |> Task.map (\el -> ( el, vp ))
 
 
-noFocus : Element.FocusStyle
+noFocus : E.FocusStyle
 noFocus =
     { borderColor = Nothing
     , backgroundColor = Nothing
@@ -247,7 +250,7 @@ noFocus =
 
 cssNode : String -> Element FrontendMsg
 cssNode fileName =
-    Html.node "link" [ HA.rel "stylesheet", HA.href fileName ] [] |> Element.html
+    Html.node "link" [ HA.rel "stylesheet", HA.href fileName ] [] |> E.html
 
 
 
@@ -256,7 +259,7 @@ cssNode fileName =
 
 katexCSS : Element FrontendMsg
 katexCSS =
-    Element.html <|
+    E.html <|
         Html.node "link"
             [ HA.attribute "rel" "stylesheet"
             , HA.attribute "href" "https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css"
@@ -264,6 +267,54 @@ katexCSS =
             []
 
 
-elementAttribute : String -> String -> Element.Attribute msg
+elementAttribute : String -> String -> E.Attribute msg
 elementAttribute key value =
-    Element.htmlAttribute (HA.attribute key value)
+    E.htmlAttribute (HA.attribute key value)
+
+
+myTooltip : String -> Element msg
+myTooltip str =
+    E.el
+        [ Background.color (E.rgb 0 0 0)
+        , Font.color (E.rgb 1 1 1)
+        , E.padding 4
+        , Border.rounded 5
+        , Font.size 14
+        , Border.shadow
+            { offset = ( 0, 3 ), blur = 6, size = 0, color = E.rgba 0 0 0 0.32 }
+        ]
+        (E.text str)
+
+
+
+--
+
+
+tooltip : (Element msg -> E.Attribute msg) -> Element Never -> E.Attribute msg
+tooltip usher tooltip_ =
+    E.inFront <|
+        E.el
+            [ E.width E.fill
+            , E.height E.fill
+            , E.transparent True
+            , E.mouseOver [ E.transparent False ]
+            , (usher << E.map never) <|
+                E.el
+                    [ E.htmlAttribute (HA.style "pointerEvents" "none") ]
+                    tooltip_
+            ]
+            E.none
+
+
+
+-- addTooltip : (Element msg -> E.Attribute msg) -> String -> E.Element -> E.Element
+
+
+addTooltip placement label element =
+    E.el
+        [ tooltip placement (myTooltip label) ]
+        element
+
+
+
+-- el [ tooltip below (myTooltip "bar") ] (text "bar")

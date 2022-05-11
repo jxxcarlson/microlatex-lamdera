@@ -371,6 +371,7 @@ type FrontendMsg
       -- Export
     | ExportToMarkdown
     | ExportToLaTeX
+    | ExportToRawLaTeX
     | ExportTo Language
     | Export
       -- PDF
@@ -420,6 +421,7 @@ type ToBackend
       -- SHARE
     | ClearEditEvents UserId
     | Narrowcast Username UserId Document -- First arg is the sender's username.  Send the document
+    | NarrowcastExceptToSender Username UserId Document -- First arg is the sender's username.  Send the document
     | UpdateSharedDocumentDict User Document
     | AddEditor User Document
     | RemoveEditor User Document
@@ -437,7 +439,7 @@ type ToBackend
     | FetchDocumentById DocumentHandling Document.DocumentId
     | FindDocumentByAuthorAndKey DocumentHandling Username String
     | GetPublicDocuments SortMode (Maybe String)
-    | SaveDocument Document
+    | SaveDocument (Maybe User) Document
     | SearchForDocumentsWithAuthorAndKey String
     | SearchForDocuments DocumentHandling (Maybe String) String
     | GetDocumentByPublicId String

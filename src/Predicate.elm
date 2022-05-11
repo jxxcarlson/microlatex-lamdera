@@ -1,6 +1,7 @@
 module Predicate exposing
     ( documentIsMine
     , documentIsMineOrIAmAnEditor
+    , documentIsMineOrIAmAnEditor_
     , documentIsMineOrSharedToMe
     , isSharedToMe
     , isSharedToMe_
@@ -32,6 +33,11 @@ documentIsMine maybeDoc maybeUser =
 documentIsMineOrIAmAnEditor : Maybe Document.Document -> Maybe User.User -> Bool
 documentIsMineOrIAmAnEditor mDoc mUser =
     documentIsMine mDoc mUser || iAmAnEditor mDoc mUser
+
+
+documentIsMineOrIAmAnEditor_ : Document.Document -> Maybe User.User -> Bool
+documentIsMineOrIAmAnEditor_ doc mUser =
+    documentIsMine (Just doc) mUser || iAmAnEditor (Just doc) mUser
 
 
 iAmAnEditor : Maybe Document.Document -> Maybe User.User -> Bool

@@ -5,6 +5,9 @@ module Share exposing
     , isCurrentlyShared
     , isSharedToMe
     , narrowCast
+    , narrowCastIfShared
+    , narrowCastIfShared2
+    , narrowCastToEditorsExceptForSender
     , removeConnectionFromSharedDocumentDict
     , removeEditor
     , resetDocument
@@ -17,7 +20,7 @@ module Share exposing
 
 import Dict
 import Document
-import Lamdera exposing (ClientId, sendToBackend)
+import Lamdera exposing (ClientId, sendToBackend, sendToFrontend)
 import List.Extra
 import Set
 import Types
@@ -27,6 +30,32 @@ import Util
 
 type alias Username =
     String
+
+
+narrowCastIfShared2 : Maybe User.User -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared2 currentUser document =
+    if List.isEmpty document.currentEditorList then
+        Cmd.none
+
+    else
+        let
+            editors =
+                List.filter (\editor_ -> Just editor_.username /= Maybe.map .username currentUser) document.currentEditorList
+        in
+        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
+
+
+narrowCastIfShared : ClientId -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared clientId document =
+    if List.isEmpty document.currentEditorList then
+        Cmd.none
+
+    else
+        let
+            editors =
+                List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
+        in
+        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
 
 
 removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
@@ -103,7 +132,7 @@ update : Username -> Types.UserId -> Document.Document -> ClientId -> Types.Shar
 update username userId doc clientId dict =
     let
         newEditor =
-            { username = username, userId = userId, clientId = clientId } |> Debug.log "NEW EDITOR"
+            { username = username, userId = userId, clientId = clientId }
 
         equal a b =
             a.userId == b.userId
@@ -113,10 +142,10 @@ update username userId doc clientId dict =
             { sharedDoc | currentEditors = Util.insertInListOrUpdate equal newEditor sharedDoc.currentEditors }
     in
     if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
-        dict |> Debug.log "NULL Path"
+        dict
 
     else
-        Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
+        Dict.update doc.id (Util.liftToMaybe updater) dict
 
 
 {-| Remove the editor with given userId from the currentEditor list of the corresponding SharedDoc
@@ -129,16 +158,16 @@ removeEditor userId doc dict =
             { sharedDoc | currentEditors = List.filter (\ed -> ed.userId /= userId) sharedDoc.currentEditors }
     in
     if doc.sharedWith.readers == [] && doc.sharedWith.editors == [] then
-        dict |> Debug.log "NULL Path"
+        dict
 
     else
-        Dict.update doc.id (Util.liftToMaybe updater) dict |> Debug.log "UPDATE sharedDocDict (0)"
+        Dict.update doc.id (Util.liftToMaybe updater) dict
 
 
 updateSharedDocumentDict : User.User -> Document.Document -> Types.BackendModel -> Types.BackendModel
 updateSharedDocumentDict user doc model =
     -- { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
-    { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
+    { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict }
 
 
 doShare : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
@@ -183,7 +212,7 @@ doShare model =
                     in
                     ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
                     , Cmd.batch
-                        [ sendToBackend (Types.SaveDocument newDocument)
+                        [ sendToBackend (Types.SaveDocument model.currentUser newDocument)
                         , sendToBackend (Types.UpdateSharedDocumentDict user_ newDocument)
                         , cmdSaveUser
                         ]
@@ -222,6 +251,23 @@ narrowCast sendersName document connectionDict =
                     author :: (document.sharedWith.editors ++ document.sharedWith.readers) |> List.filter (\name -> name /= "")
 
         --|> List.filter (\name -> name /= sendersName && name /= "")
+        clientIds =
+            getClientIds usernames connectionDict
+    in
+    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
+
+
+narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
+narrowCastToEditorsExceptForSender sendersName document connectionDict =
+    let
+        usernames =
+            case document.author of
+                Nothing ->
+                    document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
+
+                Just author ->
+                    author :: document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
+
         clientIds =
             getClientIds usernames connectionDict
     in

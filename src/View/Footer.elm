@@ -22,12 +22,12 @@ import View.Utility
 
 view model width_ =
     let
-        dy =
+        dx =
             if model.showEditor then
-                Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth - 370
+                width_ - Geometry.chatPaneWidth
 
             else
-                Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth - 800
+                width_ - Geometry.chatPaneWidth
     in
     E.row
         [ E.spacing 1
@@ -44,11 +44,11 @@ view model width_ =
                 (E.el
                     [ case model.chatDisplay of
                         Types.TCGDisplay ->
-                            E.moveUp (toFloat <| Geometry.appHeight_ model - 100)
+                            E.moveUp (toFloat <| Geometry.appHeight model - 110)
 
                         Types.TCGShowInputForm ->
-                            E.moveUp (toFloat <| Geometry.appHeight_ model - 100)
-                    , E.moveRight (toFloat dy)
+                            E.moveUp (toFloat <| Geometry.appHeight model - 110)
+                    , E.moveRight (toFloat dx)
                     ]
                     (View.Chat.view model)
                 )
@@ -61,6 +61,7 @@ view model width_ =
         , View.Utility.showIf (model.currentUser /= Nothing)
             (E.row [ E.spacing 1 ]
                 [ View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) Button.exportToLaTeX
+                , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) Button.exportToLaTeXRaw
                 , Button.printToPDF model
                 ]
             )
@@ -75,14 +76,26 @@ view model width_ =
         -- , View.Utility.showIf (isAdmin model) (View.Input.specialInput model)
         --, showCurrentEditor model.currentDocument
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (Button.toggleDocumentStatus model)
-        , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
+
+        --, View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (timeElapsed model)
         , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.currentDocument)
+        , E.el [] (wordCount model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
         , Button.popupMonitor model.popupState
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
+
+
+wordCount : Types.FrontendModel -> E.Element Types.FrontendMsg
+wordCount model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
 isCurrentDocumentDirty dirty =
@@ -134,16 +147,24 @@ backup zone maybeDocument =
 
 showCurrentEditors : Maybe Document.Document -> E.Element msg
 showCurrentEditors mDoc =
-    let
-        message =
-            case mDoc of
-                Nothing ->
-                    "No document"
+    case mDoc of
+        Nothing ->
+            E.none
 
-                Just doc ->
-                    "Editors: " ++ (doc.currentEditorList |> List.map .username |> String.join ", ")
-    in
-    E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| message)
+        Just doc ->
+            let
+                editors =
+                    doc.currentEditorList
+            in
+            if List.isEmpty editors then
+                E.none
+
+            else
+                let
+                    label =
+                        "Editors: " ++ (editors |> List.map .username |> String.join ", ")
+                in
+                E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| label)
 
 
 messageRow model =
