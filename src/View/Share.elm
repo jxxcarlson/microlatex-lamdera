@@ -8,6 +8,7 @@ import Predicate
 import Types exposing (DocumentHandling(..), FrontendModel, PopupState(..))
 import View.Button as Button
 import View.Color as Color
+import View.Geometry as Geometry
 import View.Input
 import View.Utility
 
@@ -119,11 +120,11 @@ viewSharingStatus model =
             docTitle ++ " (shared by " ++ docAuthor ++ ")"
     in
     E.column
-        style
-        [ E.el [ E.spacing 18, E.paddingEach { top = 0, bottom = 20, left = 0, right = 0 } ] (E.el [ Font.bold, Font.size 18 ] (E.text panelTitle))
+        (style model)
+        [ E.el [ E.spacing 18, E.paddingEach { top = 0, bottom = 10, left = 0, right = 0 } ] (E.el [ Font.bold, Font.size 18 ] (E.text panelTitle))
         , E.column [ E.spacing 8 ] [ label "Readers", E.paragraph statusStyle [ E.text readers_ ] ]
         , E.column [ E.spacing 8 ] [ label "Editors", E.paragraph statusStyle [ E.text editors_ ] ]
-        , E.row [ E.spacing 12, E.paddingEach { top = 30, bottom = 0, left = 0, right = 0 } ] [ Button.dismissPopup ]
+        , E.row [ E.spacing 12, E.paddingEach { top = 10, bottom = 0, left = 0, right = 0 } ] [ Button.dismissPopup ]
         ]
 
 
@@ -138,32 +139,36 @@ statusStyle =
 updateSharingStatus : FrontendModel -> E.Element Types.FrontendMsg
 updateSharingStatus model =
     E.column
-        style2
-        [ E.el [ E.paddingEach { top = 0, bottom = 20, left = 0, right = 0 } ] (E.el [ Font.bold, Font.size 18 ] (E.text <| "Share " ++ currentDocTitle model))
-        , E.column [ E.spacing 8 ] [ label "Readers", View.Input.readers 400 200 model ]
-        , E.column [ E.spacing 8 ] [ label "Editors", View.Input.editors 400 200 model ]
-        , E.row [ E.spacing 12, E.paddingEach { top = 30, bottom = 0, left = 0, right = 0 } ] [ Button.doShare, Button.dismissPopup ]
+        (style2 model)
+        [ E.el [ E.paddingEach { top = 0, bottom = 10, left = 0, right = 0 } ] (E.el [ Font.bold, Font.size 18 ] (E.text <| "Share " ++ currentDocTitle model))
+        , E.column [ E.spacing 8 ] [ label "Readers", View.Input.readers 400 (fieldHeight model) model ]
+        , E.column [ E.spacing 8 ] [ label "Editors", View.Input.editors 400 (fieldHeight model) model ]
+        , E.row [ E.spacing 12, E.paddingEach { top = 10, bottom = 0, left = 0, right = 0 } ] [ Button.doShare, Button.dismissPopup ]
         ]
 
 
-style2 =
+fieldHeight model =
+    round (toFloat (Geometry.appHeight model - 400) / 5.0)
+
+
+style2 model =
     [ E.moveRight 128
     , E.moveDown 25
-    , E.spacing 18
+    , E.spacing 8
     , E.width (E.px 450)
-    , E.height (E.px 700)
+    , E.height (E.px (Geometry.appHeight model - 300))
     , E.padding 25
     , Font.size 14
     , Background.color Color.paleBlue
     ]
 
 
-style =
+style model =
     [ E.moveRight 128
     , E.moveDown 25
-    , E.spacing 18
+    , E.spacing 8
     , E.width (E.px 450)
-    , E.height (E.px 700)
+    , E.height (E.px (Geometry.appHeight model - 300))
     , E.padding 25
     , Font.size 14
     , Background.color Color.paleBlue
