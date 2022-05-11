@@ -114,7 +114,14 @@ viewDocumentSmall windowWidth counter currentDocId editRecord =
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
-    E.row [ Background.color (E.rgb 0.8 0.8 1.0), E.paddingEach { left = 8, right = 8, top = 12, bottom = 0 }, E.spacing 16, E.width E.fill ] [ title_, E.el [ E.moveUp 6, E.alignRight, E.paddingEach { left = 0, right = 8, top = 0, bottom = 0 } ] Button.closeCollectionsIndex ] :: body
+    E.row
+        [ Background.color (E.rgb 0.8 0.8 1.0)
+        , E.paddingEach { left = 8, right = 8, top = 12, bottom = 0 }
+        , E.spacing 16
+        , E.width E.fill
+        ]
+        [ title_, E.el [ E.moveUp 6, E.alignRight, E.paddingEach { left = 0, right = 8, top = 0, bottom = 0 } ] Button.closeCollectionsIndex ]
+        :: body
 
 
 viewDocument windowWidth counter selectedId editRecord =
