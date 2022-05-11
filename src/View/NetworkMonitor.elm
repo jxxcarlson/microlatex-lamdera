@@ -39,11 +39,11 @@ view model =
                 --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
                 --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document: " ++ Debug.toString model.networkModel.serverState.document ]
                 --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "Local Msgs: " ++ Debug.toString model.networkModel.localMsgs ]
-                , E.paragraph [ E.width (E.px 350) ]
-                    [ E.text <|
-                        "Cursor Pos: "
-                            ++ Debug.toString (model.networkModel.serverState.cursorPositions |> NetworkModel.shortenDictKeys)
-                    ]
+                --, E.paragraph [ E.width (E.px 350) ]
+                --    [ E.text <|
+                --        "Cursor Pos: "
+                --            ++ Debug.toString (model.networkModel.serverState.cursorPositions |> NetworkModel.shortenDictKeys)
+                --    ]
                 ]
 
         _ ->
