@@ -111,7 +111,7 @@ createEvent userId_ oldDocument newDocument =
         operations =
             OT.findOps oldDocument newDocument
     in
-    { docId = oldDocument.docId, userId = userId_, dp = dp, operations = operations } |> Debug.log "!! CREATE EVENT"
+    { docId = oldDocument.docId, userId = userId_, dp = dp, operations = operations }
 
 
 applyEvent : EditEvent -> ServerState -> ServerState

@@ -82,7 +82,8 @@ view model width_ =
         , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.currentDocument)
         , E.el [] (wordCount model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
-        , Button.popupMonitor model.popupState
+
+        -- , Button.popupMonitor model.popupState
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]

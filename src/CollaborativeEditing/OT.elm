@@ -99,7 +99,7 @@ applyOp op doc =
         Insert cursor str ->
             { docId = doc.docId
             , cursor = cursor + String.length str
-            , content = (String.left cursor doc.content |> Debug.log "LEFT") ++ str ++ (String.dropLeft cursor doc.content |> Debug.log "RIGHT")
+            , content = String.left cursor doc.content ++ str ++ String.dropLeft cursor doc.content
             }
 
         Delete cursor n ->
