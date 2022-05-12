@@ -23,7 +23,7 @@ type alias EditEvent =
 
 type Msg
     = Edit ( Username, OT.Operation )
-    | ApplyEventToLocalState Username EditEvent
-    | SendToServer Username EditEvent
-    | ProcessEvent Username EditEvent
+    | ApplyEventToLocalState Username DocId EditEvent
+    | SendToServer Username DocId EditEvent
+    | ProcessEventAtServer Username DocId EditEvent
     | CENoOp

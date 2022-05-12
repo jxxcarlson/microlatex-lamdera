@@ -119,7 +119,7 @@ sendChanges_ localState =
 
                 ( Just event, deque ) ->
                     ( { localModel | pendingChanges = deque, sentChanges = event :: localModel.sentChanges }
-                    , ProcessEvent localModel.userData.username event
+                    , ProcessEventAtServer localModel.userData.username localModel.localDocument.docId event
                     )
 
         ( model, mEvent ) =
