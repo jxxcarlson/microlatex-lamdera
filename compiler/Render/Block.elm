@@ -549,12 +549,21 @@ renderEquation count acc settings args id str =
                 |> List.filter (\line -> not (String.left 2 line == "$$") && not (String.left 6 line == "[label") && not (line == "end"))
 
         adjustedLines1 =
+            -- TODO: we need a better solution than the below for not messing up
+            -- TODO internal \\begin-\\end pairs
             List.map (Parser.MathMacro.evalStr acc.mathMacroDict) filteredLines
                 |> List.filter (\line -> line /= "")
-                |> List.map (\line -> line ++ "\\\\")
+                |> List.map
+                    (\line ->
+                        if String.left 6 line /= "\\begin" then
+                            line ++ "\\\\"
+
+                        else
+                            line
+                    )
 
         adjustedLines =
-            "\\begin{equation}" :: "\\nonumber" :: adjustedLines1 ++ [ "\\end{equation}" ]
+            "\\begin{equation}" :: "\\nonumber" :: adjustedLines1 ++ [ "\\end{equation}" ] |> Debug.log "ADJ LINES"
 
         content =
             String.join "\n" adjustedLines
