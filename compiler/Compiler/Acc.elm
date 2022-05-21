@@ -148,6 +148,9 @@ expand dict (ExpressionBlock block) =
     ExpressionBlock { block | content = Either.map (List.map (Lambda.expand dict)) block.content }
 
 
+{-| The first component of the return value (Bool, Maybe Vector) is the
+updated inList.
+-}
 listData : Accumulator -> Maybe String -> ( Bool, Maybe Vector )
 listData accumulator name =
     case ( accumulator.inList, name ) of
@@ -161,7 +164,8 @@ listData accumulator name =
             -- Don't change state if there are anonymous blocks
             -- TODO: think about this, consistent with markdown semantics but not LaTeX
             -- TODO: however it does fix a numbering bug (see MicroLaTeX Visual OTNetworkTest)
-            ( accumulator.inList, Nothing )
+            -- ( accumulator.inList, Nothing )
+            ( False, Nothing )
 
         ( False, _ ) ->
             ( False, Nothing )
@@ -170,7 +174,7 @@ listData accumulator name =
             ( True, Nothing )
 
         ( True, Just "item" ) ->
-            ( True, Nothing )
+            ( False, Nothing )
 
         ( True, _ ) ->
             ( False, Nothing )
