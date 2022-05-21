@@ -563,7 +563,7 @@ renderEquation count acc settings args id str =
                     )
 
         adjustedLines =
-            "\\begin{equation}" :: "\\nonumber" :: adjustedLines1 ++ [ "\\end{equation}" ] |> Debug.log "ADJ LINES"
+            "\\begin{equation}" :: "\\nonumber" :: adjustedLines1 ++ [ "\\end{equation}" ]
 
         content =
             String.join "\n" adjustedLines
