@@ -13,7 +13,6 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
     , nextState2
     , substitutions
     , toL0
-    , toL0Aux
     , transformBegin
     , transformHeader
     , transformOther
@@ -23,10 +22,6 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
     , xx3
     , xx4
     )
-
---( toL0
---, toL0Aux
---)
 
 import Dict exposing (Dict)
 import List.Extra
@@ -77,9 +72,12 @@ It seems that function 'indentStrings' is unnecessary.
 TODO: test the foregoing.
 TODO: at the moment, there is no error-handling. Think about this
 -}
-toL0 : List String -> List String
-toL0 strings =
-    strings |> toL0Aux
+
+
+
+--toL0 : List String -> List String
+--toL0 strings =
+--    strings |> toL0Aux
 
 
 verbatimBlockNames =
@@ -109,8 +107,8 @@ endBlockOfLXStatus status =
             Nothing
 
 
-toL0Aux : List String -> List String
-toL0Aux list =
+toL0 : List String -> List String
+toL0 list =
     loop { i = 0, input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse
 
 
@@ -170,7 +168,11 @@ nextState2 line (MyMacro name args) state =
         firstArg =
             List.head args |> Maybe.withDefault "((no-first-arg))"
     in
-    if name == "begin" && List.member firstArg [ "code", "equation", "aligned" ] then
+    if state.status == InVerbatimBlock "code" then
+        -- HANDLE ``` BLOCK, INTERIOR
+        { state | output = line :: state.output } |> fakeDebugLog state.i "(3.1)"
+
+    else if name == "begin" && List.member firstArg [ "code", "equation", "aligned" ] then
         -- HANDLE VERBATIM BLOCKS (CODE, EQUATION, ALIGNED), BEGIN
         { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog state.i "(1)"
 
