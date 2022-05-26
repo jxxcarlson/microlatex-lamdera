@@ -45,8 +45,8 @@ narrowCastIfShared2 currentUser document =
         List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
 
 
-narrowCastIfShared : ClientId -> Document.Document -> Cmd Types.BackendMsg
-narrowCastIfShared clientId document =
+narrowCastIfShared : ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared clientId username document =
     if List.isEmpty document.currentEditorList then
         Cmd.none
 
@@ -55,7 +55,7 @@ narrowCastIfShared clientId document =
             editors =
                 List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
         in
-        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
+        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) editors |> Cmd.batch
 
 
 removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
@@ -271,7 +271,7 @@ narrowCastToEditorsExceptForSender sendersName document connectionDict =
         clientIds =
             getClientIds usernames connectionDict
     in
-    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
+    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument (Types.HandleSharedDocument sendersName) document)) clientIds)
 
 
 getClientIds : List Username -> Types.ConnectionDict -> List ClientId

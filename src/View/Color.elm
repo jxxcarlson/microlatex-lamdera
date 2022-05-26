@@ -25,7 +25,7 @@ import Element as E
 
 
 paleGreen =
-    E.rgb 0.85 0.95 0.98
+    E.rgb 230 230 255
 
 
 white : E.Color

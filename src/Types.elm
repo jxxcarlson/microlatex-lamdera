@@ -162,6 +162,9 @@ type alias FrontendModel =
     , myCursorPosition : { x : Int, y : Int, p : Int }
     , networkModel : NetworkModel.NetworkModel
 
+    -- SHARED EDITING
+    , activeEditor : Maybe { name : String, activeAt : Time.Posix }
+
     -- FLAGS
     , documentDirty : Bool
     , seeBackups : Bool
@@ -604,6 +607,7 @@ type PrintingState
 
 type DocumentHandling
     = StandardHandling
+    | HandleSharedDocument Username
     | PinnedDocumentList
     | DelayedHandling
     | HandleAsCheatSheet

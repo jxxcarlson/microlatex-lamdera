@@ -7,6 +7,7 @@ module Config exposing
     , debounceSaveDocumentInterval
     , defaultUrl
     , documentDeletedNotice
+    , editSafetyInterval
     , fontWidth
     , frontendTickSeconds
     , helpDocumentId
@@ -48,6 +49,15 @@ fontWidth =
 debounceSaveDocumentInterval : Float
 debounceSaveDocumentInterval =
     300
+
+
+editSafetyInterval : Int
+editSafetyInterval =
+    5
+
+
+
+-- seconds
 
 
 manualsId =

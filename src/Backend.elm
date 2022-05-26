@@ -282,6 +282,7 @@ updateFromFrontend sessionId clientId msg model =
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
 
+        -- Narrowcast document changes to other editors of shared document
         NarrowcastExceptToSender sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender sendersName document model.connectionDict )
 

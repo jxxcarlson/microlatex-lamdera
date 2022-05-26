@@ -456,7 +456,7 @@ saveDocument model clientId currentUser document =
         ( { model | documentDict = updateDocumentDict2 document model.documentDict }
         , Cmd.batch
             [ sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
-            , Share.narrowCastIfShared clientId document
+            , Share.narrowCastIfShared clientId (Util.currentUsername currentUser) document
             ]
         )
 

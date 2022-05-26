@@ -79,7 +79,7 @@ view model width_ =
 
         --, View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (isCurrentDocumentDirty model.documentDirty)
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (timeElapsed model)
-        , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.currentDocument)
+        , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.activeEditor model.currentDocument)
         , E.el [] (wordCount model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
 
@@ -146,8 +146,8 @@ backup zone maybeDocument =
                     E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
-showCurrentEditors : Maybe Document.Document -> E.Element msg
-showCurrentEditors mDoc =
+showCurrentEditors : Maybe { name : String, activeAt : Time.Posix } -> Maybe Document.Document -> E.Element msg
+showCurrentEditors activeEditor mDoc =
     case mDoc of
         Nothing ->
             E.none
@@ -161,11 +161,28 @@ showCurrentEditors mDoc =
                 E.none
 
             else
-                let
-                    label =
-                        "Editors: " ++ (editors |> List.map .username |> String.join ", ")
-                in
-                E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| label)
+                E.row [ E.spacing 8, Font.size 14 ] (E.el [ Font.color Color.paleGreen ] (E.text "Editors:") :: List.map (viewEditor activeEditor) editors)
+
+
+
+--let
+--    label =
+--        "Editors: " ++ (editors |> List.map .username |> String.join ", ")
+--in
+--E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| label)
+
+
+viewEditor mCurrentEditor editorData =
+    case mCurrentEditor of
+        Nothing ->
+            E.el [ Font.color (E.rgb 0 1 0) ] (E.text <| editorData.username)
+
+        Just { name, activeAt } ->
+            if name == editorData.username then
+                E.el [ Font.color (E.rgb 1 1 0) ] (E.text <| editorData.username)
+
+            else
+                E.el [ Font.color (E.rgb 0 1 0) ] (E.text <| editorData.username)
 
 
 messageRow model =

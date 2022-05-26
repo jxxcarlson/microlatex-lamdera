@@ -13,6 +13,7 @@ module Frontend.Update exposing
     , handleCurrentDocumentChange
     , handlePinnedDocuments
     , handleReceivedDocumentAsCheatsheet
+    , handleSharedDocument
     , handleSignUp
     , handleUrlRequest
     , hardDeleteDocument
@@ -351,6 +352,39 @@ handleAsStandardReceivedDocument model doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
+        , messages = errorMessages
+        , currentMasterDocument = currentMasterDocument
+        , counter = model.counter + 1
+      }
+    , Cmd.batch [ savePreviousCurrentDocumentCmd model, Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    )
+
+
+handleSharedDocument model username doc =
+    let
+        editRecord =
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (editRecord.messages |> String.join "; ") MSYellow
+
+        currentMasterDocument =
+            if isMaster editRecord then
+                Just doc
+
+            else
+                model.currentMasterDocument
+    in
+    ( { model
+        | editRecord = editRecord
+        , title = Compiler.ASTTools.title editRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
+        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , currentDocument = Just doc
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+        , sourceText = doc.content
+        , activeEditor = Just { name = username, activeAt = model.currentTime }
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1

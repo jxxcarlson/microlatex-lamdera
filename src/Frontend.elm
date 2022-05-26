@@ -149,6 +149,9 @@ init url key =
       , myCursorPosition = { x = 0, y = 0, p = 0 }
       , networkModel = NetworkModel.init (NetworkModel.initialServerState "foo" "bar" "baz")
 
+      -- SHARED EDITING
+      , activeEditor = Nothing
+
       -- DOCUMENT
       , includedContent = Dict.empty
       , showPublicUrl = False
@@ -275,16 +278,28 @@ update msg model =
 
                 elapsedSinceLastInteractionSeconds =
                     (currentTimeMilliseconds - lastInteractionTimeMilliseconds) // 1000
+
+                activeEditor =
+                    case model.activeEditor of
+                        Nothing ->
+                            Nothing
+
+                        Just { name, activeAt } ->
+                            if Time.posixToMillis activeAt < (Time.posixToMillis model.currentTime - (Config.editSafetyInterval * 1000)) then
+                                Nothing
+
+                            else
+                                model.activeEditor
             in
             -- If the lastInteractionTime has not been updated since init, do so now.
             if model.lastInteractionTime == Time.millisToPosix 0 && model.currentUser /= Nothing then
-                ( { model | currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
+                ( { model | activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
 
             else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then
                 Frontend.Update.signOut { model | currentTime = newTime }
 
             else
-                ( { model | currentTime = newTime }, Cmd.none )
+                ( { model | activeEditor = activeEditor, currentTime = newTime }, Cmd.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Cmd.none )
@@ -1145,6 +1160,9 @@ updateFromBackend msg model =
             case documentHandling of
                 StandardHandling ->
                     Frontend.Update.handleAsStandardReceivedDocument model doc
+
+                HandleSharedDocument username ->
+                    Frontend.Update.handleSharedDocument model username doc
 
                 DelayedHandling ->
                     Frontend.Update.handleAsReceivedDocumentWithDelay model doc
