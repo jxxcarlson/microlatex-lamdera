@@ -59,7 +59,7 @@ toExpressionBlock lang parse { name, args, indent, lineNumber, blockType, conten
         , lineNumber = lineNumber
         , numberOfLines = List.length content
         , id = String.fromInt lineNumber
-        , tag = Compiler.Util.getItem lang "label" sourceText |> Debug.log ("TAG (" ++ (name |> Maybe.withDefault "---") ++ ")")
+        , tag = Compiler.Util.getItem lang "label" sourceText
         , blockType = blockType_
         , content = exprs
         , messages = messages -- MicroLaTeX.Parser.Expression.parseToState lineNumber sourceText |> MicroLaTeX.Parser.Expression.extractMessages
