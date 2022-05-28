@@ -375,6 +375,7 @@ substitutions =
         , ( "equation", { prefix = "||", arity = Arity 0 } )
         , ( "aligned", { prefix = "||", arity = Arity 0 } )
         , ( "mathmacros", { prefix = "||", arity = Arity 0 } )
+        , ( "axiom", { prefix = "|", arity = Arity 0 } )
         , ( "theorem", { prefix = "|", arity = Arity 0 } )
         , ( "proposition", { prefix = "|", arity = Arity 0 } )
         , ( "corollary", { prefix = "|", arity = Arity 0 } )
