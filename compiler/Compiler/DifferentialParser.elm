@@ -127,13 +127,13 @@ parser : Language -> Tree PrimitiveBlock -> Tree ExpressionBlock
 parser lang =
     case lang of
         MicroLaTeXLang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock MicroLaTeX.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toExpressionBlock lang MicroLaTeX.Parser.Expression.parse)
 
         L0Lang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock L0.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toExpressionBlock lang L0.Parser.Expression.parse)
 
         PlainTextLang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock (\i s -> ( Markup.parsePlainText i s, [] )))
+            Tree.map (Parser.BlockUtil.toExpressionBlock lang (\i s -> ( Markup.parsePlainText i s, [] )))
 
         XMarkdownLang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock (\i s -> ( XMarkdown.Expression.parse i s, [] )))
+            Tree.map (Parser.BlockUtil.toExpressionBlock lang (\i s -> ( XMarkdown.Expression.parse i s, [] )))

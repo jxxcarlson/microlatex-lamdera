@@ -181,7 +181,7 @@ listData accumulator name =
 
 
 {-| Update the references dictionary: add a key-value pair where the
-key is defined as in the examples \\lable{foo} or [label foo],
+key is defined as in the examples \\label{foo} or [label foo],
 and where value is a record with an id and a "numerical" reference,
 e.g, "2" or "2.3"
 -}
@@ -392,9 +392,8 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
                     else
                         accumulator.counter
             in
-            { accumulator | counter = newCounter }
+            { accumulator | counter = newCounter } |> updateReference tag id tag
 
-        --  |> updateReference tag id (String.fromInt (Vector.get level itemVector))
         _ ->
             accumulator
 

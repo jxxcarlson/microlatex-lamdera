@@ -61,7 +61,7 @@ parse lang sourceText =
     in
     sourceText
         |> toPrimitiveBlockForest lang
-        |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlock parser))
+        |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlock lang parser))
 
 
 messagesFromTree : Tree.Tree ExpressionBlock -> List String

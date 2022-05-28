@@ -35,8 +35,8 @@ getMessages ((ExpressionBlock { messages }) as block) =
     messages
 
 
-toExpressionBlock : (Int -> String -> ( List Expr, List String )) -> PrimitiveBlock -> ExpressionBlock
-toExpressionBlock parse { name, args, indent, lineNumber, blockType, content, sourceText } =
+toExpressionBlock : Language -> (Int -> String -> ( List Expr, List String )) -> PrimitiveBlock -> ExpressionBlock
+toExpressionBlock lang parse { name, args, indent, lineNumber, blockType, content, sourceText } =
     let
         blockType_ =
             toBlockType blockType (List.drop 1 args)
@@ -59,7 +59,7 @@ toExpressionBlock parse { name, args, indent, lineNumber, blockType, content, so
         , lineNumber = lineNumber
         , numberOfLines = List.length content
         , id = String.fromInt lineNumber
-        , tag = Compiler.Util.getItem MicroLaTeXLang "label" sourceText
+        , tag = Compiler.Util.getItem lang "label" sourceText |> Debug.log ("TAG (" ++ (name |> Maybe.withDefault "---") ++ ")")
         , blockType = blockType_
         , content = exprs
         , messages = messages -- MicroLaTeX.Parser.Expression.parseToState lineNumber sourceText |> MicroLaTeX.Parser.Expression.extractMessages

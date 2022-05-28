@@ -478,6 +478,9 @@ highlight g acc s exprList =
 ref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
 ref g acc s exprList =
     let
+        _ =
+            Debug.log "REFS" acc.reference
+
         key =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
 
