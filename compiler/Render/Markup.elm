@@ -36,6 +36,9 @@ renderTree count accumulator settings tree =
         Just "theorem" ->
             Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelFlat) tree)
 
+        Just "remark" ->
+            Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelFlat) tree)
+
         _ ->
             (Tree.map (Render.Block.render count accumulator settings) >> unravel) tree
 
