@@ -19,6 +19,7 @@ import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language)
 import Parser.MathMacro
+import Parser.Settings
 import Tree exposing (Tree)
 
 
@@ -71,7 +72,7 @@ init k =
     , counter = Dict.empty
     , itemVector = Vector.init 4
     , numberedItemDict = Dict.empty
-    , numberedBlockNames = [ "q", "a", "axiom", "theorem", "lemma", "proposition", "corollary", "definition", "note", "remark", "problem", "example", "equation", "aligned" ]
+    , numberedBlockNames = Parser.Settings.numberedBlockNames
     , environment = Dict.empty
     , reference = Dict.empty
     , terms = Dict.empty

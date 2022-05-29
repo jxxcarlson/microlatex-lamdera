@@ -8,6 +8,7 @@ import Parser.Block exposing (ExpressionBlock)
 import Parser.BlockUtil as BlockUtil
 import Parser.Forest exposing (Forest)
 import Parser.Language exposing (Language)
+import Parser.Settings
 import Render.Block
 import Render.Msg exposing (MarkupMsg)
 import Render.Settings exposing (Settings)
@@ -32,15 +33,16 @@ renderFromAST count accumulator settings ast =
 
 renderTree : Int -> Accumulator -> Settings -> Tree ExpressionBlock -> Element MarkupMsg
 renderTree count accumulator settings tree =
-    case Parser.Block.getName (Tree.label tree) of
-        Just "theorem" ->
-            Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelFlat) tree)
+    let
+        blockName =
+            Parser.Block.getName (Tree.label tree)
+                |> Maybe.withDefault "---"
+    in
+    if List.member blockName Parser.Settings.numberedBlockNames then
+        Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelFlat) tree)
 
-        Just "remark" ->
-            Element.el [ Font.italic ] ((Tree.map (Render.Block.render count accumulator settings) >> unravelFlat) tree)
-
-        _ ->
-            (Tree.map (Render.Block.render count accumulator settings) >> unravel) tree
+    else
+        (Tree.map (Render.Block.render count accumulator settings) >> unravel) tree
 
 
 getMessages : Forest ExpressionBlock -> List String
