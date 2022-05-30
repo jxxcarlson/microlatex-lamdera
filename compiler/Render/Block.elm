@@ -471,6 +471,8 @@ fontColor selectedId docId =
 ilink docTitle selectedId docId =
     Element.Input.button []
         { onPress = Just (GetPublicDocument docId)
+
+        -- { onPress = Just (GetDocumentById docId)
         , label =
             Element.el
                 [ Element.centerX
