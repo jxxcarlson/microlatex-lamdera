@@ -236,6 +236,7 @@ type alias BackendModel =
 
     -- DATA
     , documentDict : DocumentDict
+    , slugDict : SlugDict
     , sharedDocumentDict : SharedDocumentDict
     , authorIdDict : AuthorDict
     , publicIdDict : PublicIdDict
@@ -722,6 +723,12 @@ type alias PublicIdDict =
 -}
 type alias DocumentDict =
     Dict String Document
+
+
+{-| slug -> docId
+-}
+type alias SlugDict =
+    Dict String String
 
 
 {-| User id -> List docId

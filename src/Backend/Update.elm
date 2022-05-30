@@ -415,14 +415,33 @@ getDocumentByPublicId model clientId publicId =
 
 
 fetchDocumentById model clientId docId documentHandling =
-    case Dict.get docId model.documentDict of
-        Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document", status = MSWhite }) )
+    if String.left 3 docId == "id-" then
+        case Dict.get docId model.documentDict of
+            Nothing ->
+                ( model, sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document", status = MSWhite }) )
 
-        Just document ->
-            ( model
-            , fetchDocumentByIdCmd model clientId docId documentHandling
-            )
+            Just document ->
+                ( model
+                , fetchDocumentByIdCmd model clientId docId documentHandling
+                )
+
+    else
+        ( model, fetchDocumentBySlugCmd model clientId docId documentHandling )
+
+
+fetchDocumentBySlugCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg
+fetchDocumentBySlugCmd model clientId docSlug documentHandling =
+    case Dict.get docSlug model.slugDict of
+        Nothing ->
+            Cmd.none
+
+        Just docId ->
+            case Dict.get docId model.documentDict of
+                Nothing ->
+                    sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document", status = MSWhite })
+
+                Just document ->
+                    sendToFrontend clientId (ReceivedDocument documentHandling document)
 
 
 fetchDocumentByIdCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg
@@ -452,8 +471,16 @@ saveDocument model clientId currentUser document =
 
             updateDocumentDict2 doc dict =
                 Dict.update doc.id mUpdateDoc dict
+
+            newSlugDict =
+                case getUserTag document of
+                    Nothing ->
+                        model.slugDict
+
+                    Just userTag ->
+                        Dict.insert userTag document.id model.slugDict |> Debug.log "SLUG DICT"
         in
-        ( { model | documentDict = updateDocumentDict2 document model.documentDict }
+        ( { model | documentDict = updateDocumentDict2 document model.documentDict, slugDict = newSlugDict }
         , Cmd.batch
             [ sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
             , Share.narrowCastIfShared clientId (Util.currentUsername currentUser) document
@@ -462,6 +489,17 @@ saveDocument model clientId currentUser document =
 
     else
         ( model, Cmd.none )
+
+
+getUserTag : Document -> Maybe String
+getUserTag doc =
+    case doc.author of
+        Nothing ->
+            Nothing
+
+        Just username ->
+            List.filter (\item -> String.contains (username ++ ":") item) doc.tags
+                |> List.head
 
 
 

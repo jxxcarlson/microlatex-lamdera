@@ -85,6 +85,7 @@ init =
 
       -- DATA
       , documentDict = Dict.empty
+      , slugDict = Dict.empty
       , sharedDocumentDict = Dict.empty
       , authorIdDict = Dict.empty
       , publicIdDict = Dict.empty
@@ -306,6 +307,13 @@ updateFromFrontend sessionId clientId msg model =
                         ]
                     )
 
+        -- SIGN IN - UP - OUt
+        SignInBE username encryptedPassword ->
+            Backend.Update.signIn model sessionId clientId username encryptedPassword
+
+        SignUpBE username lang encryptedPassword realname email ->
+            Backend.Update.signUpUser model sessionId clientId username lang encryptedPassword realname email
+
         SignOutBE mUsername ->
             case mUsername of
                 Nothing ->
@@ -327,9 +335,14 @@ updateFromFrontend sessionId clientId msg model =
                                         ( m2, Cmd.batch [ c1, c2 ] )
                                    )
 
-        GetSharedDocuments username ->
-            Backend.Update.getSharedDocuments model clientId username
+        -- ????
+        RunTask ->
+            ( model, Cmd.none )
 
+        GetStatus ->
+            ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
+
+        -- USER
         GetUsersWithOnlineStatus ->
             ( model
             , Cmd.batch
@@ -361,21 +374,8 @@ updateFromFrontend sessionId clientId msg model =
                 ]
             )
 
-        RunTask ->
-            ( model, Cmd.none )
-
-        GetStatus ->
-            ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
-
-        -- USER
         UpdateUserWith user ->
             ( { model | authenticationDict = Authentication.updateUser user model.authenticationDict }, Cmd.none )
-
-        SignInBE username encryptedPassword ->
-            Backend.Update.signIn model sessionId clientId username encryptedPassword
-
-        SignUpBE username lang encryptedPassword realname email ->
-            Backend.Update.signUpUser model sessionId clientId username lang encryptedPassword realname email
 
         -- SEARCH
         SearchForDocumentsWithAuthorAndKey segment ->
@@ -384,11 +384,15 @@ updateFromFrontend sessionId clientId msg model =
         SearchForDocuments documentHandling maybeUsername key ->
             Backend.Update.searchForDocuments model clientId documentHandling maybeUsername key
 
-        FetchDocumentById documentHandling docId ->
-            Backend.Update.fetchDocumentById model clientId docId documentHandling
-
         FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
             Backend.Update.findDocumentByAuthorAndKey model clientId Types.StandardHandling authorName searchKey
+
+        -- DOCUMENT
+        GetSharedDocuments username ->
+            Backend.Update.getSharedDocuments model clientId username
+
+        FetchDocumentById documentHandling docId ->
+            Backend.Update.fetchDocumentById model clientId docId documentHandling
 
         GetDocumentByPublicId publicId ->
             Backend.Update.getDocumentByPublicId model clientId publicId
@@ -438,6 +442,7 @@ updateFromFrontend sessionId clientId msg model =
         InsertDocument user doc ->
             Backend.Update.insertDocument model clientId user doc
 
+        -- TAGS
         GetUserTagsFromBE author ->
             ( model, sendToFrontend clientId (AcceptUserTags (Backend.Update.authorTags author model)) )
 
