@@ -429,6 +429,8 @@ fetchDocumentById model clientId docId documentHandling =
         ( model, fetchDocumentBySlugCmd model clientId docId documentHandling )
 
 
+{-| This command allows one to fetch a doc by its slug
+-}
 fetchDocumentBySlugCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg
 fetchDocumentBySlugCmd model clientId docSlug documentHandling =
     case Dict.get docSlug model.slugDict of
@@ -478,7 +480,7 @@ saveDocument model clientId currentUser document =
                         model.slugDict
 
                     Just userTag ->
-                        Dict.insert userTag document.id model.slugDict |> Debug.log "SLUG DICT"
+                        Dict.insert userTag document.id model.slugDict
         in
         ( { model | documentDict = updateDocumentDict2 document model.documentDict, slugDict = newSlugDict }
         , Cmd.batch
