@@ -392,7 +392,7 @@ collection count acc settings args id exprs =
 document count acc settings args selectedId exprs =
     let
         docId =
-            List.Extra.getAt 0 args |> Maybe.withDefault "(12)"
+            List.Extra.getAt 0 args |> Maybe.withDefault "--"
 
         level =
             List.Extra.getAt 1 args |> Maybe.withDefault "1" |> String.toInt |> Maybe.withDefault 1
@@ -409,7 +409,7 @@ document count acc settings args selectedId exprs =
                     s ++ ". "
 
                 Nothing ->
-                    "-- "
+                    "- "
     in
     Element.row
         [ Element.alignTop

@@ -110,6 +110,10 @@ transformBlock lang acc (ExpressionBlock block) =
             ExpressionBlock
                 { block | args = level :: "-" :: [] }
 
+        ( Just "document", id :: [] ) ->
+            ExpressionBlock
+                { block | args = [ id, "1", Vector.toString acc.documentIndex ] }
+
         ( Just "document", id :: level :: _ ) ->
             ExpressionBlock
                 { block | args = [ id, level, Vector.toString acc.documentIndex ] }
