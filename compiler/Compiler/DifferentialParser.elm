@@ -27,6 +27,7 @@ init inclusionData lang str =
         chunks =
             chunker lang str
 
+        -- Get the names of the files to include in the main document
         includedFiles : List String
         includedFiles =
             case List.head chunks of
@@ -45,10 +46,10 @@ init inclusionData lang str =
                         Just "|| load-files" ->
                             List.drop 1 lines
 
-                        -- |> Debug.log "!! LOAD-FILES"
                         _ ->
                             []
 
+        -- Prepend macro definitions if any.
         updatedChunks =
             case List.head includedFiles of
                 Nothing ->
@@ -70,11 +71,16 @@ init inclusionData lang str =
     }
 
 
+{-| Prepend a block of tex macros corresponding to the text retrieved from 'dict' with key 'tag'
+-}
 prependContent : String -> Dict String String -> List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
 prependContent tag dict trees =
     Tree.singleton (makeBlock tag dict) :: trees
 
 
+{-| Function makeBlock looks up the text corresponding to 'tag' in 'dict'
+and uses it to produce a primitive block of macro definitions.
+-}
 makeBlock : String -> Dict String String -> PrimitiveBlock
 makeBlock tag dict =
     let
@@ -89,12 +95,8 @@ makeBlock tag dict =
             { empty
                 | blockType = PBVerbatim
                 , name = Just "mathmacros"
-                , content = String.lines content |> List.drop 1 |> List.filter (\line -> line /= "") --|> Debug.log "!! LINES"
+                , content = String.lines content |> List.drop 1 |> List.filter (\line -> line /= "")
             }
-
-
-
---|> Debug.log "!! MACRO BLOCK"
 
 
 update : EditRecord -> String -> EditRecord

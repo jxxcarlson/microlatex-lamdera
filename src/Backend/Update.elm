@@ -55,6 +55,7 @@ import Dict
 import Document exposing (Document)
 import DocumentTools
 import Hex
+import IncludeFiles
 import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import List.Extra
 import Maybe.Extra
@@ -443,7 +444,47 @@ fetchDocumentBySlugCmd model clientId docSlug documentHandling =
                     sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (3)", status = MSWhite })
 
                 Just document ->
-                    sendToFrontend clientId (ReceivedDocument documentHandling document)
+                    let
+                        filesToInclude =
+                            IncludeFiles.getData document.content
+                    in
+                    Cmd.batch
+                        [ sendToFrontend clientId (ReceivedDocument documentHandling document)
+                        , getIncludedFilesCmd model clientId document filesToInclude
+                        ]
+
+
+getIncludedFilesCmd model clientId doc fileList =
+    let
+        tuplify : List String -> Maybe ( String, String )
+        tuplify strs =
+            case strs of
+                a :: b :: [] ->
+                    Just ( a, b )
+
+                _ ->
+                    Nothing
+
+        authorsAndKeys : List ( String, String )
+        authorsAndKeys =
+            List.map (String.split ":" >> tuplify) fileList |> Maybe.Extra.values
+
+        getContent : ( String, String ) -> String
+        getContent ( author, key ) =
+            findDocumentByAuthorAndKey_ model author (author ++ ":" ++ key)
+                |> Maybe.map .content
+                |> Maybe.withDefault ""
+                |> String.lines
+                |> Util.discardLines (\line -> String.startsWith "[tags" line)
+                |> String.join "\n"
+                |> String.trim
+
+        -- List (username:tag, content)
+        data : List ( String, String )
+        data =
+            List.foldl (\( author, key ) acc -> ( author ++ ":" ++ key, getContent ( author, key ) ) :: acc) [] authorsAndKeys
+    in
+    sendToFrontend clientId (GotIncludedData doc data)
 
 
 fetchDocumentByIdCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg

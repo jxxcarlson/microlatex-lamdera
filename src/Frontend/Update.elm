@@ -137,6 +137,21 @@ setDocumentAsCurrent cmd model doc permissions =
             setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
+getIncludedFiles : Document -> Cmd FrontendMsg
+getIncludedFiles doc =
+    -- TODO!
+    let
+        filesToInclude =
+            IncludeFiles.getData doc.content
+    in
+    case List.isEmpty filesToInclude of
+        True ->
+            Cmd.none
+
+        False ->
+            sendToBackend (GetIncludedFiles doc filesToInclude)
+
+
 {-| }
 When the editor is opened, the current user is added to the document's
 current editor list. This changed needs to saved to the backend and
