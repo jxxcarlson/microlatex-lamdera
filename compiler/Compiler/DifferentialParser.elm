@@ -99,13 +99,16 @@ includeContentForBlock dict block =
 
                             Just content ->
                                 let
+                                    _ =
+                                        Debug.log "!! CONTENT" content
+
                                     ( blockType, name, content_ ) =
                                         case block.args of
                                             [] ->
                                                 ( PBParagraph, Nothing, String.lines content )
 
                                             [ "mathmacros" ] ->
-                                                ( PBVerbatim, Just "mathmacros", content |> String.lines |> List.drop 1 )
+                                                ( PBVerbatim, Just "mathmacros", content |> String.lines |> Debug.log "!! LINES" |> List.drop 1 )
 
                                             _ ->
                                                 ( PBParagraph, Nothing, String.lines content )

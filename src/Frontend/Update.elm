@@ -127,7 +127,7 @@ setDocumentAsCurrent cmd model doc permissions =
     -- TODO!
     let
         filesToInclude =
-            IncludeFiles.getData doc.content
+            IncludeFiles.getData doc.content |> Debug.log "!! INCLUDE"
     in
     case List.isEmpty filesToInclude of
         True ->

@@ -975,6 +975,8 @@ setDocumentAsCurrent docHandling currentDocument document =
         }
 
 
+{-| Use for document collections
+-}
 setDocAsCurrentWithDocInfo : Maybe Document.Document -> List Document.Document -> Document.DocumentInfo -> Element FrontendMsg
 setDocAsCurrentWithDocInfo currentDocument documents docInfo =
     let

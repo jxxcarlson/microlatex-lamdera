@@ -64,8 +64,6 @@ viewSmall model doc width_ deltaH indexShift =
         [ View.Utility.katexCSS
         , E.column [ E.spacing 4, E.width (E.px (Geometry.indexWidth model.windowWidth - 20)) ]
             (viewDocumentSmall (affine 1.75 -650 (Geometry.indexWidth model.windowWidth)) model.counter currentDocId model.selectedSlug editRecord)
-
-        -- (viewDocumentSmall (Geometry.indexWidth model.windowWidth) model.counter currentDocId editRecord)
         ]
 
 
@@ -96,6 +94,8 @@ viewForEditor model width_ =
 -- HELPERS
 
 
+{-| Used to view "notebooks", aka collections
+-}
 viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
     let
         title_ : Element FrontendMsg
@@ -112,7 +112,11 @@ viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
 
         body : List (Element FrontendMsg)
         body =
-            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId selectedSlug windowWidth) editRecord.parsed |> List.map (E.map Render)
+            Render.Markup.renderFromAST counter
+                editRecord.accumulator
+                (renderSettings currentDocId selectedSlug windowWidth)
+                editRecord.parsed
+                |> List.map (E.map Render)
     in
     E.row
         [ Background.color (E.rgb 0.8 0.8 1.0)

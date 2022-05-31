@@ -420,7 +420,7 @@ fetchDocumentById model clientId docId documentHandling =
             Nothing ->
                 ( model, sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (1)", status = MSWhite }) )
 
-            Just document ->
+            Just _ ->
                 ( model
                 , fetchDocumentByIdCmd model clientId docId documentHandling
                 )
