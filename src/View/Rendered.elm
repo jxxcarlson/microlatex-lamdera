@@ -37,7 +37,7 @@ view model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument width_ model.counter model.selectedId model.editRecord)
+                    (viewDocument width_ model.counter model.selectedId model.selectedSlug model.editRecord)
                 ]
 
 
@@ -63,7 +63,7 @@ viewSmall model doc width_ deltaH indexShift =
         ]
         [ View.Utility.katexCSS
         , E.column [ E.spacing 4, E.width (E.px (Geometry.indexWidth model.windowWidth - 20)) ]
-            (viewDocumentSmall (affine 1.75 -650 (Geometry.indexWidth model.windowWidth)) model.counter currentDocId editRecord)
+            (viewDocumentSmall (affine 1.75 -650 (Geometry.indexWidth model.windowWidth)) model.counter currentDocId model.selectedSlug editRecord)
 
         -- (viewDocumentSmall (Geometry.indexWidth model.windowWidth) model.counter currentDocId editRecord)
         ]
@@ -88,7 +88,7 @@ viewForEditor model width_ =
                 ]
                 [ View.Utility.katexCSS
                 , E.column [ E.spacing 18, E.width (E.px (width_ - 60)) ]
-                    (viewDocument width_ model.counter model.selectedId model.editRecord)
+                    (viewDocument width_ model.counter model.selectedId model.selectedSlug model.editRecord)
                 ]
 
 
@@ -96,7 +96,7 @@ viewForEditor model width_ =
 -- HELPERS
 
 
-viewDocumentSmall windowWidth counter currentDocId editRecord =
+viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
     let
         title_ : Element FrontendMsg
         title_ =
@@ -112,7 +112,7 @@ viewDocumentSmall windowWidth counter currentDocId editRecord =
 
         body : List (Element FrontendMsg)
         body =
-            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId windowWidth) editRecord.parsed |> List.map (E.map Render)
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings currentDocId selectedSlug windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
     E.row
         [ Background.color (E.rgb 0.8 0.8 1.0)
@@ -124,7 +124,7 @@ viewDocumentSmall windowWidth counter currentDocId editRecord =
         :: body
 
 
-viewDocument windowWidth counter selectedId editRecord =
+viewDocument windowWidth counter selectedId selectedSlug editRecord =
     let
         title_ : Element FrontendMsg
         title_ =
@@ -133,11 +133,11 @@ viewDocument windowWidth counter selectedId editRecord =
 
         toc : Element FrontendMsg
         toc =
-            Render.TOC.view counter editRecord.accumulator (renderSettings selectedId windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
+            Render.TOC.view counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
 
         body : List (Element FrontendMsg)
         body =
-            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId windowWidth) editRecord.parsed |> List.map (E.map Render)
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
     title_ :: toc :: body
 
@@ -147,9 +147,9 @@ setSelectedId id settings =
     { settings | selectedId = id }
 
 
-renderSettings : String -> Int -> Render.Settings.Settings
-renderSettings id w =
-    Render.Settings.makeSettings id Nothing 0.85 w
+renderSettings : String -> Maybe String -> Int -> Render.Settings.Settings
+renderSettings id slug w =
+    Render.Settings.makeSettings id slug 0.85 w
 
 
 affine1 : Float -> Float -> Int -> Int
