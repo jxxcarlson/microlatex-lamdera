@@ -994,7 +994,7 @@ setDocAsCurrentWithDocInfo currentDocument documents docInfo =
             if Maybe.map .id currentDocument == Just docInfo.id then
                 Font.color (E.rgb 0.7 0 0)
 
-            else if docTag == docInfo.slug then
+            else if docInfo.slug /= Nothing && docTag == docInfo.slug then
                 Font.color (E.rgb 0.7 0 0)
 
             else
