@@ -45,7 +45,7 @@ init inclusionData lang str =
                         Just "|| load-files" ->
                             List.drop 1 lines
 
-                        --|> Debug.log "!! LOAD-FILES"
+                        -- |> Debug.log "!! LOAD-FILES"
                         _ ->
                             []
 
@@ -89,12 +89,12 @@ makeBlock tag dict =
             { empty
                 | blockType = PBVerbatim
                 , name = Just "mathmacros"
-                , content = String.lines content |> List.drop 1 --|> Debug.log "!! LINES"
+                , content = String.lines content |> List.drop 1 |> List.filter (\line -> line /= "") --|> Debug.log "!! LINES"
             }
 
 
 
--- |> Debug.log "!! MACRO BLOCK"
+--|> Debug.log "!! MACRO BLOCK"
 
 
 update : EditRecord -> String -> EditRecord
