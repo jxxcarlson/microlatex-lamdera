@@ -238,10 +238,6 @@ joinF ( model1, cmd1 ) f =
     ( model2, Cmd.batch [ cmd1, cmd2 ] )
 
 
-
--- setDocumentAsCurrent_ cmd model doc permissions
-
-
 updateEditRecord : Dict String String -> Document -> FrontendModel -> FrontendModel
 updateEditRecord inclusionData doc model =
     { model | editRecord = Compiler.DifferentialParser.init inclusionData doc.language doc.content }

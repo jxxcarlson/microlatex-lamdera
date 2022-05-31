@@ -262,7 +262,7 @@ viewPinnedDocs model deltaH indexShift =
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
 
-        docs : List { title : String, id : String, modified : Time.Posix, public : Bool }
+        docs : List { title : String, id : String, slug : Maybe String, modified : Time.Posix, public : Bool }
         docs =
             sort model.pinnedDocuments |> List.filter (\data -> not (String.contains "(BAK)" data.title))
 

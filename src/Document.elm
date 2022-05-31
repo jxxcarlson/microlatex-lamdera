@@ -186,11 +186,18 @@ canEditSharedDoc username doc =
 
 toDocInfo : Document -> DocumentInfo
 toDocInfo doc =
-    { title = doc.title, id = doc.id, modified = doc.modified, public = doc.public }
+    let
+        author =
+            doc.author |> Maybe.withDefault "--"
+
+        slug =
+            List.filter (\item -> String.contains author item) doc.tags |> List.head
+    in
+    { title = doc.title, id = doc.id, slug = slug, modified = doc.modified, public = doc.public }
 
 
 type alias DocumentInfo =
-    { title : String, id : String, modified : Time.Posix, public : Bool }
+    { title : String, id : String, slug : Maybe String, modified : Time.Posix, public : Bool }
 
 
 currentAuthor : Maybe Document -> String

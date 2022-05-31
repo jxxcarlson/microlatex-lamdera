@@ -978,8 +978,21 @@ setDocumentAsCurrent docHandling currentDocument document =
 setDocAsCurrentWithDocInfo : Maybe Document.Document -> List Document.Document -> Document.DocumentInfo -> Element FrontendMsg
 setDocAsCurrentWithDocInfo currentDocument documents docInfo =
     let
+        username =
+            Maybe.andThen .author currentDocument |> Maybe.withDefault "-"
+
+        tags =
+            Maybe.map .tags currentDocument |> Maybe.withDefault []
+
+        docTag =
+            List.filter (\item -> String.contains (username ++ ":") item) tags
+                |> List.head
+
         fg =
             if Maybe.map .id currentDocument == Just docInfo.id then
+                Font.color (E.rgb 0.7 0 0)
+
+            else if docTag == docInfo.slug then
                 Font.color (E.rgb 0.7 0 0)
 
             else
