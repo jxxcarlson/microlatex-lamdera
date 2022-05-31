@@ -344,6 +344,7 @@ handleAsStandardReceivedDocument model doc =
     in
     ( { model
         | editRecord = editRecord
+        , selectedSlug = Document.getSlug doc
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
         , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate

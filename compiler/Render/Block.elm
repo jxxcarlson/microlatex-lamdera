@@ -472,10 +472,6 @@ fontColor selectedId selectedSlug docId =
 
 
 ilink docTitle selectedId selecteSlug docId =
-    let
-        _ =
-            Debug.log "BUTTON" docId
-    in
     Element.Input.button []
         { onPress = Just (GetPublicDocument docId)
 

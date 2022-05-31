@@ -978,9 +978,6 @@ setDocumentAsCurrent docHandling currentDocument document =
 setDocAsCurrentWithDocInfo : Maybe Document.Document -> List Document.Document -> Document.DocumentInfo -> Element FrontendMsg
 setDocAsCurrentWithDocInfo currentDocument documents docInfo =
     let
-        _ =
-            Debug.log "DOCINFO" docInfo
-
         username =
             Maybe.andThen .author currentDocument |> Maybe.withDefault "-"
 
