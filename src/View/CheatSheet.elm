@@ -105,11 +105,11 @@ viewDocument windowWidth windowHeight counter selectedId editRecord =
 
         toc : E.Element Types.FrontendMsg
         toc =
-            Render.TOC.view counter editRecord.accumulator (renderSettings selectedId windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
+            Render.TOC.view counter editRecord.accumulator (renderSettings selectedId Nothing windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
 
         body : List (E.Element Types.FrontendMsg)
         body =
-            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId windowWidth) editRecord.parsed |> List.map (E.map Types.Render)
+            Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId Nothing windowWidth) editRecord.parsed |> List.map (E.map Types.Render)
     in
     title_ :: toc :: body
 
@@ -119,11 +119,11 @@ setSelectedId id settings =
     { settings | selectedId = id }
 
 
-renderSettings : String -> Int -> Render.Settings.Settings
-renderSettings id w =
+renderSettings : String -> Maybe String -> Int -> Render.Settings.Settings
+renderSettings id slug w =
     let
         s =
-            Render.Settings.makeSettings id 0.38 w
+            Render.Settings.makeSettings id slug 0.38 w
     in
     { s | backgroundColor = bgColor }
 

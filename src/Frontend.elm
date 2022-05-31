@@ -136,6 +136,7 @@ init url key =
       , foundIds = []
       , foundIdIndex = 0
       , selectedId = ""
+      , selectedSlug = Nothing
       , searchCount = 0
       , searchSourceText = ""
       , syncRequestIndex = 0

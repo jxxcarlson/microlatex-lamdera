@@ -150,6 +150,7 @@ type alias FrontendModel =
     , foundIds : List String
     , foundIdIndex : Int
     , selectedId : String
+    , selectedSlug : Maybe String
     , syncRequestIndex : Int
     , linenumber : Int
 

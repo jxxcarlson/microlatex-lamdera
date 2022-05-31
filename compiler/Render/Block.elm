@@ -416,7 +416,7 @@ document count acc settings args selectedId exprs =
         , Render.Utility.elementAttribute "id" selectedId
         , vspace 0 Render.Settings.topMarginForChildren
         , Element.moveRight (15 * (level - 1) |> toFloat)
-        , fontColor settings.selectedId docId
+        , fontColor settings.selectedId settings.selectedSlug docId
         ]
         [ Element.el
             [ Font.size 14
@@ -424,7 +424,7 @@ document count acc settings args selectedId exprs =
             , Element.width (Element.px 30)
             ]
             (Element.text sectionNumber)
-        , ilink title settings.selectedId docId
+        , ilink title settings.selectedId settings.selectedSlug docId
         ]
 
 
@@ -460,15 +460,22 @@ truncateString_ k str =
             |> truncateString_ k
 
 
-fontColor selectedId docId =
+fontColor selectedId selectedSlug docId =
     if selectedId == docId then
+        Font.color (Element.rgb 0.8 0 0)
+
+    else if selectedSlug == Just docId then
         Font.color (Element.rgb 0.8 0 0)
 
     else
         Font.color (Element.rgb 0 0 0.9)
 
 
-ilink docTitle selectedId docId =
+ilink docTitle selectedId selecteSlug docId =
+    let
+        _ =
+            Debug.log "BUTTON" docId
+    in
     Element.Input.button []
         { onPress = Just (GetPublicDocument docId)
 
@@ -478,7 +485,7 @@ ilink docTitle selectedId docId =
                 [ Element.centerX
                 , Element.centerY
                 , Font.size 14
-                , fontColor selectedId docId
+                , fontColor selectedId selecteSlug docId
                 ]
                 (Element.text docTitle)
         }

@@ -20,6 +20,7 @@ import Element
 type alias Settings =
     { paragraphSpacing : Int
     , selectedId : String
+    , selectedSlug : Maybe String
     , showErrorMessages : Bool
     , showTOC : Bool
     , titleSize : Int
@@ -30,17 +31,18 @@ type alias Settings =
 
 defaultSettings : Settings
 defaultSettings =
-    makeSettings "" 1 600
+    makeSettings "" Nothing 1 600
 
 
-makeSettings : String -> Float -> Int -> Settings
-makeSettings id scale width =
+makeSettings : String -> Maybe String -> Float -> Int -> Settings
+makeSettings id selectedSlug scale width =
     { width = round (scale * toFloat width)
     , titleSize = 30
     , paragraphSpacing = 28
     , showTOC = True
     , showErrorMessages = False
     , selectedId = id
+    , selectedSlug = selectedSlug
     , backgroundColor = Element.rgb 1 1 1
     }
 

@@ -102,6 +102,7 @@ handleCurrentDocumentChange model currentDocument document =
                 { model
                     | documentDirty = False
                     , language = document.language
+                    , selectedSlug = Document.getSlug currentDocument
                     , documents = Util.updateDocumentInList updatedDoc model.documents
                 }
         in
@@ -113,7 +114,7 @@ handleCurrentDocumentChange model currentDocument document =
                 { currentDocument | status = Document.DSReadOnly }
 
             newModel =
-                { model | documents = Util.updateDocumentInList updatedDoc model.documents, language = document.language }
+                { model | selectedSlug = Document.getSlug currentDocument, documents = Util.updateDocumentInList updatedDoc model.documents, language = document.language }
         in
         setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
@@ -289,6 +290,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
     in
     ( { model
         | currentDocument = Just updatedDoc
+        , selectedSlug = Document.getSlug updatedDoc
         , currentMasterDocument = currentMasterDocument
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content

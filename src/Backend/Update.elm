@@ -418,7 +418,7 @@ fetchDocumentById model clientId docId documentHandling =
     if String.left 3 docId == "id-" then
         case Dict.get docId model.documentDict of
             Nothing ->
-                ( model, sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document", status = MSWhite }) )
+                ( model, sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (1)", status = MSWhite }) )
 
             Just document ->
                 ( model
@@ -435,12 +435,12 @@ fetchDocumentBySlugCmd : BackendModel -> ClientId -> String -> DocumentHandling 
 fetchDocumentBySlugCmd model clientId docSlug documentHandling =
     case Dict.get docSlug model.slugDict of
         Nothing ->
-            Cmd.none
+            sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (2)", status = MSWhite })
 
         Just docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
-                    sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document", status = MSWhite })
+                    sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (3)", status = MSWhite })
 
                 Just document ->
                     sendToFrontend clientId (ReceivedDocument documentHandling document)

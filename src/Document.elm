@@ -11,6 +11,7 @@ module Document exposing
     , defaultSettings
     , documentFromListViaId
     , empty
+    , getSlug
     , location
     , makeBackup
     , numberOfEditors
@@ -82,6 +83,16 @@ location position source =
 
 type alias SourceTextRecord =
     { position : Int, source : String }
+
+
+getSlug : Document -> Maybe String
+getSlug doc =
+    let
+        username =
+            doc.author |> Maybe.withDefault "-"
+    in
+    List.filter (\item -> String.contains (username ++ ":") item) doc.tags
+        |> List.head
 
 
 {-|
@@ -217,6 +228,7 @@ defaultSettings =
     , showTOC = True
     , showErrorMessages = False
     , selectedId = ""
+    , selectedSlug = Nothing
     , backgroundColor = Element.rgb 1 1 1
     }
 

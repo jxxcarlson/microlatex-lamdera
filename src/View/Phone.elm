@@ -111,7 +111,7 @@ header model _ =
 
 renderSettings : String -> Int -> Render.Settings.Settings
 renderSettings id w =
-    Render.Settings.makeSettings id 0.38 w
+    Render.Settings.makeSettings id Nothing 0.38 w
 
 
 
