@@ -27,6 +27,7 @@ init inclusionData lang str =
         chunks =
             chunker lang str
 
+        includedFiles : List String
         includedFiles =
             case List.head chunks of
                 Nothing ->
@@ -48,11 +49,12 @@ init inclusionData lang str =
                             []
 
         updatedChunks =
-            if includedFiles == [] then
-                chunks
+            case List.head includedFiles of
+                Nothing ->
+                    chunks
 
-            else
-                includeContent inclusionData chunks
+                Just fileName ->
+                    prependContent fileName inclusionData chunks
 
         -- Tree { content } ->
         ( newAccumulator, parsed ) =
@@ -67,53 +69,27 @@ init inclusionData lang str =
     }
 
 
-includeContent : Dict String String -> List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
-includeContent dict trees =
-    List.map (includeContentForTree dict) trees
+prependContent : String -> Dict String String -> List (Tree PrimitiveBlock) -> List (Tree PrimitiveBlock)
+prependContent tag dict trees =
+    Tree.singleton (makeBlock tag dict) :: trees
 
 
-includeContentForTree : Dict String String -> Tree PrimitiveBlock -> Tree PrimitiveBlock
-includeContentForTree dict tree =
-    Tree.map (includeContentForBlock dict) tree
-
-
-includeContentForBlock : Dict String String -> PrimitiveBlock -> PrimitiveBlock
-includeContentForBlock dict block =
-    case block.name of
+makeBlock : String -> Dict String String -> PrimitiveBlock
+makeBlock tag dict =
+    let
+        empty =
+            Parser.PrimitiveBlock.empty
+    in
+    case Dict.get tag dict of
         Nothing ->
-            block
+            empty
 
-        Just blockName ->
-            if blockName /= "include" then
-                block
-
-            else
-                case List.Extra.getAt 1 block.content of
-                    Nothing ->
-                        block
-
-                    Just tag ->
-                        case Dict.get tag dict of
-                            Nothing ->
-                                block
-
-                            Just content ->
-                                let
-                                    _ =
-                                        Debug.log "!! CONTENT" content
-
-                                    ( blockType, name, content_ ) =
-                                        case block.args of
-                                            [] ->
-                                                ( PBParagraph, Nothing, String.lines content )
-
-                                            [ "mathmacros" ] ->
-                                                ( PBVerbatim, Just "mathmacros", content |> String.lines |> Debug.log "!! LINES" |> List.drop 1 )
-
-                                            _ ->
-                                                ( PBParagraph, Nothing, String.lines content )
-                                in
-                                { block | blockType = blockType, name = name, content = content_ }
+        Just content ->
+            { empty
+                | blockType = PBVerbatim
+                , name = Just "mathmacros"
+                , content = String.lines content |> List.drop 1
+            }
 
 
 update : EditRecord -> String -> EditRecord
