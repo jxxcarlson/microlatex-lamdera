@@ -235,7 +235,7 @@ narrowCastIfShared : ClientId -> Types.Username -> Document.Document -> Cmd Type
 narrowCastIfShared clientId username document =
     let
         numberOfDistinctEditors =
-            List.map .username document.currentEditorList |> List.Extra.unique |> List.length |> Debug.log "narrowCastIfShared, eds"
+            List.map .username document.currentEditorList |> List.Extra.unique |> List.length
     in
     if document.isShared == False || numberOfDistinctEditors <= 1 then
         -- if the document is not shared,
@@ -245,9 +245,6 @@ narrowCastIfShared clientId username document =
 
     else
         let
-            _ =
-                Debug.log "narrowCastIfShared, editors" editors
-
             -- the editors to whom we send updates be different from the client editor
             editors =
                 List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
@@ -258,9 +255,6 @@ narrowCastIfShared clientId username document =
 narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 narrowCastToEditorsExceptForSender sendersName document connectionDict =
     let
-        _ =
-            Debug.log "!! SENDER, usernames" ( sendersName, usernames )
-
         usernames =
             case document.author of
                 Nothing ->

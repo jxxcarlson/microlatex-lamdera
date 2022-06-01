@@ -219,13 +219,9 @@ closeEditor model =
                     Cmd.none
 
                 Just doc ->
-                    let
-                        _ =
-                            Debug.log "!! (1) NARROWCAST" doc.title
-                    in
                     Cmd.batch
                         [ sendToBackend (SaveDocument model.currentUser doc)
-                        , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc)
+                        , sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
                         ]
 
         clearEditEventsCmd =
