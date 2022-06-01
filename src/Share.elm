@@ -31,27 +31,6 @@ type alias Username =
     String
 
 
-narrowCastIfShared : ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
-narrowCastIfShared clientId username document =
-    let
-        numberOfDistinctEditors =
-            List.map .username document.currentEditorList |> List.Extra.unique |> List.length
-    in
-    if document.isShared == False || numberOfDistinctEditors <= 1 then
-        -- if the document is not shared,
-        -- or if there is at most one editor,
-        -- then do not narrowcast
-        Cmd.none
-
-    else
-        let
-            -- the editors to whom we send updates be different from the client editor
-            editors =
-                List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
-        in
-        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) editors |> Cmd.batch
-
-
 removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 removeConnectionFromSharedDocumentDict clientId dict =
     dict
@@ -230,10 +209,11 @@ shareDocument model =
             ( { model | popupState = Types.NoPopup }, Cmd.none )
 
 
-{-| Send the document to all the users listed in document.share who have active connections.
+{-| Send the document to all the users listed in document.share who have active connections,
+except to the client calling narrowcast.
 -}
-narrowCast : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
-narrowCast sendersName document connectionDict =
+narrowCast : ClientId -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
+narrowCast requestingClientId document connectionDict =
     let
         usernames =
             case document.author of
@@ -246,14 +226,41 @@ narrowCast sendersName document connectionDict =
 
         --|> List.filter (\name -> name /= sendersName && name /= "")
         clientIds =
-            getClientIds usernames connectionDict
+            getClientIds usernames connectionDict |> List.filter (\id -> id /= requestingClientId)
     in
     Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
+
+
+narrowCastIfShared : ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared clientId username document =
+    let
+        numberOfDistinctEditors =
+            List.map .username document.currentEditorList |> List.Extra.unique |> List.length |> Debug.log "narrowCastIfShared, eds"
+    in
+    if document.isShared == False || numberOfDistinctEditors <= 1 then
+        -- if the document is not shared,
+        -- or if there is at most one editor,
+        -- then do not narrowcast
+        Cmd.none
+
+    else
+        let
+            _ =
+                Debug.log "narrowCastIfShared, editors" editors
+
+            -- the editors to whom we send updates be different from the client editor
+            editors =
+                List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
+        in
+        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) editors |> Cmd.batch
 
 
 narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 narrowCastToEditorsExceptForSender sendersName document connectionDict =
     let
+        _ =
+            Debug.log "!! SENDER, usernames" ( sendersName, usernames )
+
         usernames =
             case document.author of
                 Nothing ->
@@ -263,7 +270,7 @@ narrowCastToEditorsExceptForSender sendersName document connectionDict =
                     author :: document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
 
         clientIds =
-            getClientIds usernames connectionDict
+            getClientIds usernames connectionDict |> Debug.log "!! CLIENT IDS from narrowCast"
     in
     Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument (Types.HandleSharedDocument sendersName) document)) clientIds)
 

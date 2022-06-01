@@ -169,6 +169,12 @@ openEditor doc model =
             let
                 updatedDoc =
                     { doc | status = Document.DSCanEdit }
+
+                sendersName =
+                    Util.currentUsername model.currentUser
+
+                sendersId =
+                    Util.currentUserId model.currentUser
             in
             ( { model
                 | showEditor = True
@@ -183,8 +189,7 @@ openEditor doc model =
 
                   else
                     Cmd.none
-
-                --, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) updatedDoc)
+                , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
                 ]
             )
 
@@ -214,6 +219,10 @@ closeEditor model =
                     Cmd.none
 
                 Just doc ->
+                    let
+                        _ =
+                            Debug.log "!! (1) NARROWCAST" doc.title
+                    in
                     Cmd.batch
                         [ sendToBackend (SaveDocument model.currentUser doc)
                         , sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc)

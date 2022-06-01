@@ -261,7 +261,7 @@ updateFromFrontend sessionId clientId msg model =
                 document =
                     { doc | currentEditorList = currentEditorList }
             in
-            ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCast user.username document model.connectionDict )
+            ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender user.username document model.connectionDict )
 
         RemoveEditor user doc ->
             let
@@ -281,7 +281,11 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Cmd.none )
 
         Narrowcast sendersName sendersId document ->
-            ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast sendersName document model.connectionDict )
+            let
+                _ =
+                    Debug.log "!! NARROWCASTING" document.id
+            in
+            ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast clientId document model.connectionDict )
 
         -- Narrowcast document changes to other editors of shared document
         NarrowcastExceptToSender sendersName sendersId document ->

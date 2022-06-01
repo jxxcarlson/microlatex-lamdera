@@ -698,7 +698,7 @@ signOut model username clientId =
             fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
         notifications =
-            broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
+            broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
         updatedModel =
             setDocumentsToReadOnlyWithUserName username model
@@ -736,7 +736,7 @@ removeSessionClient model sessionId clientId =
                     fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
                 notifications =
-                    broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast username doc connectionDict) documents
+                    broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
                 updatedModel =
                     setDocumentsToReadOnlyWithUserName username model
