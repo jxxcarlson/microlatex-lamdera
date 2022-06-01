@@ -1006,6 +1006,12 @@ updateDoc_ doc str model =
 
             else
                 model.publicDocuments
+
+        sendersName =
+            Util.currentUsername model.currentUser
+
+        sendersId =
+            Util.currentUserId model.currentUser
     in
     ( { model
         | currentDocument = Just newDocument
@@ -1015,7 +1021,10 @@ updateDoc_ doc str model =
         , publicDocuments = publicDocuments
         , currentUser = Frontend.Update.addDocToCurrentUser model doc
       }
-    , Cmd.batch [ Frontend.Update.saveDocumentToBackend model.currentUser newDocument ]
+    , Cmd.batch
+        [ Frontend.Update.saveDocumentToBackend model.currentUser newDocument
+        , sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument)
+        ]
     )
 
 
