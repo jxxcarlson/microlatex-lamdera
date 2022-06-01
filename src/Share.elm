@@ -6,7 +6,6 @@ module Share exposing
     , isSharedToMe
     , narrowCast
     , narrowCastIfShared
-    , narrowCastIfShared2
     , narrowCastToEditorsExceptForSender
     , removeConnectionFromSharedDocumentDict
     , removeEditor
@@ -32,26 +31,21 @@ type alias Username =
     String
 
 
-narrowCastIfShared2 : Maybe User.User -> Document.Document -> Cmd Types.BackendMsg
-narrowCastIfShared2 currentUser document =
-    if List.isEmpty document.currentEditorList then
-        Cmd.none
-
-    else
-        let
-            editors =
-                List.filter (\editor_ -> Just editor_.username /= Maybe.map .username currentUser) document.currentEditorList
-        in
-        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument Types.StandardHandling document)) editors |> Cmd.batch
-
-
 narrowCastIfShared : ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
 narrowCastIfShared clientId username document =
-    if List.isEmpty document.currentEditorList then
+    let
+        numberOfDistinctEditors =
+            List.map .username document.currentEditorList |> List.Extra.unique |> List.length
+    in
+    if document.isShared == False || numberOfDistinctEditors <= 1 then
+        -- if the document is not shared,
+        -- or if there is at most one editor,
+        -- then do not narrowcast
         Cmd.none
 
     else
         let
+            -- the editors to whom we send updates be different from the client editor
             editors =
                 List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
         in

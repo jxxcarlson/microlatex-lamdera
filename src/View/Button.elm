@@ -12,6 +12,7 @@ module View.Button exposing
     , dismissUserMessage
     , doShare
     , doSignUp
+    , editDocument
     , export
     , exportToLaTeX
     , exportToLaTeXRaw
@@ -241,6 +242,26 @@ toggleDocumentStatus model =
 
                     Document.DSSoftDelete ->
                         buttonTemplate [] (SetDocumentStatus Document.DSCanEdit) "Doc: Soft-deleted"
+
+            else
+                E.none
+
+
+editDocument : FrontendModel -> Element FrontendMsg
+editDocument model =
+    case model.currentDocument of
+        Nothing ->
+            E.none
+
+        Just doc ->
+            if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
+                buttonTemplateWithTooltip
+                    { tooltipText = "Toggle between 'Can edit' and 'Read only'"
+                    , tooltipPlacement = E.above
+                    , attributes = [ Font.color Color.white ]
+                    , msg = SetDocumentStatus Document.DSCanEdit
+                    , label = "Edit"
+                    }
 
             else
                 E.none
@@ -686,7 +707,7 @@ closeEditor =
 
 openEditor : Element FrontendMsg
 openEditor =
-    buttonTemplate [] OpenEditor "Edit"
+    buttonTemplate [] OpenEditor "Open Editor"
 
 
 runSpecial : Element FrontendMsg

@@ -1220,6 +1220,29 @@ updateFromBackend msg model =
                     in
                     ( { model | publicDocuments = publicDocuments }, cmd )
 
+        ReceivedDocuments documentHandling documents_ ->
+            let
+                documents =
+                    DocumentTools.sort model.sortMode documents_
+            in
+            case List.head documents of
+                Nothing ->
+                    -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
+                    ( model, Cmd.none )
+
+                Just doc ->
+                    case documentHandling of
+                        PinnedDocumentList ->
+                            ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
+                            , Cmd.none
+                              -- TODO: ??, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
+                            )
+
+                        _ ->
+                            ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.postProcessDocument doc
+                            , Cmd.none
+                            )
+
         MessageReceived message ->
             let
                 newMessages =
@@ -1257,29 +1280,6 @@ updateFromBackend msg model =
               }
             , Cmd.none
             )
-
-        ReceivedDocuments documentHandling documents_ ->
-            let
-                documents =
-                    DocumentTools.sort model.sortMode documents_
-            in
-            case List.head documents of
-                Nothing ->
-                    -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
-                    ( model, Cmd.none )
-
-                Just doc ->
-                    case documentHandling of
-                        PinnedDocumentList ->
-                            ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
-                            , Cmd.none
-                              -- TODO: ??, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
-                            )
-
-                        _ ->
-                            ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.postProcessDocument doc
-                            , Cmd.none
-                            )
 
         -- USER MESSAGES
         UserMessageReceived message ->
