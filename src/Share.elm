@@ -255,6 +255,9 @@ narrowCastIfShared clientId username document =
 narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 narrowCastToEditorsExceptForSender sendersName document connectionDict =
     let
+        _ =
+            Debug.log "narrowCast (sender, others)" ( sendersName, usernames )
+
         usernames =
             case document.author of
                 Nothing ->
@@ -264,7 +267,7 @@ narrowCastToEditorsExceptForSender sendersName document connectionDict =
                     author :: document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
 
         clientIds =
-            getClientIds usernames connectionDict
+            getClientIds usernames connectionDict |> Debug.log "CLIENTS"
     in
     Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument (Types.HandleSharedDocument sendersName) document)) clientIds)
 

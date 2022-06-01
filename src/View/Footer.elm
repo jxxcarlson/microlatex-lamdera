@@ -150,7 +150,7 @@ showCurrentEditors : Maybe { name : String, activeAt : Time.Posix } -> Maybe Doc
 showCurrentEditors activeEditor mDoc =
     case mDoc of
         Nothing ->
-            E.none
+            E.el [ Font.size 14, Font.color (E.rgb 0 0 1) ] (E.text "Editors: none")
 
         Just doc ->
             let
@@ -158,7 +158,7 @@ showCurrentEditors activeEditor mDoc =
                     doc.currentEditorList
             in
             if List.isEmpty editors then
-                E.none
+                E.el [ Font.size 14, Font.color (E.rgb 0.6 0.6 1) ] (E.text "Editors: none")
 
             else
                 E.row [ E.spacing 8, Font.size 14 ] (E.el [ Font.color Color.paleGreen ] (E.text "Editors:") :: List.map (viewEditor activeEditor) editors)

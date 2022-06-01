@@ -4,6 +4,7 @@ module Document exposing
     , DocumentHandling(..)
     , DocumentId
     , DocumentInfo
+    , EditorData
     , SharedWith
     , SourceTextRecord
     , canEditSharedDoc
@@ -41,13 +42,17 @@ type alias Document =
     , public : Bool -- document visible to others if public == True
     , author : Maybe String
     , language : Language
-    , currentEditorList : List { userId : String, username : String, clientId : ClientId } -- the username of the person currently editing the document
+    , currentEditorList : List EditorData -- the username of the person currently editing the document
     , sharedWith : SharedWith
     , isShared : Bool
     , handling : DocumentHandling
     , tags : List String
     , status : DocStatus
     }
+
+
+type alias EditorData =
+    { userId : String, username : String, clientId : ClientId }
 
 
 type DocStatus

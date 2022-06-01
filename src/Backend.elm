@@ -249,17 +249,35 @@ updateFromFrontend sessionId clientId msg model =
                 equal a b =
                     a.userId == b.userId
 
+                editorItem : Document.EditorData
                 editorItem =
                     { userId = user.id, username = user.username, clientId = clientId }
+                        |> Debug.log "!! editorItem"
 
                 oldEditorList =
                     doc.currentEditorList
 
                 currentEditorList =
                     Util.insertInListOrUpdate equal editorItem oldEditorList
+                        |> Debug.log "!! currentEditorList (1)"
 
                 document =
                     { doc | currentEditorList = currentEditorList }
+
+                --updateDoc : Document.Document -> Document.Document
+                --updateDoc =
+                --    \d -> { document | modified = model.currentTime }
+                --
+                --mUpdateDoc =
+                --    Util.liftToMaybe updateDoc
+                --
+                --updateDocumentDict2 doc_ dict =
+                --    Dict.update doc_.id mUpdateDoc dict_
+                --  documentDict = updateDocumentDict2 document model.documentDict
+                _ =
+                    Debug.log "!! currentEditorList (2)" document.currentEditorList
+
+                -- Backend.Update.saveDocument model clientId currentUser document
             in
             ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender user.username document model.connectionDict )
 
