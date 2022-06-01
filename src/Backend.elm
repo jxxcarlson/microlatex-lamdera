@@ -281,10 +281,6 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Cmd.none )
 
         Narrowcast sendersName sendersId document ->
-            let
-                _ =
-                    Debug.log "!! NARROWCASTING" document.id
-            in
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast clientId document model.connectionDict )
 
         -- Narrowcast document changes to other editors of shared document
