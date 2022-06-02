@@ -10,6 +10,9 @@ reducible symbols =
         Just M ->
             List.head (List.reverse (List.drop 1 symbols)) == Just M
 
+        Just LM ->
+            List.head (List.reverse (List.drop 1 symbols)) == Just RM
+
         Just C ->
             List.head (List.reverse (List.drop 1 symbols)) == Just C
 
@@ -33,6 +36,12 @@ reducibleF symbols =
             False
 
         Just M ->
+            False
+
+        Just LM ->
+            False
+
+        Just RM ->
             False
 
         Just C ->

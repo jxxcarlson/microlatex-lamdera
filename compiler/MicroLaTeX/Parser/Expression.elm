@@ -132,6 +132,12 @@ pushToken token state =
         MathToken _ ->
             pushOnStack token state
 
+        LMathBracket _ ->
+            pushOnStack token state
+
+        RMathBracket _ ->
+            pushOnStack token state
+
         CodeToken _ ->
             pushOnStack token state
 
@@ -142,12 +148,6 @@ pushToken token state =
             pushOnStack token state
 
         RB _ ->
-            pushOnStack token state
-
-        LTB _ ->
-            pushOnStack token state
-
-        RTB _ ->
             pushOnStack token state
 
         TokenError _ _ ->
@@ -236,6 +236,9 @@ reduceState state =
             Just M ->
                 handleMath state
 
+            Just LM ->
+                handleBracketedMath state
+
             Just C ->
                 handleCode state
 
@@ -244,6 +247,27 @@ reduceState state =
 
     else
         state
+
+
+handleBracketedMath : State -> State
+handleBracketedMath state =
+    let
+        content =
+            state.stack |> List.reverse |> Token.toString
+
+        trailing =
+            String.right 1 content
+
+        committed =
+            if trailing == "]" then
+                Verbatim "math" (content |> String.dropLeft 2 |> String.dropRight 2) (boostMeta state.tokenIndex 2 { begin = 0, end = 0, index = 0 }) :: state.committed
+
+            else
+                Expr "red" [ Text "$" dummyLocWithId ] dummyLocWithId
+                    :: Verbatim "math" (String.replace "$" "" content) { begin = 0, end = 0, index = 0, id = makeId state.lineNumber state.tokenIndex }
+                    :: state.committed
+    in
+    { state | stack = [], committed = committed }
 
 
 handleMath : State -> State
@@ -389,7 +413,7 @@ isReducible : List Token -> Bool
 isReducible tokens =
     let
         preliminary =
-            tokens |> List.reverse |> Symbol.convertTokens2 |> List.filter (\sym -> sym /= O)
+            tokens |> List.reverse |> Symbol.convertTokens2 |> List.filter (\sym -> sym /= O) |> Debug.log "SYMBOLS (1b)"
     in
     if preliminary == [] then
         False

@@ -3,6 +3,7 @@ module Parser.Tools exposing
     , Problem(..)
     , StringData
     , sequence
+    , symbol
     , text
     , textWithEndSymbol
     )
@@ -47,6 +48,14 @@ text prefix continue =
         |. Parser.chompWhile (\c -> continue c)
         |= Parser.getOffset
         |= Parser.getSource
+
+
+symbol : String -> Parser StringData
+symbol symb =
+    Parser.succeed (\start finish -> { begin = start, end = finish, content = symb })
+        |= Parser.getOffset
+        |. Parser.symbol (Parser.Token symb (ExpectingSymbol symb))
+        |= Parser.getOffset
 
 
 textWithEndSymbol : String -> (Char -> Bool) -> (Char -> Bool) -> Parser StringData

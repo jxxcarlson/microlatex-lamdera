@@ -10,6 +10,8 @@ type Symbol
     | R
     | O
     | M
+    | LM
+    | RM
     | C
 
 
@@ -30,6 +32,12 @@ value symbol =
 
         M ->
             0
+
+        RM ->
+            1
+
+        LM ->
+            -1
 
         C ->
             0
@@ -57,6 +65,12 @@ symbolToString symbol =
 
         M ->
             "M"
+
+        LM ->
+            "LM"
+
+        RM ->
+            "RM"
 
         C ->
             "C"
@@ -92,6 +106,12 @@ toSymbol token =
         MathToken _ ->
             Just M
 
+        LMathBracket _ ->
+            Just LM
+
+        RMathBracket _ ->
+            Just RM
+
         CodeToken _ ->
             Just C
 
@@ -110,6 +130,12 @@ toSymbol2 token =
 
         MathToken _ ->
             M
+
+        LMathBracket _ ->
+            LM
+
+        RMathBracket _ ->
+            RM
 
         CodeToken _ ->
             C

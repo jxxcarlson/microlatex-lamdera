@@ -34,8 +34,8 @@ type Token
     = BS Meta
     | LB Meta
     | RB Meta
-    | LTB Meta
-    | RTB Meta
+    | LMathBracket Meta
+    | RMathBracket Meta
     | S String Meta
     | W String Meta
     | MathToken Meta
@@ -55,11 +55,11 @@ setIndex k token =
         RB meta ->
             RB { meta | index = k }
 
-        LTB meta ->
-            LTB { meta | index = k }
+        LMathBracket meta ->
+            LMathBracket { meta | index = k }
 
-        RTB meta ->
-            RTB { meta | index = k }
+        RMathBracket meta ->
+            RMathBracket { meta | index = k }
 
         S str meta ->
             S str { meta | index = k }
@@ -98,8 +98,8 @@ type TokenType
     = TBS
     | TLB
     | TRB
-    | TLTB
-    | TRTB
+    | TLMathBrace
+    | TRMathBrace
     | TS
     | TW
     | TMath
@@ -119,11 +119,11 @@ type_ token =
         RB _ ->
             TRB
 
-        LTB _ ->
-            TLTB
+        LMathBracket _ ->
+            TLMathBrace
 
-        RTB _ ->
-            TRTB
+        RMathBracket _ ->
+            TRMathBrace
 
         S _ _ ->
             TS
@@ -153,10 +153,10 @@ getMeta token =
         RB m ->
             m
 
-        LTB m ->
+        LMathBracket m ->
             m
 
-        RTB m ->
+        RMathBracket m ->
             m
 
         S _ m ->
@@ -187,10 +187,10 @@ stringValue token =
         RB _ ->
             "}"
 
-        LTB _ ->
+        LMathBracket _ ->
             "\\["
 
-        RTB _ ->
+        RMathBracket _ ->
             "\\]"
 
         S str _ ->
@@ -221,10 +221,10 @@ stringValue2 token =
         RB m ->
             "RB:" ++ String.fromInt m.index
 
-        LTB m ->
+        LMathBracket m ->
             "LTB:" ++ String.fromInt m.index
 
-        RTB m ->
+        RMathBracket m ->
             "RTB:" ++ String.fromInt m.index
 
         S str m ->
@@ -265,10 +265,10 @@ length token =
         RB meta ->
             meta.end - meta.begin
 
-        LTB meta ->
+        LMathBracket meta ->
             meta.end - meta.begin
 
-        RTB meta ->
+        RMathBracket meta ->
             meta.end - meta.begin
 
         S _ meta ->
@@ -353,7 +353,10 @@ handleBS state token =
             ( setIndex state.tokenIndex token :: state.tokens, state.tokenIndex + 1, Nothing )
 
         Just textToken ->
-            ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens, state.tokenIndex + 2, Nothing )
+            ( setIndex (state.tokenIndex + 1) token :: setIndex state.tokenIndex textToken :: state.tokens
+            , state.tokenIndex + 2
+            , Nothing
+            )
 
 
 handleLB : State Token -> Token -> ( List Token, Int, Maybe Token )
@@ -522,6 +525,8 @@ tokenParser_ : Int -> Int -> TokenParser
 tokenParser_ start index =
     Parser.oneOf
         [ textParser start index
+        , leftMathBracketParser start index
+        , rightMathBracketParser start index
         , backslashParser start index
         , leftBraceParser start index
         , rightBraceParser start index
@@ -536,6 +541,8 @@ mathParser_ start index =
     Parser.oneOf
         [ mathTextParser start index
         , mathParser start index
+        , leftMathBracketParser start index
+        , rightMathBracketParser start index
         , whiteSpaceParser start index
         ]
 
@@ -578,6 +585,7 @@ textParser start index =
         |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index, id = makeId start index })
 
 
+mathTextParser : Int -> Int -> Parser Context Problem Token
 mathTextParser start index =
     PT.text (\c -> not <| List.member c (' ' :: mathChars)) (\c -> not <| List.member c (' ' :: languageChars))
         |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index, id = makeId start index })
@@ -592,6 +600,16 @@ mathParser : Int -> Int -> TokenParser
 mathParser start index =
     PT.text (\c -> c == '$') (\_ -> False)
         |> Parser.map (\_ -> MathToken { begin = start, end = start, index = index, id = makeId start index })
+
+
+leftMathBracketParser : Int -> Int -> TokenParser
+leftMathBracketParser start index =
+    PT.symbol "\\[" |> Parser.map (\_ -> LMathBracket { begin = start, end = start + 1, index = index, id = makeId start index })
+
+
+rightMathBracketParser : Int -> Int -> TokenParser
+rightMathBracketParser start index =
+    PT.symbol "\\]" |> Parser.map (\_ -> RMathBracket { begin = start, end = start + 1, index = index, id = makeId start index })
 
 
 codeParser : Int -> Int -> TokenParser
