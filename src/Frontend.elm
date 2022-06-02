@@ -762,11 +762,7 @@ update msg model =
 
         Saved str ->
             -- This is the only route to function updateDoc, updateDoc_
-            if
-                Predicate.documentIsMineOrIAmAnEditor model.currentDocument model.currentUser
-                    && (model.activeEditor |> Maybe.map .name)
-                    /= Maybe.map .username model.currentUser
-            then
+            if Predicate.documentIsMineOrIAmAnEditor model.currentDocument model.currentUser then
                 updateDoc model str
 
             else
