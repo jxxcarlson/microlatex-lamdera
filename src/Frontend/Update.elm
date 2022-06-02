@@ -167,8 +167,21 @@ openEditor doc model =
 
         Just user ->
             let
+                oldEditorList =
+                    doc.currentEditorList
+
+                equal a b =
+                    a.userId == b.userId
+
+                editorItem : Document.EditorData
+                editorItem =
+                    { userId = user.id, username = user.username }
+
+                currentEditorList =
+                    Util.insertInListOrUpdate equal editorItem oldEditorList
+
                 updatedDoc =
-                    { doc | status = Document.DSCanEdit }
+                    { doc | status = Document.DSCanEdit, currentEditorList = currentEditorList }
 
                 sendersName =
                     Util.currentUsername model.currentUser
@@ -381,9 +394,6 @@ handleAsStandardReceivedDocument model doc =
 
 handleSharedDocument model username doc =
     let
-        _ =
-            Debug.log "!! RECEIVED, currentEditors" ( username, doc.currentEditorList )
-
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
@@ -406,7 +416,7 @@ handleSharedDocument model username doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
-        , activeEditor = Just { name = username |> Debug.log "!! ACTIVE Editor", activeAt = model.currentTime }
+        , activeEditor = Just { name = username, activeAt = model.currentTime }
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1

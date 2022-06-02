@@ -3,7 +3,6 @@ module Backend.Update exposing
     , apply
     , applySpecial
     , authorTags
-    , cleanup
     , createDocument
     , deliverUserMessage
     , fetchDocumentById
@@ -526,7 +525,7 @@ saveDocument model clientId currentUser document =
         ( { model | documentDict = updateDocumentDict2 document model.documentDict, slugDict = newSlugDict }
         , Cmd.batch
             [ sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
-            , Share.narrowCastIfShared clientId (Util.currentUsername currentUser) document
+            , Share.narrowCastIfShared model.connectionDict clientId (Util.currentUsername currentUser) document
             ]
         )
 
@@ -658,14 +657,15 @@ resetCurrentEditorForUser username dict =
     Dict.map (\user shareDocInfo -> Share.resetDocument username shareDocInfo) dict
 
 
-cleanup model sessionId clientId =
-    ( { model
-        | connectionDict = Dict.empty
-        , editEvents = Deque.empty
-        , sharedDocumentDict = Share.removeConnectionFromSharedDocumentDict clientId model.sharedDocumentDict
-      }
-    , Cmd.none
-    )
+
+--cleanup model sessionId clientId =
+--    ( { model
+--        | connectionDict = Dict.empty
+--        , editEvents = Deque.empty
+--        , sharedDocumentDict = Share.removeConnectionFromSharedDocumentDict clientId model.sharedDocumentDict
+--      }
+--    , Cmd.none
+--    )
 
 
 {-|

@@ -743,7 +743,7 @@ type alias SharedDocument =
     , id : String
     , author : Maybe String
     , share : Document.SharedWith
-    , currentEditors : List { username : String, userId : String, clientId : ClientId } -- users online currently editing this document.
+    , currentEditors : List Document.EditorData -- users online currently editing this document.
     }
 
 

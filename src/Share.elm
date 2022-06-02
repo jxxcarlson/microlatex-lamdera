@@ -7,7 +7,6 @@ module Share exposing
     , narrowCast
     , narrowCastIfShared
     , narrowCastToEditorsExceptForSender
-    , removeConnectionFromSharedDocumentDict
     , removeEditor
     , resetDocument
     , shareDocument
@@ -21,6 +20,7 @@ import Dict
 import Document
 import Lamdera exposing (ClientId, sendToBackend, sendToFrontend)
 import List.Extra
+import Maybe.Extra
 import Set
 import Types
 import User
@@ -31,21 +31,23 @@ type alias Username =
     String
 
 
-removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
-removeConnectionFromSharedDocumentDict clientId dict =
-    dict
-        |> Dict.toList
-        |> List.map (\( docId, sharedDoc ) -> ( docId, removeConnectionFromSharedDoc clientId sharedDoc ))
-        |> Dict.fromList
 
-
-removeConnectionFromSharedDoc : ClientId -> Types.SharedDocument -> Types.SharedDocument
-removeConnectionFromSharedDoc clientId sharedDoc =
-    let
-        currentEditors =
-            List.filter (\ed -> ed.clientId /= clientId) sharedDoc.currentEditors
-    in
-    { sharedDoc | currentEditors = currentEditors }
+--
+--removeConnectionFromSharedDocumentDict : ClientId -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+--removeConnectionFromSharedDocumentDict clientId dict =
+--    dict
+--        |> Dict.toList
+--        |> List.map (\( docId, sharedDoc ) -> ( docId, removeConnectionFromSharedDoc clientId sharedDoc ))
+--        |> Dict.fromList
+--
+--
+--removeConnectionFromSharedDoc : ClientId -> Types.SharedDocument -> Types.SharedDocument
+--removeConnectionFromSharedDoc clientId sharedDoc =
+--    let
+--        currentEditors =
+--            List.filter (\ed -> ed.clientId /= clientId) sharedDoc.currentEditors
+--    in
+--    { sharedDoc | currentEditors = currentEditors }
 
 
 resetDocument : Types.Username -> Types.SharedDocument -> Types.SharedDocument
@@ -105,7 +107,7 @@ update : Username -> Types.UserId -> Document.Document -> ClientId -> Types.Shar
 update username userId doc clientId dict =
     let
         newEditor =
-            { username = username, userId = userId, clientId = clientId }
+            { username = username, userId = userId }
 
         equal a b =
             a.userId == b.userId
@@ -231,8 +233,8 @@ narrowCast requestingClientId document connectionDict =
     Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
 
 
-narrowCastIfShared : ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
-narrowCastIfShared clientId username document =
+narrowCastIfShared : Types.ConnectionDict -> ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared connectionDict clientId username document =
     let
         numberOfDistinctEditors =
             List.map .username document.currentEditorList |> List.Extra.unique |> List.length
@@ -247,17 +249,25 @@ narrowCastIfShared clientId username document =
         let
             -- the editors to whom we send updates be different from the client editor
             editors =
-                List.filter (\editor_ -> editor_.clientId /= clientId) document.currentEditorList
+                List.filter (\editor_ -> editor_.username /= username) document.currentEditorList
+
+            clients =
+                clientIdsOfEditors connectionDict editors
         in
-        List.map (\editor -> sendToFrontend editor.clientId (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) editors |> Cmd.batch
+        List.map (\client -> sendToFrontend client (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) clients |> Cmd.batch
+
+
+clientIdsOfEditors : Types.ConnectionDict -> List Document.EditorData -> List ClientId
+clientIdsOfEditors connectionDict editors =
+    List.foldl (\editorName acc -> Dict.get editorName connectionDict :: acc) [] (List.map .username editors)
+        |> Maybe.Extra.values
+        |> List.concat
+        |> List.map .client
 
 
 narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 narrowCastToEditorsExceptForSender sendersName document connectionDict =
     let
-        _ =
-            Debug.log "narrowCast (sender, others)" ( sendersName, usernames )
-
         usernames =
             case document.author of
                 Nothing ->
@@ -267,7 +277,7 @@ narrowCastToEditorsExceptForSender sendersName document connectionDict =
                     author :: document.sharedWith.editors |> List.filter (\name -> name /= sendersName && name /= "")
 
         clientIds =
-            getClientIds usernames connectionDict |> Debug.log "CLIENTS"
+            getClientIds usernames connectionDict
     in
     Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument (Types.HandleSharedDocument sendersName) document)) clientIds)
 

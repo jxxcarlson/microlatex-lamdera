@@ -196,8 +196,12 @@ updateFromFrontend sessionId clientId msg model =
                 userIds =
                     List.map .userId currentEditorList
 
-                clientIds =
-                    List.map .clientId currentEditorList
+                clients : List ClientId
+                clients =
+                    List.foldl (\editorName acc -> Dict.get editorName model.connectionDict :: acc) [] (List.map .username currentEditorList)
+                        |> Maybe.Extra.values
+                        |> List.concat
+                        |> List.map .client
 
                 networkModel =
                     NetworkModel.initWithUsersAndContent doc.id userIds doc.content
@@ -205,6 +209,7 @@ updateFromFrontend sessionId clientId msg model =
                 sharedDocument_ =
                     Share.toSharedDocument doc
 
+                sharedDocument : Types.SharedDocument
                 sharedDocument =
                     { sharedDocument_ | currentEditors = doc.currentEditorList }
 
@@ -212,7 +217,7 @@ updateFromFrontend sessionId clientId msg model =
                     Dict.insert doc.id sharedDocument model.sharedDocumentDict
 
                 cmds =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clientIds
+                    List.map (\clientId_ -> sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clients
             in
             ( { model | sharedDocumentDict = sharedDocumentDict }, Cmd.batch cmds )
 
@@ -224,14 +229,18 @@ updateFromFrontend sessionId clientId msg model =
                 document =
                     { doc | currentEditorList = [] }
 
-                clientIds =
-                    List.map .clientId currentEditorList
+                clients : List ClientId
+                clients =
+                    List.foldl (\editorName acc -> Dict.get editorName model.connectionDict :: acc) [] (List.map .username currentEditorList)
+                        |> Maybe.Extra.values
+                        |> List.concat
+                        |> List.map .client
 
                 networkModel =
                     NetworkModel.initWithUsersAndContent "--fake--" [] ""
 
                 cmds =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clientIds
+                    List.map (\clientId_ -> sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clients
             in
             ( model, Cmd.batch cmds )
 
@@ -245,41 +254,8 @@ updateFromFrontend sessionId clientId msg model =
             let
                 sharedDocumentDict =
                     Share.update user.username user.id doc clientId model.sharedDocumentDict
-
-                equal a b =
-                    a.userId == b.userId
-
-                editorItem : Document.EditorData
-                editorItem =
-                    { userId = user.id, username = user.username, clientId = clientId }
-                        |> Debug.log "!! editorItem"
-
-                oldEditorList =
-                    doc.currentEditorList
-
-                currentEditorList =
-                    Util.insertInListOrUpdate equal editorItem oldEditorList
-                        |> Debug.log "!! currentEditorList (1)"
-
-                document =
-                    { doc | currentEditorList = currentEditorList }
-
-                --updateDoc : Document.Document -> Document.Document
-                --updateDoc =
-                --    \d -> { document | modified = model.currentTime }
-                --
-                --mUpdateDoc =
-                --    Util.liftToMaybe updateDoc
-                --
-                --updateDocumentDict2 doc_ dict =
-                --    Dict.update doc_.id mUpdateDoc dict_
-                --  documentDict = updateDocumentDict2 document model.documentDict
-                _ =
-                    Debug.log "!! currentEditorList (2)" document.currentEditorList
-
-                -- Backend.Update.saveDocument model clientId currentUser document
             in
-            ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender user.username document model.connectionDict )
+            ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender user.username doc model.connectionDict )
 
         RemoveEditor user doc ->
             let

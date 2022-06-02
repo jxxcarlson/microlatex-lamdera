@@ -19,7 +19,8 @@ processEventCmd sharedDocumentDict event =
             Cmd.none
 
         Just sharedDoc ->
-            Cmd.batch (List.foldl (\editor cmds -> cmdOfEditor editor event :: cmds) [] sharedDoc.currentEditors)
+            --Cmd.batch (List.foldl (\editor cmds -> cmdOfEditor editor event :: cmds) [] sharedDoc.currentEditors)
+            Cmd.none
 
 
 cmdOfEditor : { a | clientId : ClientId } -> EditEvent -> Cmd BackendMsg
