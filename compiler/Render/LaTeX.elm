@@ -520,11 +520,12 @@ preamble title author date =
 \\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}
 % \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}
 
+
 \\newcommand{\\imagecenter}[1]{
    \\medskip
-   \\begin{figure}
+   \\begin{figure}[htp]
    \\centering
-    \\includegraphics[width=12cm,height=12cm,keepaspectratio]{#1}
+    \\includegraphics[width=4truein,keepaspectratio]{#1}
     \\vglue0pt
     \\end{figure}
     \\medskip
