@@ -389,8 +389,8 @@ handleAsStandardReceivedDocument model doc =
         , counter = model.counter + 1
       }
     , Cmd.batch
-        [ -- savePreviousCurrentDocumentCmd model
-          Frontend.Cmd.setInitialEditorContent 20
+        [ savePreviousCurrentDocumentCmd model
+        , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
         ]
     )
