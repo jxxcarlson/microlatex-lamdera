@@ -413,7 +413,7 @@ isReducible : List Token -> Bool
 isReducible tokens =
     let
         preliminary =
-            tokens |> List.reverse |> Symbol.convertTokens2 |> List.filter (\sym -> sym /= O) |> Debug.log "SYMBOLS (1b)"
+            tokens |> List.reverse |> Symbol.convertTokens2 |> List.filter (\sym -> sym /= O)
     in
     if preliminary == [] then
         False
