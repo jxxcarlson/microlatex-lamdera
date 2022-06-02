@@ -960,7 +960,15 @@ updateDoc model str =
                     -- if Share.canEdit model.currentUser (Just doc) then
                     -- if View.Utility.canSaveStrict model.currentUser doc then
                     -- if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
-                    updateDoc_ doc str model
+                    let
+                        activeEditorName =
+                            model.activeEditor |> Maybe.map .name
+                    in
+                    if activeEditorName == Nothing || activeEditorName == Maybe.map .username model.currentUser then
+                        updateDoc_ doc str model
+
+                    else
+                        ( model, Cmd.none )
 
 
 
