@@ -144,6 +144,12 @@ pushToken token state =
         RB _ ->
             pushOnStack token state
 
+        LTB _ ->
+            pushOnStack token state
+
+        RTB _ ->
+            pushOnStack token state
+
         TokenError _ _ ->
             pushOnStack token state
 

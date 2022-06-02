@@ -34,6 +34,8 @@ type Token
     = BS Meta
     | LB Meta
     | RB Meta
+    | LTB Meta
+    | RTB Meta
     | S String Meta
     | W String Meta
     | MathToken Meta
@@ -52,6 +54,12 @@ setIndex k token =
 
         RB meta ->
             RB { meta | index = k }
+
+        LTB meta ->
+            LTB { meta | index = k }
+
+        RTB meta ->
+            RTB { meta | index = k }
 
         S str meta ->
             S str { meta | index = k }
@@ -90,6 +98,8 @@ type TokenType
     = TBS
     | TLB
     | TRB
+    | TLTB
+    | TRTB
     | TS
     | TW
     | TMath
@@ -108,6 +118,12 @@ type_ token =
 
         RB _ ->
             TRB
+
+        LTB _ ->
+            TLTB
+
+        RTB _ ->
+            TRTB
 
         S _ _ ->
             TS
@@ -135,6 +151,12 @@ getMeta token =
             m
 
         RB m ->
+            m
+
+        LTB m ->
+            m
+
+        RTB m ->
             m
 
         S _ m ->
@@ -165,6 +187,12 @@ stringValue token =
         RB _ ->
             "}"
 
+        LTB _ ->
+            "\\["
+
+        RTB _ ->
+            "\\]"
+
         S str _ ->
             str
 
@@ -192,6 +220,12 @@ stringValue2 token =
 
         RB m ->
             "RB:" ++ String.fromInt m.index
+
+        LTB m ->
+            "LTB:" ++ String.fromInt m.index
+
+        RTB m ->
+            "RTB:" ++ String.fromInt m.index
 
         S str m ->
             "S " ++ str ++ ": " ++ String.fromInt m.index
@@ -229,6 +263,12 @@ length token =
             meta.end - meta.begin
 
         RB meta ->
+            meta.end - meta.begin
+
+        LTB meta ->
+            meta.end - meta.begin
+
+        RTB meta ->
             meta.end - meta.begin
 
         S _ meta ->
