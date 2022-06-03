@@ -84,6 +84,9 @@ markupDict =
         -- COLOR
         , ( "red", \g acc s exprList -> red g acc s exprList )
         , ( "blue", \g acc s exprList -> blue g acc s exprList )
+        , ( "green", \g acc s exprList -> green g acc s exprList )
+        , ( "pink", \g acc s exprList -> pink g acc s exprList )
+        , ( "magenta", \g acc s exprList -> magenta g acc s exprList )
         , ( "violet", \g acc s exprList -> violet g acc s exprList )
         , ( "highlight", \g acc s exprList -> highlight g acc s exprList )
         , ( "gray", \g acc s exprList -> gray g acc s exprList )
@@ -465,6 +468,18 @@ red g acc s exprList =
 
 blue g acc s exprList =
     simpleElement [ Font.color (Element.rgb255 0 0 200) ] g acc s exprList
+
+
+green g acc s exprList =
+    simpleElement [ Font.color (Element.rgb255 0 140 0) ] g acc s exprList
+
+
+magenta g acc s exprList =
+    simpleElement [ Font.color (Element.rgb255 255 51 192) ] g acc s exprList
+
+
+pink g acc s exprList =
+    simpleElement [ Font.color (Element.rgb255 255 100 100) ] g acc s exprList
 
 
 violet g acc s exprList =

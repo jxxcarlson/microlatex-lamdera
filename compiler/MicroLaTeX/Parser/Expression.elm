@@ -616,7 +616,7 @@ bracketError k =
             brackets =
                 List.repeat -k "]" |> String.join ""
         in
-        errorMessage <| " " ++ brackets ++ " << Too many right brackets (" ++ String.fromInt -k ++ ")"
+        errorMessage <| " " ++ brackets ++ " << !!Too many right brackets (" ++ String.fromInt -k ++ ")"
 
     else
         let
