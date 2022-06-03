@@ -8,6 +8,7 @@ module Compiler.ASTTools exposing
     , filterExpressionsOnName
     , filterExpressionsOnName_
     , filterForestForExpressionsWithName
+    , filterOutExpressionsOnName
     , getText
     , matchingIdsInAST
     , normalize
@@ -44,6 +45,11 @@ filterForestForExpressionsWithName name forest =
 filterExpressionsOnName : String -> List Expr -> List Expr
 filterExpressionsOnName name exprs =
     List.filter (matchExprOnName name) exprs
+
+
+filterOutExpressionsOnName : String -> List Expr -> List Expr
+filterOutExpressionsOnName name exprs =
+    List.filter (\expr -> not (matchExprOnName name expr)) exprs
 
 
 filterExpressionsOnName_ : String -> List Expr -> List Expr

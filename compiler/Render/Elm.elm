@@ -486,8 +486,30 @@ violet g acc s exprList =
     simpleElement [ Font.color (Element.rgb255 150 100 255) ] g acc s exprList
 
 
-highlight g acc s exprList =
-    simpleElement [ Background.color (Element.rgb255 255 255 0), Element.paddingXY 6 3 ] g acc s exprList
+highlight g acc s exprList_ =
+    let
+        colorName =
+            ASTTools.filterExpressionsOnName "color" exprList_
+                |> List.head
+                |> Maybe.andThen ASTTools.getText
+                |> Maybe.withDefault "yellow"
+                |> String.trim
+
+        exprList =
+            ASTTools.filterOutExpressionsOnName "color" exprList_
+
+        colorElement =
+            Dict.get colorName colorDict |> Maybe.withDefault (Element.rgb255 255 255 0)
+    in
+    simpleElement [ Background.color colorElement, Element.paddingXY 6 3 ] g acc s exprList
+
+
+colorDict : Dict String Element.Color
+colorDict =
+    Dict.fromList
+        [ ( "yellow", Element.rgb255 255 255 0 )
+        , ( "blue", Element.rgb255 180 180 255 )
+        ]
 
 
 ref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
