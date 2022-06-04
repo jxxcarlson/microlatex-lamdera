@@ -836,10 +836,12 @@ render model msg_ =
         GetPublicDocument docHandling id ->
             case docHandling of
                 MHStandard ->
-                    ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
+                    ( { model | messages = { txt = "Fetch (1): " ++ id, status = MSGreen } :: [] }
+                    , sendToBackend (FetchDocumentById Types.StandardHandling id)
+                    )
 
                 MHAsCheatSheet ->
-                    ( { model | messages = { txt = "Cheatsheet: " ++ id, status = MSGreen } :: [] }
+                    ( { model | messages = { txt = "Fetch (2): " ++ id, status = MSGreen } :: [] }
                     , sendToBackend (FetchDocumentById Types.HandleAsCheatSheet id)
                     )
 
