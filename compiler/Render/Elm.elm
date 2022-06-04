@@ -216,9 +216,15 @@ ilink _ _ _ exprList =
 
                 docId =
                     List.drop (n - 1) args |> String.join " "
+
+                fragment =
+                    List.drop (n - 1) args |> String.join " "
+
+                username =
+                    String.split ":" fragment |> List.head |> Maybe.withDefault "---"
             in
             Input.button []
-                { onPress = Just (GetPublicDocument Render.Msg.MHStandard docId)
+                { onPress = Just (GetPublicDocumentFromAuthor Render.Msg.MHStandard username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
@@ -269,9 +275,15 @@ cslink _ _ _ exprList =
 
                 id =
                     List.drop (n - 1) args |> String.join " "
+
+                fragment =
+                    List.drop (n - 1) args |> String.join " "
+
+                username =
+                    String.split ":" fragment |> List.head |> Maybe.withDefault "---"
             in
             Input.button []
-                { onPress = Just (GetPublicDocument Render.Msg.MHAsCheatSheet id)
+                { onPress = Just (GetPublicDocumentFromAuthor Render.Msg.MHAsCheatSheet username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
