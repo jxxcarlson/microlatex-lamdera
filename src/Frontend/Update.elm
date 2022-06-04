@@ -423,7 +423,7 @@ handleSharedDocument model username doc =
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , activeEditor = Just { name = username, activeAt = model.currentTime }
-        , messages = , messages = { txt = "Received (shared): " ++ doc.title, status = MSGreen } :: []
+        , messages = { txt = "Received (shared): " ++ doc.title, status = MSGreen } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
