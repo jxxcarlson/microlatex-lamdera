@@ -520,6 +520,13 @@ update msg model =
                 NoPopup ->
                     ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.manualsId) )
 
+                ManualsPopup ->
+                    if Maybe.map .id model.currentCheatsheet == Just Config.manualsId then
+                        ( { model | popupState = NoPopup }, Cmd.none )
+
+                    else
+                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.manualsId) )
+
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
 
