@@ -379,7 +379,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.searchForDocuments model clientId documentHandling maybeUsername key
 
         FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
-            Backend.Update.findDocumentByAuthorAndKey model clientId Types.StandardHandling authorName searchKey
+            Backend.Update.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
 
         -- DOCUMENT
         GetSharedDocuments username ->
