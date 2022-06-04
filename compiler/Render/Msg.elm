@@ -1,4 +1,4 @@
-module Render.Msg exposing (MarkupMsg(..), SolutionState(..))
+module Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
 
 
 type MarkupMsg
@@ -6,8 +6,13 @@ type MarkupMsg
     | SendId String
     | SelectId String
     | GetPublicDocument String
-    | GetPublicDocumentFromAuthor String String
+    | GetPublicDocumentFromAuthor Handling String String
     | ProposeSolution SolutionState
+
+
+type Handling
+    = MHStandard
+    | MHAsCheatSheet
 
 
 type SolutionState

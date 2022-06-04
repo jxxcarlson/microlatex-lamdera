@@ -78,7 +78,7 @@ import Predicate
 import Process
 import Render.LaTeX as LaTeX
 import Render.Markup
-import Render.Msg exposing (MarkupMsg(..), SolutionState(..))
+import Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
 import Render.Settings as Settings
 import Share
 import String.Extra
@@ -834,8 +834,13 @@ render model msg_ =
         GetPublicDocument id ->
             ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
 
-        GetPublicDocumentFromAuthor authorName searchKey ->
-            ( model, sendToBackend (FindDocumentByAuthorAndKey Types.StandardHandling authorName searchKey) )
+        GetPublicDocumentFromAuthor handling authorName searchKey ->
+            case handling of
+                MHStandard ->
+                    ( model, sendToBackend (FindDocumentByAuthorAndKey Types.StandardHandling authorName searchKey) )
+
+                MHAsCheatSheet ->
+                    ( model, sendToBackend (FindDocumentByAuthorAndKey Types.HandleAsCheatSheet authorName searchKey) )
 
         ProposeSolution proposal ->
             case proposal of
