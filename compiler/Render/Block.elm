@@ -366,6 +366,7 @@ answer count acc settings args id exprs =
         ]
 
 
+bibitem : Int -> Accumulator -> Settings -> List String -> String -> List Expr -> Element MarkupMsg
 bibitem count acc settings args id exprs =
     let
         label =
@@ -425,6 +426,8 @@ document count acc settings args selectedId exprs =
             ]
             (Element.text sectionNumber)
         , ilink title settings.selectedId settings.selectedSlug docId
+
+        -- ilink docTitle selectedId selecteSlug docId
         ]
 
 
@@ -471,9 +474,10 @@ fontColor selectedId selectedSlug docId =
         Font.color (Element.rgb 0 0 0.9)
 
 
+ilink : String -> String -> Maybe String -> String -> Element MarkupMsg
 ilink docTitle selectedId selecteSlug docId =
     Element.Input.button []
-        { onPress = Just (GetPublicDocument docId)
+        { onPress = Just (GetPublicDocument Render.Msg.MHStandard docId)
 
         -- { onPress = Just (GetDocumentById docId)
         , label =

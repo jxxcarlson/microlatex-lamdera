@@ -218,7 +218,7 @@ ilink _ _ _ exprList =
                     List.drop (n - 1) args |> String.join " "
             in
             Input.button []
-                { onPress = Just (GetPublicDocument docId)
+                { onPress = Just (GetPublicDocument Render.Msg.MHStandard docId)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
