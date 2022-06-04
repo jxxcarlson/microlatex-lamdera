@@ -839,7 +839,9 @@ render model msg_ =
                     ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
 
                 MHAsCheatSheet ->
-                    ( model, sendToBackend (FetchDocumentById Types.HandleAsCheatSheet id) )
+                    ( { model | messages = { txt = "Cheatsheet: " ++ id, status = MSGreen } :: [] }
+                    , sendToBackend (FetchDocumentById Types.HandleAsCheatSheet id)
+                    )
 
         GetPublicDocumentFromAuthor handling authorName searchKey ->
             case handling of
