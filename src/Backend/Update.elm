@@ -426,7 +426,9 @@ fetchDocumentById model clientId docId documentHandling =
                 )
 
     else
-        ( model, fetchDocumentBySlugCmd model clientId docId documentHandling )
+        ( model
+        , fetchDocumentBySlugCmd model clientId docId documentHandling
+        )
 
 
 {-| This command allows one to fetch a doc by its slug

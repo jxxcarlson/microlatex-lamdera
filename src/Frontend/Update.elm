@@ -386,7 +386,7 @@ handleAsStandardReceivedDocument model doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
-        , messages = errorMessages
+        , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
@@ -423,7 +423,7 @@ handleSharedDocument model username doc =
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , activeEditor = Just { name = username, activeAt = model.currentTime }
-        , messages = errorMessages
+        , messages = , messages = { txt = "Received (shared): " ++ doc.title, status = MSGreen } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
