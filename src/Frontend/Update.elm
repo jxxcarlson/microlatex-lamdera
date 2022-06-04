@@ -833,8 +833,13 @@ render model msg_ =
             -- the element with this id will be highlighted
             ( { model | selectedId = id }, View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id )
 
-        GetPublicDocument id ->
-            ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
+        GetPublicDocument docHandling id ->
+            case docHandling of
+                MHStandard ->
+                    ( model, sendToBackend (FetchDocumentById Types.StandardHandling id) )
+
+                MHAsCheatSheet ->
+                    ( model, sendToBackend (FetchDocumentById Types.HandleAsCheatSheet id) )
 
         GetPublicDocumentFromAuthor handling authorName searchKey ->
             case handling of

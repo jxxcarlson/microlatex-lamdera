@@ -254,7 +254,7 @@ ulink _ _ _ exprList =
 cslink _ _ _ exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
-            errorText_ "Please provide label and url"
+            errorText_ "Please id or slug"
 
         Just argString ->
             let
@@ -267,14 +267,11 @@ cslink _ _ _ exprList =
                 label =
                     List.take (n - 1) args |> String.join " "
 
-                fragment =
+                id =
                     List.drop (n - 1) args |> String.join " "
-
-                username =
-                    String.split ":" fragment |> List.head |> Maybe.withDefault "---"
             in
             Input.button []
-                { onPress = Just (GetPublicDocumentFromAuthor Render.Msg.MHAsCheatSheet username fragment)
+                { onPress = Just (GetPublicDocument Render.Msg.MHAsCheatSheet id)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
 
