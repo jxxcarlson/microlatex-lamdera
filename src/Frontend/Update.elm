@@ -354,6 +354,8 @@ handleReceivedDocumentAsCheatsheet model doc =
     ( { model
         | currentCheatsheet = Just doc
         , counter = model.counter + 1
+        , messages =
+            { txt = "Cheatsheet: " ++ doc.title, status = MSGreen } :: []
       }
     , Cmd.none
     )
