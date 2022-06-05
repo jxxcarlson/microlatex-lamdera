@@ -15,12 +15,13 @@ module Config exposing
     , indentationQuantum
     , initialLanguage
     , l0CheatsheetId
+    , l0ManualId
     , loadingId
     , loadingText
-    , manualsId
     , masterDocLoadedPageId
     , maxDocSearchLimit
     , microLaTeXCheatsheetId
+    , microLaTeXManualId
     , notFoundDocId
     , pdfServer
     , plainTextCheatsheetId
@@ -60,8 +61,12 @@ editSafetyInterval =
 -- seconds
 
 
-manualsId =
+l0ManualId =
     "id-62cdc3d3-b6d5-4f4d-b314-3f50f7a6aaef"
+
+
+microLaTeXManualId =
+    "id-4bc4ae5a-ce08-42ad-9e90-59eb381eba6f"
 
 
 welcomeDocId =
