@@ -23,6 +23,7 @@ import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility
 import String.Extra
+import View.Utility
 
 
 htmlId str =
@@ -145,6 +146,7 @@ verbatimDict =
         , ( "equation", renderEquation )
         , ( "aligned", aligned )
         , ( "code", renderCode )
+        , ( "verse", renderVerse )
         , ( "verbatim", renderVerbatim )
         , ( "comment", renderComment )
         , ( "mathmacros", renderComment )
@@ -665,6 +667,15 @@ renderCode _ _ _ _ id str =
         --, Element.spacing 8
         , Element.paddingEach { left = 24, right = 0, top = 0, bottom = 0 }
         , Events.onClick (SendId id)
+        , Render.Utility.elementAttribute "id" id
+        ]
+        (List.map renderVerbatimLine (String.lines (String.trim str)))
+
+
+renderVerse : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+renderVerse _ _ _ _ id str =
+    Element.column
+        [ Events.onClick (SendId id)
         , Render.Utility.elementAttribute "id" id
         ]
         (List.map renderVerbatimLine (String.lines (String.trim str)))
