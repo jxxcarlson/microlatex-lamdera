@@ -521,7 +521,7 @@ update msg model =
                     ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
 
                 ManualsPopup ->
-                    if List.member Maybe.map .id model.currentCheatsheet [ Just Config.l0ManualId, Just Config.microLaTeXManualId ] then
+                    if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId ] then
                         ( { model | popupState = NoPopup }, Cmd.none )
 
                     else
