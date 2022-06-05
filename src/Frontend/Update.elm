@@ -868,7 +868,7 @@ setLanguage dismiss lang model =
             |> (\( m, _ ) -> changeLanguage m)
 
     else
-        ( { model | language = Debug.log "!! LANG (0)" lang }, Cmd.none )
+        ( { model | language = lang }, Cmd.none )
 
 
 setUserLanguage lang model =

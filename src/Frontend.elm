@@ -520,10 +520,10 @@ update msg model =
                 NoPopup ->
                     case model.language of
                         L0Lang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet (Debug.log "!! MANUAL" Config.l0ManualId)) )
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
 
                         MicroLaTeXLang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet (Debug.log "!! MANUAL" Config.microLaTeXManualId)) )
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.microLaTeXManualId) )
 
                         _ ->
                             ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
@@ -761,7 +761,7 @@ update msg model =
                     ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Cmd.none )
 
         SetLanguage dismiss lang ->
-            Frontend.Update.setLanguage dismiss (lang |> Debug.log "!! LANG (X1)") model
+            Frontend.Update.setLanguage dismiss lang model
 
         SetUserLanguage lang ->
             Frontend.Update.setUserLanguage lang model
@@ -1164,12 +1164,6 @@ updateFromBackend msg model =
                 newEditRecord =
                     Compiler.DifferentialParser.init model.includedContent model.language doc.content
 
-                --
-                --cursor0 =
-                --    model.networkModel.serverState.document.cursor |> Debug.log "P4a. !!! CURSOR from network model"
-                --
-                --cursor1 =
-                --    newNetworkModel.serverState.document.cursor |> Debug.log "P4b. !!! CURSOR from new network model"
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
                         { counter = model.counter, command = event |> OTCommand.toCommand }
