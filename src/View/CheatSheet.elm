@@ -34,6 +34,10 @@ bgColor =
     E.rgb 0.955 0.955 1
 
 
+minimumWidth =
+    450
+
+
 viewManual : FrontendModel -> E.Element Types.FrontendMsg
 viewManual model =
     case model.currentCheatsheet of
@@ -43,7 +47,7 @@ viewManual model =
                     Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
                 w =
-                    min (model.windowWidth // 3) 450
+                    min (model.windowWidth // 3) minimumWidth
 
                 h =
                     model.windowHeight - 166
@@ -74,7 +78,7 @@ viewCheatSheet model =
                     Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
                 w =
-                    min (model.windowWidth // 3) 450
+                    min (model.windowWidth // 3) minimumWidth
 
                 h =
                     model.windowHeight - 166

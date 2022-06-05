@@ -499,16 +499,16 @@ update msg model =
                         id =
                             case model.language of
                                 L0Lang ->
-                                    Config.l0CheetsheetId
+                                    Config.l0CheatsheetId
 
                                 MicroLaTeXLang ->
-                                    Config.microLaTeXCheetsheetId
+                                    Config.microLaTeXCheatsheetId
 
                                 XMarkdownLang ->
-                                    Config.xmarkdownCheetsheetId
+                                    Config.xmarkdownCheatsheetId
 
                                 PlainTextLang ->
-                                    Config.plainTextCheetsheetId
+                                    Config.plainTextCheatsheetId
                     in
                     ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet id) )
 

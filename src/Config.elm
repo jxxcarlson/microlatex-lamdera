@@ -14,16 +14,16 @@ module Config exposing
     , host
     , indentationQuantum
     , initialLanguage
-    , l0CheetsheetId
+    , l0CheatsheetId
     , loadingId
     , loadingText
     , manualsId
     , masterDocLoadedPageId
     , maxDocSearchLimit
-    , microLaTeXCheetsheetId
+    , microLaTeXCheatsheetId
     , notFoundDocId
     , pdfServer
-    , plainTextCheetsheetId
+    , plainTextCheatsheetId
     , publicDocumentStartupSearchKey
     , renderedTextId
     , signOutDocumentId
@@ -31,7 +31,7 @@ module Config exposing
     , titleSize
     , transitKey
     , welcomeDocId
-    , xmarkdownCheetsheetId
+    , xmarkdownCheatsheetId
     )
 
 import Env
@@ -132,16 +132,16 @@ notFoundDocId =
             "id-fl180-br848"
 
 
-l0CheetsheetId =
+l0CheatsheetId =
     case Env.mode of
         Env.Production ->
             "id-ef3f252c-3a9d-4944-9ff4-917ea77569f7"
 
         Env.Development ->
-            "id-da833-rp359"
+            "id-4262d505-50db-4a7f-8243-42f10344a45e"
 
 
-microLaTeXCheetsheetId =
+microLaTeXCheatsheetId =
     case Env.mode of
         Env.Production ->
             "id-vv682-nv513"
@@ -150,7 +150,7 @@ microLaTeXCheetsheetId =
             "--"
 
 
-xmarkdownCheetsheetId =
+xmarkdownCheatsheetId =
     case Env.mode of
         Env.Production ->
             "id-nv791-ih252"
@@ -168,7 +168,7 @@ signOutDocumentId =
             "id-93c08863-e803-44c3-a776-2df2ef067e3b"
 
 
-plainTextCheetsheetId =
+plainTextCheatsheetId =
     case Env.mode of
         Env.Production ->
             "id-cm181-zs282"

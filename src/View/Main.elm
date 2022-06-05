@@ -93,7 +93,7 @@ viewEditorAndRenderedText model =
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 365 ] (Share.view model))
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
-            , E.inFront (E.el [ E.moveDown 93, E.moveRight 1070 ] (CheatSheet.view model))
+            , E.inFront (E.el [ E.moveDown 93, E.moveRight 1000 ] (CheatSheet.view model))
             , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
             , E.height (E.px (Geometry.appHeight model))
             ]
