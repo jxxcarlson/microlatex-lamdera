@@ -62,11 +62,21 @@ editSafetyInterval =
 
 
 l0ManualId =
-    "id-62cdc3d3-b6d5-4f4d-b314-3f50f7a6aaef"
+    case Env.mode of
+        Env.Production ->
+            "id-62cdc3d3-b6d5-4f4d-b314-3f50f7a6aaef"
+
+        Env.Development ->
+            "id-d09b4fe1-e862-4f51-a94c-5744abda00db"
 
 
 microLaTeXManualId =
-    "id-4bc4ae5a-ce08-42ad-9e90-59eb381eba6f"
+    case Env.mode of
+        Env.Production ->
+            "id-4bc4ae5a-ce08-42ad-9e90-59eb381eba6f"
+
+        Env.Development ->
+            "id-be64f3c5-2765-44b3-9eed-f668f60a1594"
 
 
 welcomeDocId =

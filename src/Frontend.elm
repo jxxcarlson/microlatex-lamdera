@@ -518,22 +518,22 @@ update msg model =
         ToggleManuals ->
             case model.popupState of
                 NoPopup ->
-                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+                    case model.language of
+                        L0Lang ->
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet (Debug.log "!! MANUAL" Config.l0ManualId)) )
+
+                        MicroLaTeXLang ->
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet (Debug.log "!! MANUAL" Config.microLaTeXManualId)) )
+
+                        _ ->
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
 
                 ManualsPopup ->
                     if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId ] then
                         ( { model | popupState = NoPopup }, Cmd.none )
 
                     else
-                        case model.language of
-                            L0Lang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
-
-                            MicroLaTeXLang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.microLaTeXManualId) )
-
-                            _ ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+                        ( model, Cmd.none )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
@@ -761,7 +761,7 @@ update msg model =
                     ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Cmd.none )
 
         SetLanguage dismiss lang ->
-            Frontend.Update.setLanguage dismiss lang model
+            Frontend.Update.setLanguage dismiss (lang |> Debug.log "!! LANG (X1)") model
 
         SetUserLanguage lang ->
             Frontend.Update.setUserLanguage lang model
