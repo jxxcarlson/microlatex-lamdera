@@ -533,7 +533,15 @@ update msg model =
                         ( { model | popupState = NoPopup }, Cmd.none )
 
                     else
-                        ( model, Cmd.none )
+                        case model.language of
+                            L0Lang ->
+                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+
+                            MicroLaTeXLang ->
+                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.microLaTeXManualId) )
+
+                            _ ->
+                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
