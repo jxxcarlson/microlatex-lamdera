@@ -3,9 +3,9 @@ port playChirp : Cmd msg
 */
 
 exports.init = async function init(app) {
-  app.ports.playChirp.subscribe( function() {
+  app.ports.playSound.subscribe( function(filename) {
    console.log("Starting play-chirp");
-   var audio = new Audio('boing-short.mp3');
+   var audio = new Audio(filename);
    audio.play();
   })
 }

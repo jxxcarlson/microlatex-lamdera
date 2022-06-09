@@ -90,7 +90,7 @@ import Util
 import View.Utility
 
 
-port playChirp : () -> Cmd msg
+port playSound : String -> Cmd msg
 
 
 handleCurrentDocumentChange model currentDocument document =
@@ -134,7 +134,7 @@ setDocumentAsCurrent cmd model doc permissions =
 
         chirpCmd =
             if model.showEditor && doc.status /= Document.DSCanEdit then
-                playChirp ()
+                playSound "boing-short.mp3"
 
             else
                 Cmd.none
@@ -213,7 +213,7 @@ openEditor doc model =
                   else
                     Cmd.none
                 , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
-                , playChirp ()
+                , playSound "boing-short.mp3"
                 ]
             )
 
