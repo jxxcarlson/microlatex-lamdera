@@ -198,13 +198,16 @@ viewId popupState =
         Types.CheatSheetPopup ->
             Config.cheatSheetRenderedTextId
 
+        Types.ManualsPopup ->
+            Config.cheatSheetRenderedTextId
+
         _ ->
             Config.renderedTextId
 
 
 setViewportForElement : String -> String -> Cmd FrontendMsg
-setViewportForElement viewId_ elementId =
-    Dom.getViewportOf viewId_
+setViewportForElement viewportId elementId =
+    Dom.getViewportOf viewportId
         |> Task.andThen (\vp -> getElementWithViewPort vp elementId)
         |> Task.attempt Types.SetViewPortForElement
 
@@ -213,6 +216,9 @@ setViewPortToTop : Types.PopupState -> Cmd FrontendMsg
 setViewPortToTop popupState =
     case popupState of
         Types.CheatSheetPopup ->
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 0)
+
+        Types.ManualsPopup ->
             Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 0)
 
         _ ->
@@ -228,6 +234,9 @@ setViewPortForSelectedLine popupState element viewport =
     in
     case popupState of
         Types.CheatSheetPopup ->
+            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 y)
+
+        Types.ManualsPopup ->
             Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 y)
 
         _ ->
