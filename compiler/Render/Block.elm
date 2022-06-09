@@ -282,7 +282,7 @@ section count acc settings args id exprs =
         ([ Font.size fontSize
          , Render.Utility.makeId exprs
          , Render.Utility.elementAttribute "id" id
-         , Events.onClick (SendId id)
+         , Events.onClick (SendId "title")
          , Element.paddingEach { top = 20, bottom = 0, left = 0, right = 0 }
          ]
             ++ highlightAttrs id settings
