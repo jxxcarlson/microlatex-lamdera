@@ -1,4 +1,4 @@
-module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
+port module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Browser.Events
 import Browser.Navigation as Nav
@@ -49,6 +49,9 @@ import View.Utility
 
 type alias Model =
     FrontendModel
+
+
+port playChirp : () -> Cmd msg
 
 
 app =
@@ -492,6 +495,9 @@ update msg model =
             ( { model | inputEmail = str }, Cmd.none )
 
         -- UI
+        PlayChirp ->
+            ( model, playChirp () )
+
         ToggleCheatsheet ->
             case model.popupState of
                 NoPopup ->
