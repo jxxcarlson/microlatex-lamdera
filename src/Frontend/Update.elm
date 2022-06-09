@@ -1,4 +1,4 @@
-module Frontend.Update exposing
+port module Frontend.Update exposing
     ( addDocToCurrentUser
     , adjustId
     , changeLanguage
@@ -90,6 +90,9 @@ import Util
 import View.Utility
 
 
+port playChirp : () -> Cmd msg
+
+
 handleCurrentDocumentChange model currentDocument document =
     if model.documentDirty && currentDocument.status == Document.DSCanEdit then
         -- we are leaving the old current document.
@@ -128,13 +131,20 @@ setDocumentAsCurrent cmd model doc permissions =
     let
         filesToInclude =
             IncludeFiles.getData doc.content
+
+        chirpCmd =
+            if model.showEditor && doc.status /= Document.DSCanEdit then
+                playChirp ()
+
+            else
+                Cmd.none
     in
     case List.isEmpty filesToInclude of
         True ->
-            setDocumentAsCurrent_ cmd model doc permissions
+            setDocumentAsCurrent_ chirpCmd model doc permissions
 
         False ->
-            setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
+            setDocumentAsCurrent_ (Cmd.batch [ chirpCmd, cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
 getIncludedFiles : Document -> Cmd FrontendMsg

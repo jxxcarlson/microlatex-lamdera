@@ -278,7 +278,6 @@ type FrontendMsg
     | OpenEditor
     | Home
     | KeyMsg Keyboard.Msg
-    | PlayChirp
       -- ADMIN
     | InputSpecial String
     | RunSpecial
