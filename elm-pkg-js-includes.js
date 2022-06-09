@@ -13,7 +13,7 @@ exports.init = async function init(app) {
   // mhchem_package.init(app)
   codemirror_element.init(app)
   elm_katex.init(app)
-  play_chirp.init(app)
+  playChirp.init(app)
 
 
 }

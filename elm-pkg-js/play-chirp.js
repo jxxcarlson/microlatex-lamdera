@@ -1,5 +1,5 @@
 /* elm-pkg-js
-port play_chirp : Cmd msg
+port playChirp : Cmd msg
 */
 
 exports.init = async function init(app) {
