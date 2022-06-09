@@ -213,6 +213,7 @@ openEditor doc model =
                   else
                     Cmd.none
                 , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
+                , playChirp ()
                 ]
             )
 
