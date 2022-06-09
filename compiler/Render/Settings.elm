@@ -26,6 +26,7 @@ type alias Settings =
     , titleSize : Int
     , width : Int
     , backgroundColor : Element.Color
+    , titlePrefix : String
     }
 
 
@@ -44,6 +45,7 @@ makeSettings id selectedSlug scale width =
     , selectedId = id
     , selectedSlug = selectedSlug
     , backgroundColor = Element.rgb 1 1 1
+    , titlePrefix = ""
     }
 
 

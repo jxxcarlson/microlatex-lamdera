@@ -235,6 +235,7 @@ defaultSettings =
     , selectedId = ""
     , selectedSlug = Nothing
     , backgroundColor = Element.rgb 1 1 1
+    , titlePrefix = ""
     }
 
 

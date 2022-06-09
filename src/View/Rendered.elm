@@ -59,7 +59,7 @@ viewSmall model doc width_ deltaH indexShift =
         , Font.size 14
         , E.alignTop
         , E.scrollbarY
-        , View.Utility.elementAttribute "id" Config.renderedTextId
+        , View.Utility.elementAttribute "id" Config.cheatSheetRenderedTextId
         ]
         [ View.Utility.katexCSS
         , E.column [ E.spacing 4, E.width (E.px (Geometry.indexWidth model.windowWidth - 20)) ]
@@ -98,6 +98,10 @@ viewForEditor model width_ =
 -}
 viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
     let
+        settings =
+            renderSettings currentDocId selectedSlug windowWidth
+
+        -- |> (\rs -> { rs | titlePrefix = "small-" })
         title_ : Element FrontendMsg
         title_ =
             Compiler.ASTTools.title editRecord.parsed
@@ -114,7 +118,7 @@ viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
         body =
             Render.Markup.renderFromAST counter
                 editRecord.accumulator
-                (renderSettings currentDocId selectedSlug windowWidth)
+                settings
                 editRecord.parsed
                 |> List.map (E.map Render)
     in
@@ -154,6 +158,10 @@ setSelectedId id settings =
 renderSettings : String -> Maybe String -> Int -> Render.Settings.Settings
 renderSettings id slug w =
     Render.Settings.makeSettings id slug 0.85 w
+
+
+
+-- |> (\settings -> { settings | titlePrefix = "SMALL-" })
 
 
 affine1 : Float -> Float -> Int -> Int

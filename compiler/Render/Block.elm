@@ -287,7 +287,7 @@ section count acc settings args id exprs =
          ]
             ++ highlightAttrs id settings
         )
-        { url = Render.Utility.internalLink "TITLE", label = Element.paragraph [] (sectionNumber :: renderWithDefault "| section" count acc settings exprs) }
+        { url = Render.Utility.internalLink (settings.titlePrefix ++ "title"), label = Element.paragraph [] (sectionNumber :: renderWithDefault "| section" count acc settings exprs) }
 
 
 renderWithDefault : String -> Int -> Accumulator -> Settings -> List Expr -> List (Element MarkupMsg)

@@ -105,7 +105,7 @@ viewDocument windowWidth windowHeight counter selectedId editRecord =
         title_ : E.Element Types.FrontendMsg
         title_ =
             Compiler.ASTTools.title editRecord.parsed
-                |> (\s -> E.paragraph [ E.htmlAttribute (HtmlAttr.id "title"), Font.size Config.titleSize ] [ E.text s ])
+                |> (\s -> E.paragraph [ E.htmlAttribute (HtmlAttr.id "manual-title"), Font.size Config.titleSize ] [ E.text s ])
 
         toc : E.Element Types.FrontendMsg
         toc =
@@ -129,7 +129,7 @@ renderSettings id slug w =
         s =
             Render.Settings.makeSettings id slug 0.38 w
     in
-    { s | backgroundColor = bgColor }
+    { s | backgroundColor = bgColor, titlePrefix = "manual-" }
 
 
 affine : Float -> Float -> Int -> Int
