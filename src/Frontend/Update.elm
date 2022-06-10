@@ -213,8 +213,7 @@ openEditor doc model =
                   else
                     Cmd.none
                 , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
-
-                -- , playSound "boing-short.mp3"
+                , playSound "boing-short.mp3"
                 ]
             )
 
