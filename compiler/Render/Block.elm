@@ -169,7 +169,7 @@ csvTo2DData str =
     str
         |> String.lines
         |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
-        |> List.map (String.split ", " >> listTo2DPoint)
+        |> List.map (String.split "," >> listTo2DPoint)
         |> Maybe.Extra.values
 
 
@@ -177,7 +177,7 @@ listTo2DPoint : List String -> Maybe { x : Float, y : Float }
 listTo2DPoint list =
     case list of
         x :: y :: rest ->
-            ( String.toFloat x, String.toFloat y ) |> valueOfPair |> Maybe.map (\( u, v ) -> { x = u, y = v })
+            ( String.toFloat (String.trim x), String.toFloat (String.trim y) ) |> valueOfPair |> Maybe.map (\( u, v ) -> { x = u, y = v })
 
         _ ->
             Nothing
@@ -205,7 +205,7 @@ lineChart count acc settings args id str =
         data =
             csvTo2DData str
     in
-    Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 0, bottom = 0 } ]
+    Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
         (rawLineChart data)
 
 
