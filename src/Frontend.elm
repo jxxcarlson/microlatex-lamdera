@@ -1138,7 +1138,7 @@ updateFromBackend msg model =
                     Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
                 currentMasterDocument =
-                    if Frontend.Update.isMaster editRecord then
+                    if Predicate.isMaster editRecord then
                         Just doc
 
                     else

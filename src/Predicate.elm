@@ -3,11 +3,14 @@ module Predicate exposing
     , documentIsMineOrIAmAnEditor
     , documentIsMineOrIAmAnEditor_
     , documentIsMineOrSharedToMe
+    , isMaster
     , isSharedToMe
     , isSharedToMe_
     , isShared_
     )
 
+import Compiler.ASTTools
+import Compiler.DifferentialParser
 import Document
 import User
 
@@ -84,3 +87,8 @@ isShared_ mUsername doc =
 
         Just username ->
             List.member username doc.sharedWith.readers || List.member username doc.sharedWith.editors
+
+
+isMaster : Compiler.DifferentialParser.EditRecord -> Bool
+isMaster editRecord =
+    Compiler.ASTTools.existsBlockWithName editRecord.parsed "collection"
