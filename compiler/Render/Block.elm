@@ -25,6 +25,7 @@ import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
 import Render.Utility
 import String.Extra
+import SvgParser
 import View.Utility
 
 
@@ -154,6 +155,7 @@ verbatimDict =
         , ( "mathmacros", renderComment )
         , ( "datatable", datatable )
         , ( "lineChart", lineChart )
+        , ( "svg", svg )
         , ( "load-files", \_ _ _ _ _ _ -> Element.none )
         , ( "include", \_ _ _ _ _ _ -> Element.none )
         ]
@@ -223,6 +225,18 @@ rawLineChart data =
             data
         ]
         |> Element.html
+
+
+svg : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+svg count acc settings args id str =
+    case SvgParser.parse str of
+        Ok html_ ->
+            Element.column [ Element.spacing 8, Element.width (Element.px 300) ]
+                [ Element.column [ Element.width (Element.px 300), Element.centerX ] [ html_ |> Element.html ]
+                ]
+
+        Err _ ->
+            Element.el [] (Element.text "SVG parse error")
 
 
 datatable : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
