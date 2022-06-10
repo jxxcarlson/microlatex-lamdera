@@ -127,7 +127,7 @@ renderSettings : String -> Maybe String -> Int -> Render.Settings.Settings
 renderSettings id slug w =
     let
         s =
-            Render.Settings.makeSettings id slug 0.38 w
+            Render.Settings.makeSettings id slug 0.85 w
     in
     { s | backgroundColor = bgColor, titlePrefix = "manual-" }
 

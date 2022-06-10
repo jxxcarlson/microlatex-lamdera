@@ -52,6 +52,7 @@ port module Frontend.Update exposing
 import Authentication
 import BoundedDeque exposing (BoundedDeque)
 import Browser exposing (UrlRequest(..))
+import Browser.Dom exposing (Viewport)
 import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import CollaborativeEditing.NetworkModel as NetworkModel
@@ -92,7 +93,7 @@ port playSound : String -> Cmd msg
 
 
 {-
-      --- CONTENTS
+         --- CONTENTS
 
    --- SIGN UP, SIGN IN, SIGN OUT
    --- EDITOR
@@ -115,12 +116,9 @@ port playSound : String -> Cmd msg
    --- SET PARAM
    --- SYNC
    --- VIEWPORT
-   --- XXX
-   --- XXX
+   --- SPECIAL
    --- URL HANDLING
    --- KEYBOARD COMMANDS
-   --- XXX
-   --- UTILITY
    --- UTILITY
 
 
@@ -128,6 +126,7 @@ port playSound : String -> Cmd msg
 --- SIGN UP, SIGN IN, SIGN OUT
 
 
+signOut : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 signOut model =
     let
         cmd =
@@ -175,6 +174,7 @@ signOut model =
 --     , Cmd.batch (narrowCastDocs model username documents)
 
 
+signIn : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 signIn model =
     if String.length model.inputPassword >= 8 then
         case Config.defaultUrl of
@@ -188,6 +188,7 @@ signIn model =
         ( { model | messages = [ { txt = "Password must be at least 8 letters long.", status = MSWhite } ] }, Cmd.none )
 
 
+handleSignUp : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 handleSignUp model =
     let
         errors =
@@ -270,6 +271,7 @@ openEditor doc model =
             )
 
 
+setInitialEditorContent : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 setInitialEditorContent model =
     case model.currentDocument of
         Nothing ->
@@ -348,6 +350,7 @@ handleEditorChange model cursor content =
 --- EXPORT
 
 
+exportToLaTeX : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 exportToLaTeX model =
     let
         textToExport =
@@ -359,6 +362,7 @@ exportToLaTeX model =
     ( model, Download.string fileName "application/x-latex" textToExport )
 
 
+exportToRawLaTeX : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 exportToRawLaTeX model =
     let
         textToExport =
@@ -370,6 +374,7 @@ exportToRawLaTeX model =
     ( model, Download.string fileName "application/x-latex" textToExport )
 
 
+exportToMarkdown : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 exportToMarkdown model =
     let
         markdownText =
@@ -387,6 +392,7 @@ exportToMarkdown model =
 --- DOCUMENT
 
 
+newDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 newDocument model =
     let
         emptyDoc =
@@ -477,6 +483,7 @@ saveDocument mDoc model =
 ---    Set params
 
 
+setPermissions : Maybe User -> DocumentHandling -> Document -> DocumentHandling
 setPermissions currentUser permissions document =
     case document.author of
         Nothing ->
@@ -490,6 +497,7 @@ setPermissions currentUser permissions document =
                 permissions
 
 
+changeLanguage : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 changeLanguage model =
     case model.currentDocument of
         Nothing ->
@@ -506,6 +514,7 @@ changeLanguage model =
                 |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
 
 
+setPublic : FrontendModel -> Document -> Bool -> ( FrontendModel, Cmd FrontendMsg )
 setPublic model doc public =
     let
         newDocument_ =
@@ -577,6 +586,7 @@ postProcessDocument doc model =
     }
 
 
+setDocumentInPhoneAsCurrent : FrontendModel -> Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentInPhoneAsCurrent model doc permissions =
     let
         ast =
@@ -693,6 +703,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
 ---    handleCurrentDocumentChange
 
 
+handleCurrentDocumentChange : FrontendModel -> Document -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handleCurrentDocumentChange model currentDocument document =
     if model.documentDirty && currentDocument.status == Document.DSCanEdit then
         -- we are leaving the old current document.
@@ -748,6 +759,7 @@ getIncludedFiles doc =
 ---    updateDoc
 
 
+updateDoc : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
 updateDoc model str =
     case model.currentDocument of
         Nothing ->
@@ -833,6 +845,7 @@ updateEditRecord inclusionData doc model =
 ---    handle document
 
 
+handleReceivedDocumentAsCheatsheet : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handleReceivedDocumentAsCheatsheet model doc =
     ( { model
         | currentCheatsheet = Just doc
@@ -844,6 +857,7 @@ handleReceivedDocumentAsCheatsheet model doc =
     )
 
 
+handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handleAsStandardReceivedDocument model doc =
     let
         editRecord =
@@ -881,6 +895,7 @@ handleAsStandardReceivedDocument model doc =
     )
 
 
+handleSharedDocument : FrontendModel -> String -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handleSharedDocument model username doc =
     let
         editRecord =
@@ -914,6 +929,7 @@ handleSharedDocument model username doc =
     )
 
 
+handleAsReceivedDocumentWithDelay : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handleAsReceivedDocumentWithDelay model doc =
     let
         editRecord =
@@ -946,6 +962,7 @@ handleAsReceivedDocumentWithDelay model doc =
     )
 
 
+handlePinnedDocuments : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handlePinnedDocuments model doc =
     let
         editRecord =
@@ -966,7 +983,7 @@ handlePinnedDocuments model doc =
         | editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , pinned = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
@@ -983,7 +1000,7 @@ handlePinnedDocuments model doc =
 
 
 {-| Use this function to ensure that edits to the current document are saved
-before the current documen is changed
+before the current document is changed
 -}
 savePreviousCurrentDocumentCmd : FrontendModel -> Cmd FrontendMsg
 savePreviousCurrentDocumentCmd model =
@@ -1008,6 +1025,7 @@ savePreviousCurrentDocumentCmd model =
 ---    delete
 
 
+softDeleteDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 softDeleteDocument model =
     case model.currentDocument of
         Nothing ->
@@ -1041,6 +1059,7 @@ softDeleteDocument model =
             )
 
 
+hardDeleteDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 hardDeleteDocument model =
     case model.currentDocument of
         Nothing ->
@@ -1070,6 +1089,7 @@ hardDeleteDocument model =
 --- SEARCH
 
 
+searchText : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 searchText model =
     let
         ids =
@@ -1090,6 +1110,7 @@ searchText model =
 --- INPUT
 
 
+inputTitle : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
 inputTitle model str =
     ( { model | inputTitle = str }, Cmd.none )
 
@@ -1186,6 +1207,7 @@ at present every 300 milliseconds. Here is the path:
 This is way too complicated!
 
 -}
+debounceMsg : FrontendModel -> Debounce.Msg -> ( FrontendModel, Cmd FrontendMsg )
 debounceMsg model msg_ =
     let
         ( debounce, cmd ) =
@@ -1216,6 +1238,7 @@ debounceConfig =
 --- RENDER
 
 
+render : FrontendModel -> MarkupMsg -> ( FrontendModel, Cmd FrontendMsg )
 render model msg_ =
     case msg_ of
         Render.Msg.SendMeta _ ->
@@ -1263,6 +1286,7 @@ render model msg_ =
 --- SET PARAM
 
 
+setLanguage : Bool -> Language -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 setLanguage dismiss lang model =
     if dismiss then
         ( { model | language = lang, popupState = NoPopup }, Cmd.none )
@@ -1272,6 +1296,7 @@ setLanguage dismiss lang model =
         ( { model | language = lang }, Cmd.none )
 
 
+setUserLanguage : Language -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 setUserLanguage lang model =
     ( { model | inputLanguage = lang, popupState = NoPopup }, Cmd.none )
 
@@ -1280,6 +1305,7 @@ setUserLanguage lang model =
 --- SYNC
 
 
+firstSyncLR : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
 firstSyncLR model searchSourceText =
     let
         data =
@@ -1308,6 +1334,7 @@ firstSyncLR model searchSourceText =
     )
 
 
+nextSyncLR : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 nextSyncLR model =
     let
         id_ =
@@ -1323,6 +1350,7 @@ nextSyncLR model =
     )
 
 
+syncLR : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 syncLR model =
     let
         data =
@@ -1368,6 +1396,7 @@ syncLR model =
 --- VIEWPORT
 
 
+setViewportForElement : FrontendModel -> Result xx ( Browser.Dom.Element, Viewport ) -> ( FrontendModel, Cmd FrontendMsg )
 setViewportForElement model result =
     case result of
         Ok ( element, viewport ) ->
@@ -1382,6 +1411,7 @@ setViewportForElement model result =
             ( model, Cmd.none )
 
 
+updateWithViewport : Viewport -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 updateWithViewport vp model =
     let
         w =
@@ -1425,6 +1455,7 @@ addDocToCurrentUser model doc =
             Just newUser
 
 
+deleteDocFromCurrentUser : FrontendModel -> Document -> Maybe User
 deleteDocFromCurrentUser model doc =
     case model.currentUser of
         Nothing ->
@@ -1468,6 +1499,7 @@ currentDocumentId mDoc =
 --- SPECIAL
 
 
+runSpecial : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
 runSpecial model =
     case model.currentUser of
         Nothing ->

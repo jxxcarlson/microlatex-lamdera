@@ -67,7 +67,7 @@ l0ManualId =
             "id-62cdc3d3-b6d5-4f4d-b314-3f50f7a6aaef"
 
         Env.Development ->
-            "id-d09b4fe1-e862-4f51-a94c-5744abda00db"
+            "id-0fb8eccd-672f-4856-aca5-a9e84e818e55"
 
 
 microLaTeXManualId =
