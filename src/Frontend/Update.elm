@@ -133,7 +133,7 @@ setDocumentAsCurrent cmd model doc permissions =
             IncludeFiles.getData doc.content
 
         playSoundCmd =
-            if model.showEditor && doc.status /= Document.DSCanEdit then
+            if model.showEditor && doc.status == Document.DSReadOnly then
                 playSound "boing-short.mp3"
 
             else
@@ -213,7 +213,8 @@ openEditor doc model =
                   else
                     Cmd.none
                 , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
-                , playSound "boing-short.mp3"
+
+                --, playSound "boing-short.mp3"
                 ]
             )
 
