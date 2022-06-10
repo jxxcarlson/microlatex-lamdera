@@ -1,5 +1,7 @@
 module Render.Block exposing (render)
 
+import Chart
+import Chart.Attributes
 import Compiler.ASTTools as ASTTools
 import Compiler.Acc exposing (Accumulator)
 import Config
@@ -151,6 +153,7 @@ verbatimDict =
         , ( "comment", renderComment )
         , ( "mathmacros", renderComment )
         , ( "datatable", datatable )
+        , ( "lineChart", lineChart )
         , ( "load-files", \_ _ _ _ _ _ -> Element.none )
         , ( "include", \_ _ _ _ _ _ -> Element.none )
         ]
@@ -159,6 +162,67 @@ verbatimDict =
 renderComment : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 renderComment _ _ _ _ _ _ =
     Element.none
+
+
+csvTo2DData : String -> List { x : Float, y : Float }
+csvTo2DData str =
+    str
+        |> String.lines
+        |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
+        |> List.map (String.split ", " >> listTo2DPoint)
+        |> Maybe.Extra.values
+
+
+listTo2DPoint : List String -> Maybe { x : Float, y : Float }
+listTo2DPoint list =
+    case list of
+        x :: y :: rest ->
+            ( String.toFloat x, String.toFloat y ) |> valueOfPair |> Maybe.map (\( u, v ) -> { x = u, y = v })
+
+        _ ->
+            Nothing
+
+
+valueOfPair : ( Maybe a, Maybe b ) -> Maybe ( a, b )
+valueOfPair ( ma, mb ) =
+    case ( ma, mb ) of
+        ( Nothing, Nothing ) ->
+            Nothing
+
+        ( Just a, Nothing ) ->
+            Nothing
+
+        ( Nothing, Just b ) ->
+            Nothing
+
+        ( Just a, Just b ) ->
+            Just ( a, b )
+
+
+lineChart : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+lineChart count acc settings args id str =
+    let
+        data =
+            csvTo2DData str
+    in
+    Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 0, bottom = 0 } ]
+        (rawLineChart data)
+
+
+rawLineChart : List { a | x : Float, y : Float } -> Element msg
+rawLineChart data =
+    Chart.chart
+        [ Chart.Attributes.height 200
+        , Chart.Attributes.width 400
+        ]
+        [ Chart.xLabels [ Chart.Attributes.fontSize 10 ]
+        , Chart.yLabels [ Chart.Attributes.withGrid, Chart.Attributes.fontSize 10 ]
+        , Chart.series .x
+            [ Chart.interpolated .y [ Chart.Attributes.color Chart.Attributes.red ] []
+            ]
+            data
+        ]
+        |> Element.html
 
 
 datatable : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
