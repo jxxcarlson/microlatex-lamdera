@@ -5,6 +5,8 @@ const elm_katex= require('./elm-pkg-js/elm-katex.js')
 // const mhchem_package= require('./elm-pkg-js/mhchem.js')
 const codemirror_element= require('./elm-pkg-js/codemirror-element.js')
 
+const play_chirp= require('./elm-pkg-js/play-chirp.js')
+
 
 exports.init = async function init(app) {
   // @WARNING: this only runs for Lamdera production deploys!
