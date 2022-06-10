@@ -132,7 +132,7 @@ setDocumentAsCurrent cmd model doc permissions =
         filesToInclude =
             IncludeFiles.getData doc.content
 
-        chirpCmd =
+        playSoundCmd =
             if model.showEditor && doc.status /= Document.DSCanEdit then
                 playSound "boing-short.mp3"
 
@@ -141,10 +141,10 @@ setDocumentAsCurrent cmd model doc permissions =
     in
     case List.isEmpty filesToInclude of
         True ->
-            setDocumentAsCurrent_ chirpCmd model doc permissions
+            setDocumentAsCurrent_ playSoundCmd model doc permissions
 
         False ->
-            setDocumentAsCurrent_ (Cmd.batch [ chirpCmd, cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
+            setDocumentAsCurrent_ (Cmd.batch [ playSoundCmd, cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
 getIncludedFiles : Document -> Cmd FrontendMsg
@@ -213,7 +213,8 @@ openEditor doc model =
                   else
                     Cmd.none
                 , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
-                , playSound "boing-short.mp3"
+
+                -- , playSound "boing-short.mp3"
                 ]
             )
 

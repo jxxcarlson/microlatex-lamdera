@@ -1,10 +1,10 @@
 /* elm-pkg-js
-port playChirp : Cmd msg
+port playSound : Cmd msg
 */
 
 exports.init = async function init(app) {
   app.ports.playSound.subscribe( function(filename) {
-   console.log("Starting play-chirp");
+   console.log("Starting play-sound");
    var audio = new Audio(filename);
    audio.play();
   })
