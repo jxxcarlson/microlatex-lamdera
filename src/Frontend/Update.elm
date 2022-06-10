@@ -42,6 +42,7 @@ port module Frontend.Update exposing
     , signOut
     , softDeleteDocument
     , syncLR
+    , updateDoc
     , updateEditRecord
     , updateKeys
     , updateWithViewport
@@ -131,20 +132,13 @@ setDocumentAsCurrent cmd model doc permissions =
     let
         filesToInclude =
             IncludeFiles.getData doc.content
-
-        playSoundCmd =
-            if model.showEditor && doc.status == Document.DSReadOnly then
-                playSound "boing-short.mp3"
-
-            else
-                Cmd.none
     in
     case List.isEmpty filesToInclude of
         True ->
-            setDocumentAsCurrent_ playSoundCmd model doc permissions
+            setDocumentAsCurrent_ Cmd.none model doc permissions
 
         False ->
-            setDocumentAsCurrent_ (Cmd.batch [ playSoundCmd, cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
+            setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
 getIncludedFiles : Document -> Cmd FrontendMsg
@@ -160,6 +154,82 @@ getIncludedFiles doc =
 
         False ->
             sendToBackend (GetIncludedFiles doc filesToInclude)
+
+
+updateDoc model str =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Cmd.none )
+
+        Just doc ->
+            case doc.status of
+                Document.DSSoftDelete ->
+                    ( model, Cmd.none )
+
+                Document.DSReadOnly ->
+                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, playSound "boing-short.mp3" )
+
+                Document.DSCanEdit ->
+                    -- if Share.canEdit model.currentUser (Just doc) then
+                    -- if View.Utility.canSaveStrict model.currentUser doc then
+                    -- if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
+                    let
+                        activeEditorName =
+                            model.activeEditor |> Maybe.map .name
+                    in
+                    if activeEditorName == Nothing || activeEditorName == Maybe.map .username model.currentUser then
+                        updateDoc_ doc str model
+
+                    else
+                        ( model, Cmd.none )
+
+
+updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+updateDoc_ doc str model =
+    let
+        provisionalTitle : String
+        provisionalTitle =
+            Compiler.ASTTools.title model.editRecord.parsed
+
+        ( safeContent, safeTitle ) =
+            if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
+                ( String.replace "| title\n" "| title\n{untitled}\n\n" str, "{untitled}" )
+
+            else
+                ( str, provisionalTitle )
+
+        newDocument_ =
+            { doc | content = safeContent, title = safeTitle }
+
+        documents =
+            Util.updateDocumentInList newDocument_ model.documents
+
+        publicDocuments =
+            if newDocument_.public then
+                Util.updateDocumentInList newDocument_ model.publicDocuments
+
+            else
+                model.publicDocuments
+
+        sendersName =
+            Util.currentUsername model.currentUser
+
+        sendersId =
+            Util.currentUserId model.currentUser
+    in
+    ( { model
+        | currentDocument = Just newDocument_
+        , counter = model.counter + 1
+        , documents = documents
+        , documentDirty = False
+        , publicDocuments = publicDocuments
+        , currentUser = addDocToCurrentUser model doc
+      }
+    , Cmd.batch
+        [ saveDocumentToBackend model.currentUser newDocument_
+        , sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument_)
+        ]
+    )
 
 
 {-| }

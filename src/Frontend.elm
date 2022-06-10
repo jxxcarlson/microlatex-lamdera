@@ -1,4 +1,4 @@
-module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateDoc, updateFromBackend, urlAction, urlIsForGuest, view)
+module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Browser.Events
 import Browser.Navigation as Nav
@@ -786,7 +786,7 @@ update msg model =
         Saved str ->
             -- This is the only route to function updateDoc, updateDoc_
             if Predicate.documentIsMineOrIAmAnEditor model.currentDocument model.currentUser then
-                updateDoc model str
+                Frontend.Update.updateDoc model str
 
             else
                 ( model, Cmd.none )
@@ -966,34 +966,6 @@ fixId_ str =
             (p :: List.drop 1 parts) |> String.join "."
 
 
-updateDoc model str =
-    case model.currentDocument of
-        Nothing ->
-            ( model, Cmd.none )
-
-        Just doc ->
-            case doc.status of
-                Document.DSSoftDelete ->
-                    ( model, Cmd.none )
-
-                Document.DSReadOnly ->
-                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
-
-                Document.DSCanEdit ->
-                    -- if Share.canEdit model.currentUser (Just doc) then
-                    -- if View.Utility.canSaveStrict model.currentUser doc then
-                    -- if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
-                    let
-                        activeEditorName =
-                            model.activeEditor |> Maybe.map .name
-                    in
-                    if activeEditorName == Nothing || activeEditorName == Maybe.map .username model.currentUser then
-                        updateDoc_ doc str model
-
-                    else
-                        ( model, Cmd.none )
-
-
 
 --else
 --    let
@@ -1009,54 +981,6 @@ updateDoc model str =
 --    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
 --    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
 --    ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
-
-
-updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
-updateDoc_ doc str model =
-    let
-        provisionalTitle : String
-        provisionalTitle =
-            Compiler.ASTTools.title model.editRecord.parsed
-
-        ( safeContent, safeTitle ) =
-            if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
-                ( String.replace "| title\n" "| title\n{untitled}\n\n" str, "{untitled}" )
-
-            else
-                ( str, provisionalTitle )
-
-        newDocument =
-            { doc | content = safeContent, title = safeTitle }
-
-        documents =
-            Util.updateDocumentInList newDocument model.documents
-
-        publicDocuments =
-            if newDocument.public then
-                Util.updateDocumentInList newDocument model.publicDocuments
-
-            else
-                model.publicDocuments
-
-        sendersName =
-            Util.currentUsername model.currentUser
-
-        sendersId =
-            Util.currentUserId model.currentUser
-    in
-    ( { model
-        | currentDocument = Just newDocument
-        , counter = model.counter + 1
-        , documents = documents
-        , documentDirty = False
-        , publicDocuments = publicDocuments
-        , currentUser = Frontend.Update.addDocToCurrentUser model doc
-      }
-    , Cmd.batch
-        [ Frontend.Update.saveDocumentToBackend model.currentUser newDocument
-        , sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument)
-        ]
-    )
 
 
 changePrintingState : PrintingState -> { a | id : String } -> Cmd FrontendMsg
