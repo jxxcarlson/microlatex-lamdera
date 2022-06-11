@@ -1,6 +1,6 @@
 module Parser.Expr exposing
     ( Expr(..)
-    , SExpr(..), condenseUrl, simplify
+    , SExpr(..), condenseUrl, getName, simplify
     )
 
 {-| The syntax tree for the parser is of type Expr. In the examples below, we use `Parser.Expression.parse`;
@@ -43,6 +43,19 @@ type Expr
     = Expr String (List Expr) Meta
     | Text String Meta
     | Verbatim String String Meta
+
+
+getName : Expr -> Maybe String
+getName expr =
+    case expr of
+        Expr name _ _ ->
+            Just name
+
+        Text name _ ->
+            Nothing
+
+        Verbatim name _ _ ->
+            Just name
 
 
 {-| Use to transform image urls for export and PDF generation

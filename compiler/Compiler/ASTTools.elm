@@ -1,6 +1,8 @@
 module Compiler.ASTTools exposing
-    ( existsBlockWithName
+    ( blockNames
+    , existsBlockWithName
     , exprListToStringList
+    , expressionNames
     , extractTextFromSyntaxTreeByKey
     , filterASTOnName
     , filterBlocksByArgs
@@ -20,6 +22,7 @@ module Compiler.ASTTools exposing
     )
 
 import Either exposing (Either(..))
+import List.Extra
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
@@ -40,6 +43,28 @@ normalize exprs =
 filterForestForExpressionsWithName : String -> Forest Expr -> List Expr
 filterForestForExpressionsWithName name forest =
     filterExpressionsOnName name (List.map Tree.flatten forest |> List.concat)
+
+
+blockNames : List (Tree.Tree Parser.Block.ExpressionBlock) -> List String
+blockNames forest =
+    List.map Tree.flatten forest
+        |> List.concat
+        |> List.map Parser.Block.getName
+        |> Maybe.Extra.values
+        |> List.Extra.unique
+        |> List.sort
+
+
+expressionNames : List (Tree.Tree ExpressionBlock) -> List String
+expressionNames forest =
+    List.map Tree.flatten forest
+        |> List.concat
+        |> List.map Parser.Block.getContent
+        |> List.concat
+        |> List.map Parser.Expr.getName
+        |> Maybe.Extra.values
+        |> List.Extra.unique
+        |> List.sort
 
 
 filterExpressionsOnName : String -> List Expr -> List Expr

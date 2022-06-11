@@ -243,6 +243,22 @@ svg count acc settings args id str =
             Element.el [] (Element.text "SVG parse error")
 
 
+{-| Create elements from HTML markup. On parsing error, output no elements.
+-}
+
+
+
+--withNodes : String -> List (HStyled.Html msg)
+--withNodes s =
+--    case HP.run s of
+--        Ok parsedNodes ->
+--            List.map HStyled.fromUnstyled (HPU.toVirtualDom parsedNodes)
+--
+--        _ ->
+--            [ HStyled.fromUnstyled (text "Parsing error") ]
+--
+
+
 quiver : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 quiver count acc settings args id str =
     let
