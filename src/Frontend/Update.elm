@@ -667,6 +667,13 @@ setDocumentAsCurrent_ cmd model doc permissions =
             else
                 Document.DSReadOnly
 
+        soundCmd =
+            if model.showEditor && newDocumentStatus == Document.DSReadOnly then
+                playSound "boing-short.mp3"
+
+            else
+                Cmd.none
+
         updatedDoc =
             { doc | status = newDocumentStatus }
     in
@@ -695,6 +702,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
         [ View.Utility.setViewPortToTop model.popupState
         , Cmd.batch [ cmd, sendToBackend (SaveDocument model.currentUser updatedDoc) ]
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
+        , soundCmd
         ]
     )
 
@@ -771,7 +779,7 @@ updateDoc model str =
                     ( model, Cmd.none )
 
                 Document.DSReadOnly ->
-                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, playSound "boing-short.mp3" )
+                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
 
                 Document.DSCanEdit ->
                     -- if Share.canEdit model.currentUser (Just doc) then
