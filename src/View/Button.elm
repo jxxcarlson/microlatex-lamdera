@@ -9,6 +9,7 @@ module View.Button exposing
     , createChatGroup
     , createDocument
     , dismissPopup
+    , dismissPublicUrlBox
     , dismissUserMessage
     , doShare
     , doSignUp
@@ -700,6 +701,11 @@ dismissPopup =
     buttonTemplate [] (ChangePopup NoPopup) "x"
 
 
+dismissPublicUrlBox : Element FrontendMsg
+dismissPublicUrlBox =
+    buttonTemplate [ Background.color Color.lightBlue ] TogglePublicUrl "x"
+
+
 closeEditor : Element FrontendMsg
 closeEditor =
     buttonTemplate [] CloseEditor "Close Editor"
@@ -801,7 +807,7 @@ togglePublicUrl =
         , tooltipPlacement = E.above
         , attributes = [ Font.color Color.white ]
         , msg = TogglePublicUrl
-        , label = "URL"
+        , label = "Link"
         }
 
 

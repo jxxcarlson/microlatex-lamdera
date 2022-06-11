@@ -57,7 +57,6 @@ urlPopup model =
 
               else
                 E.moveRight 387
-            , E.width (E.px 500)
             , E.height (E.px 60)
             ]
             [ publicLink model.currentDocument
@@ -73,14 +72,29 @@ publicLink currentDocument =
             E.none
 
         Just doc ->
-            let
-                path =
-                    Maybe.map .id currentDocument |> Maybe.withDefault "??"
+            if doc.public == False then
+                E.el [ Font.size 16 ] (E.text "Document is not public")
 
-                url =
-                    Config.host ++ "/i/" ++ path
-            in
-            E.el [ Font.size 16, Font.color Color.white, E.centerX, E.centerY ] (E.text url)
+            else
+                case Document.getSlug doc of
+                    Just slug ->
+                        let
+                            url =
+                                Config.host ++ "/s/" ++ slug
+                        in
+                        E.row [ Font.size 16, Font.color Color.white, E.centerY, E.spacing 40 ]
+                            [ E.text url, E.el [ E.alignRight ] Button.dismissPublicUrlBox ]
+
+                    Nothing ->
+                        let
+                            path =
+                                Maybe.map .id currentDocument |> Maybe.withDefault "??"
+
+                            url =
+                                Config.host ++ "/i/" ++ path
+                        in
+                        E.row [ Font.size 16, Font.color Color.white, E.centerY, E.spacing 40 ]
+                            [ E.text url, E.el [ E.alignRight ] Button.dismissPublicUrlBox ]
 
 
 dateCreated : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
