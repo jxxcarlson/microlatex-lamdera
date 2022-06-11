@@ -73,7 +73,7 @@ publicLink currentDocument =
 
         Just doc ->
             if doc.public == False then
-                E.el [ Font.size 16 ] (E.text "Document is not public")
+                E.el [ Font.size 16, Font.color Color.white ] (E.text "Document is not public")
 
             else
                 case Document.getSlug doc of
