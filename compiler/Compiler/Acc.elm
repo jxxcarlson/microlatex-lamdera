@@ -325,7 +325,7 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
                     accumulator
 
                 Right exprs ->
-                    { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs |> Debug.log "!! ENV" }
+                    { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
 
         Just "setcounter" ->
             case content of
