@@ -113,7 +113,7 @@ viewEditorAndRenderedText model =
 dyCheatSheet : Bool -> E.Attr decorative msg
 dyCheatSheet showEditor =
     if showEditor then
-        E.moveRight 900
+        E.moveRight 920
 
     else
         E.moveRight 1000
