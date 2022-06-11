@@ -155,6 +155,7 @@ filterASTOnName ast name =
                     List.map getText exprList |> Maybe.Extra.values
 
 
+title_ : List (Tree.Tree ExpressionBlock) -> String
 title_ ast =
     let
         mBlock =
@@ -182,6 +183,7 @@ title ast =
     title_ ast
 
 
+extractTextFromSyntaxTreeByKey : String -> Forest ExpressionBlock -> String
 extractTextFromSyntaxTreeByKey key syntaxTree =
     syntaxTree |> filterBlocksByArgs key |> expressionBlockToText
 
@@ -269,5 +271,6 @@ toExprRecord blocks =
 -- toExprList_ : L0BlockE -> List Expr
 
 
+toExprList_ : ExpressionBlock -> { content : List Expr, blockType : BlockType }
 toExprList_ (ExpressionBlock { blockType, content }) =
     { content = content |> Either.toList |> List.concat, blockType = blockType }
