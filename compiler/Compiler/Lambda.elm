@@ -86,22 +86,41 @@ substInList a var exprs =
 -}
 apply : Lambda -> Expr -> Expr
 apply lambda expr =
-    case List.head lambda.vars of
-        Nothing ->
+    if List.length lambda.vars < 2 then
+        applyAux lambda.vars lambda expr
+
+    else
+        applyAux lambda.vars lambda (expandText expr |> Debug.log "!! Expand")
+
+
+applyAux : List String -> Lambda -> Expr -> Expr
+applyAux vars lambda expr =
+    case vars of
+        [] ->
             -- Only handle one var lambdas for now
             expr
 
-        Just var ->
+        var :: rest ->
             case expr of
                 Expr fname_ exprs _ ->
                     if lambda.name == fname_ then
-                        substInList lambda.body var exprs
+                        substInList lambda.body var exprs |> applyAux rest lambda
 
                     else
-                        expr
+                        expr |> applyAux rest lambda
 
                 _ ->
-                    expr
+                    expr |> applyAux rest lambda
+
+
+expandText : Expr -> Expr
+expandText expr =
+    case expr of
+        Expr name ((Text str meta) :: rest) meta2 ->
+            Expr name (List.map (\w -> Text w meta) (String.words str) ++ rest) meta2
+
+        _ ->
+            expr
 
 
 toString : (Expr -> String) -> Lambda -> String
