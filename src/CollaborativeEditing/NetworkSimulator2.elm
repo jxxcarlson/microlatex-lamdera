@@ -116,7 +116,7 @@ applyEditOp op doc =
             { doc | cursor = cursor + String.length str, content = String.Extra.insertAt str cursor doc.content }
 
         Delete cursor n ->
-            { doc | cursor = cursor, content = deleteAt n (cursor - 1) doc.content |> Debug.log "DELETE" }
+            { doc | cursor = cursor, content = deleteAt n (cursor - 1) doc.content }
 
         MoveCursor cursor ->
             { doc | cursor = cursor }

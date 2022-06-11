@@ -90,7 +90,7 @@ apply lambda expr =
         applyAux lambda.vars lambda expr
 
     else
-        applyAux lambda.vars lambda (expandText expr |> Debug.log "!! Expand")
+        applyAux lambda.vars lambda (expandText expr)
 
 
 applyAux : List String -> Lambda -> Expr -> Expr
