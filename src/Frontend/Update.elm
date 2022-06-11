@@ -265,8 +265,6 @@ openEditor doc model =
                   else
                     Cmd.none
                 , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
-
-                --, playSound "boing-short.mp3"
                 ]
             )
 
@@ -667,13 +665,6 @@ setDocumentAsCurrent_ cmd model doc permissions =
             else
                 Document.DSReadOnly
 
-        soundCmd =
-            if model.showEditor && newDocumentStatus == Document.DSReadOnly then
-                playSound "boing-short.mp3"
-
-            else
-                Cmd.none
-
         updatedDoc =
             { doc | status = newDocumentStatus }
     in
@@ -702,7 +693,6 @@ setDocumentAsCurrent_ cmd model doc permissions =
         [ View.Utility.setViewPortToTop model.popupState
         , Cmd.batch [ cmd, sendToBackend (SaveDocument model.currentUser updatedDoc) ]
         , Nav.pushUrl model.key ("/c/" ++ doc.id)
-        , soundCmd
         ]
     )
 
@@ -861,7 +851,7 @@ handleReceivedDocumentAsCheatsheet model doc =
         , messages =
             { txt = "Cheatsheet: " ++ doc.title, status = MSGreen } :: []
       }
-    , Cmd.none
+    , View.Utility.setViewPortToTop model.popupState
     )
 
 
