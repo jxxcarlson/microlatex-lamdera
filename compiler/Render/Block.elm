@@ -231,8 +231,11 @@ svg : Int -> Accumulator -> Settings -> List String -> String -> String -> Eleme
 svg count acc settings args id str =
     case SvgParser.parse str of
         Ok html_ ->
-            Element.column [ Element.spacing 8, Element.width (Element.px 300) ]
-                [ Element.column [ Element.width (Element.px 300), Element.centerX ] [ html_ |> Element.html ]
+            Element.column
+                [ Element.paddingEach { left = 0, right = 0, top = 24, bottom = 0 }
+                , Element.width (Element.px settings.width)
+                ]
+                [ Element.column [ Element.centerX ] [ html_ |> Element.html ]
                 ]
 
         Err _ ->
