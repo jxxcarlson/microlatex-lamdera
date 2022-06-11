@@ -231,6 +231,17 @@ exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as bl
                         Just "mathmacros" ->
                             str
 
+                        Just "quiver" ->
+                            let
+                                arguments : List String
+                                arguments =
+                                    String.words str
+
+                                url =
+                                    List.head arguments |> Maybe.withDefault "no-image"
+                            in
+                            [ "\\imagecenter{", url, "}" ] |> String.join ""
+
                         _ ->
                             environment "anon" str
 
