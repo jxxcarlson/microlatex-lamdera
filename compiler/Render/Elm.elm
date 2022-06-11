@@ -67,6 +67,7 @@ markupDict =
         , ( "strong", \g acc s exprList -> strong g acc s exprList )
         , ( "bold", \g acc s exprList -> strong g acc s exprList )
         , ( "b", \g acc s exprList -> strong g acc s exprList )
+        , ( "var", \g acc s exprList -> var g acc s exprList )
         , ( "italic", \g acc s exprList -> italic g acc s exprList )
         , ( "i", \g acc s exprList -> italic g acc s exprList )
         , ( "boldItalic", \g acc s exprList -> boldItalic g acc s exprList )
@@ -76,6 +77,7 @@ markupDict =
         , ( "eqref", \g acc s exprList -> eqref g acc s exprList )
         , ( "underline", \g acc s exprList -> underline g acc s exprList )
         , ( "comment", \_ _ _ _ -> Element.none )
+        , ( "lambda", \_ _ _ _ -> Element.none )
 
         -- LATEX
         , ( "title", \g acc s exprList -> title g acc s exprList )
@@ -454,6 +456,10 @@ syspar _ _ _ _ =
 
 strong g acc s exprList =
     simpleElement [ Font.bold ] g acc s exprList
+
+
+var g acc s exprList =
+    simpleElement [] g acc s exprList
 
 
 brackets g acc s exprList =

@@ -318,14 +318,14 @@ updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
             listData accumulator name
     in
     case name of
-        Just "defs" ->
+        Just "textmacros" ->
             -- incorporate runtime macro definitions
             case content of
                 Left _ ->
                     accumulator
 
                 Right exprs ->
-                    { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs }
+                    { accumulator | inList = inList, environment = List.foldl (\lambda dict -> Lambda.insert (Lambda.extract lambda) dict) accumulator.environment exprs |> Debug.log "!! ENV" }
 
         Just "setcounter" ->
             case content of

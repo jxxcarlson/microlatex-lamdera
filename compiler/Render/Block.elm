@@ -131,7 +131,7 @@ blockDict =
         , ( "subtitle", \_ _ _ _ _ _ -> Element.none )
         , ( "author", \_ _ _ _ _ _ -> Element.none )
         , ( "date", \_ _ _ _ _ _ -> Element.none )
-        , ( "defs", \_ _ _ _ _ _ -> Element.none )
+        , ( "textmacros", \_ _ _ _ _ _ -> Element.none )
         , ( "contents", \_ _ _ _ _ _ -> Element.none )
         , ( "env", env_ )
         , ( "item", item )

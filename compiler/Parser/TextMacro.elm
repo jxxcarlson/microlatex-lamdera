@@ -1,4 +1,4 @@
-module Parser.TextMacro exposing (MyMacro(..), eraseLeadingMacro, get)
+module Parser.TextMacro exposing (MyMacro(..), eraseLeadingMacro, get, toString)
 
 import Parser exposing ((|.), (|=), Parser)
 import Set

@@ -202,7 +202,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as bl
                             f settings args (exportExprList settings exprs_)
 
                         Nothing ->
-                            if name_ == "defs" then
+                            if name_ == "textmacros" then
                                 renderDefs settings exprs_
 
                             else

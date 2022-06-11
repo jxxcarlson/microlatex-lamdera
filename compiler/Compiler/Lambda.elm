@@ -14,7 +14,8 @@ extract expr_ =
         Expr "lambda" ((Text argString _) :: expr :: []) _ ->
             case String.words argString of
                 name :: rest ->
-                    Just { name = name, vars = List.map (\x -> " " ++ x) rest, body = expr }
+                    -- Just { name = name, vars = List.map (\x -> " " ++ x) rest, body = expr }
+                    Just { name = name, vars = rest, body = expr }
 
                 _ ->
                     Nothing

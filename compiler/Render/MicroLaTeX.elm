@@ -49,7 +49,7 @@ exportBlock ((ExpressionBlock { blockType, indent, name, args, content }) as blo
                             f args indent (exportExprList exprs_)
 
                         Nothing ->
-                            if name_ == "defs" then
+                            if name_ == "textmacros" then
                                 renderDefs exprs_
 
                             else
