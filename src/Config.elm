@@ -33,6 +33,7 @@ module Config exposing
     , transitKey
     , welcomeDocId
     , xmarkdownCheatsheetId
+    , xmarkdownId
     )
 
 import Env
@@ -62,21 +63,15 @@ editSafetyInterval =
 
 
 l0ManualId =
-    case Env.mode of
-        Env.Production ->
-            "id-62cdc3d3-b6d5-4f4d-b314-3f50f7a6aaef"
-
-        Env.Development ->
-            "id-0fb8eccd-672f-4856-aca5-a9e84e818e55"
+    "jxxcarlson:l0-manual"
 
 
 microLaTeXManualId =
-    case Env.mode of
-        Env.Production ->
-            "id-4bc4ae5a-ce08-42ad-9e90-59eb381eba6f"
+    "jxxcarlson:microlatex-manual"
 
-        Env.Development ->
-            "id-be64f3c5-2765-44b3-9eed-f668f60a1594"
+
+xmarkdownId =
+    "jxxcarlson:xmarkdown-manual"
 
 
 welcomeDocId =

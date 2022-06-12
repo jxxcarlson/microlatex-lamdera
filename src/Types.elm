@@ -612,7 +612,7 @@ type DocumentHandling
     | HandleSharedDocument Username
     | PinnedDocumentList
     | DelayedHandling
-    | HandleAsCheatSheet
+    | HandleAsManual
 
 
 

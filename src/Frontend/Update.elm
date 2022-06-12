@@ -1272,7 +1272,7 @@ render model msg_ =
 
                 MHAsCheatSheet ->
                     ( { model | messages = { txt = "Fetch (2): " ++ id, status = MSGreen } :: [] }
-                    , sendToBackend (FetchDocumentById Types.HandleAsCheatSheet id)
+                    , sendToBackend (FetchDocumentById Types.HandleAsManual id)
                     )
 
         GetPublicDocumentFromAuthor handling authorName searchKey ->
@@ -1281,7 +1281,7 @@ render model msg_ =
                     ( model, sendToBackend (FindDocumentByAuthorAndKey Types.StandardHandling authorName searchKey) )
 
                 MHAsCheatSheet ->
-                    ( model, sendToBackend (FindDocumentByAuthorAndKey Types.HandleAsCheatSheet authorName searchKey) )
+                    ( model, sendToBackend (FindDocumentByAuthorAndKey Types.HandleAsManual authorName searchKey) )
 
         ProposeSolution proposal ->
             case proposal of

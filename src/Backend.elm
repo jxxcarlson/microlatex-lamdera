@@ -124,7 +124,7 @@ update msg model =
         DelaySendingDocument clientId doc ->
             ( model
             , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
+                [ sendToFrontend clientId (ReceivedDocument Types.HandleAsManual doc)
                 , sendToFrontend clientId
                     (MessageReceived
                         { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditorList |> List.map .username |> String.join ", ")
@@ -296,7 +296,7 @@ updateFromFrontend sessionId clientId msg model =
                     in
                     ( model
                     , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument Types.HandleAsCheatSheet doc)
+                        [ sendToFrontend clientId (ReceivedDocument Types.HandleAsManual doc)
                         , sendToFrontend clientId (MessageReceived message)
                         ]
                     )
@@ -450,7 +450,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.saveDocument model clientId currentUser document
 
         GetCheatSheetDocument ->
-            Backend.Update.fetchDocumentById model clientId Config.l0CheatsheetId Types.HandleAsCheatSheet
+            Backend.Update.fetchDocumentById model clientId Config.l0CheatsheetId Types.HandleAsManual
 
         GetHomePage username ->
             Backend.Update.getHomePage model clientId username

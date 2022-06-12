@@ -510,7 +510,7 @@ update msg model =
                                 PlainTextLang ->
                                     Config.plainTextCheatsheetId
                     in
-                    ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet id) )
+                    ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsManual id) )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
@@ -520,13 +520,13 @@ update msg model =
                 NoPopup ->
                     case model.language of
                         L0Lang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
 
                         MicroLaTeXLang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.microLaTeXManualId) )
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
 
                         _ ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
 
                 ManualsPopup ->
                     if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId ] then
@@ -535,13 +535,13 @@ update msg model =
                     else
                         case model.language of
                             L0Lang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
 
                             MicroLaTeXLang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.microLaTeXManualId) )
+                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
 
                             _ ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsCheatSheet Config.l0ManualId) )
+                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
@@ -1129,7 +1129,7 @@ updateFromBackend msg model =
                 PinnedDocumentList ->
                     Frontend.Update.handleAsStandardReceivedDocument model doc
 
-                HandleAsCheatSheet ->
+                HandleAsManual ->
                     Frontend.Update.handleReceivedDocumentAsCheatsheet model doc
 
         ReceivedNewDocument _ doc ->
