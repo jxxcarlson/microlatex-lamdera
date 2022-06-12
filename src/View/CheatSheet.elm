@@ -40,7 +40,7 @@ minimumWidth =
 
 viewManual : FrontendModel -> E.Element Types.FrontendMsg
 viewManual model =
-    case model.currentCheatsheet of
+    case model.currentManual of
         Just doc ->
             let
                 editRecord =
@@ -71,7 +71,7 @@ viewManual model =
 
 viewCheatSheet : FrontendModel -> E.Element Types.FrontendMsg
 viewCheatSheet model =
-    case model.currentCheatsheet of
+    case model.currentManual of
         Just doc ->
             let
                 editRecord =

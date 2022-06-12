@@ -858,7 +858,7 @@ updateEditRecord inclusionData doc model =
 handleReceivedDocumentAsCheatsheet : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
 handleReceivedDocumentAsCheatsheet model doc =
     ( { model
-        | currentCheatsheet = Just doc
+        | currentManual = Just doc
         , counter = model.counter + 1
         , messages =
             { txt = "Cheatsheet: " ++ doc.title, status = MSGreen } :: []

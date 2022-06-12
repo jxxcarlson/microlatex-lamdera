@@ -179,7 +179,7 @@ type alias FrontendModel =
     , activeDocList : ActiveDocList
     , includedContent : Dict String String
     , currentDocument : Maybe Document
-    , currentCheatsheet : Maybe Document
+    , currentManual : Maybe Document
     , currentMasterDocument : Maybe Document
     , documents : List Document
     , pinnedDocuments : List Document.DocumentInfo

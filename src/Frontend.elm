@@ -176,7 +176,7 @@ init url key =
       , documents = []
       , pinnedDocuments = []
       , currentDocument = Just Docs.notSignedIn
-      , currentCheatsheet = Nothing
+      , currentManual = Nothing
       , currentMasterDocument = Nothing
       , printingState = PrintWaiting
       , documentDeleteState = WaitingForDeleteAction
@@ -533,7 +533,7 @@ update msg model =
 
                 ManualsPopup ->
                     if
-                        List.member (Maybe.andThen Document.getSlug model.currentCheatsheet)
+                        List.member (Maybe.andThen Document.getSlug model.currentManual)
                             [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
                     then
                         ( { model | popupState = NoPopup }, Cmd.none )
