@@ -532,20 +532,20 @@ update msg model =
                             ( { model | popupState = NoPopup }, Cmd.none )
 
                 ManualsPopup ->
-                    if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ] then
-                        ( { model | popupState = NoPopup }, Cmd.none )
+                    --List.member (Maybe.map .id model.currentCheatsheet)
+                    --    [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
+                    ( { model | popupState = NoPopup }, Cmd.none )
 
-                    else
-                        case model.language of
-                            L0Lang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
-
-                            MicroLaTeXLang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
-
-                            _ ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
-
+                --else
+                --    case model.language of
+                --        L0Lang ->
+                --            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
+                --
+                --        MicroLaTeXLang ->
+                --            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
+                --
+                --        _ ->
+                --            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
 
