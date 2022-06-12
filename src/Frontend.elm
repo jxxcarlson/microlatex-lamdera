@@ -194,7 +194,7 @@ init url key =
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , if url.path == "/" then
-            sendToBackend (SearchForDocuments StandardHandling Nothing "system:startup")
+            sendToBackend (SearchForDocuments StandardHandling Nothing "jxxcarslon:system-home")
             -- searchForPublicDocuments sortMode limit mUsername key model
 
           else
