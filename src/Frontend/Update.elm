@@ -243,7 +243,11 @@ openEditor doc model =
                     Util.insertInListOrUpdate equal editorItem oldEditorList
 
                 updatedDoc =
-                    { doc | status = Document.DSCanEdit, currentEditorList = currentEditorList }
+                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
+                        { doc | status = Document.DSCanEdit, currentEditorList = currentEditorList }
+
+                    else
+                        { doc | status = Document.DSReadOnly }
 
                 sendersName =
                     Util.currentUsername model.currentUser
@@ -264,7 +268,11 @@ openEditor doc model =
 
                   else
                     Cmd.none
-                , sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
+                , if Predicate.documentIsMineOrIAmAnEditor (Just doc) model.currentUser then
+                    sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
+
+                  else
+                    Cmd.none
                 ]
             )
 
@@ -779,8 +787,12 @@ updateDoc model str =
                         activeEditorName =
                             model.activeEditor |> Maybe.map .name
                     in
-                    if activeEditorName == Nothing || activeEditorName == Maybe.map .username model.currentUser then
-                        updateDoc_ doc str model
+                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
+                        if activeEditorName == Nothing || activeEditorName == Maybe.map .username model.currentUser then
+                            updateDoc_ doc str model
+
+                        else
+                            ( model, Cmd.none )
 
                     else
                         ( model, Cmd.none )
