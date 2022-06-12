@@ -8,6 +8,8 @@ import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Html.Attributes as HtmlAttr
+import Parser.Block
+import Render.Block
 import Render.Markup
 import Render.Settings
 import Render.TOC
@@ -132,12 +134,20 @@ viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
         :: body
 
 
+viewDocument : Int -> Int -> String -> Maybe String -> Compiler.DifferentialParser.EditRecord -> List (Element FrontendMsg)
 viewDocument windowWidth counter selectedId selectedSlug editRecord =
     let
         title_ : Element FrontendMsg
         title_ =
             Compiler.ASTTools.title editRecord.parsed
                 |> (\s -> E.paragraph [ E.htmlAttribute (HtmlAttr.id "title"), Font.size Config.titleSize ] [ E.text s ])
+
+        runninghead =
+            Compiler.ASTTools.runninghead editRecord.parsed
+                |> Maybe.map (Parser.Block.setName "runninghead_")
+                |> Maybe.map (Render.Block.render counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth))
+                |> Maybe.withDefault E.none
+                |> E.map Render
 
         toc : Element FrontendMsg
         toc =
@@ -147,7 +157,7 @@ viewDocument windowWidth counter selectedId selectedSlug editRecord =
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
-    title_ :: toc :: body
+    runninghead :: title_ :: toc :: body
 
 
 setSelectedId : String -> Render.Settings.Settings -> Render.Settings.Settings

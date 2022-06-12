@@ -14,6 +14,7 @@ module Compiler.ASTTools exposing
     , getText
     , matchingIdsInAST
     , normalize
+    , runninghead
     , stringValueOfList
     , tableOfContents
     , title
@@ -180,17 +181,22 @@ filterASTOnName ast name =
                     List.map getText exprList |> Maybe.Extra.values
 
 
+getBlockByName : String -> List (Tree.Tree ExpressionBlock) -> Maybe ExpressionBlock
+getBlockByName name ast =
+    ast
+        |> List.map Tree.flatten
+        |> List.concat
+        |> filterBlocksOnName name
+        |> List.head
+
+
+runninghead ast =
+    getBlockByName "runninghead" ast
+
+
 title_ : List (Tree.Tree ExpressionBlock) -> String
 title_ ast =
-    let
-        mBlock =
-            ast
-                |> List.map Tree.flatten
-                |> List.concat
-                |> filterBlocksOnName "title"
-                |> List.head
-    in
-    case mBlock of
+    case getBlockByName "title" ast of
         Nothing ->
             "(title)"
 

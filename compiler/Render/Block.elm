@@ -127,6 +127,8 @@ blockDict =
 
         -- , ( "heading", section )
         , ( "section", section )
+        , ( "runninghead", \_ _ _ _ _ _ -> Element.none )
+        , ( "runninghead_", runninghead )
         , ( "title", \_ _ _ _ _ _ -> Element.none )
         , ( "subtitle", \_ _ _ _ _ _ -> Element.none )
         , ( "author", \_ _ _ _ _ _ -> Element.none )
@@ -520,6 +522,11 @@ renderWithDefault2 default count acc settings exprs =
 indented count acc settings _ id exprs =
     Element.paragraph ([ Render.Settings.leftIndentation, Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         (renderWithDefault "| indent" count acc settings exprs)
+
+
+runninghead count acc settings _ id exprs =
+    Element.paragraph ([ Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
+        (renderWithDefault "| runninghead" count acc settings exprs)
 
 
 quotation count acc settings args id exprs =

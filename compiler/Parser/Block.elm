@@ -1,6 +1,6 @@
 module Parser.Block exposing
     ( BlockType(..), ExpressionBlock(..)
-    , RawBlock, condenseUrls, getContent, getName
+    , RawBlock, condenseUrls, getContent, getName, setName
     )
 
 {-| Source text is parsed into a tree of IntermediateBlocks, where the tree
@@ -44,6 +44,11 @@ type ExpressionBlock
         , messages : List String
         , sourceText : String
         }
+
+
+setName : String -> ExpressionBlock -> ExpressionBlock
+setName name (ExpressionBlock data) =
+    ExpressionBlock { data | name = Just name }
 
 
 getContent : ExpressionBlock -> List Expr
