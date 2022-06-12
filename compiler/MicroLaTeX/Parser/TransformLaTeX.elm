@@ -297,7 +297,6 @@ handleError line state =
                             |> List.drop 1
                             |> List.head
                             |> Maybe.map (Parser.Line.classify 0 0)
-                            |> Debug.log "NEXT LINE"
                 in
                 if (nextLine |> Maybe.map .indent) /= Just 0 then
                     { state | output = line :: state.output, status = LXNormal }
