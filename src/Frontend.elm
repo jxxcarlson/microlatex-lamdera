@@ -525,11 +525,11 @@ update msg model =
                         MicroLaTeXLang ->
                             ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
 
-                        _ ->
+                        XMarkdownLang ->
                             ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
 
                 ManualsPopup ->
-                    if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId ] then
+                    if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ] then
                         ( { model | popupState = NoPopup }, Cmd.none )
 
                     else
