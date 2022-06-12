@@ -533,7 +533,7 @@ update msg model =
 
                 ManualsPopup ->
                     if
-                        List.member (Maybe.map .id model.currentCheatsheet)
+                        List.member (Maybe.andThen Document.getSlug model.currentCheatsheet)
                             [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
                     then
                         ( { model | popupState = NoPopup }, Cmd.none )
