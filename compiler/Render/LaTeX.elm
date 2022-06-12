@@ -17,6 +17,12 @@ import Tree
 export : Settings -> Forest ExpressionBlock -> String
 export settings ast =
     let
+        blockNames =
+            ASTTools.blockNames ast
+
+        expressionNames =
+            ASTTools.expressionNames ast
+
         imageList : List String
         imageList =
             getImageUrls ast
@@ -24,7 +30,10 @@ export settings ast =
         get ast_ name_ =
             ASTTools.filterASTOnName ast_ name_ |> String.join " "
     in
-    preamble (get ast "title")
+    preamble
+        blockNames
+        expressionNames
+        (get ast "title")
         (get ast "author")
         (get ast "date")
         ++ "\n\n"
@@ -33,7 +42,12 @@ export settings ast =
 
 
 getImageUrls : Forest ExpressionBlock -> List String
-getImageUrls ast =
+getImageUrls forest =
+    getImageUrls_ forest ++ getImageUrlsFromQuiver forest
+
+
+getImageUrls_ : Forest ExpressionBlock -> List String
+getImageUrls_ ast =
     ast
         |> List.map Tree.flatten
         |> List.concat
@@ -42,6 +56,56 @@ getImageUrls ast =
         |> ASTTools.filterExpressionsOnName "image"
         |> List.map ASTTools.getText
         |> Maybe.Extra.values
+
+
+getImageUrlsFromQuiver : List (Tree.Tree ExpressionBlock) -> List String
+getImageUrlsFromQuiver ast =
+    ast
+        |> List.map Tree.flatten
+        |> List.concat
+        |> List.filter (\block -> Parser.Block.getName block == Just "quiver")
+        |> List.map getImageUrl
+        |> Maybe.Extra.values
+
+
+getImageUrl : ExpressionBlock -> Maybe String
+getImageUrl (ExpressionBlock { content }) =
+    case content of
+        Either.Left str ->
+            getImageUrl_ str
+
+        Either.Right _ ->
+            Nothing
+
+
+getImageUrl_ : String -> Maybe String
+getImageUrl_ str =
+    let
+        maybePair =
+            case String.split "---" str of
+                a :: b :: [] ->
+                    Just ( a, b )
+
+                _ ->
+                    Nothing
+    in
+    case maybePair of
+        Nothing ->
+            Nothing
+
+        Just ( imageData, latexData ) ->
+            let
+                arguments : List String
+                arguments =
+                    String.words imageData
+            in
+            List.head arguments
+
+
+
+--|> ASTTools.filterExpressionsOnName "image"
+--|> List.map ASTTools.getText
+--|> Maybe.Extra.values
 
 
 rawExport : Settings -> Forest ExpressionBlock -> String
@@ -233,14 +297,12 @@ exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as bl
 
                         Just "quiver" ->
                             let
-                                arguments : List String
-                                arguments =
-                                    String.words str
-
-                                url =
-                                    List.head arguments |> Maybe.withDefault "no-image"
+                                data =
+                                    String.split "---" str
+                                        |> List.drop 1
+                                        |> String.join ""
                             in
-                            [ "\\imagecenter{", url, "}" ] |> String.join ""
+                            data
 
                         _ ->
                             environment "anon" str
@@ -500,20 +562,65 @@ environment name body =
 -- PREAMBLE
 
 
-preamble : String -> String -> String -> String
-preamble title author date =
-    """
-\\documentclass[11pt, oneside]{article}
+preamble : List String -> List String -> String -> String -> String -> String
+preamble blockNames_ expressionNames_ title author date =
+    [ "\\documentclass[11pt, oneside]{article}"
+    , packages blockNames_ expressionNames_
+    , commands
+    , preamble_ blockNames_ title author date
+    ]
+        |> String.join "\n"
 
+
+packageList =
+    [ ( "quiver", "quiver" )
+    ]
+
+
+newPackages : List String -> String
+newPackages blockNames =
+    blockNames
+        |> newPackageList
+        |> List.map (\name -> "\\usepackage{" ++ name ++ "}")
+        |> String.join "\n"
+
+
+newPackageList : List String -> List String
+newPackageList blockNames =
+    List.foldl (\( blockName, packageName ) acc -> addPackage blockNames blockName packageName acc) [] packageList
+
+
+addPackage : List String -> String -> String -> List String -> List String
+addPackage blockNames blockName packageName packages_ =
+    if List.member blockName blockNames then
+        packageName :: packages_
+
+    else
+        packages_
+
+
+packages blockNames_ expressionNames_ =
+    [ newPackages blockNames_, standardPackages ] |> String.join "\n"
+
+
+standardPackages =
+    """
 %% Packages
+
+%% Standard packages
 \\usepackage{geometry}
 \\geometry{letterpaper}
 \\usepackage{changepage}   % for the adjustwidth environment
+
+%% AMS
+\\usepackage{amssymb}
+\\usepackage{amsmath}
+
+%% Optional packages
 \\usepackage{graphicx}
 \\usepackage{wrapfig}
 \\graphicspath{ {image/} }
-\\usepackage{amssymb}
-\\usepackage{amsmath}
+
 \\usepackage{amscd}
 \\usepackage{hyperref}
 \\hypersetup{
@@ -524,8 +631,11 @@ preamble title author date =
 }
 \\usepackage{xcolor}
 \\usepackage{soul}
+"""
 
 
+commands =
+    """
 %% Commands
 \\newcommand{\\code}[1]{{\\tt #1}}
 \\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}
@@ -636,16 +746,30 @@ preamble title author date =
 \\parindent0pt
 \\parskip5pt
 
+"""
 
+
+preamble_ blockNames_ title author date =
+    """
 \\begin{document}
 
 
-\\title{""" ++ title ++ """}
-\\author{""" ++ author ++ """}
-\\date{""" ++ date ++ """}
+\\title{"""
+        ++ title
+        ++ """}
+\\author{"""
+        ++ author
+        ++ """}
+\\date{"""
+        ++ date
+        ++ """}
 
 \\maketitle
 
-\\tableofcontents
-
 """
+        ++ (if List.member "section" blockNames_ then
+                "\\tableofcontents"
+
+            else
+                ""
+           )
