@@ -528,6 +528,9 @@ update msg model =
                         XMarkdownLang ->
                             ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
 
+                        PlainTextLang ->
+                            ( { model | popupState = NoPopup }, Cmd.none )
+
                 ManualsPopup ->
                     if List.member (Maybe.map .id model.currentCheatsheet) [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ] then
                         ( { model | popupState = NoPopup }, Cmd.none )
