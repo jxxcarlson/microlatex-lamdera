@@ -3,6 +3,7 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
     , State
     , Step(..)
     , endBlockOfLXStatus
+    , example
     , fakeDebugLog
     , fixArgs
     , handleError
@@ -24,8 +25,23 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
 
 import Dict exposing (Dict)
 import List.Extra
+import Parser.Line
 import Parser.Settings exposing (Arity, blockData)
 import Parser.TextMacro exposing (MyMacro(..))
+
+
+example =
+    """
+\\begin{theorem}
+There are infinitely many primes:
+
+  $$
+  p\\equiv 1\\ \text{mod}\\ 4
+  $$
+
+  Yes, isn't that nice?
+\\end{theorem}
+"""
 
 
 
@@ -274,7 +290,19 @@ handleError line state =
                     Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
             in
             if line == "" then
-                if n > 0 then
+                let
+                    nextLine : Maybe Parser.Line.Line
+                    nextLine =
+                        state.input
+                            |> List.drop 1
+                            |> List.head
+                            |> Maybe.map (Parser.Line.classify 0 0)
+                            |> Debug.log "NEXT LINE"
+                in
+                if (nextLine |> Maybe.map .indent) /= Just 0 then
+                    { state | output = line :: state.output, status = LXNormal }
+
+                else if n > 0 then
                     { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
 
                 else
