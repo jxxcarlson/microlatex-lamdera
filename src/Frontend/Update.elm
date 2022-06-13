@@ -640,7 +640,14 @@ setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document ->
 setDocumentAsCurrent_ cmd model doc permissions =
     case model.currentUser of
         Nothing ->
-            ( model, Cmd.none )
+            let
+                _ =
+                    Debug.log "CURRENT DOC WILL BE " doc.title
+
+                newModel =
+                    postProcessDocument doc model
+            in
+            ( { newModel | currentDocument = Just doc }, Cmd.none )
 
         Just currentUser ->
             let
