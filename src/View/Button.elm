@@ -69,11 +69,11 @@ module View.Button exposing
     , toggleAppMode
     , toggleBackupVisibility
     , toggleChat
-    , toggleCheatSheet
     , toggleDocTools
     , toggleDocumentStatus
     , toggleEditor
     , toggleExtrasSidebar
+    , toggleGuide
     , toggleManuals
     , togglePublic
     , togglePublicUrl
@@ -277,13 +277,13 @@ toggleBackupVisibility seeBackups =
         buttonTemplate [] ToggleBackupVisibility "Backups hidden"
 
 
-toggleCheatSheet : Element FrontendMsg
-toggleCheatSheet =
+toggleGuide : Element FrontendMsg
+toggleGuide =
     buttonTemplateWithTooltip
         { tooltipText = "Cheat sheet for the current markup language"
         , tooltipPlacement = E.below
         , attributes = [ Font.color Color.white ]
-        , msg = ToggleManuals
+        , msg = ToggleManuals Types.TGuide
         , label = "Guide"
         }
 
@@ -294,7 +294,7 @@ toggleManuals =
         { tooltipText = "Manuals, templates, answers to common questions"
         , tooltipPlacement = E.below
         , attributes = [ Font.color Color.white ]
-        , msg = ToggleManuals
+        , msg = ToggleManuals Types.TManual
         , label = "Manual"
         }
 

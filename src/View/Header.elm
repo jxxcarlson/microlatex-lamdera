@@ -14,7 +14,7 @@ view model _ =
     E.row [ E.spacing 12, E.width E.fill ]
         [ documentControls model
         , sharingControls model
-        , E.row [ E.centerX, E.spacing 8 ] [ Button.toggleManuals, Button.toggleCheatSheet ]
+        , E.row [ E.centerX, E.spacing 8 ] [ Button.toggleManuals, Button.toggleGuide ]
         , E.el [ E.alignRight ] (Button.toggleTagsSidebar model.sidebarTagsState)
         , View.Utility.hideIf (model.currentUser == Nothing) Button.toggleChat
         ]
