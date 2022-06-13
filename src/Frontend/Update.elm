@@ -901,6 +901,7 @@ handleAsStandardReceivedDocument model doc =
         [ savePreviousCurrentDocumentCmd model
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
+        , Nav.pushUrl model.key ("/c/" ++ doc.id)
         ]
     )
 
