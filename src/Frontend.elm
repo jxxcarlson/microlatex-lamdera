@@ -499,13 +499,13 @@ update msg model =
                         id =
                             case model.language of
                                 L0Lang ->
-                                    Config.l0CheatsheetId
+                                    Config.l0CheatsheetGuideId
 
                                 MicroLaTeXLang ->
-                                    Config.microLaTeXCheatsheetId
+                                    Config.microLaTeXGuideId
 
                                 XMarkdownLang ->
-                                    Config.xmarkdownCheatsheetId
+                                    Config.xmarkdownGuideId
 
                                 PlainTextLang ->
                                     Config.plainTextCheatsheetId
@@ -552,16 +552,6 @@ update msg model =
                             PlainTextLang ->
                                 ( { model | popupState = NoPopup }, Cmd.none )
 
-                --else
-                --    case model.language of
-                --        L0Lang ->
-                --            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
-                --
-                --        MicroLaTeXLang ->
-                --            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
-                --
-                --        _ ->
-                --            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
 

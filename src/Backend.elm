@@ -450,7 +450,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.saveDocument model clientId currentUser document
 
         GetCheatSheetDocument ->
-            Backend.Update.fetchDocumentById model clientId Config.l0CheatsheetId Types.HandleAsManual
+            Backend.Update.fetchDocumentById model clientId Config.l0CheatsheetGuideId Types.HandleAsManual
 
         GetHomePage username ->
             Backend.Update.getHomePage model clientId username

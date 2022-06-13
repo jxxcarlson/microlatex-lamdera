@@ -284,7 +284,7 @@ toggleCheatSheet =
         , tooltipPlacement = E.below
         , attributes = [ Font.color Color.white ]
         , msg = ToggleCheatsheet
-        , label = "Cheat Sheet"
+        , label = "Guide"
         }
 
 
