@@ -195,7 +195,7 @@ hideIf condition element =
 viewId : Types.PopupState -> String
 viewId popupState =
     case popupState of
-        Types.CheatSheetPopup ->
+        Types.GuidesPopup ->
             Config.cheatSheetRenderedTextId
 
         Types.ManualsPopup ->
@@ -215,7 +215,7 @@ setViewportForElement viewportId elementId =
 setViewPortToTop : Types.PopupState -> Cmd FrontendMsg
 setViewPortToTop popupState =
     case popupState of
-        Types.CheatSheetPopup ->
+        Types.GuidesPopup ->
             Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 0)
 
         Types.ManualsPopup ->
@@ -233,7 +233,7 @@ setViewPortForSelectedLine popupState element viewport =
             viewport.viewport.y + element.element.y - element.element.height - 380
     in
     case popupState of
-        Types.CheatSheetPopup ->
+        Types.GuidesPopup ->
             Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 y)
 
         Types.ManualsPopup ->

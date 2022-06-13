@@ -24,6 +24,7 @@ module Types exposing
     , FrontendModel
     , FrontendMsg(..)
     , GroupName
+    , ManualType(..)
     , MaximizedIndex(..)
     , Message
     , MessageStatus(..)
@@ -267,7 +268,7 @@ type FrontendMsg
     | Render Render.Msg.MarkupMsg
       -- UI
     | ToggleCheatsheet
-    | ToggleManuals
+    | ToggleManuals ManualType
     | OpenSharedDocumentList
     | SetAppMode AppMode
     | GotNewWindowDimensions Int Int
@@ -386,6 +387,11 @@ type FrontendMsg
     | FinallyDoCleanPrintArtefacts String
       ---
     | Help String
+
+
+type ManualType
+    = TManual
+    | TGuide
 
 
 
@@ -549,7 +555,7 @@ type PopupState
     | LanguageMenuPopup
     | NewDocumentPopup
     | UserMessagePopup
-    | CheatSheetPopup
+    | GuidesPopup
     | ManualsPopup
     | SharePopup
     | NetworkMonitorPopup

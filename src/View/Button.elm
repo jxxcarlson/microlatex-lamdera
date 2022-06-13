@@ -283,7 +283,7 @@ toggleCheatSheet =
         { tooltipText = "Cheat sheet for the current markup language"
         , tooltipPlacement = E.below
         , attributes = [ Font.color Color.white ]
-        , msg = ToggleCheatsheet
+        , msg = ToggleManuals
         , label = "Guide"
         }
 

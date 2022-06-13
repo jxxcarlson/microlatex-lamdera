@@ -510,26 +510,42 @@ update msg model =
                                 PlainTextLang ->
                                     Config.plainTextCheatsheetId
                     in
-                    ( { model | popupState = CheatSheetPopup }, sendToBackend (FetchDocumentById HandleAsManual id) )
+                    ( { model | popupState = GuidesPopup }, sendToBackend (FetchDocumentById HandleAsManual id) )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
 
-        ToggleManuals ->
+        ToggleManuals manualType ->
             case model.popupState of
                 NoPopup ->
-                    case model.language of
-                        L0Lang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
+                    case manualType of
+                        Types.TManual ->
+                            case model.language of
+                                L0Lang ->
+                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
 
-                        MicroLaTeXLang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
+                                MicroLaTeXLang ->
+                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
 
-                        XMarkdownLang ->
-                            ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
+                                XMarkdownLang ->
+                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
 
-                        PlainTextLang ->
-                            ( { model | popupState = NoPopup }, Cmd.none )
+                                PlainTextLang ->
+                                    ( { model | popupState = NoPopup }, Cmd.none )
+
+                        Types.TGuide ->
+                            case model.language of
+                                L0Lang ->
+                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
+
+                                MicroLaTeXLang ->
+                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
+
+                                XMarkdownLang ->
+                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
+
+                                PlainTextLang ->
+                                    ( { model | popupState = NoPopup }, Cmd.none )
 
                 ManualsPopup ->
                     if

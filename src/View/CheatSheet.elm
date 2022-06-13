@@ -20,7 +20,7 @@ import View.Utility
 
 view : FrontendModel -> E.Element Types.FrontendMsg
 view model =
-    if model.popupState == CheatSheetPopup then
+    if model.popupState == GuidesPopup then
         viewCheatSheet model
 
     else if model.popupState == ManualsPopup then
