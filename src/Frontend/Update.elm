@@ -936,7 +936,12 @@ handleSharedDocument model username doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch [ savePreviousCurrentDocumentCmd model, Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    , Cmd.batch
+        [ Nav.pushUrl model.key ("/c/" ++ doc.id)
+        , savePreviousCurrentDocumentCmd model
+        , Frontend.Cmd.setInitialEditorContent 20
+        , View.Utility.setViewPortToTop model.popupState
+        ]
     )
 
 
@@ -969,7 +974,12 @@ handleAsReceivedDocumentWithDelay model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch [ Util.delay 200 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    , Cmd.batch
+        [ Nav.pushUrl model.key ("/c/" ++ doc.id)
+        , Util.delay 200 (SetDocumentCurrent doc)
+        , Frontend.Cmd.setInitialEditorContent 20
+        , View.Utility.setViewPortToTop model.popupState
+        ]
     )
 
 
@@ -1002,7 +1012,11 @@ handlePinnedDocuments model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch [ Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    , Cmd.batch
+        [ Nav.pushUrl model.key ("/c/" ++ doc.id)
+        , Frontend.Cmd.setInitialEditorContent 20
+        , View.Utility.setViewPortToTop model.popupState
+        ]
     )
 
 
