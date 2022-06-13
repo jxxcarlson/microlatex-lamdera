@@ -499,7 +499,7 @@ update msg model =
                         id =
                             case model.language of
                                 L0Lang ->
-                                    Config.l0CheatsheetGuideId
+                                    Config.l0GuideId
 
                                 MicroLaTeXLang ->
                                     Config.microLaTeXGuideId

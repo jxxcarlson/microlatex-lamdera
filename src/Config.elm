@@ -14,7 +14,7 @@ module Config exposing
     , host
     , indentationQuantum
     , initialLanguage
-    , l0CheatsheetGuideId
+    , l0GuideId
     , l0ManualId
     , loadingId
     , loadingText
@@ -142,7 +142,7 @@ notFoundDocId =
             "id-fl180-br848"
 
 
-l0CheatsheetGuideId =
+l0GuideId =
     "jxxcarlson:l0-guide"
 
 

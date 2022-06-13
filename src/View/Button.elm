@@ -295,7 +295,7 @@ toggleManuals =
         , tooltipPlacement = E.below
         , attributes = [ Font.color Color.white ]
         , msg = ToggleManuals
-        , label = "Manuals"
+        , label = "Manual"
         }
 
 
