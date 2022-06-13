@@ -240,7 +240,11 @@ openEditor doc model =
                     { userId = currentUser.id, username = currentUser.username }
 
                 currentEditorList =
-                    Util.insertInListOrUpdate equal editorItem oldEditorList
+                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
+                        Util.insertInListOrUpdate equal editorItem oldEditorList
+
+                    else
+                        oldEditorList
 
                 updatedDoc =
                     if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
@@ -634,75 +638,92 @@ setDocumentAsCurrent cmd model doc permissions =
 
 setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
 setDocumentAsCurrent_ cmd model doc permissions =
-    let
-        newOTDocument =
-            { id = doc.id, cursor = 0, x = 0, y = 0, content = doc.content }
+    case model.currentUser of
+        Nothing ->
+            ( model, Cmd.none )
 
-        -- For now, loc the doc in all cases
-        currentUserName_ : String
-        currentUserName_ =
-            Util.currentUsername model.currentUser
+        Just currentUser ->
+            let
+                newOTDocument =
+                    { id = doc.id, cursor = 0, x = 0, y = 0, content = doc.content }
 
-        newEditRecord : Compiler.DifferentialParser.EditRecord
-        newEditRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+                -- For now, loc the doc in all cases
+                currentUserName_ =
+                    currentUser.username
 
-        -- filesToInclude =
-        --    newEditRecord.includedFiles
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
+                oldEditorList =
+                    doc.currentEditorList
 
-        currentMasterDocument =
-            if Predicate.isMaster newEditRecord then
-                Just doc
+                equal a b =
+                    a.userId == b.userId
 
-            else
-                Nothing
+                editorItem : Document.EditorData
+                editorItem =
+                    { userId = currentUser.id, username = currentUser.username }
 
-        ( readers, editors ) =
-            View.Utility.getReadersAndEditors (Just doc)
+                currentEditorList =
+                    Util.insertInListOrUpdate equal editorItem oldEditorList
 
-        newCurrentUser =
-            addDocToCurrentUser model doc
+                newEditRecord : Compiler.DifferentialParser.EditRecord
+                newEditRecord =
+                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
-        newDocumentStatus =
-            if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
-                Document.DSCanEdit
+                -- filesToInclude =
+                --    newEditRecord.includedFiles
+                errorMessages : List Types.Message
+                errorMessages =
+                    Message.make (newEditRecord.messages |> String.join "; ") MSYellow
 
-            else
-                Document.DSReadOnly
+                currentMasterDocument =
+                    if Predicate.isMaster newEditRecord then
+                        Just doc
 
-        updatedDoc =
-            { doc | status = newDocumentStatus }
-    in
-    ( { model
-        | currentDocument = Just updatedDoc
-        , selectedSlug = Document.getSlug updatedDoc
-        , currentMasterDocument = currentMasterDocument
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
-        , sourceText = doc.content
-        , initialText = doc.content
-        , documents = Util.updateDocumentInList updatedDoc model.documents
-        , editRecord = newEditRecord
-        , title =
-            Compiler.ASTTools.title newEditRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-        , permissions = setPermissions model.currentUser permissions doc
-        , counter = model.counter + 1
-        , language = doc.language
-        , currentUser = newCurrentUser
-        , inputReaders = readers
-        , inputEditors = editors
-        , messages = errorMessages
-        , lastInteractionTime = model.currentTime
-      }
-    , Cmd.batch
-        [ View.Utility.setViewPortToTop model.popupState
-        , Cmd.batch [ cmd, sendToBackend (SaveDocument model.currentUser updatedDoc) ]
-        , Nav.pushUrl model.key ("/c/" ++ doc.id)
-        ]
-    )
+                    else
+                        Nothing
+
+                ( readers, editors ) =
+                    View.Utility.getReadersAndEditors (Just doc)
+
+                newCurrentUser =
+                    addDocToCurrentUser model doc
+
+                newDocumentStatus =
+                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
+                        Document.DSCanEdit
+
+                    else
+                        Document.DSReadOnly
+
+                updatedDoc =
+                    { doc | status = newDocumentStatus }
+            in
+            ( { model
+                | currentDocument = Just updatedDoc
+                , selectedSlug = Document.getSlug updatedDoc
+                , currentMasterDocument = currentMasterDocument
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+                , sourceText = doc.content
+                , initialText = doc.content
+                , documents = Util.updateDocumentInList updatedDoc model.documents
+                , editRecord = newEditRecord
+                , title =
+                    Compiler.ASTTools.title newEditRecord.parsed
+                , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
+                , permissions = setPermissions model.currentUser permissions doc
+                , counter = model.counter + 1
+                , language = doc.language
+                , currentUser = newCurrentUser
+                , inputReaders = readers
+                , inputEditors = editors
+                , messages = errorMessages
+                , lastInteractionTime = model.currentTime
+              }
+            , Cmd.batch
+                [ View.Utility.setViewPortToTop model.popupState
+                , Cmd.batch [ cmd, sendToBackend (SaveDocument model.currentUser updatedDoc) ]
+                , Nav.pushUrl model.key ("/c/" ++ doc.id)
+                ]
+            )
 
 
 
