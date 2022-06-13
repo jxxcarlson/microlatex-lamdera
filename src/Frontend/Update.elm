@@ -227,7 +227,7 @@ openEditor doc model =
         Nothing ->
             ( model, Cmd.none )
 
-        Just user ->
+        Just currentUser ->
             let
                 oldEditorList =
                     doc.currentEditorList
@@ -237,7 +237,7 @@ openEditor doc model =
 
                 editorItem : Document.EditorData
                 editorItem =
-                    { userId = user.id, username = user.username }
+                    { userId = currentUser.id, username = currentUser.username }
 
                 currentEditorList =
                     Util.insertInListOrUpdate equal editorItem oldEditorList
@@ -250,10 +250,10 @@ openEditor doc model =
                         { doc | status = Document.DSReadOnly }
 
                 sendersName =
-                    Util.currentUsername model.currentUser
+                    currentUser.username
 
                 sendersId =
-                    Util.currentUserId model.currentUser
+                    currentUser.id
             in
             ( { model
                 | showEditor = True
@@ -263,12 +263,12 @@ openEditor doc model =
               }
             , Cmd.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
-                , if Predicate.documentIsMineOrIAmAnEditor (Just doc) model.currentUser then
-                    sendToBackend (AddEditor user updatedDoc)
+                , if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
+                    sendToBackend (AddEditor currentUser updatedDoc)
 
                   else
                     Cmd.none
-                , if Predicate.documentIsMineOrIAmAnEditor (Just doc) model.currentUser then
+                , if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
                     sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
 
                   else
