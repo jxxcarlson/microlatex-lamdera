@@ -548,25 +548,48 @@ update msg model =
                                     ( { model | popupState = NoPopup }, Cmd.none )
 
                 ManualsPopup ->
-                    if
-                        List.member (Maybe.andThen Document.getSlug model.currentManual)
-                            [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
-                    then
-                        ( { model | popupState = NoPopup }, Cmd.none )
-
-                    else
-                        case model.language of
-                            L0Lang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
-
-                            MicroLaTeXLang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
-
-                            XMarkdownLang ->
-                                ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
-
-                            PlainTextLang ->
+                    case manualType of
+                        Types.TManual ->
+                            if
+                                List.member (Maybe.andThen Document.getSlug model.currentManual)
+                                    [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
+                            then
                                 ( { model | popupState = NoPopup }, Cmd.none )
+
+                            else
+                                case model.language of
+                                    L0Lang ->
+                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
+
+                                    MicroLaTeXLang ->
+                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
+
+                                    XMarkdownLang ->
+                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
+
+                                    PlainTextLang ->
+                                        ( { model | popupState = NoPopup }, Cmd.none )
+
+                        Types.TGuide ->
+                            if
+                                List.member (Maybe.andThen Document.getSlug model.currentManual)
+                                    [ Just Config.l0GuideId, Just Config.microLaTeXGuideId, Just Config.microLaTeXGuideId ]
+                            then
+                                ( { model | popupState = NoPopup }, Cmd.none )
+
+                            else
+                                case model.language of
+                                    L0Lang ->
+                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
+
+                                    MicroLaTeXLang ->
+                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
+
+                                    XMarkdownLang ->
+                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
+
+                                    PlainTextLang ->
+                                        ( { model | popupState = NoPopup }, Cmd.none )
 
                 _ ->
                     ( { model | popupState = NoPopup }, Cmd.none )
