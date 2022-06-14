@@ -1,7 +1,6 @@
 module View.Chat exposing (focusMessageInput, scrollChatToBottom, view)
 
 import Browser.Dom as Dom
-import Chat
 import DateTimeUtility
 import Element as E
 import Element.Background as Background
@@ -9,11 +8,9 @@ import Element.Font as Font
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
-import Json.Decode as D
 import Task
 import Time
 import Types exposing (..)
-import Util
 import View.Button
 import View.Color as Color
 import View.Geometry as Geometry
@@ -149,9 +146,7 @@ viewMessages_ h model =
                 , Background.color Color.transparentBlue
                 , E.paddingXY 6 16
                 ]
-
         , chatInput model MessageFieldChanged |> E.html
-
         , button (onClick MessageSubmitted :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
         ]
 
@@ -163,7 +158,7 @@ chatInput model msg =
          , type_ "text"
          , onInput msg
          , style "height" "30px"
-         , onEnter Types.MessageSubmitted
+         , View.Utility.onEnter Types.MessageSubmitted
          , placeholder model.chatMessageFieldContent
          , value model.chatMessageFieldContent
          , style "width" "353px"
@@ -206,16 +201,3 @@ scrollChatToBottom =
 focusMessageInput : Cmd FrontendMsg
 focusMessageInput =
     Task.attempt (always Types.FENoOp) (Dom.focus "message-input")
-
-
-onEnter : FrontendMsg -> Html.Attribute FrontendMsg
-onEnter msg =
-    let
-        isEnter code =
-            if code == 13 then
-                D.succeed msg
-
-            else
-                D.fail "not ENTER"
-    in
-    on "keydown" (keyCode |> D.andThen isEnter)

@@ -1,12 +1,12 @@
 module View.Input exposing
-    ( editors
+    ( editorCommand
+    , editors
     , email
     , enterPrivateId
     , group
     , groupAssistant
     , groupMembers
     , groupName
-    , editorCommand
     , password
     , passwordAgain
     , passwordLarge
@@ -95,7 +95,6 @@ passwordTemplate width_ default msg text =
 editorCommand : Int -> FrontendModel -> Element FrontendMsg
 editorCommand width_ model =
     inputFieldTemplate (E.px width_) "Editor command" InputCommand model.inputCommand
-
 
 
 groupMembers : Int -> Int -> FrontendModel -> Element FrontendMsg
