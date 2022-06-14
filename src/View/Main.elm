@@ -156,11 +156,7 @@ newDocumentPopup model =
                     , Button.setLanguage False model.language PlainTextLang "Plain text"
                     , Button.setLanguage False model.language XMarkdownLang "XMarkdown"
                     ]
-                , if String.length model.inputTitle >= 3 then
-                    Button.createDocument
-
-                  else
-                    E.none
+                , Button.createDocument model.inputTitle
                 ]
 
         _ ->

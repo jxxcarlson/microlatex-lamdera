@@ -111,7 +111,7 @@ viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
                         E.paragraph
                             [ E.htmlAttribute (HtmlAttr.id "title")
                             , Font.size 16
-                            , E.paddingEach { top = 0, bottom = 12, left = 0, right = 0 }
+                            , E.paddingEach { top = 0, bottom = 0, left = 0, right = 0 }
                             ]
                             [ E.text s ]
                    )

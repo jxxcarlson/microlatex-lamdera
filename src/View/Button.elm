@@ -671,9 +671,13 @@ printToPDF model =
                 { url = Config.pdfServer ++ "/pdf/" ++ (Maybe.map .id model.currentDocument |> Maybe.withDefault "???"), label = E.el [] (E.text "Click for PDF") }
 
 
-createDocument : Element FrontendMsg
-createDocument =
-    buttonTemplate [] NewDocument "Create"
+createDocument : String -> Element FrontendMsg
+createDocument title =
+    if String.length title < 3 then
+        buttonTemplate [ Background.color (E.rgb 0.7 0.7 0.7) ] NewDocument "Create"
+
+    else
+        buttonTemplate [] NewDocument "Create"
 
 
 popupNewDocumentForm : PopupState -> Element FrontendMsg
