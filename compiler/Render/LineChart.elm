@@ -5,10 +5,61 @@ import Chart.Attributes
 import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
 import Element.Font as Font
+import List.Extra
 import Maybe.Extra
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
 import View.Color
+
+
+getArg : String -> List String -> Maybe String
+getArg name args =
+    List.filter (\item -> String.contains name item) args |> List.head
+
+
+parseArg : String -> List String
+parseArg arg =
+    let
+        parts =
+            String.split ":" arg
+    in
+    case parts of
+        [] ->
+            []
+
+        name :: [] ->
+            []
+
+        name :: argString :: [] ->
+            String.split "," argString
+
+        _ ->
+            []
+
+
+view : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+view count acc settings args id str =
+    let
+        _ =
+            Debug.log "!! ARGS" args
+
+        timeseries =
+            getArg "timeseries" args |> Debug.log "!! TIME SERIES"
+
+        columns =
+            case getArg "columns" args of
+                Nothing ->
+                    Nothing
+
+                Just argList ->
+                    parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just |> Debug.log "COLUMNS"
+
+        data : Maybe ChartData
+        data =
+            csvToChartData timeseries columns str
+    in
+    Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
+        (rawLineChart data)
 
 
 type ChartData
@@ -17,8 +68,46 @@ type ChartData
     | ChartData4D (List { x : Float, y : Float, z : Float, w : Float })
 
 
-csvTo2ChartData : String -> Maybe ChartData
-csvTo2ChartData str =
+applyFunctions : List (a -> b) -> a -> List b
+applyFunctions fs a =
+    List.foldl (\f acc -> f a :: acc) [] fs |> List.reverse
+
+
+select : Maybe (List Int) -> List a -> Maybe (List a)
+select columns_ data =
+    case columns_ of
+        Nothing ->
+            Just data
+
+        Just columns ->
+            let
+                selectors : List (List a -> Maybe a)
+                selectors =
+                    List.map List.Extra.getAt columns
+            in
+            applyFunctions selectors data |> Maybe.Extra.combine
+
+
+selectColumns : Maybe (List Int) -> List (List a) -> Maybe (List (List a))
+selectColumns columns data =
+    if columns == Just [] then
+        Just data |> Debug.log "!! DATA (1)"
+
+    else
+        data
+            |> List.Extra.transpose
+            |> select columns
+            |> Maybe.map List.Extra.transpose
+            |> Debug.log "!! DATA (2)"
+
+
+makeTimeseries : List String -> List (List String)
+makeTimeseries data =
+    List.indexedMap (\i datum -> [ String.fromInt i, datum ]) data
+
+
+csvToChartData : Maybe String -> Maybe (List Int) -> String -> Maybe ChartData
+csvToChartData timeseries columns str =
     let
         dataLines : List String
         dataLines =
@@ -26,8 +115,19 @@ csvTo2ChartData str =
                 |> String.lines
                 |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
 
+        data : Maybe (List (List String))
+        data =
+            case timeseries of
+                Just _ ->
+                    str |> String.lines |> List.map String.trim |> makeTimeseries |> Just
+
+                Nothing ->
+                    List.map (String.split "," >> List.map String.trim) dataLines
+                        |> selectColumns columns
+
+        dimension : Maybe Int
         dimension =
-            Maybe.map (String.split ",") (List.head dataLines) |> Maybe.map List.length
+            data |> Maybe.andThen List.head |> Maybe.map List.length |> Debug.log "!! DIMENSION"
     in
     case dimension of
         Nothing ->
@@ -107,17 +207,6 @@ valueOfTriple ( ma, mb, mc ) =
 
         _ ->
             Nothing
-
-
-view : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
-view count acc settings args id str =
-    let
-        data : Maybe ChartData
-        data =
-            csvTo2ChartData str
-    in
-    Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
-        (rawLineChart data)
 
 
 rawLineChart : Maybe ChartData -> Element msg
