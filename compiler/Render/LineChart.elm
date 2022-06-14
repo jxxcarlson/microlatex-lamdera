@@ -1,7 +1,7 @@
 module Render.LineChart exposing (view)
 
 import Chart
-import Chart.Attributes
+import Chart.Attributes as CA
 import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
 import Element.Font as Font
@@ -12,39 +12,42 @@ import Render.Settings exposing (Settings)
 import View.Color
 
 
-getArg : String -> List String -> Maybe String
-getArg name args =
-    List.filter (\item -> String.contains name item) args |> List.head
+type alias Options =
+    { timeseries : Maybe String
+    , reverse : Maybe String
+    , columns : Maybe (List Int)
+    , lowest : Maybe Float
+    }
 
 
-parseArg : String -> List String
-parseArg arg =
-    let
-        parts =
-            String.split ":" arg
-    in
-    case parts of
-        [] ->
-            []
+getColumns args =
+    case getArg "columns" args of
+        Nothing ->
+            Nothing
 
-        name :: [] ->
-            []
+        Just argList ->
+            parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just
 
-        name :: argString :: [] ->
-            String.split "," argString
 
-        _ ->
-            []
+getFloat : Maybe String -> Maybe Float
+getFloat str =
+    str
+        |> Maybe.map (String.split ":")
+        |> Maybe.map (List.drop 1)
+        |> Maybe.andThen List.head
+        |> Maybe.andThen String.toFloat
 
 
 view : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 view count acc settings args id str =
     let
-        _ =
-            Debug.log "!! ARGS" args
-
-        timeseries =
-            getArg "timeseries" args |> Debug.log "!! TIME SERIES"
+        options : Options
+        options =
+            { timeseries = getArg "timeseries" args
+            , reverse = getArg "reverse" args
+            , columns = getColumns args
+            , lowest = getArg "lowest" args |> getFloat
+            }
 
         columns =
             case getArg "columns" args of
@@ -52,25 +55,20 @@ view count acc settings args id str =
                     Nothing
 
                 Just argList ->
-                    parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just |> Debug.log "COLUMNS"
+                    parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just
 
         data : Maybe ChartData
         data =
-            csvToChartData timeseries columns str
+            csvToChartData options str
     in
     Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
-        (rawLineChart data)
+        (rawLineChart options data)
 
 
 type ChartData
     = ChartData2D (List { x : Float, y : Float })
     | ChartData3D (List { x : Float, y : Float, z : Float })
     | ChartData4D (List { x : Float, y : Float, z : Float, w : Float })
-
-
-applyFunctions : List (a -> b) -> a -> List b
-applyFunctions fs a =
-    List.foldl (\f acc -> f a :: acc) [] fs |> List.reverse
 
 
 select : Maybe (List Int) -> List a -> Maybe (List a)
@@ -91,45 +89,45 @@ select columns_ data =
 selectColumns : Maybe (List Int) -> List (List a) -> Maybe (List (List a))
 selectColumns columns data =
     if columns == Just [] then
-        Just data |> Debug.log "!! DATA (1)"
+        Just data
 
     else
         data
             |> List.Extra.transpose
             |> select columns
             |> Maybe.map List.Extra.transpose
-            |> Debug.log "!! DATA (2)"
 
 
-makeTimeseries : List String -> List (List String)
+makeTimeseries : List (List String) -> List (List String)
 makeTimeseries data =
-    List.indexedMap (\i datum -> [ String.fromInt i, datum ]) data
+    List.indexedMap (\i oneList -> String.fromInt i :: oneList) data
 
 
-csvToChartData : Maybe String -> Maybe (List Int) -> String -> Maybe ChartData
-csvToChartData timeseries columns str =
+csvToChartData : Options -> String -> Maybe ChartData
+csvToChartData options str =
     let
         dataLines : List String
         dataLines =
             str
                 |> String.lines
                 |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
+                |> maybeApply options.reverse List.reverse
 
         data_ : Maybe (List (List String))
         data_ =
-            (case timeseries of
+            case options.timeseries of
                 Just _ ->
-                    str |> String.lines |> List.map String.trim |> makeTimeseries |> Just
+                    List.map (String.split "," >> List.map String.trim) dataLines
+                        |> selectColumns options.columns
+                        |> Maybe.map makeTimeseries
 
                 Nothing ->
                     List.map (String.split "," >> List.map String.trim) dataLines
-                        |> selectColumns columns
-            )
-                |> Debug.log "!! DATA"
+                        |> selectColumns options.columns
 
         dimension : Maybe Int
         dimension =
-            data_ |> Maybe.andThen List.head |> Maybe.map List.length |> Debug.log "!! DIMENSION"
+            data_ |> Maybe.andThen List.head |> Maybe.map List.length
     in
     case ( dimension, data_ ) of
         ( Nothing, _ ) ->
@@ -212,14 +210,14 @@ valueOfTriple ( ma, mb, mc ) =
             Nothing
 
 
-rawLineChart : Maybe ChartData -> Element msg
-rawLineChart mChartData =
+rawLineChart : Options -> Maybe ChartData -> Element msg
+rawLineChart options mChartData =
     case mChartData of
         Nothing ->
             Element.el [ Font.size 14, Font.color View.Color.red ] (Element.text "Line chart: Error parsing data")
 
         Just (ChartData2D data) ->
-            rawLineChart2D data
+            rawLineChart2D options data
 
         Just (ChartData3D data) ->
             rawLineChart3D data
@@ -228,16 +226,22 @@ rawLineChart mChartData =
             Element.el [ Font.size 14, Font.color View.Color.red ] (Element.text "Line chart: Error, can only handle 2D data")
 
 
-rawLineChart2D : List { x : Float, y : Float } -> Element msg
-rawLineChart2D data =
+rawLineChart2D : Options -> List { x : Float, y : Float } -> Element msg
+rawLineChart2D options data =
     Chart.chart
-        [ Chart.Attributes.height 200
-        , Chart.Attributes.width 400
+        [ CA.height 200
+        , CA.width 400
+        , case options.lowest of
+            Nothing ->
+                CA.domain []
+
+            Just lowest ->
+                CA.domain [ CA.lowest lowest CA.orLower ]
         ]
-        [ Chart.xLabels [ Chart.Attributes.fontSize 10 ]
-        , Chart.yLabels [ Chart.Attributes.withGrid, Chart.Attributes.fontSize 10 ]
+        [ Chart.xLabels [ CA.fontSize 10 ]
+        , Chart.yLabels [ CA.withGrid, CA.fontSize 10 ]
         , Chart.series .x
-            [ Chart.interpolated .y [ Chart.Attributes.color Chart.Attributes.red ] []
+            [ Chart.interpolated .y [ CA.color CA.red ] []
             ]
             data
         ]
@@ -247,15 +251,82 @@ rawLineChart2D data =
 rawLineChart3D : List { x : Float, y : Float, z : Float } -> Element msg
 rawLineChart3D data =
     Chart.chart
-        [ Chart.Attributes.height 200
-        , Chart.Attributes.width 400
+        [ CA.height 200
+        , CA.width 400
         ]
-        [ Chart.xLabels [ Chart.Attributes.fontSize 10 ]
-        , Chart.yLabels [ Chart.Attributes.withGrid, Chart.Attributes.fontSize 10 ]
+        [ Chart.xLabels [ CA.fontSize 10 ]
+        , Chart.yLabels [ CA.withGrid, CA.fontSize 10 ]
         , Chart.series .x
-            [ Chart.interpolated .y [ Chart.Attributes.color Chart.Attributes.red ] []
-            , Chart.interpolated .z [ Chart.Attributes.color Chart.Attributes.darkBlue ] []
+            [ Chart.interpolated .y [ CA.color CA.red ] []
+            , Chart.interpolated .z [ CA.color CA.darkBlue ] []
             ]
             data
         ]
         |> Element.html
+
+
+
+-- UTILTIES
+
+
+applyFunctions : List (a -> b) -> a -> List b
+applyFunctions fs a =
+    List.foldl (\f acc -> f a :: acc) [] fs |> List.reverse
+
+
+ifApply : Bool -> (a -> a) -> a -> a
+ifApply flag f x =
+    if flag then
+        f x
+
+    else
+        x
+
+
+maybeApply : Maybe a -> (b -> b) -> b -> b
+maybeApply maybe f x =
+    case maybe of
+        Just _ ->
+            f x
+
+        Nothing ->
+            x
+
+
+maybeChoose : Maybe a -> (b -> b) -> (b -> b) -> b -> b
+maybeChoose maybe f g x =
+    case maybe of
+        Just _ ->
+            f x
+
+        Nothing ->
+            g x
+
+
+
+-- ARG
+
+
+getArg : String -> List String -> Maybe String
+getArg name args =
+    List.filter (\item -> String.contains name item) args |> List.head
+
+
+parseArg : String -> List String
+parseArg arg =
+    let
+        parts =
+            String.split ":" arg
+    in
+    case parts of
+        [] ->
+            []
+
+        name :: [] ->
+            []
+
+        name :: argString :: [] ->
+            String.split "," argString
+
+        _ ->
+            []
