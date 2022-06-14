@@ -16,9 +16,9 @@ import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
 import Parser.MathMacro
+import Render.Chart
 import Render.Color as Color
 import Render.Elm
-import Render.LineChart
 import Render.Math exposing (DisplayMode(..))
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
@@ -155,7 +155,7 @@ verbatimDict =
         , ( "comment", renderComment )
         , ( "mathmacros", renderComment )
         , ( "datatable", datatable )
-        , ( "lineChart", Render.LineChart.view )
+        , ( "chart", Render.Chart.view )
         , ( "svg", svg )
         , ( "quiver", quiver )
         , ( "load-files", \_ _ _ _ _ _ -> Element.none )

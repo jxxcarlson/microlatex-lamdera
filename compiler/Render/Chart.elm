@@ -1,7 +1,8 @@
-module Render.LineChart exposing (view)
+module Render.Chart exposing (view)
 
 import Chart
 import Chart.Attributes as CA
+import Chart.Svg exposing (Axis)
 import Compiler.Acc exposing (Accumulator)
 import Element exposing (Element)
 import Element.Font as Font
@@ -18,7 +19,14 @@ type alias Options =
     , columns : Maybe (List Int)
     , lowest : Maybe Float
     , label : Maybe String
+    , kind : Maybe String -- e.g, kind:line or --kind:scatter
+    , domain : Maybe Range
+    , range : Maybe Range
     }
+
+
+type alias Range =
+    { lowest : Maybe Float, highest : Maybe Float }
 
 
 view : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
@@ -31,6 +39,9 @@ view count acc settings args id str =
             , columns = getColumns args
             , lowest = getArg "lowest" args |> getFloat
             , label = getArgAfter "label" args
+            , kind = getArg "kind" args |> getString
+            , domain = getArg "domain" args |> Debug.log "!! DOMAIN (1) " |> Maybe.andThen getRange |> Debug.log "!! DOMAIN (2) "
+            , range = getArg "range" args |> Debug.log "!! RANGE (1) " |> Maybe.andThen getRange |> Debug.log "!! RANGE (2)"
             }
 
         data : Maybe ChartData
@@ -210,8 +221,66 @@ rawLineChart options mChartData =
             Element.el [ Font.size 14, Font.color View.Color.red ] (Element.text "Line chart: Error, can only handle 2D data")
 
 
+expandRange : { a | lowest : Maybe Float, highest : Maybe Float } -> List (Axis -> Axis)
+expandRange { lowest, highest } =
+    let
+        low =
+            case lowest of
+                Nothing ->
+                    CA.lowest 0 CA.orLower
+
+                Just u ->
+                    CA.lowest u CA.exactly
+
+        high =
+            case highest of
+                Nothing ->
+                    CA.highest 100 CA.orHigher
+
+                Just u ->
+                    CA.highest u CA.exactly
+    in
+    [ low, high ]
+
+
+foo : List (Axis -> Axis)
+foo =
+    [ CA.lowest -5 CA.orLower
+
+    -- Makes sure that your x-axis begins at -5 or lower, no matter
+    -- what your data is like.
+    , CA.highest 10 CA.orHigher
+
+    -- Makes sure that your x-axis ends at 10 or higher, no matter
+    -- what your data is like.
+    ]
+
+
 rawLineChart2D : Options -> List { x : Float, y : Float } -> Element msg
 rawLineChart2D options data =
+    let
+        _ =
+            Debug.log "!! DOMAIN" options.domain
+
+        _ =
+            Debug.log "!! RANGE" options.range
+
+        domain =
+            case options.domain of
+                Nothing ->
+                    CA.domain []
+
+                Just range_ ->
+                    CA.domain (expandRange range_)
+
+        range =
+            case options.range of
+                Nothing ->
+                    CA.range []
+
+                Just range_ ->
+                    CA.range (expandRange range_)
+    in
     Chart.chart
         [ CA.height 200
         , CA.width 400
@@ -221,13 +290,27 @@ rawLineChart2D options data =
 
             Just lowest ->
                 CA.domain [ CA.lowest lowest CA.orLower ]
+
+        --, CA.range []
+        --, CA.domain []
         ]
         [ Chart.xLabels [ CA.fontSize 10 ]
         , Chart.yLabels [ CA.withGrid, CA.fontSize 10 ]
-        , Chart.series .x
-            [ Chart.interpolated .y [ CA.color CA.red ] []
-            ]
-            data
+        , case options.kind of
+            Just "line" ->
+                Chart.series .x [ Chart.interpolated .y [ CA.color CA.red ] [] ] data
+
+            Just "scatter" ->
+                Chart.series .x [ Chart.scatter .y [] ] data
+
+            Just "bar" ->
+                Chart.bars []
+                    [ Chart.bar .y []
+                    ]
+                    data
+
+            _ ->
+                Chart.series .x [ Chart.interpolated .y [ CA.color CA.red ] [] ] data
         ]
         |> Element.html
 
@@ -303,10 +386,19 @@ getColumns args =
 getFloat : Maybe String -> Maybe Float
 getFloat str =
     str
+        --|> Maybe.map (String.split ":")
+        --|> Maybe.map (List.drop 1)
+        --|> Maybe.andThen List.head
+        |> getString
+        |> Maybe.andThen String.toFloat
+
+
+getString : Maybe String -> Maybe String
+getString str =
+    str
         |> Maybe.map (String.split ":")
         |> Maybe.map (List.drop 1)
         |> Maybe.andThen List.head
-        |> Maybe.andThen String.toFloat
 
 
 getArgAfter : String -> List String -> Maybe String
@@ -349,3 +441,13 @@ parseArg arg =
 
         _ ->
             []
+
+
+getRange : String -> Maybe Range
+getRange str =
+    case str |> String.split "," |> List.map String.trim |> List.take 2 of
+        low :: high :: [] ->
+            Just { lowest = String.toFloat low, highest = String.toFloat high }
+
+        _ ->
+            Nothing
