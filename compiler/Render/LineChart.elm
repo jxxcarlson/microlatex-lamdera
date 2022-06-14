@@ -17,6 +17,7 @@ type alias Options =
     , reverse : Maybe String
     , columns : Maybe (List Int)
     , lowest : Maybe Float
+    , label : Maybe String
     }
 
 
@@ -38,6 +39,23 @@ getFloat str =
         |> Maybe.andThen String.toFloat
 
 
+getArgAfter : String -> List String -> Maybe String
+getArgAfter label args =
+    case List.Extra.findIndex (\item -> String.contains label item) args of
+        Nothing ->
+            Nothing
+
+        Just k ->
+            let
+                a =
+                    List.Extra.getAt k args |> Maybe.withDefault "" |> String.replace (label ++ ":") ""
+
+                b =
+                    List.drop (k + 1) args |> String.join " "
+            in
+            Just (a ++ b)
+
+
 view : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 view count acc settings args id str =
     let
@@ -47,6 +65,7 @@ view count acc settings args id str =
             , reverse = getArg "reverse" args
             , columns = getColumns args
             , lowest = getArg "lowest" args |> getFloat
+            , label = getArgAfter "label" args
             }
 
         columns =
@@ -61,8 +80,16 @@ view count acc settings args id str =
         data =
             csvToChartData options str
     in
-    Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
-        (rawLineChart options data)
+    Element.column [ Element.width (Element.px settings.width), Element.spacing 18 ]
+        [ Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
+            (rawLineChart options data)
+        , case options.label of
+            Nothing ->
+                Element.none
+
+            Just labelText ->
+                Element.el [ Element.centerX, Font.size 14, Font.color (Element.rgb 0.5 0.5 0.7) ] (Element.text labelText)
+        ]
 
 
 type ChartData
