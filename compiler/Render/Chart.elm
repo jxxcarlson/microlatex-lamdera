@@ -40,8 +40,8 @@ view count acc settings args id str =
             , lowest = getArg "lowest" args |> getFloat
             , label = getArgAfter "label" args
             , kind = getArg "kind" args |> getString
-            , domain = getArg "domain" args |> Debug.log "!! DOMAIN (1) " |> Maybe.andThen getRange |> Debug.log "!! DOMAIN (2) "
-            , range = getArg "range" args |> Debug.log "!! RANGE (1) " |> Maybe.andThen getRange |> Debug.log "!! RANGE (2)"
+            , domain = getArg "domain" args |> Maybe.andThen getRange
+            , range = getArg "range" args |> Maybe.andThen getRange
             }
 
         data : Maybe ChartData
@@ -259,12 +259,6 @@ foo =
 rawLineChart2D : Options -> List { x : Float, y : Float } -> Element msg
 rawLineChart2D options data =
     let
-        _ =
-            Debug.log "!! DOMAIN" options.domain
-
-        _ =
-            Debug.log "!! RANGE" options.range
-
         domain =
             case options.domain of
                 Nothing ->
