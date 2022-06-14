@@ -450,6 +450,7 @@ update msg model =
                 , inputPasswordAgain = ""
                 , inputEmail = ""
                 , inputRealname = ""
+                , messages = []
               }
             , Cmd.none
             )
