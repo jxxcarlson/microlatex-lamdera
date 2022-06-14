@@ -115,47 +115,50 @@ csvToChartData timeseries columns str =
                 |> String.lines
                 |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
 
-        data : Maybe (List (List String))
-        data =
-            case timeseries of
+        data_ : Maybe (List (List String))
+        data_ =
+            (case timeseries of
                 Just _ ->
                     str |> String.lines |> List.map String.trim |> makeTimeseries |> Just
 
                 Nothing ->
                     List.map (String.split "," >> List.map String.trim) dataLines
                         |> selectColumns columns
+            )
+                |> Debug.log "!! DATA"
 
         dimension : Maybe Int
         dimension =
-            data |> Maybe.andThen List.head |> Maybe.map List.length |> Debug.log "!! DIMENSION"
+            data_ |> Maybe.andThen List.head |> Maybe.map List.length |> Debug.log "!! DIMENSION"
     in
-    case dimension of
-        Nothing ->
+    case ( dimension, data_ ) of
+        ( Nothing, _ ) ->
             Nothing
 
-        Just 2 ->
-            Just (ChartData2D (csvTo2DData dataLines))
+        ( _, Nothing ) ->
+            Nothing
 
-        Just 3 ->
-            Just (ChartData3D (csvTo3DData dataLines))
+        ( Just 2, Just data ) ->
+            Just (ChartData2D (csvTo2DData data))
+
+        ( Just 3, Just data ) ->
+            Just (ChartData3D (csvTo3DData data))
 
         _ ->
             Nothing
 
 
-csvTo2DData : List String -> List { x : Float, y : Float }
-csvTo2DData lines =
-    lines
-        |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
-        |> List.map (String.split "," >> listTo2DPoint)
+csvTo2DData : List (List String) -> List { x : Float, y : Float }
+csvTo2DData data =
+    data
+        |> List.map listTo2DPoint
         |> Maybe.Extra.values
 
 
-csvTo3DData : List String -> List { x : Float, y : Float, z : Float }
-csvTo3DData lines =
-    lines
-        |> List.filter (\line -> String.trim line /= "" && String.left 1 line /= "#")
-        |> List.map (String.split "," >> listTo3DPoint)
+csvTo3DData : List (List String) -> List { x : Float, y : Float, z : Float }
+csvTo3DData data =
+    data
+        |> List.map listTo3DPoint
         |> Maybe.Extra.values
 
 
