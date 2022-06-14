@@ -21,41 +21,6 @@ type alias Options =
     }
 
 
-getColumns args =
-    case getArg "columns" args of
-        Nothing ->
-            Nothing
-
-        Just argList ->
-            parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just
-
-
-getFloat : Maybe String -> Maybe Float
-getFloat str =
-    str
-        |> Maybe.map (String.split ":")
-        |> Maybe.map (List.drop 1)
-        |> Maybe.andThen List.head
-        |> Maybe.andThen String.toFloat
-
-
-getArgAfter : String -> List String -> Maybe String
-getArgAfter label args =
-    case List.Extra.findIndex (\item -> String.contains label item) args of
-        Nothing ->
-            Nothing
-
-        Just k ->
-            let
-                a =
-                    List.Extra.getAt k args |> Maybe.withDefault "" |> String.replace (label ++ ":") ""
-
-                b =
-                    List.drop (k + 1) args |> String.join " "
-            in
-            Just (a ++ b)
-
-
 view : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
 view count acc settings args id str =
     let
@@ -68,27 +33,19 @@ view count acc settings args id str =
             , label = getArgAfter "label" args
             }
 
-        columns =
-            case getArg "columns" args of
-                Nothing ->
-                    Nothing
-
-                Just argList ->
-                    parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just
-
         data : Maybe ChartData
         data =
             csvToChartData options str
     in
-    Element.column [ Element.width (Element.px settings.width), Element.spacing 18 ]
-        [ Element.el [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 36 } ]
+    Element.column [ Element.width (Element.px settings.width), Element.paddingEach { left = 48, right = 0, top = 36, bottom = 72 }, Element.spacing 24 ]
+        [ Element.el [ Element.width (Element.px settings.width) ]
             (rawLineChart options data)
         , case options.label of
             Nothing ->
                 Element.none
 
             Just labelText ->
-                Element.el [ Element.centerX, Font.size 14, Font.color (Element.rgb 0.5 0.5 0.7) ] (Element.text labelText)
+                Element.el [ Element.centerX, Font.size 14, Font.color (Element.rgb 0.5 0.5 0.7), Element.paddingEach { left = 0, right = 0, top = 24, bottom = 0 } ] (Element.text labelText)
         ]
 
 
@@ -332,6 +289,41 @@ maybeChoose maybe f g x =
 
 
 -- ARG
+
+
+getColumns args =
+    case getArg "columns" args of
+        Nothing ->
+            Nothing
+
+        Just argList ->
+            parseArg argList |> List.map String.toInt |> Maybe.Extra.values |> Just
+
+
+getFloat : Maybe String -> Maybe Float
+getFloat str =
+    str
+        |> Maybe.map (String.split ":")
+        |> Maybe.map (List.drop 1)
+        |> Maybe.andThen List.head
+        |> Maybe.andThen String.toFloat
+
+
+getArgAfter : String -> List String -> Maybe String
+getArgAfter label args =
+    case List.Extra.findIndex (\item -> String.contains label item) args of
+        Nothing ->
+            Nothing
+
+        Just k ->
+            let
+                a =
+                    List.Extra.getAt k args |> Maybe.withDefault "" |> String.replace (label ++ ":") ""
+
+                b =
+                    List.drop (k + 1) args |> String.join " "
+            in
+            Just (a ++ b)
 
 
 getArg : String -> List String -> Maybe String
