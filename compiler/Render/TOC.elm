@@ -21,11 +21,11 @@ view : Int -> Accumulator -> Render.Settings.Settings -> Forest ExpressionBlock 
 view counter acc _ ast =
     case ast |> List.map Tree.flatten |> List.concat |> Compiler.ASTTools.filterBlocksOnName "contents" of
         [] ->
-            Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 18 } ]
+            Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 0 } ]
                 (prepareFrontMatter counter acc Render.Settings.defaultSettings ast)
 
         _ ->
-            Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 18 } ]
+            Element.column [ Element.spacing 8, Element.paddingEach { left = 0, right = 0, top = 0, bottom = 0 } ]
                 (prepareTOC counter acc Render.Settings.defaultSettings ast)
 
 

@@ -137,6 +137,9 @@ viewDocumentSmall windowWidth counter currentDocId selectedSlug editRecord =
 viewDocument : Int -> Int -> String -> Maybe String -> Compiler.DifferentialParser.EditRecord -> List (Element FrontendMsg)
 viewDocument windowWidth counter selectedId selectedSlug editRecord =
     let
+        blockNames =
+            Compiler.ASTTools.blockNames editRecord.parsed
+
         title_ : Element FrontendMsg
         title_ =
             Compiler.ASTTools.title editRecord.parsed
@@ -157,7 +160,11 @@ viewDocument windowWidth counter selectedId selectedSlug editRecord =
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth) editRecord.parsed |> List.map (E.map Render)
     in
-    runninghead :: title_ :: toc :: body
+    if List.member "contents" blockNames then
+        runninghead :: title_ :: toc :: body
+
+    else
+        runninghead :: title_ :: body
 
 
 setSelectedId : String -> Render.Settings.Settings -> Render.Settings.Settings
