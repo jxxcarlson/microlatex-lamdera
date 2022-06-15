@@ -92,7 +92,10 @@ viewTagDict model =
                         |> filterTags model.inputSearchTagsKey
 
         header =
-            E.el [ Font.size 14, E.paddingXY 2 4 ] (E.text <| "Tags: " ++ (List.length dictItems |> String.fromInt))
+            E.el [ Font.size 14, E.paddingXY 2 4 ] (E.text <| "Tags: " ++ (List.length viewedTagItems |> String.fromInt))
+
+        viewedTagItems =
+            List.map viewTagGroup dictItems
     in
     E.column
         [ E.scrollbarY
@@ -100,7 +103,7 @@ viewTagDict model =
         , E.spacing 4
         , E.height (E.px (Geometry.appHeight model - 190))
         ]
-        (header :: List.map viewTagGroup dictItems)
+        (header :: viewedTagItems)
 
 
 filterTags : String -> List ( String, List { a | id : String, title : String } ) -> List (List { tag : String, id : String, title : String })
