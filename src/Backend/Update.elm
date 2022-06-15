@@ -53,9 +53,12 @@ import Deque
 import Dict
 import Document exposing (Document)
 import DocumentTools
+import Effect.Browser.Dom
+import Effect.Command as Command exposing (BackendOnly, Command)
+import Effect.Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Effect.Time
 import Hex
 import IncludeFiles
-import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
 import List.Extra
 import Maybe.Extra
 import Message
@@ -64,7 +67,6 @@ import Predicate
 import Random
 import Set
 import Share
-import Time
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
@@ -80,12 +82,12 @@ type alias Model =
 -- CHAT
 
 
-handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
+handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 handleChatMsg message model =
-    ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
+    ( { model | chatDict = Chat.Message.insert message model.chatDict }, Command.batch (Chat.narrowCast model message) )
 
 
-handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Cmd BackendMsg )
+handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 handlePing message model =
     let
         groupMembers =
@@ -97,11 +99,11 @@ handlePing message model =
         messages =
             List.map (userMessageFromChatMessage message) groupMembers
 
-        commands : List (Cmd BackendMsg)
+        commands : List (Command BackendOnly ToFrontend BackendMsg)
         commands =
             List.map (\m -> deliverUserMessageCmd model m) messages
     in
-    ( model, Cmd.batch commands )
+    ( model, Command.batch commands )
 
 
 userMessageFromChatMessage : Chat.Message.ChatMessage -> String -> Types.UserMessage
@@ -122,11 +124,11 @@ userMessageFromChatMessage { sender, subject, content } recipient =
     }
 
 
-deliverUserMessageCmd : BackendModel -> Types.UserMessage -> Cmd BackendMsg
+deliverUserMessageCmd : BackendModel -> Types.UserMessage -> Command BackendOnly ToFrontend BackendMsg
 deliverUserMessageCmd model usermessage =
     case Dict.get usermessage.to model.connectionDict of
         Nothing ->
-            Cmd.none
+            Command.none
 
         Just connectionData ->
             let
@@ -134,15 +136,15 @@ deliverUserMessageCmd model usermessage =
                     List.map .client connectionData
 
                 commands =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
+                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
             in
-            Cmd.batch commands
+            Command.batch commands
 
 
 deliverUserMessage model clientId usermessage =
     case Dict.get usermessage.to model.connectionDict of
         Nothing ->
-            ( model, sendToFrontend clientId (UndeliverableMessage usermessage) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (UndeliverableMessage usermessage) )
 
         Just connectionData ->
             let
@@ -150,29 +152,29 @@ deliverUserMessage model clientId usermessage =
                     List.map .client connectionData
 
                 commands =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
+                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
             in
-            ( model, Cmd.batch commands )
+            ( model, Command.batch commands )
 
 
 apply :
-    (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+    (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
     -> BackendModel
-    -> ( BackendModel, Cmd BackendMsg )
+    -> ( BackendModel, Command restriction toMsg BackendMsg )
 apply f model =
     f model
 
 
 andThenApply :
-    (BackendModel -> ( BackendModel, Cmd BackendMsg ))
-    -> ( BackendModel, Cmd BackendMsg )
-    -> ( BackendModel, Cmd BackendMsg )
+    (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
+    -> ( BackendModel, Command restriction toMsg BackendMsg )
+    -> ( BackendModel, Command restriction toMsg BackendMsg )
 andThenApply f ( model, cmd ) =
     let
         ( model2, cmd2 ) =
             f model
     in
-    ( model2, Cmd.batch [ cmd, cmd2 ] )
+    ( model2, Command.batch [ cmd, cmd2 ] )
 
 
 
@@ -275,15 +277,15 @@ getSharedDocuments model clientId username =
         --        |> List.map (\( username_, data ) -> ( username_, onlineStatus username_, data ))
     in
     ( model
-    , sendToFrontend clientId (GotShareDocumentList (docs1 |> List.sortBy (\( _, _, doc ) -> doc.title)))
+    , Effect.Lamdera.sendToFrontend clientId (GotShareDocumentList (docs1 |> List.sortBy (\( _, _, doc ) -> doc.title)))
     )
 
 
-unlockDocuments : Model -> String -> ( Model, Cmd BackendMsg )
+unlockDocuments : Model -> String -> ( Model, Command restriction toMsg BackendMsg )
 unlockDocuments model userId =
     case Dict.get userId model.usersDocumentsDict of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just userDocIds ->
             let
@@ -295,10 +297,10 @@ unlockDocuments model userId =
                 newDocumentDict =
                     List.foldl (\doc dict -> Dict.insert doc.id doc dict) model.documentDict userDocs
             in
-            ( { model | documentDict = newDocumentDict }, Cmd.none )
+            ( { model | documentDict = newDocumentDict }, Command.none )
 
 
-applySpecial : BackendModel -> ClientId -> ( BackendModel, Cmd BackendMsg )
+applySpecial : BackendModel -> ClientId -> ( BackendModel, Command restriction toMsg BackendMsg )
 applySpecial model clientId =
     let
         updateDoc : Document.Document -> BackendModel -> BackendModel
@@ -318,7 +320,7 @@ applySpecial model clientId =
             List.foldl (\doc m -> updateDoc doc m) model (model.documentDict |> Dict.values)
     in
     ( newModel
-    , Cmd.none
+    , Command.none
     )
 
 
@@ -329,15 +331,15 @@ getBadDocuments model =
 getDocumentById model clientId documentHandling id =
     case Dict.get id model.documentDict of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSRed }) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSRed }) )
 
         Just doc ->
             ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument documentHandling doc)
+            , Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling doc)
 
                 --, sendToFrontend clientId (SetShowEditor False)
-                , sendToFrontend clientId (MessageReceived { txt = "Sending doc " ++ id, status = MSGreen })
+                , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Sending doc " ++ id, status = MSGreen })
                 ]
             )
 
@@ -345,12 +347,12 @@ getDocumentById model clientId documentHandling id =
 getDocumentByCmdId model clientId id =
     case Dict.get id model.documentDict of
         Nothing ->
-            Cmd.none
+            Command.none
 
         Just doc ->
-            Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
-                , sendToFrontend clientId (SetShowEditor False)
+            Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument StandardHandling doc)
+                , Effect.Lamdera.sendToFrontend clientId (SetShowEditor False)
                 ]
 
 
@@ -358,21 +360,21 @@ getDocumentByAuthorId model clientId authorId =
     case Dict.get authorId model.authorIdDict of
         Nothing ->
             ( model
-            , sendToFrontend clientId (MessageReceived { txt = "GetDocumentByAuthorId, No docId for that authorId", status = MSYellow })
+            , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "GetDocumentByAuthorId, No docId for that authorId", status = MSYellow })
             )
 
         Just docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
                     ( model
-                    , sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSWhite })
+                    , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSWhite })
                     )
 
                 Just doc ->
                     ( model
-                    , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
-                        , sendToFrontend clientId (SetShowEditor True)
+                    , Command.batch
+                        [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument StandardHandling doc)
+                        , Effect.Lamdera.sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
 
@@ -385,13 +387,13 @@ getHomePage model clientId username =
     in
     case List.head docs of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { txt = "home page not found", status = MSWhite }) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "home page not found", status = MSWhite }) )
 
         Just doc ->
             ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
-                , sendToFrontend clientId (SetShowEditor False)
+            , Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument StandardHandling doc)
+                , Effect.Lamdera.sendToFrontend clientId (SetShowEditor False)
                 ]
             )
 
@@ -399,18 +401,18 @@ getHomePage model clientId username =
 getDocumentByPublicId model clientId publicId =
     case Dict.get publicId model.publicIdDict of
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived { txt = "GetDocumentByPublicId, No docId for that publicId", status = MSWhite }) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "GetDocumentByPublicId, No docId for that publicId", status = MSWhite }) )
 
         Just docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
-                    ( model, sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSWhite }) )
+                    ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSWhite }) )
 
                 Just doc ->
                     ( model
-                    , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument StandardHandling doc)
-                        , sendToFrontend clientId (SetShowEditor True)
+                    , Command.batch
+                        [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument StandardHandling doc)
+                        , Effect.Lamdera.sendToFrontend clientId (SetShowEditor True)
                         ]
                     )
 
@@ -419,7 +421,7 @@ fetchDocumentById model clientId docId documentHandling =
     if String.left 3 docId == "id-" then
         case Dict.get docId model.documentDict of
             Nothing ->
-                ( model, sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (1)", status = MSWhite }) )
+                ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (1)", status = MSWhite }) )
 
             Just _ ->
                 ( model
@@ -434,24 +436,24 @@ fetchDocumentById model clientId docId documentHandling =
 
 {-| This command allows one to fetch a doc by its slug
 -}
-fetchDocumentBySlugCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg
+fetchDocumentBySlugCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Command BackendOnly ToFrontend BackendMsg
 fetchDocumentBySlugCmd model clientId docSlug documentHandling =
     case Dict.get docSlug model.slugDict of
         Nothing ->
-            sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (2)", status = MSWhite })
+            Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (2)", status = MSWhite })
 
         Just docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
-                    sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (3)", status = MSWhite })
+                    Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (3)", status = MSWhite })
 
                 Just document ->
                     let
                         filesToInclude =
                             IncludeFiles.getData document.content
                     in
-                    Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument documentHandling document)
+                    Command.batch
+                        [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling document)
                         , getIncludedFilesCmd model clientId document filesToInclude
                         ]
 
@@ -486,17 +488,17 @@ getIncludedFilesCmd model clientId doc fileList =
         data =
             List.foldl (\( author, key ) acc -> ( author ++ ":" ++ key, getContent ( author, key ) ) :: acc) [] authorsAndKeys
     in
-    sendToFrontend clientId (GotIncludedData doc data)
+    Effect.Lamdera.sendToFrontend clientId (GotIncludedData doc data)
 
 
-fetchDocumentByIdCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Cmd BackendMsg
+fetchDocumentByIdCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Command BackendOnly ToFrontend BackendMsg
 fetchDocumentByIdCmd model clientId docId documentHandling =
     case Dict.get docId model.documentDict of
         Nothing ->
-            Cmd.none
+            Command.none
 
         Just document ->
-            sendToFrontend clientId (ReceivedDocument documentHandling document)
+            Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling document)
 
 
 saveDocument model clientId currentUser document =
@@ -526,14 +528,14 @@ saveDocument model clientId currentUser document =
                         Dict.insert userTag document.id model.slugDict
         in
         ( { model | documentDict = updateDocumentDict2 document model.documentDict, slugDict = newSlugDict }
-        , Cmd.batch
-            [ sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
+        , Command.batch
+            [ Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
             , Share.narrowCastIfShared model.connectionDict clientId (Util.currentUsername currentUser) document
             ]
         )
 
     else
-        ( model, Cmd.none )
+        ( model, Command.none )
 
 
 getUserTag : Document -> Maybe String
@@ -600,16 +602,15 @@ createDocument model clientId maybeCurrentUser doc_ =
                     in
                     Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
     in
-    { model
+    ( { model
         | randomSeed = publicIdTokenData.seed
         , documentDict = documentDict
         , authorIdDict = authorIdDict
         , publicIdDict = publicIdDict
         , usersDocumentsDict = usersDocumentsDict
-    }
-        |> Cmd.Extra.withCmds
-            [ sendToFrontend clientId (ReceivedNewDocument StandardHandling doc)
-            ]
+      }
+    , Effect.Lamdera.sendToFrontend clientId (ReceivedNewDocument StandardHandling doc)
+    )
 
 
 insertDocument model clientId user doc_ =
@@ -636,7 +637,7 @@ insertDocument model clientId user doc_ =
 
         --, usersDocumentsDict = usersDocumentsDict
       }
-    , sendToFrontend clientId (MessageReceived { txt = "Backup made for " ++ String.replace "(BAK)" "" doc.title ++ " (" ++ String.fromInt (String.length doc.content) ++ " chars)", status = MSYellow })
+    , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Backup made for " ++ String.replace "(BAK)" "" doc.title ++ " (" ++ String.fromInt (String.length doc.content) ++ " chars)", status = MSYellow })
     )
 
 
@@ -677,7 +678,7 @@ resetCurrentEditorForUser username dict =
         (b) it treats the connectionDict more gingerely.
 
 -}
-signOut : BackendModel -> Types.Username -> ClientId -> ( BackendModel, Cmd BackendMsg )
+signOut : BackendModel -> Types.Username -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 signOut model username clientId =
     let
         userConnections : List ConnectionData
@@ -696,12 +697,12 @@ signOut model username clientId =
                 |> Maybe.Extra.values
                 |> List.map (\doc -> Share.unshare doc)
 
-        pushSignOutDocCmd : Cmd BackendMsg
+        pushSignOutDocCmd : Command BackendOnly ToFrontend BackendMsg
         pushSignOutDocCmd =
             fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
         notifications =
-            broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
+            Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
         updatedModel =
             setDocumentsToReadOnlyWithUserName username model
@@ -710,15 +711,15 @@ signOut model username clientId =
         | sharedDocumentDict = Dict.map Share.resetDocument model.sharedDocumentDict
         , connectionDict = connectionDict
       }
-    , Cmd.batch <| pushSignOutDocCmd :: notifications
+    , Command.batch <| pushSignOutDocCmd :: notifications
     )
 
 
-removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Cmd BackendMsg )
+removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 removeSessionClient model sessionId clientId =
     case getConnectedUser clientId model.connectionDict of
         Nothing ->
-            ( { model | connectionDict = removeSessionFromDict sessionId clientId model.connectionDict }, Cmd.none )
+            ( { model | connectionDict = removeSessionFromDict sessionId clientId model.connectionDict }, Command.none )
 
         Just username ->
             let
@@ -734,12 +735,12 @@ removeSessionClient model sessionId clientId =
                         |> Maybe.Extra.values
                         |> List.map (\doc -> Share.unshare doc)
 
-                pushSignOutDocCmd : Cmd BackendMsg
+                pushSignOutDocCmd : Command BackendOnly ToFrontend BackendMsg
                 pushSignOutDocCmd =
                     fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
                 notifications =
-                    broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
+                    Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
                 updatedModel =
                     setDocumentsToReadOnlyWithUserName username model
@@ -748,7 +749,7 @@ removeSessionClient model sessionId clientId =
                 | sharedDocumentDict = Dict.map Share.resetDocument model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
-            , Cmd.batch <| pushSignOutDocCmd :: notifications
+            , Command.batch <| pushSignOutDocCmd :: notifications
             )
 
 
@@ -793,23 +794,23 @@ signIn model sessionId clientId username encryptedPassword =
                                 Dict.get groupName model.chatGroupDict
                 in
                 ( { model | connectionDict = newConnectionDict_ }
-                , Cmd.batch
+                , Command.batch
                     [ -- TODO: restore the below
-                      sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
+                      Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortAlphabetically Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
 
                     --, sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
-                    , sendToFrontend clientId (UserSignedUp userData.user)
-                    , sendToFrontend clientId (MessageReceived <| { txt = "Signed in as " ++ userData.user.username, status = MSGreen })
-                    , sendToFrontend clientId (GotChatGroup chatGroup)
-                    , broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict newConnectionDict_))
+                    , Effect.Lamdera.sendToFrontend clientId (UserSignedUp userData.user)
+                    , Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Signed in as " ++ userData.user.username, status = MSGreen })
+                    , Effect.Lamdera.sendToFrontend clientId (GotChatGroup chatGroup)
+                    , Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict newConnectionDict_))
                     ]
                 )
 
             else
-                ( model, sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
+                ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
 
         Nothing ->
-            ( model, sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
 
 
 type alias UserData =
@@ -817,8 +818,8 @@ type alias UserData =
     , id : String
     , realname : String
     , email : String
-    , created : Time.Posix
-    , modified : Time.Posix
+    , created : Effect.Time.Posix
+    , modified : Effect.Time.Posix
     , docs : BoundedDeque.BoundedDeque Document.DocumentInfo
     , preferences : User.Preferences
     }
@@ -843,16 +844,16 @@ getUsersAndOnlineStatus_ authenticationDict connectionDict =
     List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
 
 
-searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe String -> String -> ( Model, Cmd backendMsg )
+searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe String -> String -> ( Model, Command BackendOnly ToFrontend backendMsg )
 searchForDocuments model clientId documentHandling maybeUsername key =
     ( model
     , if String.contains ":user" key then
-        sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername (stripKey ":user" key) model))
+        Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername (stripKey ":user" key) model))
 
       else
-        Cmd.batch
-            [ sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername key model))
-            , sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
+        Command.batch
+            [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername key model))
+            , Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
             ]
     )
 
@@ -862,7 +863,7 @@ stripKey str key =
 
 
 searchForDocumentsByAuthorAndKey model clientId key =
-    ( model, sendToFrontend clientId (ReceivedDocuments StandardHandling (searchForDocumentsByAuthorAndKey_ model clientId key)) )
+    ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling (searchForDocumentsByAuthorAndKey_ model clientId key)) )
 
 
 searchForDocumentsByAuthorAndKey_ : Model -> ClientId -> String -> List Document.Document
@@ -878,14 +879,14 @@ searchForDocumentsByAuthorAndKey_ model clientId key =
             getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member ("id:" ++ firstKey) doc.tags)
 
 
-findDocumentByAuthorAndKey : BackendModel -> ClientId -> Types.DocumentHandling -> String -> String -> ( BackendModel, Cmd BackendMsg )
+findDocumentByAuthorAndKey : BackendModel -> ClientId -> Types.DocumentHandling -> String -> String -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey =
     case findDocumentByAuthorAndKey_ model authorName searchKey of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
-            ( model, sendToFrontend clientId (ReceivedDocument documentHandling doc) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling doc) )
 
 
 findDocumentByAuthorAndKey_ : BackendModel -> String -> String -> Maybe Document
@@ -1019,7 +1020,7 @@ searchForUserDocuments maybeUsername key model =
 -- SYSTEM
 
 
-hardDeleteDocument : ClientId -> Document.Document -> Model -> ( Model, Cmd msg )
+hardDeleteDocument : ClientId -> Document.Document -> Model -> ( Model, Command BackendOnly ToFrontend msg )
 hardDeleteDocument clientId doc model =
     let
         documentDict =
@@ -1056,13 +1057,13 @@ hardDeleteDocument clientId doc model =
     )
 
 
-gotAtmosphericRandomNumber : Model -> Result error String -> ( Model, Cmd msg )
+gotAtmosphericRandomNumber : Model -> Result error String -> ( Model, Command BackendOnly ToFrontend msg )
 gotAtmosphericRandomNumber model result =
     case result of
         Ok str ->
             case String.toInt (String.trim str) of
                 Nothing ->
-                    ( model, broadcast (MessageReceived { txt = "Could not get atomospheric integer", status = MSWhite }) )
+                    ( model, Effect.Lamdera.broadcast (MessageReceived { txt = "Could not get atomospheric integer", status = MSWhite }) )
 
                 Just rn ->
                     let
@@ -1073,11 +1074,11 @@ gotAtmosphericRandomNumber model result =
                         | randomAtmosphericInt = Just rn
                         , randomSeed = newRandomSeed
                       }
-                    , broadcast (MessageReceived { txt = "Got atmospheric integer " ++ String.fromInt rn, status = MSWhite })
+                    , Effect.Lamdera.broadcast (MessageReceived { txt = "Got atmospheric integer " ++ String.fromInt rn, status = MSWhite })
                     )
 
         Err _ ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
 
 
@@ -1096,7 +1097,7 @@ newConnectionDict username sessionId clientId connectionDict =
             Dict.insert username ({ session = sessionId, client = clientId } :: connections) connectionDict
 
 
-signUpUser : Model -> SessionId -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Cmd BackendMsg )
+signUpUser : Model -> SessionId -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 signUpUser model sessionId clientId username lang transitPassword realname email =
     let
         newConnectionDict_ =
@@ -1128,13 +1129,13 @@ signUpUser model sessionId clientId username lang transitPassword realname email
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
         Err str ->
-            ( { model | randomSeed = tokenData.seed }, sendToFrontend clientId (MessageReceived { txt = "Error: " ++ str, status = MSRed }) )
+            ( { model | randomSeed = tokenData.seed }, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Error: " ++ str, status = MSRed }) )
 
         Ok authDict ->
             ( { model | connectionDict = newConnectionDict_, randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
-            , Cmd.batch
-                [ sendToFrontend clientId (UserSignedUp user)
-                , sendToFrontend clientId (MessageReceived { txt = "Success! Your account is set up.", status = MSGreen })
+            , Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (UserSignedUp user)
+                , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Success! Your account is set up.", status = MSGreen })
                 ]
             )
 
@@ -1212,7 +1213,7 @@ connectionDataListToString list =
 
 connectionDataToString : ConnectionData -> String
 connectionDataToString { session, client } =
-    "(" ++ truncateMiddle 2 0 session ++ ", " ++ truncateMiddle 2 2 client ++ ")"
+    "(" ++ truncateMiddle 2 0 (Effect.Lamdera.sessionIdToString session) ++ ", " ++ truncateMiddle 2 2 (Effect.Lamdera.clientIdToString client) ++ ")"
 
 
 updateAbstract : Document.Document -> AbstractDict -> AbstractDict
@@ -1246,9 +1247,9 @@ updateDocumentTags model =
 
 
 join :
-    (BackendModel -> ( BackendModel, Cmd BackendMsg ))
-    -> (BackendModel -> ( BackendModel, Cmd BackendMsg ))
-    -> (BackendModel -> ( BackendModel, Cmd BackendMsg ))
+    (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
+    -> (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
+    -> (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
 join f g =
     \m ->
         let
@@ -1258,4 +1259,4 @@ join f g =
             ( m2, cmd2 ) =
                 g m1
         in
-        ( m2, Cmd.batch [ cmd1, cmd2 ] )
+        ( m2, Command.batch [ cmd1, cmd2 ] )

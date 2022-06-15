@@ -52,8 +52,6 @@ port module Frontend.Update exposing
 import Authentication
 import BoundedDeque exposing (BoundedDeque)
 import Browser exposing (UrlRequest(..))
-import Browser.Dom exposing (Viewport)
-import Browser.Navigation as Nav
 import Cmd.Extra exposing (withCmd, withNoCmd)
 import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT
@@ -65,23 +63,26 @@ import Debounce
 import Dict exposing (Dict)
 import Docs
 import Document exposing (Document)
-import File.Download as Download
+import Effect.Browser.Dom exposing (Viewport)
+import Effect.Browser.Navigation
+import Effect.Command as Command exposing (Command, FrontendOnly)
+import Effect.File.Download
+import Effect.Lamdera exposing (sendToBackend)
+import Effect.Process
+import Effect.Task
+import Effect.Time
 import Frontend.Cmd
 import IncludeFiles
 import Keyboard
-import Lamdera exposing (sendToBackend)
 import List.Extra
 import Markup
 import Message
 import Parser.Language exposing (Language(..))
 import Predicate
-import Process
 import Render.LaTeX as LaTeX
 import Render.Markup
 import Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
 import Render.Settings as Settings
-import Task
-import Time
 import Types exposing (DocumentDeleteState(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), ToBackend(..))
 import User exposing (User)
 import Util
@@ -126,16 +127,16 @@ port playSound : String -> Cmd msg
 --- SIGN UP, SIGN IN, SIGN OUT
 
 
-signOut : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+signOut : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 signOut model =
     let
         cmd =
             case model.currentUser of
                 Nothing ->
-                    Cmd.none
+                    Command.none
 
                 Just user ->
-                    sendToBackend (UpdateUserWith user)
+                    Effect.Lamdera.sendToBackend (UpdateUserWith user)
     in
     ( { model
         | currentUser = Nothing
@@ -156,14 +157,14 @@ signOut model =
         , showEditor = False
         , chatVisible = False
         , sortMode = Types.SortByMostRecent
-        , lastInteractionTime = Time.millisToPosix 0
+        , lastInteractionTime = Effect.Time.millisToPosix 0
       }
-    , Cmd.batch
-        [ Nav.pushUrl model.key "/"
+    , Command.batch
+        [ Effect.Browser.Navigation.pushUrl model.key "/"
         , cmd
-        , sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
-        , sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
-        , sendToBackend (GetPublicDocuments Types.SortByMostRecent Nothing)
+        , Effect.Lamdera.sendToBackend (SignOutBE (model.currentUser |> Maybe.map .username))
+        , Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
+        , Effect.Lamdera.sendToBackend (GetPublicDocuments Types.SortByMostRecent Nothing)
         ]
     )
 
@@ -174,21 +175,21 @@ signOut model =
 --     , Cmd.batch (narrowCastDocs model username documents)
 
 
-signIn : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+signIn : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 signIn model =
     if String.length model.inputPassword >= 8 then
         case Config.defaultUrl of
             Nothing ->
-                ( model, sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
+                ( model, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
             Just url ->
-                ( { model | url = url }, sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
+                ( { model | url = url }, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
     else
-        ( { model | messages = [ { txt = "Password must be at least 8 letters long.", status = MSWhite } ] }, Cmd.none )
+        ( { model | messages = [ { txt = "Password must be at least 8 letters long.", status = MSWhite } ] }, Command.none )
 
 
-handleSignUp : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+handleSignUp : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleSignUp model =
     let
         errors =
@@ -203,11 +204,11 @@ handleSignUp model =
     in
     if List.isEmpty errors then
         ( model
-        , sendToBackend (SignUpBE model.inputUsername model.inputLanguage (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
+        , Effect.Lamdera.sendToBackend (SignUpBE model.inputUsername model.inputLanguage (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
         )
 
     else
-        ( { model | messages = [ { txt = String.join "; " errors, status = MSWhite } ] }, Cmd.none )
+        ( { model | messages = [ { txt = String.join "; " errors, status = MSWhite } ] }, Command.none )
 
 
 
@@ -221,11 +222,11 @@ narrowcast to the other users who to whom this document is shared,
 so that **all** relevant frontends remain in sync. Otherwise there
 will be shared set of editors among the various users editing the document.
 -}
-openEditor : Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+openEditor : Document -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 openEditor doc model =
     case model.currentUser of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just currentUser ->
             let
@@ -265,33 +266,33 @@ openEditor doc model =
                 , initialText = ""
                 , currentDocument = Just updatedDoc
               }
-            , Cmd.batch
+            , Command.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
                 , if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
-                    sendToBackend (AddEditor currentUser updatedDoc)
+                    Effect.Lamdera.sendToBackend (AddEditor currentUser updatedDoc)
 
                   else
-                    Cmd.none
+                    Command.none
                 , if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
-                    sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
+                    Effect.Lamdera.sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
 
                   else
-                    Cmd.none
+                    Command.none
                 ]
             )
 
 
-setInitialEditorContent : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+setInitialEditorContent : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setInitialEditorContent model =
     case model.currentDocument of
         Nothing ->
-            ( { model | messages = [ { txt = "Could not set editor content: there is no current document", status = MSWhite } ] }, Cmd.none )
+            ( { model | messages = [ { txt = "Could not set editor content: there is no current document", status = MSWhite } ] }, Command.none )
 
         Just doc ->
-            ( { model | initialText = doc.content }, Cmd.none )
+            ( { model | initialText = doc.content }, Command.none )
 
 
-closeEditor : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+closeEditor : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 closeEditor model =
     let
         --mCurrentEditor : Maybe String
@@ -313,16 +314,16 @@ closeEditor model =
         saveCmd =
             case updatedDoc of
                 Nothing ->
-                    Cmd.none
+                    Command.none
 
                 Just doc ->
-                    Cmd.batch
-                        [ sendToBackend (SaveDocument model.currentUser doc)
-                        , sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
+                    Command.batch
+                        [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser doc)
+                        , Effect.Lamdera.sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
                         ]
 
         clearEditEventsCmd =
-            sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
+            Effect.Lamdera.sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
     in
     ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, saveCmd )
 
@@ -334,7 +335,7 @@ closeEditor model =
     the clients current editing the given shared document.
 
 -}
-handleEditorChange : FrontendModel -> Int -> String -> ( FrontendModel, Cmd FrontendMsg )
+handleEditorChange : FrontendModel -> Int -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleEditorChange model cursor content =
     let
         newOTDocument =
@@ -353,14 +354,14 @@ handleEditorChange model cursor content =
         editEvent =
             NetworkModel.createEvent userId oldDocument newOTDocument
     in
-    ( { model | counter = model.counter + 1 }, sendToBackend (PushEditorEvent editEvent) )
+    ( { model | counter = model.counter + 1 }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent) )
 
 
 
 --- EXPORT
 
 
-exportToLaTeX : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+exportToLaTeX : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 exportToLaTeX model =
     let
         textToExport =
@@ -369,10 +370,10 @@ exportToLaTeX model =
         fileName =
             (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
     in
-    ( model, Download.string fileName "application/x-latex" textToExport )
+    ( model, Effect.File.Download.string fileName "application/x-latex" textToExport )
 
 
-exportToRawLaTeX : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+exportToRawLaTeX : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 exportToRawLaTeX model =
     let
         textToExport =
@@ -381,10 +382,10 @@ exportToRawLaTeX model =
         fileName =
             (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
     in
-    ( model, Download.string fileName "application/x-latex" textToExport )
+    ( model, Effect.File.Download.string fileName "application/x-latex" textToExport )
 
 
-exportToMarkdown : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+exportToMarkdown : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 exportToMarkdown model =
     let
         markdownText =
@@ -395,14 +396,14 @@ exportToMarkdown model =
         fileName_ =
             "foo" |> String.replace " " "-" |> String.toLower |> (\name -> name ++ ".md")
     in
-    ( model, Download.string fileName_ "text/markdown" markdownText )
+    ( model, Effect.File.Download.string fileName_ "text/markdown" markdownText )
 
 
 
 --- DOCUMENT
 
 
-newDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+newDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 newDocument model =
     let
         emptyDoc =
@@ -440,7 +441,7 @@ newDocument model =
         , documentsCreatedCounter = documentsCreatedCounter
         , popupState = NoPopup
       }
-    , Cmd.batch [ sendToBackend (CreateDocument model.currentUser doc) ]
+    , Command.batch [ Effect.Lamdera.sendToBackend (CreateDocument model.currentUser doc) ]
     )
 
 
@@ -448,45 +449,45 @@ newDocument model =
 ---    Save
 
 
-saveDocumentToBackend : Maybe User -> Document.Document -> Cmd FrontendMsg
+saveDocumentToBackend : Maybe User -> Document.Document -> Command FrontendOnly ToBackend FrontendMsg
 saveDocumentToBackend currentUser doc =
     case doc.status of
         Document.DSSoftDelete ->
-            Cmd.none
+            Command.none
 
         Document.DSReadOnly ->
-            Cmd.none
+            Command.none
 
         Document.DSCanEdit ->
-            sendToBackend (SaveDocument currentUser doc)
+            Effect.Lamdera.sendToBackend (SaveDocument currentUser doc)
 
 
-saveCurrentDocumentToBackend : Maybe Document.Document -> Maybe User -> Cmd FrontendMsg
+saveCurrentDocumentToBackend : Maybe Document.Document -> Maybe User -> Command FrontendOnly ToBackend FrontendMsg
 saveCurrentDocumentToBackend mDoc mUser =
     case mDoc of
         Nothing ->
-            Cmd.none
+            Command.none
 
         Just doc ->
             case doc.status of
                 Document.DSSoftDelete ->
-                    Cmd.none
+                    Command.none
 
                 Document.DSReadOnly ->
-                    Cmd.none
+                    Command.none
 
                 Document.DSCanEdit ->
-                    sendToBackend (SaveDocument mUser doc)
+                    Effect.Lamdera.sendToBackend (SaveDocument mUser doc)
 
 
-saveDocument : Maybe Document -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+saveDocument : Maybe Document -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 saveDocument mDoc model =
     case mDoc of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
-            ( { model | documentDirty = False }, sendToBackend (SaveDocument model.currentUser doc) )
+            ( { model | documentDirty = False }, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser doc) )
 
 
 
@@ -507,11 +508,11 @@ setPermissions currentUser permissions document =
                 permissions
 
 
-changeLanguage : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+changeLanguage : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 changeLanguage model =
     case model.currentDocument of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
             let
@@ -519,12 +520,12 @@ changeLanguage model =
                     { doc | language = model.language }
             in
             ( { model | documentDirty = False }
-            , sendToBackend (SaveDocument model.currentUser newDoc)
+            , Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
             )
                 |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
 
 
-setPublic : FrontendModel -> Document -> Bool -> ( FrontendModel, Cmd FrontendMsg )
+setPublic : FrontendModel -> Document -> Bool -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setPublic model doc public =
     let
         newDocument_ =
@@ -533,14 +534,14 @@ setPublic model doc public =
         documents =
             List.Extra.setIf (\d -> d.id == newDocument_.id) newDocument_ model.documents
     in
-    ( { model | documents = documents, documentDirty = False, currentDocument = Just newDocument_, inputTitle = "" }, sendToBackend (SaveDocument model.currentUser newDocument_) )
+    ( { model | documents = documents, documentDirty = False, currentDocument = Just newDocument_, inputTitle = "" }, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDocument_) )
 
 
-setPublicDocumentAsCurrentById : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
+setPublicDocumentAsCurrentById : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setPublicDocumentAsCurrentById model id =
     case List.filter (\doc -> doc.id == id) model.publicDocuments |> List.head of
         Nothing ->
-            ( { model | messages = [ { txt = "No document of id [" ++ id ++ "] found", status = MSWhite } ] }, Cmd.none )
+            ( { model | messages = [ { txt = "No document of id [" ++ id ++ "] found", status = MSWhite } ] }, Command.none )
 
         Just doc ->
             let
@@ -558,7 +559,7 @@ setPublicDocumentAsCurrentById model id =
                 , messages = [ { txt = "id = " ++ doc.id, status = MSWhite } ]
                 , counter = model.counter + 1
               }
-            , Cmd.batch [ View.Utility.setViewPortToTop model.popupState ]
+            , Command.batch [ View.Utility.setViewPortToTop model.popupState ]
             )
 
 
@@ -596,7 +597,7 @@ postProcessDocument doc model =
     }
 
 
-setDocumentInPhoneAsCurrent : FrontendModel -> Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentInPhoneAsCurrent : FrontendModel -> Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setDocumentInPhoneAsCurrent model doc permissions =
     let
         ast =
@@ -621,7 +622,7 @@ setDocumentInPhoneAsCurrent model doc permissions =
 ---    setDocumentAsCurrent
 
 
-setDocumentAsCurrent : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setDocumentAsCurrent cmd model doc permissions =
     -- TODO!
     let
@@ -630,13 +631,13 @@ setDocumentAsCurrent cmd model doc permissions =
     in
     case List.isEmpty filesToInclude of
         True ->
-            setDocumentAsCurrent_ Cmd.none model doc permissions
+            setDocumentAsCurrent_ Command.none model doc permissions
 
         False ->
-            setDocumentAsCurrent_ (Cmd.batch [ cmd, sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
+            setDocumentAsCurrent_ (Command.batch [ cmd, Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
 
 
-setDocumentAsCurrent_ : Cmd FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Cmd FrontendMsg )
+setDocumentAsCurrent_ : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setDocumentAsCurrent_ cmd model doc permissions =
     case model.currentUser of
         Nothing ->
@@ -644,7 +645,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 newModel =
                     postProcessDocument doc model
             in
-            ( { newModel | currentDocument = Just doc }, Cmd.none )
+            ( { newModel | currentDocument = Just doc }, Command.none )
 
         Just currentUser ->
             let
@@ -722,10 +723,10 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 , messages = errorMessages
                 , lastInteractionTime = model.currentTime
               }
-            , Cmd.batch
+            , Command.batch
                 [ View.Utility.setViewPortToTop model.popupState
-                , Cmd.batch [ cmd, sendToBackend (SaveDocument model.currentUser updatedDoc) ]
-                , Nav.pushUrl model.key ("/c/" ++ doc.id)
+                , Command.batch [ cmd, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc) ]
+                , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
                 ]
             )
 
@@ -734,7 +735,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
 ---    handleCurrentDocumentChange
 
 
-handleCurrentDocumentChange : FrontendModel -> Document -> Document -> ( FrontendModel, Cmd FrontendMsg )
+handleCurrentDocumentChange : FrontendModel -> Document -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleCurrentDocumentChange model currentDocument document =
     if model.documentDirty && currentDocument.status == Document.DSCanEdit then
         -- we are leaving the old current document.
@@ -751,7 +752,7 @@ handleCurrentDocumentChange model currentDocument document =
                     , documents = Util.updateDocumentInList updatedDoc model.documents
                 }
         in
-        setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
+        setDocumentAsCurrent (Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
     else if currentDocument.status == Document.DSCanEdit then
         let
@@ -761,17 +762,17 @@ handleCurrentDocumentChange model currentDocument document =
             newModel =
                 { model | selectedSlug = Document.getSlug currentDocument, documents = Util.updateDocumentInList updatedDoc model.documents, language = document.language }
         in
-        setDocumentAsCurrent (sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
+        setDocumentAsCurrent (Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
     else
-        setDocumentAsCurrent Cmd.none model document StandardHandling
+        setDocumentAsCurrent Command.none model document StandardHandling
 
 
 
 ---    Included files
 
 
-getIncludedFiles : Document -> Cmd FrontendMsg
+getIncludedFiles : Document -> Command FrontendOnly ToBackend FrontendMsg
 getIncludedFiles doc =
     -- TODO!
     let
@@ -780,29 +781,29 @@ getIncludedFiles doc =
     in
     case List.isEmpty filesToInclude of
         True ->
-            Cmd.none
+            Command.none
 
         False ->
-            sendToBackend (GetIncludedFiles doc filesToInclude)
+            Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
 
 
 
 ---    updateDoc
 
 
-updateDoc : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
+updateDoc : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 updateDoc model str =
     case model.currentDocument of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
             case doc.status of
                 Document.DSSoftDelete ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Document.DSReadOnly ->
-                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Cmd.none )
+                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Command.none )
 
                 Document.DSCanEdit ->
                     -- if Share.canEdit model.currentUser (Just doc) then
@@ -817,13 +818,13 @@ updateDoc model str =
                             updateDoc_ doc str model
 
                         else
-                            ( model, Cmd.none )
+                            ( model, Command.none )
 
                     else
-                        ( model, Cmd.none )
+                        ( model, Command.none )
 
 
-updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 updateDoc_ doc str model =
     let
         provisionalTitle : String
@@ -864,9 +865,9 @@ updateDoc_ doc str model =
         , publicDocuments = publicDocuments
         , currentUser = addDocToCurrentUser model doc
       }
-    , Cmd.batch
+    , Command.batch
         [ saveDocumentToBackend model.currentUser newDocument_
-        , sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument_)
+        , Effect.Lamdera.sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument_)
         ]
     )
 
@@ -880,7 +881,7 @@ updateEditRecord inclusionData doc model =
 ---    handle document
 
 
-handleReceivedDocumentAsCheatsheet : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
+handleReceivedDocumentAsCheatsheet : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleReceivedDocumentAsCheatsheet model doc =
     ( { model
         | currentManual = Just doc
@@ -892,7 +893,7 @@ handleReceivedDocumentAsCheatsheet model doc =
     )
 
 
-handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
+handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleAsStandardReceivedDocument model doc =
     let
         editRecord =
@@ -922,16 +923,16 @@ handleAsStandardReceivedDocument model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch
+    , Command.batch
         [ savePreviousCurrentDocumentCmd model
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
-        , Nav.pushUrl model.key ("/c/" ++ doc.id)
+        , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
         ]
     )
 
 
-handleSharedDocument : FrontendModel -> String -> Document -> ( FrontendModel, Cmd FrontendMsg )
+handleSharedDocument : FrontendModel -> String -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleSharedDocument model username doc =
     let
         editRecord =
@@ -961,8 +962,8 @@ handleSharedDocument model username doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch
-        [ Nav.pushUrl model.key ("/c/" ++ doc.id)
+    , Command.batch
+        [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
         , savePreviousCurrentDocumentCmd model
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
@@ -970,7 +971,7 @@ handleSharedDocument model username doc =
     )
 
 
-handleAsReceivedDocumentWithDelay : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
+handleAsReceivedDocumentWithDelay : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleAsReceivedDocumentWithDelay model doc =
     let
         editRecord =
@@ -999,8 +1000,8 @@ handleAsReceivedDocumentWithDelay model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch
-        [ Nav.pushUrl model.key ("/c/" ++ doc.id)
+    , Command.batch
+        [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
         , Util.delay 200 (SetDocumentCurrent doc)
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
@@ -1008,7 +1009,7 @@ handleAsReceivedDocumentWithDelay model doc =
     )
 
 
-handlePinnedDocuments : FrontendModel -> Document -> ( FrontendModel, Cmd FrontendMsg )
+handlePinnedDocuments : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handlePinnedDocuments model doc =
     let
         editRecord =
@@ -1037,8 +1038,8 @@ handlePinnedDocuments model doc =
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
-    , Cmd.batch
-        [ Nav.pushUrl model.key ("/c/" ++ doc.id)
+    , Command.batch
+        [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
         ]
@@ -1052,11 +1053,11 @@ handlePinnedDocuments model doc =
 {-| Use this function to ensure that edits to the current document are saved
 before the current document is changed
 -}
-savePreviousCurrentDocumentCmd : FrontendModel -> Cmd FrontendMsg
+savePreviousCurrentDocumentCmd : FrontendModel -> Command FrontendOnly ToBackend FrontendMsg
 savePreviousCurrentDocumentCmd model =
     case model.currentDocument of
         Nothing ->
-            Cmd.none
+            Command.none
 
         Just previousDoc ->
             if model.documentDirty && previousDoc.status == Document.DSCanEdit then
@@ -1065,21 +1066,21 @@ savePreviousCurrentDocumentCmd model =
                         -- TODO: change content
                         { previousDoc | content = model.sourceText }
                 in
-                sendToBackend (SaveDocument model.currentUser previousDoc2)
+                Effect.Lamdera.sendToBackend (SaveDocument model.currentUser previousDoc2)
 
             else
-                Cmd.none
+                Command.none
 
 
 
 ---    delete
 
 
-softDeleteDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+softDeleteDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 softDeleteDocument model =
     case model.currentDocument of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
             let
@@ -1105,15 +1106,15 @@ softDeleteDocument model =
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = newUser
               }
-            , Cmd.batch [ sendToBackend (SaveDocument model.currentUser newDoc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            , Command.batch [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc), Effect.Process.sleep 500 |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
 
-hardDeleteDocument : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+hardDeleteDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 hardDeleteDocument model =
     case model.currentDocument of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
             let
@@ -1131,7 +1132,7 @@ hardDeleteDocument model =
                 , hardDeleteDocumentState = Types.WaitingForHardDeleteAction
                 , currentUser = newUser
               }
-            , Cmd.batch [ sendToBackend (HardDeleteDocumentBE doc), Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            , Command.batch [ Effect.Lamdera.sendToBackend (HardDeleteDocumentBE doc), Effect.Process.sleep 500 |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
 
@@ -1139,7 +1140,7 @@ hardDeleteDocument model =
 --- SEARCH
 
 
-searchText : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+searchText : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 searchText model =
     let
         ids =
@@ -1148,7 +1149,7 @@ searchText model =
         ( cmd, id ) =
             case List.head ids of
                 Nothing ->
-                    ( Cmd.none, "(none)" )
+                    ( Command.none, "(none)" )
 
                 Just id_ ->
                     ( View.Utility.setViewportForElement (View.Utility.viewId model.popupState) id_, id_ )
@@ -1160,29 +1161,29 @@ searchText model =
 --- INPUT
 
 
-inputTitle : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
+inputTitle : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputTitle model str =
-    ( { model | inputTitle = str }, Cmd.none )
+    ( { model | inputTitle = str }, Command.none )
 
 
 
 -- INPUT FROM THE CODEMIRROR EDITOR (CHANGES IN CURSOR, TEXT)
 
 
-inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputCursor { position, source } model =
     if Document.numberOfEditors model.currentDocument > 1 then
         handleCursor { position = position, source = source } model
 
     else
-        ( model, Cmd.none )
+        ( model, Command.none )
 
 
-handleCursor : { a | position : Int, source : String } -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+handleCursor : { a | position : Int, source : String } -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleCursor { position, source } model =
     case Maybe.map .id model.currentUser of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just currentUserId ->
             --let
@@ -1199,7 +1200,7 @@ handleCursor { position, source } model =
             handleEditorChange model position source
 
 
-inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Cmd FrontendMsg )
+inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputText model { position, source } =
     if Document.numberOfEditors model.currentDocument > 123 then
         handleEditorChange model position source
@@ -1208,7 +1209,7 @@ inputText model { position, source } =
         inputText_ model source
 
 
-inputText_ : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
+inputText_ : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputText_ model str =
     let
         -- Push your values here.
@@ -1257,7 +1258,7 @@ at present every 300 milliseconds. Here is the path:
 This is way too complicated!
 
 -}
-debounceMsg : FrontendModel -> Debounce.Msg -> ( FrontendModel, Cmd FrontendMsg )
+debounceMsg : FrontendModel -> Debounce.Msg -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 debounceMsg model msg_ =
     let
         ( debounce, cmd ) =
@@ -1272,9 +1273,9 @@ debounceMsg model msg_ =
     )
 
 
-save : String -> Cmd FrontendMsg
+save : String -> Command FrontendOnly ToBackend FrontendMsg
 save s =
-    Task.perform Saved (Task.succeed s)
+    Effect.Task.perform Saved (Effect.Task.succeed s)
 
 
 debounceConfig : Debounce.Config FrontendMsg
@@ -1288,16 +1289,16 @@ debounceConfig =
 --- RENDER
 
 
-render : FrontendModel -> MarkupMsg -> ( FrontendModel, Cmd FrontendMsg )
+render : FrontendModel -> MarkupMsg -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 render model msg_ =
     case msg_ of
         Render.Msg.SendMeta _ ->
             -- ( { model | lineNumber = m.loc.begin.row, message = "line " ++ String.fromInt (m.loc.begin.row + 1) }, Cmd.none )
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Render.Msg.SendId line ->
             -- TODO: the below (using id also for line number) is not a great idea.
-            ( { model | messages = [ { txt = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSYellow } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Cmd.none )
+            ( { model | messages = [ { txt = "Line " ++ (line |> String.toInt |> Maybe.withDefault 0 |> (\x -> x + 1) |> String.fromInt), status = MSYellow } ], linenumber = String.toInt line |> Maybe.withDefault 0 }, Command.none )
 
         Render.Msg.SelectId id ->
             -- the element with this id will be highlighted
@@ -1307,55 +1308,55 @@ render model msg_ =
             case docHandling of
                 MHStandard ->
                     ( { model | messages = { txt = "Fetch (1): " ++ id, status = MSGreen } :: [] }
-                    , sendToBackend (FetchDocumentById Types.StandardHandling id)
+                    , Effect.Lamdera.sendToBackend (FetchDocumentById Types.StandardHandling id)
                     )
 
                 MHAsCheatSheet ->
                     ( { model | messages = { txt = "Fetch (2): " ++ id, status = MSGreen } :: [] }
-                    , sendToBackend (FetchDocumentById Types.HandleAsManual id)
+                    , Effect.Lamdera.sendToBackend (FetchDocumentById Types.HandleAsManual id)
                     )
 
         GetPublicDocumentFromAuthor handling authorName searchKey ->
             case handling of
                 MHStandard ->
-                    ( model, sendToBackend (FindDocumentByAuthorAndKey Types.StandardHandling authorName searchKey) )
+                    ( model, Effect.Lamdera.sendToBackend (FindDocumentByAuthorAndKey Types.StandardHandling authorName searchKey) )
 
                 MHAsCheatSheet ->
-                    ( model, sendToBackend (FindDocumentByAuthorAndKey Types.HandleAsManual authorName searchKey) )
+                    ( model, Effect.Lamdera.sendToBackend (FindDocumentByAuthorAndKey Types.HandleAsManual authorName searchKey) )
 
         ProposeSolution proposal ->
             case proposal of
                 Solved id ->
-                    ( { model | selectedId = id }, Cmd.none )
+                    ( { model | selectedId = id }, Command.none )
 
                 Unsolved ->
-                    ( { model | selectedId = "???" }, Cmd.none )
+                    ( { model | selectedId = "???" }, Command.none )
 
 
 
 --- SET PARAM
 
 
-setLanguage : Bool -> Language -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+setLanguage : Bool -> Language -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setLanguage dismiss lang model =
     if dismiss then
-        ( { model | language = lang, popupState = NoPopup }, Cmd.none )
+        ( { model | language = lang, popupState = NoPopup }, Command.none )
             |> (\( m, _ ) -> changeLanguage m)
 
     else
-        ( { model | language = lang }, Cmd.none )
+        ( { model | language = lang }, Command.none )
 
 
-setUserLanguage : Language -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+setUserLanguage : Language -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setUserLanguage lang model =
-    ( { model | inputLanguage = lang, popupState = NoPopup }, Cmd.none )
+    ( { model | inputLanguage = lang, popupState = NoPopup }, Command.none )
 
 
 
 --- SYNC
 
 
-firstSyncLR : FrontendModel -> String -> ( FrontendModel, Cmd FrontendMsg )
+firstSyncLR : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 firstSyncLR model searchSourceText =
     let
         data =
@@ -1384,7 +1385,7 @@ firstSyncLR model searchSourceText =
     )
 
 
-nextSyncLR : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+nextSyncLR : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 nextSyncLR model =
     let
         id_ =
@@ -1400,7 +1401,7 @@ nextSyncLR model =
     )
 
 
-syncLR : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+syncLR : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 syncLR model =
     let
         data =
@@ -1446,7 +1447,7 @@ syncLR model =
 --- VIEWPORT
 
 
-setViewportForElement : FrontendModel -> Result xx ( Browser.Dom.Element, Viewport ) -> ( FrontendModel, Cmd FrontendMsg )
+setViewportForElement : FrontendModel -> Result xx ( Effect.Browser.Dom.Element, Effect.Browser.Dom.Viewport ) -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setViewportForElement model result =
     case result of
         Ok ( element, viewport ) ->
@@ -1458,10 +1459,10 @@ setViewportForElement model result =
         Err _ ->
             -- TODO: restore error message
             -- ( { model | message = model.message ++ ", could not set viewport" }, Cmd.none )
-            ( model, Cmd.none )
+            ( model, Command.none )
 
 
-updateWithViewport : Viewport -> FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+updateWithViewport : Effect.Browser.Dom.Viewport -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 updateWithViewport vp model =
     let
         w =
@@ -1474,7 +1475,7 @@ updateWithViewport vp model =
         | windowWidth = w
         , windowHeight = h
       }
-    , Cmd.none
+    , Command.none
     )
 
 
@@ -1526,13 +1527,13 @@ deleteDocFromCurrentUser model doc =
 -- LOCKING AND UNLOCKING DOCUMENTS
 
 
-requestRefresh : String -> ( FrontendModel, List (Cmd FrontendMsg) ) -> ( FrontendModel, List (Cmd FrontendMsg) )
+requestRefresh : String -> ( FrontendModel, List (Command FrontendOnly ToBackend FrontendMsg) ) -> ( FrontendModel, List (Command FrontendOnly ToBackend FrontendMsg) )
 requestRefresh docId ( model, cmds ) =
     let
         message =
             { txt = "Requesting refresh for " ++ docId, status = MSGreen }
     in
-    ( { model | messages = message :: model.messages }, sendToBackend (RequestRefresh docId) :: cmds )
+    ( { model | messages = message :: model.messages }, Effect.Lamdera.sendToBackend (RequestRefresh docId) :: cmds )
 
 
 currentUserName : Maybe User -> String
@@ -1549,7 +1550,7 @@ currentDocumentId mDoc =
 --- SPECIAL
 
 
-runSpecial : FrontendModel -> ( FrontendModel, Cmd FrontendMsg )
+runSpecial : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 runSpecial model =
     case model.currentUser of
         Nothing ->
@@ -1557,7 +1558,7 @@ runSpecial model =
 
         Just user ->
             if user.username == "jxxcarlson" then
-                model |> withCmd (sendToBackend (ApplySpecial user model.inputSpecial))
+                model |> withCmd (Effect.Lamdera.sendToBackend (ApplySpecial user model.inputSpecial))
 
             else
                 model |> withNoCmd
@@ -1569,7 +1570,7 @@ runSpecial model =
 
 handleUrlRequest model urlRequest =
     case urlRequest of
-        Internal url ->
+        Browser.Internal url ->
             let
                 cmd =
                     case .fragment url of
@@ -1579,7 +1580,7 @@ handleUrlRequest model urlRequest =
 
                         Nothing ->
                             --if String.left 3 url.path == "/a/" then
-                            sendToBackend (SearchForDocumentsWithAuthorAndKey (String.dropLeft 3 url.path))
+                            Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey (String.dropLeft 3 url.path))
 
                 --
                 --else if String.left 3 url.path == "/p/" then
@@ -1590,9 +1591,9 @@ handleUrlRequest model urlRequest =
             in
             ( model, cmd )
 
-        External url ->
+        Browser.External url ->
             ( model
-            , Nav.load url
+            , Effect.Browser.Navigation.load url
             )
 
 
@@ -1615,7 +1616,7 @@ updateKeys model keyMsg =
                 model.doSync
     in
     ( { model | pressedKeys = pressedKeys, doSync = doSync, lastInteractionTime = model.currentTime }
-    , Cmd.none
+    , Command.none
     )
 
 
@@ -1624,38 +1625,38 @@ updateKeys model keyMsg =
 
 
 apply :
-    (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+    (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
     -> FrontendModel
-    -> ( FrontendModel, Cmd FrontendMsg )
+    -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 apply f model =
     f model
 
 
 andThenApply :
-    (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
-    -> ( FrontendModel, Cmd FrontendMsg )
-    -> ( FrontendModel, Cmd FrontendMsg )
+    (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
+    -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+    -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 andThenApply f ( model, cmd ) =
     let
         ( model2, cmd2 ) =
             f model
     in
-    ( model2, Cmd.batch [ cmd, cmd2 ] )
+    ( model2, Command.batch [ cmd, cmd2 ] )
 
 
-joinF : ( FrontendModel, Cmd FrontendMsg ) -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg )) -> ( FrontendModel, Cmd FrontendMsg )
+joinF : ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ) -> (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )) -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 joinF ( model1, cmd1 ) f =
     let
         ( model2, cmd2 ) =
             f model1
     in
-    ( model2, Cmd.batch [ cmd1, cmd2 ] )
+    ( model2, Command.batch [ cmd1, cmd2 ] )
 
 
 join :
-    (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
-    -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
-    -> (FrontendModel -> ( FrontendModel, Cmd FrontendMsg ))
+    (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
+    -> (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
+    -> (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
 join f g =
     \m ->
         let
@@ -1665,7 +1666,7 @@ join f g =
             ( m2, cmd2 ) =
                 g m1
         in
-        ( m2, Cmd.batch [ cmd1, cmd2 ] )
+        ( m2, Command.batch [ cmd1, cmd2 ] )
 
 
 adjustId : String -> String

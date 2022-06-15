@@ -8,10 +8,10 @@ module User exposing
 import BoundedDeque exposing (BoundedDeque)
 import Chat.Message
 import Document exposing (Document)
+import Effect.Time
 import List.Extra
 import Parser.Language exposing (Language)
 import Set exposing (Set)
-import Time
 
 
 type alias User =
@@ -19,8 +19,8 @@ type alias User =
     , id : String
     , realname : String
     , email : String
-    , created : Time.Posix
-    , modified : Time.Posix
+    , created : Effect.Time.Posix
+    , modified : Effect.Time.Posix
     , docs : BoundedDeque Document.DocumentInfo
     , preferences : Preferences
     , chatGroups : List String -- names of chat groups

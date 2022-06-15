@@ -13,9 +13,11 @@ module Util exposing
     )
 
 import Document exposing (Document)
+import Duration
+import Effect.Command as Command exposing (Command)
+import Effect.Process
+import Effect.Task
 import List.Extra
-import Process
-import Task
 import User
 
 
@@ -40,7 +42,7 @@ currentUserId currentUser =
 
 
 batch =
-    \( m, cmds ) -> ( m, Cmd.batch cmds )
+    \( m, cmds ) -> ( m, Command.batch cmds )
 
 
 
@@ -93,10 +95,10 @@ insertInList a list =
         list
 
 
-delay : Float -> msg -> Cmd msg
+delay : Float -> msg -> Command restriction toMsg msg
 delay time msg =
-    Process.sleep time
-        |> Task.perform (\_ -> msg)
+    Effect.Process.sleep (time |> Duration.milliseconds)
+        |> Effect.Task.perform (\_ -> msg)
 
 
 type alias DiscardLinesState =

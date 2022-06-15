@@ -21,9 +21,11 @@ module View.Utility exposing
     , viewId
     )
 
-import Browser.Dom as Dom
 import Config
 import Document
+import Effect.Browser.Dom
+import Effect.Command as Command exposing (Command, FrontendOnly)
+import Effect.Task exposing (Task)
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
@@ -33,7 +35,6 @@ import Html.Attributes as HA
 import Html.Events exposing (keyCode, on)
 import Json.Decode as D
 import Predicate
-import Task exposing (Task)
 import Types exposing (FrontendModel, FrontendMsg)
 import User
 import View.Color as Color
@@ -205,27 +206,27 @@ viewId popupState =
             Config.renderedTextId
 
 
-setViewportForElement : String -> String -> Cmd FrontendMsg
+setViewportForElement : String -> String -> Command Command.FrontendOnly toMsg FrontendMsg
 setViewportForElement viewportId elementId =
-    Dom.getViewportOf viewportId
-        |> Task.andThen (\vp -> getElementWithViewPort vp elementId)
-        |> Task.attempt Types.SetViewPortForElement
+    Effect.Browser.Dom.getViewportOf (Effect.Browser.Dom.id viewportId)
+        |> Effect.Task.andThen (\vp -> getElementWithViewPort vp elementId)
+        |> Effect.Task.attempt Types.SetViewPortForElement
 
 
-setViewPortToTop : Types.PopupState -> Cmd FrontendMsg
+setViewPortToTop : Types.PopupState -> Command FrontendOnly toMsg FrontendMsg
 setViewPortToTop popupState =
     case popupState of
         Types.GuidesPopup ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 0)
+            Effect.Task.attempt (\_ -> Types.NoOpFrontendMsg) (Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id Config.cheatSheetRenderedTextId) 0 0)
 
         Types.ManualsPopup ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 0)
+            Effect.Task.attempt (\_ -> Types.NoOpFrontendMsg) (Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id Config.cheatSheetRenderedTextId) 0 0)
 
         _ ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.renderedTextId 0 0)
+            Effect.Task.attempt (\_ -> Types.NoOpFrontendMsg) (Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id Config.renderedTextId) 0 0)
 
 
-setViewPortForSelectedLine : Types.PopupState -> Dom.Element -> Dom.Viewport -> Cmd FrontendMsg
+setViewPortForSelectedLine : Types.PopupState -> Effect.Browser.Dom.Element -> Effect.Browser.Dom.Viewport -> Command FrontendOnly toMsg FrontendMsg
 setViewPortForSelectedLine popupState element viewport =
     let
         y =
@@ -234,19 +235,19 @@ setViewPortForSelectedLine popupState element viewport =
     in
     case popupState of
         Types.GuidesPopup ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 y)
+            Effect.Task.attempt (\_ -> Types.NoOpFrontendMsg) (Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id Config.cheatSheetRenderedTextId) 0 y)
 
         Types.ManualsPopup ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.cheatSheetRenderedTextId 0 y)
+            Effect.Task.attempt (\_ -> Types.NoOpFrontendMsg) (Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id Config.cheatSheetRenderedTextId) 0 y)
 
         _ ->
-            Task.attempt (\_ -> Types.NoOpFrontendMsg) (Dom.setViewportOf Config.renderedTextId 0 y)
+            Effect.Task.attempt (\_ -> Types.NoOpFrontendMsg) (Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id Config.renderedTextId) 0 y)
 
 
-getElementWithViewPort : Dom.Viewport -> String -> Task Dom.Error ( Dom.Element, Dom.Viewport )
+getElementWithViewPort : Effect.Browser.Dom.Viewport -> String -> Effect.Task.Task FrontendOnly Effect.Browser.Dom.Error ( Effect.Browser.Dom.Element, Effect.Browser.Dom.Viewport )
 getElementWithViewPort vp id =
-    Dom.getElement id
-        |> Task.map (\el -> ( el, vp ))
+    Effect.Browser.Dom.getElement (Effect.Browser.Dom.id id)
+        |> Effect.Task.map (\el -> ( el, vp ))
 
 
 noFocus : E.FocusStyle

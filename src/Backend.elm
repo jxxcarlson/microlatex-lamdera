@@ -32,13 +32,17 @@ import Deque
 import Dict exposing (Dict)
 import Docs
 import Document
+import Duration
+import Effect.Command as Command exposing (BackendOnly, Command)
+import Effect.Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Effect.Subscription as Subscription exposing (Subscription)
+import Effect.Time
 import Env
-import Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
+import Lamdera
 import Maybe.Extra
 import Message
 import Random
 import Share
-import Time
 import Tools
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
@@ -50,7 +54,9 @@ type alias Model =
 
 
 app =
-    Lamdera.backend
+    Effect.Lamdera.backend
+        Lamdera.broadcast
+        Lamdera.sendToFrontend
         { init = init
         , update = update
         , updateFromFrontend = updateFromFrontend
@@ -59,14 +65,16 @@ app =
 
 
 subscriptions model =
-    Sub.batch
-        [ Lamdera.onConnect ClientConnected
-        , Lamdera.onDisconnect ClientDisconnected
-        , Time.every (Config.backendTickSeconds * 1000) Tick
+    Subscription.batch
+        [ Effect.Lamdera.onConnect ClientConnected
+        , Effect.Lamdera.onDisconnect ClientDisconnected
+        , Effect.Time.every (Duration.milliseconds (Config.backendTickSeconds * 1000)) Tick
         ]
 
 
-init : ( Model, Cmd BackendMsg )
+{-| TODO: Martin -- is this OK
+-}
+init : ( Model, Command BackendOnly ToFrontend BackendMsg )
 init =
     ( { message = "Hello!"
 
@@ -74,7 +82,7 @@ init =
       , randomSeed = Random.initialSeed 1234
       , uuidCount = 0
       , randomAtmosphericInt = Nothing
-      , currentTime = Time.millisToPosix 0
+      , currentTime = Effect.Time.millisToPosix 0
 
       -- USER
       , authenticationDict = Dict.empty
@@ -109,23 +117,23 @@ init =
 -- UPDATE BACKEND
 
 
-update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
+update : BackendMsg -> Model -> ( Model, Command BackendOnly ToFrontend BackendMsg )
 update msg model =
     case msg of
         GotAtomsphericRandomNumber result ->
             Backend.Update.gotAtmosphericRandomNumber model result
 
         ClientConnected sessionId clientId ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         ClientDisconnected sessionId clientId ->
             Backend.Update.removeSessionClient model sessionId clientId
 
         DelaySendingDocument clientId doc ->
             ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (ReceivedDocument Types.HandleAsManual doc)
-                , sendToFrontend clientId
+            , Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument Types.HandleAsManual doc)
+                , Effect.Lamdera.sendToFrontend clientId
                     (MessageReceived
                         { txt = doc.title ++ ", currentEditor = " ++ (doc.currentEditorList |> List.map .username |> String.join ", ")
                         , status = Types.MSYellow
@@ -136,17 +144,18 @@ update msg model =
 
         Tick newTime ->
             -- Do regular tasks
-            { model | currentTime = newTime }
+            ( { model | currentTime = newTime }
                 |> updateAbstracts
                 |> Backend.Update.updateDocumentTags
-                |> Cmd.Extra.withNoCmd
+            , Command.none
+            )
 
 
 
 -- UPDATE FROM FRONTEND
 
 
-updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Command BackendOnly ToFrontend BackendMsg )
 updateFromFrontend sessionId clientId msg model =
     case msg of
         -- CHAT
@@ -163,16 +172,16 @@ updateFromFrontend sessionId clientId msg model =
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
                 Nothing ->
-                    ( model, sendToFrontend clientId (MessageReceived { txt = groupName ++ ": no such group", status = Types.MSYellow }) )
+                    ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = groupName ++ ": no such group", status = Types.MSYellow }) )
 
                 Just _ ->
                     ( model, Chat.sendChatHistoryCmd groupName model clientId )
 
         InsertChatGroup group ->
-            ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Cmd.none )
+            ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Command.none )
 
         GetChatGroup groupName ->
-            ( model, sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 
         ChatMsgSubmitted message ->
             if String.left 2 message.content == "!!" then
@@ -217,9 +226,9 @@ updateFromFrontend sessionId clientId msg model =
                     Dict.insert doc.id sharedDocument model.sharedDocumentDict
 
                 cmds =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clients
+                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clients
             in
-            ( { model | sharedDocumentDict = sharedDocumentDict }, Cmd.batch cmds )
+            ( { model | sharedDocumentDict = sharedDocumentDict }, Command.batch cmds )
 
         ResetNetworkModelForDocument doc ->
             let
@@ -240,15 +249,15 @@ updateFromFrontend sessionId clientId msg model =
                     NetworkModel.initWithUsersAndContent "--fake--" [] ""
 
                 cmds =
-                    List.map (\clientId_ -> sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clients
+                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clients
             in
-            ( model, Cmd.batch cmds )
+            ( model, Command.batch cmds )
 
         PushEditorEvent event ->
             Backend.NetworkModel.processEvent event model
 
         UpdateSharedDocumentDict user doc ->
-            ( Share.updateSharedDocumentDict user doc model, Cmd.none )
+            ( Share.updateSharedDocumentDict user doc model, Command.none )
 
         AddEditor user doc ->
             let
@@ -272,7 +281,7 @@ updateFromFrontend sessionId clientId msg model =
                     { doc | currentEditorList = currentEditorList }
             in
             -- ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCast user.username document model.connectionDict )
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Narrowcast sendersName sendersId document ->
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCast clientId document model.connectionDict )
@@ -282,12 +291,12 @@ updateFromFrontend sessionId clientId msg model =
             ( { model | sharedDocumentDict = Share.update sendersName sendersId document clientId model.sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender sendersName document model.connectionDict )
 
         ClearConnectionDictBE ->
-            ( { model | connectionDict = Dict.empty }, Cmd.none )
+            ( { model | connectionDict = Dict.empty }, Command.none )
 
         RequestRefresh docId ->
             case Dict.get docId model.documentDict of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
                     let
@@ -295,9 +304,9 @@ updateFromFrontend sessionId clientId msg model =
                             { txt = "Refreshing " ++ doc.title ++ " with currentEditor = " ++ (doc.currentEditorList |> List.map .username |> String.join ", "), status = Types.MSGreen }
                     in
                     ( model
-                    , Cmd.batch
-                        [ sendToFrontend clientId (ReceivedDocument Types.HandleAsManual doc)
-                        , sendToFrontend clientId (MessageReceived message)
+                    , Command.batch
+                        [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument Types.HandleAsManual doc)
+                        , Effect.Lamdera.sendToFrontend clientId (MessageReceived message)
                         ]
                     )
 
@@ -311,7 +320,7 @@ updateFromFrontend sessionId clientId msg model =
         SignOutBE mUsername ->
             case mUsername of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just username ->
                     case Env.mode of
@@ -326,21 +335,21 @@ updateFromFrontend sessionId clientId msg model =
                                                 -- Backend.Update.cleanup m1 sessionId clientId
                                                 ( m1, c1 )
                                         in
-                                        ( m2, Cmd.batch [ c1, c2 ] )
+                                        ( m2, Command.batch [ c1, c2 ] )
                                    )
 
         -- ????
         RunTask ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         GetStatus ->
-            ( model, sendToFrontend clientId (StatusReport (statusReport model)) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (StatusReport (statusReport model)) )
 
         -- USER
         GetUsersWithOnlineStatus ->
             ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
+            , Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
                 ]
             )
 
@@ -355,10 +364,10 @@ updateFromFrontend sessionId clientId msg model =
                             True
             in
             ( model
-            , Cmd.batch
-                [ sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUserAndDocumentData model))
-                , sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
-                , sendToFrontend clientId
+            , Command.batch
+                [ Effect.Lamdera.sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUserAndDocumentData model))
+                , Effect.Lamdera.sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
+                , Effect.Lamdera.sendToFrontend clientId
                     (GotShareDocumentList
                         (model.sharedDocumentDict
                             |> Dict.toList
@@ -369,7 +378,7 @@ updateFromFrontend sessionId clientId msg model =
             )
 
         UpdateUserWith user ->
-            ( { model | authenticationDict = Authentication.updateUser user model.authenticationDict }, Cmd.none )
+            ( { model | authenticationDict = Authentication.updateUser user model.authenticationDict }, Command.none )
 
         -- SEARCH
         SearchForDocumentsWithAuthorAndKey segment ->
@@ -392,11 +401,11 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.getDocumentByPublicId model clientId publicId
 
         GetPublicDocuments sortMode mUsername ->
-            ( model, sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         -- DOCUMENTS
         ClearEditEvents userId ->
-            ( { model | editEvents = Deque.filter (\evt -> evt.userId /= userId) model.editEvents }, Cmd.none )
+            ( { model | editEvents = Deque.filter (\evt -> evt.userId /= userId) model.editEvents }, Command.none )
 
         GetIncludedFiles doc fileList ->
             let
@@ -429,7 +438,7 @@ updateFromFrontend sessionId clientId msg model =
                     List.foldl (\( author, key ) acc -> ( author ++ ":" ++ key, getContent ( author, key ) ) :: acc) [] authorsAndKeys
 
                 cmd =
-                    sendToFrontend clientId (GotIncludedData doc data)
+                    Effect.Lamdera.sendToFrontend clientId (GotIncludedData doc data)
             in
             ( model, cmd )
 
@@ -438,10 +447,10 @@ updateFromFrontend sessionId clientId msg model =
 
         -- TAGS
         GetUserTagsFromBE author ->
-            ( model, sendToFrontend clientId (AcceptUserTags (Backend.Update.authorTags author model)) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (AcceptUserTags (Backend.Update.authorTags author model)) )
 
         GetPublicTagsFromBE ->
-            ( model, sendToFrontend clientId (AcceptPublicTags (Backend.Update.publicTags model)) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (AcceptPublicTags (Backend.Update.publicTags model)) )
 
         CreateDocument maybeCurrentUser doc_ ->
             Backend.Update.createDocument model clientId maybeCurrentUser doc_
@@ -459,7 +468,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.getDocumentById model clientId documentHandling id
 
         ApplySpecial user clientId_ ->
-            Backend.Update.applySpecial model clientId_
+            Backend.Update.applySpecial model (Effect.Lamdera.clientIdFromString clientId_)
 
         HardDeleteDocumentBE doc ->
             Backend.Update.hardDeleteDocument clientId doc model

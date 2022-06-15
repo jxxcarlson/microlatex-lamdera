@@ -1,16 +1,18 @@
 module Frontend.Cmd exposing (setInitialEditorContent, setupWindow)
 
-import Browser.Dom as Dom
-import Process
-import Task
+import Duration
+import Effect.Browser.Dom
+import Effect.Command as Command exposing (Command, FrontendOnly)
+import Effect.Process
+import Effect.Task
 import Types exposing (FrontendMsg(..))
 
 
-setupWindow : Cmd FrontendMsg
+setupWindow : Command FrontendOnly toMsg FrontendMsg
 setupWindow =
-    Task.perform GotViewport Dom.getViewport
+    Effect.Task.perform GotViewport Effect.Browser.Dom.getViewport
 
 
-setInitialEditorContent : Float -> Cmd FrontendMsg
+setInitialEditorContent : Float -> Command restriction toMsg FrontendMsg
 setInitialEditorContent delay =
-    Process.sleep delay |> Task.perform (always SetInitialEditorContent)
+    Effect.Process.sleep (delay |> Duration.milliseconds) |> Effect.Task.perform (always SetInitialEditorContent)

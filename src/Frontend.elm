@@ -1,7 +1,5 @@
 module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateFromBackend, urlAction, urlIsForGuest, view)
 
-import Browser.Events
-import Browser.Navigation as Nav
 import Chat
 import Chat.Message
 import Cmd.Extra exposing (withNoCmd)
@@ -17,25 +15,31 @@ import Dict
 import Docs
 import Document
 import DocumentTools
+import Duration
+import Effect.Browser.Events
+import Effect.Browser.Navigation
+import Effect.Command as Command exposing (Command)
+import Effect.File.Download as Download
+import Effect.Lamdera exposing (sendToBackend)
+import Effect.Process
+import Effect.Subscription as Subscription exposing (Subscription)
+import Effect.Task
+import Effect.Time
 import Element
 import Env
-import File.Download as Download
 import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
 import Html
 import Keyboard
-import Lamdera exposing (sendToBackend)
+import Lamdera
 import Markup
 import Message
 import Parser.Language exposing (Language(..))
 import Predicate
-import Process
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Share
-import Task
-import Time
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
 import Url exposing (Url)
 import UrlManager
@@ -52,7 +56,8 @@ type alias Model =
 
 
 app =
-    Lamdera.frontend
+    Effect.Lamdera.frontend
+        Lamdera.sendToBackend
         { init = init
         , onUrlRequest = UrlClicked
         , onUrlChange = UrlChanged
@@ -64,22 +69,22 @@ app =
 
 
 subscriptions _ =
-    Sub.batch
-        [ Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
-        , Time.every (Config.frontendTickSeconds * 1000) FETick
-        , Sub.map KeyMsg Keyboard.subscriptions
+    Subscription.batch
+        [ Effect.Browser.Events.onResize (\w h -> GotNewWindowDimensions w h)
+        , Effect.Time.every (Config.frontendTickSeconds * 1000 |> Duration.milliseconds) FETick
+        , Subscription.map KeyMsg Keyboard.subscriptions
         ]
 
 
-init : Url.Url -> Nav.Key -> ( Model, Cmd FrontendMsg )
+init : Url.Url -> Effect.Browser.Navigation.Key -> ( Model, Command restriction toMsg FrontendMsg )
 init url key =
     ( { key = key
       , url = url
       , messages = [ { txt = "Welcome!", status = MSWhite } ]
-      , currentTime = Time.millisToPosix 0
-      , zone = Time.utc
-      , timeSignedIn = Time.millisToPosix 0
-      , lastInteractionTime = Time.millisToPosix 0
+      , currentTime = Effect.Time.millisToPosix 0
+      , zone = Effect.Time.utc
+      , timeSignedIn = Effect.Time.millisToPosix 0
+      , lastInteractionTime = Effect.Time.millisToPosix 0
 
       -- ADMIN
       , statusReport = []
@@ -190,29 +195,29 @@ init url key =
       , inputEditors = ""
       , inputCommand = ""
       }
-    , Cmd.batch
+    , Command.batch
         [ Frontend.Cmd.setupWindow
         , urlAction url.path
         , if url.path == "/" then
-            sendToBackend (SearchForDocuments StandardHandling Nothing "jxxcarlson:system-home")
+            Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling Nothing "jxxcarlson:system-home")
             -- searchForPublicDocuments sortMode limit mUsername key model
 
           else
-            Cmd.none
-        , Task.perform AdjustTimeZone Time.here
+            Command.none
+        , Effect.Task.perform AdjustTimeZone Effect.Time.here
         , case Env.mode of
             Env.Development ->
-                sendToBackend ClearConnectionDictBE
+                Effect.Lamdera.sendToBackend ClearConnectionDictBE
 
             Env.Production ->
-                Cmd.none
+                Command.none
 
         --- TODO: ???, sendToBackend GetCheatSheetDocument
         ]
     )
 
 
-urlAction : String -> Cmd FrontendMsg
+urlAction : String -> Command restriction toMsg FrontendMsg
 urlAction path =
     let
         prefix =
@@ -222,25 +227,25 @@ urlAction path =
             String.dropLeft 3 path
     in
     if prefix == "/" then
-        sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
+        Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
 
     else
         case prefix of
             "/i/" ->
-                sendToBackend (GetDocumentById Types.StandardHandling segment)
+                Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling segment)
 
             "/a/" ->
-                sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
+                Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
 
             "/s/" ->
-                sendToBackend (SearchForDocuments StandardHandling Nothing segment)
+                Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling Nothing segment)
 
             "/h/" ->
-                sendToBackend (GetHomePage segment)
+                Effect.Lamdera.sendToBackend (GetHomePage segment)
 
             _ ->
                 --Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
-                sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
+                Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
 
 
 urlIsForGuest : Url -> Bool
@@ -248,16 +253,16 @@ urlIsForGuest url =
     String.left 2 url.path == "/g"
 
 
-update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
+update : FrontendMsg -> Model -> ( Model, Command restriction toMsg FrontendMsg )
 update msg model =
     case msg of
         FENoOp ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         SetDocumentStatus status ->
             case model.currentDocument of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
                     let
@@ -272,10 +277,10 @@ update msg model =
         FETick newTime ->
             let
                 lastInteractionTimeMilliseconds =
-                    model.lastInteractionTime |> Time.posixToMillis
+                    model.lastInteractionTime |> Effect.Time.posixToMillis
 
                 currentTimeMilliseconds =
-                    model.currentTime |> Time.posixToMillis
+                    model.currentTime |> Effect.Time.posixToMillis
 
                 elapsedSinceLastInteractionSeconds =
                     (currentTimeMilliseconds - lastInteractionTimeMilliseconds) // 1000
@@ -286,27 +291,27 @@ update msg model =
                             Nothing
 
                         Just { name, activeAt } ->
-                            if Time.posixToMillis activeAt < (Time.posixToMillis model.currentTime - (Config.editSafetyInterval * 1000)) then
+                            if Effect.Time.posixToMillis activeAt < (Effect.Time.posixToMillis model.currentTime - (Config.editSafetyInterval * 1000)) then
                                 Nothing
 
                             else
                                 model.activeEditor
             in
             -- If the lastInteractionTime has not been updated since init, do so now.
-            if model.lastInteractionTime == Time.millisToPosix 0 && model.currentUser /= Nothing then
-                ( { model | activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Cmd.none )
+            if model.lastInteractionTime == Effect.Time.millisToPosix 0 && model.currentUser /= Nothing then
+                ( { model | activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Command.none )
 
             else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then
                 Frontend.Update.signOut { model | currentTime = newTime }
 
             else
-                ( { model | activeEditor = activeEditor, currentTime = newTime }, Cmd.none )
+                ( { model | activeEditor = activeEditor, currentTime = newTime }, Command.none )
 
         AdjustTimeZone newZone ->
-            ( { model | zone = newZone }, Cmd.none )
+            ( { model | zone = newZone }, Command.none )
 
         GotTime timeNow ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         KeyMsg keyMsg ->
             Frontend.Update.updateKeys model keyMsg
@@ -327,12 +332,12 @@ update msg model =
 
         -- CHAT (update)
         AskToClearChatHistory ->
-            ( model, sendToBackend (ClearChatHistory model.inputGroup) )
+            ( model, Effect.Lamdera.sendToBackend (ClearChatHistory model.inputGroup) )
 
         SetChatGroup ->
             case model.currentUser of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just user ->
                     let
@@ -350,7 +355,7 @@ update msg model =
                             { user | preferences = revisedPreferences }
 
                         ( updatedChatMessages, cmd ) =
-                            ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
+                            ( [], Effect.Lamdera.sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
 
                         --if Just (String.trim model.inputGroup) == oldPreferences.group then
                         --    ( model.chatMessages, Cmd.none )
@@ -358,10 +363,10 @@ update msg model =
                         --else
                         --    ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
                     in
-                    ( { model | currentUser = Just revisedUser, chatMessages = updatedChatMessages }, Cmd.batch [ cmd, sendToBackend (UpdateUserWith revisedUser) ] )
+                    ( { model | currentUser = Just revisedUser, chatMessages = updatedChatMessages }, Command.batch [ cmd, Effect.Lamdera.sendToBackend (UpdateUserWith revisedUser) ] )
 
         GetChatHistory ->
-            ( model, Cmd.batch [ sendToBackend (SendChatHistory model.inputGroup) ] )
+            ( model, Command.batch [ Effect.Lamdera.sendToBackend (SendChatHistory model.inputGroup) ] )
 
         ScrollChatToBottom ->
             ( model, View.Chat.scrollChatToBottom )
@@ -369,7 +374,7 @@ update msg model =
         CreateChatGroup ->
             case model.currentUser of
                 Nothing ->
-                    ( { model | chatDisplay = Types.TCGDisplay }, Cmd.none )
+                    ( { model | chatDisplay = Types.TCGDisplay }, Command.none )
 
                 Just user ->
                     let
@@ -380,35 +385,35 @@ update msg model =
                             , members = model.inputGroupMembers |> String.split "," |> List.map String.trim
                             }
                     in
-                    ( { model | chatDisplay = Types.TCGDisplay, currentChatGroup = Just newChatGroup }, sendToBackend (InsertChatGroup newChatGroup) )
+                    ( { model | chatDisplay = Types.TCGDisplay, currentChatGroup = Just newChatGroup }, Effect.Lamdera.sendToBackend (InsertChatGroup newChatGroup) )
 
         SetChatDisplay option ->
-            ( { model | chatDisplay = option }, Cmd.none )
+            ( { model | chatDisplay = option }, Command.none )
 
         InputGroupName str ->
-            ( { model | inputGroupName = str }, Cmd.none )
+            ( { model | inputGroupName = str }, Command.none )
 
         InputGroupAssistant str ->
-            ( { model | inputGroupAssistant = str }, Cmd.none )
+            ( { model | inputGroupAssistant = str }, Command.none )
 
         InputGroupMembers str ->
-            ( { model | inputGroupMembers = str }, Cmd.none )
+            ( { model | inputGroupMembers = str }, Command.none )
 
         InputChoseGroup str ->
-            ( { model | inputGroup = str }, sendToBackend (GetChatGroup str) )
+            ( { model | inputGroup = str }, Effect.Lamdera.sendToBackend (GetChatGroup str) )
 
         TogglePublicUrl ->
-            ( { model | showPublicUrl = not model.showPublicUrl }, Cmd.none )
+            ( { model | showPublicUrl = not model.showPublicUrl }, Command.none )
 
         -- CHAT
         ToggleChat ->
-            ( { model | chatVisible = not model.chatVisible, chatMessages = [] }, Cmd.batch [ Util.delay 200 ScrollChatToBottom, sendToBackend (SendChatHistory model.inputGroup) ] )
+            ( { model | chatVisible = not model.chatVisible, chatMessages = [] }, Command.batch [ Util.delay 200 ScrollChatToBottom, Effect.Lamdera.sendToBackend (SendChatHistory model.inputGroup) ] )
 
         ToggleDocTools ->
-            ( { model | showDocTools = not model.showDocTools }, Cmd.none )
+            ( { model | showDocTools = not model.showDocTools }, Command.none )
 
         MessageFieldChanged str ->
-            ( { model | chatMessageFieldContent = str }, Cmd.none )
+            ( { model | chatMessageFieldContent = str }, Command.none )
 
         -- User has hit the Send button
         MessageSubmitted ->
@@ -422,8 +427,8 @@ update msg model =
                     }
             in
             ( { model | chatMessageFieldContent = "", messages = model.messages }
-            , Cmd.batch
-                [ Lamdera.sendToBackend (ChatMsgSubmitted chatMessage)
+            , Command.batch
+                [ Effect.Lamdera.sendToBackend (ChatMsgSubmitted chatMessage)
                 , View.Chat.focusMessageInput
                 , View.Chat.scrollChatToBottom
                 ]
@@ -431,14 +436,14 @@ update msg model =
 
         -- USER MESSAGES
         DismissUserMessage ->
-            ( { model | userMessage = Nothing }, Cmd.none )
+            ( { model | userMessage = Nothing }, Command.none )
 
         SendUserMessage message ->
-            ( { model | userMessage = Nothing }, sendToBackend (DeliverUserMessage message) )
+            ( { model | userMessage = Nothing }, Effect.Lamdera.sendToBackend (DeliverUserMessage message) )
 
         OpenSharedDocumentList ->
             ( model
-            , sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
+            , Effect.Lamdera.sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
             )
 
         -- USER
@@ -452,7 +457,7 @@ update msg model =
                 , inputRealname = ""
                 , messages = []
               }
-            , Cmd.none
+            , Command.none
             )
 
         DoSignUp ->
@@ -466,10 +471,10 @@ update msg model =
 
         -- ADMIN
         ClearConnectionDict ->
-            ( model, sendToBackend ClearConnectionDictBE )
+            ( model, Effect.Lamdera.sendToBackend ClearConnectionDictBE )
 
         GoGetUserList ->
-            ( model, sendToBackend GetUserList )
+            ( model, Effect.Lamdera.sendToBackend GetUserList )
 
         InputSpecial str ->
             { model | inputSpecial = str } |> withNoCmd
@@ -478,19 +483,19 @@ update msg model =
             Frontend.Update.runSpecial model
 
         InputUsername str ->
-            ( { model | inputUsername = str }, Cmd.none )
+            ( { model | inputUsername = str }, Command.none )
 
         InputPassword str ->
-            ( { model | inputPassword = str }, Cmd.none )
+            ( { model | inputPassword = str }, Command.none )
 
         InputPasswordAgain str ->
-            ( { model | inputPasswordAgain = str }, Cmd.none )
+            ( { model | inputPasswordAgain = str }, Command.none )
 
         InputRealname str ->
-            ( { model | inputRealname = str }, Cmd.none )
+            ( { model | inputRealname = str }, Command.none )
 
         InputEmail str ->
-            ( { model | inputEmail = str }, Cmd.none )
+            ( { model | inputEmail = str }, Command.none )
 
         -- UI
         ToggleCheatsheet ->
@@ -511,10 +516,10 @@ update msg model =
                                 PlainTextLang ->
                                     Config.plainTextCheatsheetId
                     in
-                    ( { model | popupState = GuidesPopup }, sendToBackend (FetchDocumentById HandleAsManual id) )
+                    ( { model | popupState = GuidesPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual id) )
 
                 _ ->
-                    ( { model | popupState = NoPopup }, Cmd.none )
+                    ( { model | popupState = NoPopup }, Command.none )
 
         ToggleManuals manualType ->
             case model.popupState of
@@ -523,30 +528,30 @@ update msg model =
                         Types.TManual ->
                             case model.language of
                                 L0Lang ->
-                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
+                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
 
                                 MicroLaTeXLang ->
-                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
+                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
 
                                 XMarkdownLang ->
-                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
+                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
 
                                 PlainTextLang ->
-                                    ( { model | popupState = NoPopup }, Cmd.none )
+                                    ( { model | popupState = NoPopup }, Command.none )
 
                         Types.TGuide ->
                             case model.language of
                                 L0Lang ->
-                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
+                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
 
                                 MicroLaTeXLang ->
-                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
+                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
 
                                 XMarkdownLang ->
-                                    ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
+                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
 
                                 PlainTextLang ->
-                                    ( { model | popupState = NoPopup }, Cmd.none )
+                                    ( { model | popupState = NoPopup }, Command.none )
 
                 ManualsPopup ->
                     case manualType of
@@ -555,97 +560,97 @@ update msg model =
                                 List.member (Maybe.andThen Document.getSlug model.currentManual)
                                     [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
                             then
-                                ( { model | popupState = NoPopup }, Cmd.none )
+                                ( { model | popupState = NoPopup }, Command.none )
 
                             else
                                 case model.language of
                                     L0Lang ->
-                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
+                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
 
                                     MicroLaTeXLang ->
-                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
+                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
 
                                     XMarkdownLang ->
-                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
+                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
 
                                     PlainTextLang ->
-                                        ( { model | popupState = NoPopup }, Cmd.none )
+                                        ( { model | popupState = NoPopup }, Command.none )
 
                         Types.TGuide ->
                             if
                                 List.member (Maybe.andThen Document.getSlug model.currentManual)
                                     [ Just Config.l0GuideId, Just Config.microLaTeXGuideId, Just Config.microLaTeXGuideId ]
                             then
-                                ( { model | popupState = NoPopup }, Cmd.none )
+                                ( { model | popupState = NoPopup }, Command.none )
 
                             else
                                 case model.language of
                                     L0Lang ->
-                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
+                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
 
                                     MicroLaTeXLang ->
-                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
+                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
 
                                     XMarkdownLang ->
-                                        ( { model | popupState = ManualsPopup }, sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
+                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
 
                                     PlainTextLang ->
-                                        ( { model | popupState = NoPopup }, Cmd.none )
+                                        ( { model | popupState = NoPopup }, Command.none )
 
                 _ ->
-                    ( { model | popupState = NoPopup }, Cmd.none )
+                    ( { model | popupState = NoPopup }, Command.none )
 
         SelectList list ->
             let
                 cmd =
                     if list == SharedDocumentList then
-                        sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
+                        Effect.Lamdera.sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
 
                     else if list == PinnedDocs then
-                        sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin")
+                        Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin")
 
                     else
-                        Cmd.none
+                        Command.none
             in
             ( { model | lastInteractionTime = model.currentTime, documentList = list }, cmd )
 
         ChangePopup popupState ->
-            ( { model | popupState = popupState }, Cmd.none )
+            ( { model | popupState = popupState }, Command.none )
 
         ToggleIndexSize ->
             case model.maximizedIndex of
                 MMyDocs ->
-                    ( { model | maximizedIndex = MPublicDocs }, Cmd.none )
+                    ( { model | maximizedIndex = MPublicDocs }, Command.none )
 
                 MPublicDocs ->
-                    ( { model | maximizedIndex = MMyDocs }, Cmd.none )
+                    ( { model | maximizedIndex = MMyDocs }, Command.none )
 
         CloseCollectionIndex ->
             ( { model | currentMasterDocument = Nothing }
-            , Cmd.none
+            , Command.none
             )
 
         ToggleActiveDocList ->
             case model.currentMasterDocument of
                 Nothing ->
-                    ( { model | activeDocList = Both }, Cmd.none )
+                    ( { model | activeDocList = Both }, Command.none )
 
                 Just _ ->
                     case model.activeDocList of
                         PublicDocsList ->
-                            ( { model | activeDocList = PrivateDocsList }, Cmd.none )
+                            ( { model | activeDocList = PrivateDocsList }, Command.none )
 
                         PrivateDocsList ->
-                            ( { model | activeDocList = PublicDocsList }, Cmd.none )
+                            ( { model | activeDocList = PublicDocsList }, Command.none )
 
                         Both ->
-                            ( { model | activeDocList = PrivateDocsList }, Cmd.none )
+                            ( { model | activeDocList = PrivateDocsList }, Command.none )
 
         Home ->
-            ( model, sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId) )
+            ( model, Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId) )
 
         ShowTOCInPhone ->
-            ( { model | phoneMode = PMShowDocumentList }, Cmd.none )
+            ( { model | phoneMode = PMShowDocumentList }, Command.none )
 
         SetDocumentInPhoneAsCurrent permissions doc ->
             Frontend.Update.setDocumentInPhoneAsCurrent model doc permissions
@@ -655,15 +660,15 @@ update msg model =
                 cmd =
                     case appMode of
                         UserMode ->
-                            Cmd.none
+                            Command.none
 
                         AdminMode ->
-                            sendToBackend GetUserList
+                            Effect.Lamdera.sendToBackend GetUserList
             in
             ( { model | appMode = appMode }, cmd )
 
         GotNewWindowDimensions w h ->
-            ( { model | windowWidth = w, windowHeight = h }, Cmd.none )
+            ( { model | windowWidth = w, windowHeight = h }, Command.none )
 
         GotViewport vp ->
             Frontend.Update.updateWithViewport vp model
@@ -672,32 +677,32 @@ update msg model =
             Frontend.Update.setViewportForElement model result
 
         InputSearchSource str ->
-            ( { model | searchSourceText = str, foundIdIndex = 0 }, Cmd.none )
+            ( { model | searchSourceText = str, foundIdIndex = 0 }, Command.none )
 
         GetSelection str ->
-            ( { model | messages = [ { txt = "Selection: " ++ str, status = MSWhite } ] }, Cmd.none )
+            ( { model | messages = [ { txt = "Selection: " ++ str, status = MSWhite } ] }, Command.none )
 
         -- SYNC
         SelectedText str ->
             Frontend.Update.firstSyncLR model str
 
         SendSyncLR ->
-            ( { model | syncRequestIndex = model.syncRequestIndex + 1 }, Cmd.none )
+            ( { model | syncRequestIndex = model.syncRequestIndex + 1 }, Command.none )
 
         SyncLR ->
             Frontend.Update.syncLR model
 
         StartSync ->
-            ( { model | doSync = not model.doSync }, Cmd.none )
+            ( { model | doSync = not model.doSync }, Command.none )
 
         NextSync ->
             Frontend.Update.nextSyncLR model
 
         ChangePopupStatus status ->
-            ( { model | popupStatus = status }, Cmd.none )
+            ( { model | popupStatus = status }, Command.none )
 
         NoOpFrontendMsg ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         CloseEditor ->
             Frontend.Update.closeEditor model
@@ -705,23 +710,23 @@ update msg model =
         OpenEditor ->
             case model.currentDocument of
                 Nothing ->
-                    ( { model | messages = [ { txt = "No document to open in editor", status = MSWhite } ] }, Cmd.none )
+                    ( { model | messages = [ { txt = "No document to open in editor", status = MSWhite } ] }, Command.none )
 
                 Just doc ->
                     Frontend.Update.openEditor doc model
 
         Help docId ->
-            ( model, sendToBackend (SearchForDocumentsWithAuthorAndKey docId) )
+            ( model, Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey docId) )
 
         -- SHARE
         Narrow username document ->
-            ( model, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
+            ( model, Effect.Lamdera.sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
 
         -- DOCUMENT
         ChangeLanguage ->
             case model.currentDocument of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
                     let
@@ -729,20 +734,20 @@ update msg model =
                             { doc | language = model.language }
                     in
                     ( model
-                    , sendToBackend (SaveDocument model.currentUser newDocument)
+                    , Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDocument)
                     )
                         |> (\( m, c ) -> ( Frontend.Update.postProcessDocument newDocument m, c ))
 
         ToggleBackupVisibility ->
-            ( { model | seeBackups = not model.seeBackups }, Cmd.none )
+            ( { model | seeBackups = not model.seeBackups }, Command.none )
 
         MakeBackup ->
             case ( model.currentUser, model.currentDocument ) of
                 ( Nothing, _ ) ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 ( _, Nothing ) ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 ( Just user, Just doc ) ->
                     if Just user.username == doc.author then
@@ -750,16 +755,16 @@ update msg model =
                             newDocument =
                                 Document.makeBackup doc
                         in
-                        ( model, sendToBackend (InsertDocument user newDocument) )
+                        ( model, Effect.Lamdera.sendToBackend (InsertDocument user newDocument) )
 
                     else
-                        ( model, Cmd.none )
+                        ( model, Command.none )
 
         InputReaders str ->
-            ( { model | inputReaders = str }, Cmd.none )
+            ( { model | inputReaders = str }, Command.none )
 
         InputEditors str ->
-            ( { model | inputEditors = str }, Cmd.none )
+            ( { model | inputEditors = str }, Command.none )
 
         ShareDocument ->
             Share.shareDocument model
@@ -770,35 +775,35 @@ update msg model =
         ToggleCollaborativeEditing ->
             case model.currentDocument of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
                     case model.collaborativeEditing of
                         False ->
-                            ( model, sendToBackend (InitializeNetworkModelsWithDocument doc) )
+                            ( model, Effect.Lamdera.sendToBackend (InitializeNetworkModelsWithDocument doc) )
 
                         True ->
-                            ( model, sendToBackend (ResetNetworkModelForDocument doc) )
+                            ( model, Effect.Lamdera.sendToBackend (ResetNetworkModelForDocument doc) )
 
         GetPinnedDocuments ->
-            ( { model | documentList = StandardList }, sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin") )
+            ( { model | documentList = StandardList }, Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin") )
 
         -- TAGS
         GetUserTags ->
-            ( { model | tagSelection = TagUser }, Cmd.none )
+            ( { model | tagSelection = TagUser }, Command.none )
 
         GetPublicTags ->
-            ( { model | tagSelection = TagPublic }, Cmd.none )
+            ( { model | tagSelection = TagPublic }, Command.none )
 
         ToggleExtrasSidebar ->
             case model.sidebarExtrasState of
                 SidebarExtrasIn ->
                     ( { model | sidebarExtrasState = SidebarExtrasOut, sidebarTagsState = SidebarTagsIn }
-                    , sendToBackend GetUsersWithOnlineStatus
+                    , Effect.Lamdera.sendToBackend GetUsersWithOnlineStatus
                     )
 
                 SidebarExtrasOut ->
-                    ( { model | sidebarExtrasState = SidebarExtrasIn }, Cmd.none )
+                    ( { model | sidebarExtrasState = SidebarExtrasIn }, Command.none )
 
         ToggleTagsSidebar ->
             let
@@ -808,14 +813,14 @@ update msg model =
             case model.sidebarTagsState of
                 SidebarTagsIn ->
                     ( { model | sidebarExtrasState = SidebarExtrasIn, sidebarTagsState = SidebarTagsOut }
-                    , Cmd.batch
-                        [ sendToBackend GetPublicTagsFromBE
-                        , sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
+                    , Command.batch
+                        [ Effect.Lamdera.sendToBackend GetPublicTagsFromBE
+                        , Effect.Lamdera.sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
                         ]
                     )
 
                 SidebarTagsOut ->
-                    ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Cmd.none )
+                    ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Command.none )
 
         SetLanguage dismiss lang ->
             Frontend.Update.setLanguage dismiss lang model
@@ -827,7 +832,7 @@ update msg model =
             Frontend.Update.render model msg_
 
         Fetch id ->
-            ( model, sendToBackend (FetchDocumentById StandardHandling id) )
+            ( model, Effect.Lamdera.sendToBackend (FetchDocumentById StandardHandling id) )
 
         DebounceMsg msg_ ->
             Frontend.Update.debounceMsg model msg_
@@ -838,7 +843,7 @@ update msg model =
                 Frontend.Update.updateDoc model str
 
             else
-                ( model, Cmd.none )
+                ( model, Command.none )
 
         Search ->
             ( { model
@@ -846,7 +851,7 @@ update msg model =
                 , documentList = StandardList
                 , currentMasterDocument = Nothing
               }
-            , sendToBackend (SearchForDocuments StandardHandling (model.currentUser |> Maybe.map .username) model.inputSearchKey)
+            , Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling (model.currentUser |> Maybe.map .username) model.inputSearchKey)
             )
 
         SearchText ->
@@ -856,7 +861,7 @@ update msg model =
             Frontend.Update.inputText model { position = position, source = source }
 
         InputCommand str ->
-            ( { model | inputCommand = str }, Cmd.none )
+            ( { model | inputCommand = str }, Command.none )
 
         InputCursor { position, source } ->
             Frontend.Update.inputCursor { position = position, source = source } model
@@ -868,28 +873,28 @@ update msg model =
             Frontend.Update.setInitialEditorContent model
 
         InputAuthorId str ->
-            ( { model | authorId = str }, Cmd.none )
+            ( { model | authorId = str }, Command.none )
 
         AskForDocumentById documentHandling id ->
-            ( model, sendToBackend (GetDocumentById documentHandling id) )
+            ( model, Effect.Lamdera.sendToBackend (GetDocumentById documentHandling id) )
 
         AskForDocumentByAuthorId ->
-            ( model, sendToBackend (SearchForDocumentsWithAuthorAndKey model.authorId) )
+            ( model, Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey model.authorId) )
 
         InputSearchKey str ->
-            ( { model | inputSearchKey = str }, Cmd.none )
+            ( { model | inputSearchKey = str }, Command.none )
 
         InputSearchTagsKey str ->
-            ( { model | inputSearchTagsKey = str }, Cmd.none )
+            ( { model | inputSearchTagsKey = str }, Command.none )
 
         NewDocument ->
             Frontend.Update.newDocument model
 
         SetDeleteDocumentState s ->
-            ( { model | deleteDocumentState = s }, Cmd.none )
+            ( { model | deleteDocumentState = s }, Command.none )
 
         SetHardDeleteDocumentState s ->
-            ( { model | hardDeleteDocumentState = s }, Cmd.none )
+            ( { model | hardDeleteDocumentState = s }, Command.none )
 
         SoftDeleteDocument ->
             Frontend.Update.softDeleteDocument model
@@ -903,7 +908,7 @@ update msg model =
         SetDocumentCurrent document ->
             case model.currentDocument of
                 Nothing ->
-                    Frontend.Update.setDocumentAsCurrent Cmd.none model document StandardHandling
+                    Frontend.Update.setDocumentAsCurrent Command.none model document StandardHandling
 
                 Just currentDocument ->
                     Frontend.Update.handleCurrentDocumentChange model currentDocument document
@@ -912,7 +917,7 @@ update msg model =
         SetDocumentAsCurrent handling document ->
             case model.currentDocument of
                 Nothing ->
-                    Frontend.Update.setDocumentAsCurrent Cmd.none model document handling
+                    Frontend.Update.setDocumentAsCurrent Command.none model document handling
 
                 Just currentDocument ->
                     Frontend.Update.handleCurrentDocumentChange model currentDocument document
@@ -920,16 +925,16 @@ update msg model =
         SetDocumentCurrentViaId id ->
             case Document.documentFromListViaId id model.documents of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
-                    ( Frontend.Update.postProcessDocument doc model, Cmd.none )
+                    ( Frontend.Update.postProcessDocument doc model, Command.none )
 
         SetPublic doc public ->
             Frontend.Update.setPublic model doc public
 
         SetSortMode sortMode ->
-            ( { model | sortMode = sortMode }, Cmd.none )
+            ( { model | sortMode = sortMode }, Command.none )
 
         -- Export
         ExportToMarkdown ->
@@ -944,7 +949,7 @@ update msg model =
         ExportTo lang ->
             case model.currentDocument of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
                     case lang of
@@ -956,13 +961,13 @@ update msg model =
                                 newText =
                                     Render.MicroLaTeX.export ast
                             in
-                            ( model, Download.string "out-microlatex.txt" "text/plain" newText )
+                            ( model, Effect.File.Download.string "out-microlatex.txt" "text/plain" newText )
 
                         L0Lang ->
-                            ( model, Download.string "out-l0.txt" "text/plain" doc.content )
+                            ( model, Effect.File.Download.string "out-l0.txt" "text/plain" doc.content )
 
                         PlainTextLang ->
-                            ( model, Download.string "out-l0.txt" "text/plain" doc.content )
+                            ( model, Effect.File.Download.string "out-l0.txt" "text/plain" doc.content )
 
                         XMarkdownLang ->
                             let
@@ -972,13 +977,13 @@ update msg model =
                                 newText =
                                     Render.XMarkdown.export ast
                             in
-                            ( model, Download.string "out-xmarkdown.txt" "text/plain" newText )
+                            ( model, Effect.File.Download.string "out-xmarkdown.txt" "text/plain" newText )
 
         Export ->
             issueCommandIfDefined model.currentDocument model exportDoc
 
         RunCommand ->
-            ( { model | counter = model.counter + 1, editCommand = { counter = model.counter, command = OTCommand.parseCommand model.inputCommand } }, Cmd.none )
+            ( { model | counter = model.counter + 1, editCommand = { counter = model.counter, command = OTCommand.parseCommand model.inputCommand } }, Command.none )
 
         PrintToPDF ->
             PDF.print model
@@ -991,7 +996,7 @@ update msg model =
             issueCommandIfDefined model.currentDocument { model | printingState = printingState } (changePrintingState printingState)
 
         FinallyDoCleanPrintArtefacts _ ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
 
 fixId_ : String -> String
@@ -1032,16 +1037,16 @@ fixId_ str =
 --    ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
 
 
-changePrintingState : PrintingState -> { a | id : String } -> Cmd FrontendMsg
+changePrintingState : PrintingState -> { a | id : String } -> Command restriction toMsg FrontendMsg
 changePrintingState printingState doc =
     if printingState == PrintWaiting then
-        Process.sleep 1000 |> Task.perform (always (FinallyDoCleanPrintArtefacts doc.id))
+        Effect.Process.sleep 1000 |> Effect.Task.perform (always (FinallyDoCleanPrintArtefacts doc.id))
 
     else
-        Cmd.none
+        Command.none
 
 
-exportToLaTeX : Document.Document -> Cmd msg
+exportToLaTeX : Document.Document -> Command restriction toMsg msg
 exportToLaTeX doc =
     let
         laTeXText =
@@ -1050,40 +1055,40 @@ exportToLaTeX doc =
         fileName =
             doc.id ++ ".lo"
     in
-    Download.string fileName "application/x-latex" laTeXText
+    Effect.File.Download.string fileName "application/x-latex" laTeXText
 
 
-exportDoc : Document.Document -> Cmd msg
+exportDoc : Document.Document -> Command restriction toMsg msg
 exportDoc doc =
     let
         fileName =
             doc.id ++ ".l0"
     in
-    Download.string fileName "text/plain" doc.content
+    Effect.File.Download.string fileName "text/plain" doc.content
 
 
-issueCommandIfDefined : Maybe a -> Model -> (a -> Cmd msg) -> ( Model, Cmd msg )
+issueCommandIfDefined : Maybe a -> Model -> (a -> Command restriction toMsg msg) -> ( Model, Command restriction toMsg msg )
 issueCommandIfDefined maybeSomething model cmdMsg =
     case maybeSomething of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just something ->
             ( model, cmdMsg something )
 
 
-updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
+updateFromBackend : ToFrontend -> Model -> ( Model, Command restriction toMsg FrontendMsg )
 updateFromBackend msg model =
     case msg of
         -- ADMIN
         GotShareDocumentList sharedDocList ->
-            ( { model | sharedDocumentList = sharedDocList }, Cmd.none )
+            ( { model | sharedDocumentList = sharedDocList }, Command.none )
 
         GotUsersWithOnlineStatus userData ->
-            ( { model | userList = userData }, Cmd.none )
+            ( { model | userList = userData }, Command.none )
 
         GotConnectionList connectedUsers ->
-            ( { model | connectedUsers = connectedUsers }, Cmd.none )
+            ( { model | connectedUsers = connectedUsers }, Command.none )
 
         -- COLLABORATIVE EDITING
         InitializeNetworkModel networkModel ->
@@ -1092,7 +1097,7 @@ updateFromBackend msg model =
                 , networkModel = networkModel
                 , editCommand = { counter = model.counter, command = Just (OTCommand.CMoveCursor 0 0) }
               }
-            , Cmd.none
+            , Command.none
             )
 
         ResetNetworkModel networkModel document ->
@@ -1103,7 +1108,7 @@ updateFromBackend msg model =
                 , documents = Util.updateDocumentInList document model.documents
                 , showEditor = False
               }
-            , Cmd.none
+            , Command.none
             )
 
         -- DOCUMENT
@@ -1117,14 +1122,14 @@ updateFromBackend msg model =
                     Frontend.Update.updateEditRecord inclusionData doc_ model_
             in
             ( { model | includedContent = includedContent } |> (\m -> updateEditRecord includedContent doc m)
-            , Cmd.none
+            , Command.none
             )
 
         AcceptUserTags tagDict ->
-            ( { model | tagDict = tagDict }, Cmd.none )
+            ( { model | tagDict = tagDict }, Command.none )
 
         AcceptPublicTags tagDict ->
-            ( { model | publicTagDict = tagDict }, Cmd.none )
+            ( { model | publicTagDict = tagDict }, Command.none )
 
         -- COLLABORATIVE EDITING
         ProcessEvent event ->
@@ -1161,7 +1166,7 @@ updateFromBackend msg model =
                 , networkModel = newNetworkModel
                 , editRecord = newEditRecord
               }
-            , Cmd.none
+            , Command.none
             )
 
         ReceivedDocument documentHandling doc ->
@@ -1203,13 +1208,13 @@ updateFromBackend msg model =
                 , currentMasterDocument = currentMasterDocument
                 , counter = model.counter + 1
               }
-            , Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+            , Command.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
             )
 
         ReceivedPublicDocuments publicDocuments ->
             case List.head publicDocuments of
                 Nothing ->
-                    ( { model | publicDocuments = publicDocuments }, Cmd.none )
+                    ( { model | publicDocuments = publicDocuments }, Command.none )
 
                 Just doc ->
                     let
@@ -1217,7 +1222,7 @@ updateFromBackend msg model =
                             case model.currentUser of
                                 Nothing ->
                                     if model.actualSearchKey == "" && model.url.path == "/" then
-                                        Cmd.none
+                                        Command.none
 
                                     else
                                         Util.delay 40 (SetDocumentCurrent doc)
@@ -1235,19 +1240,19 @@ updateFromBackend msg model =
             case List.head documents of
                 Nothing ->
                     -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just doc ->
                     case documentHandling of
                         PinnedDocumentList ->
                             ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
-                            , Cmd.none
+                            , Command.none
                               -- TODO: ??, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
                             )
 
                         _ ->
                             ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.postProcessDocument doc
-                            , Cmd.none
+                            , Command.none
                             )
 
         MessageReceived message ->
@@ -1259,17 +1264,17 @@ updateFromBackend msg model =
                     else
                         model.messages
             in
-            ( { model | messages = newMessages }, Cmd.none )
+            ( { model | messages = newMessages }, Command.none )
 
         -- ADMIN
         SendBackupData data ->
-            ( { model | messages = [ { txt = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSWhite } ] }, Download.string "l0-lab-demo    .json" "text/json" data )
+            ( { model | messages = [ { txt = "Backup data: " ++ String.fromInt (String.length data) ++ " chars", status = MSWhite } ] }, Effect.File.Download.string "l0-lab-demo    .json" "text/json" data )
 
         StatusReport items ->
-            ( { model | statusReport = items }, Cmd.none )
+            ( { model | statusReport = items }, Command.none )
 
         SetShowEditor flag ->
-            ( { model | showEditor = flag }, Cmd.none )
+            ( { model | showEditor = flag }, Command.none )
 
         UserSignedUp user ->
             ( { model
@@ -1285,7 +1290,7 @@ updateFromBackend msg model =
                 , language = user.preferences.language
                 , timeSignedIn = model.currentTime
               }
-            , Cmd.none
+            , Command.none
             )
 
         -- USER MESSAGES
@@ -1293,7 +1298,7 @@ updateFromBackend msg model =
             ( { model | userMessage = Just message }, View.Chat.scrollChatToBottom )
 
         UndeliverableMessage message ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         --case message.actionOnFailureToDeliver of
         --    Types.FANoOp ->
@@ -1308,12 +1313,12 @@ updateFromBackend msg model =
         GotChatGroup mChatGroup ->
             case mChatGroup of
                 Nothing ->
-                    ( model, Cmd.none )
+                    ( model, Command.none )
 
                 Just group ->
                     let
                         cmd =
-                            sendToBackend (SendChatHistory group.name)
+                            Effect.Lamdera.sendToBackend (SendChatHistory group.name)
                     in
                     ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )
 

@@ -3,16 +3,18 @@ module Frontend.PDF exposing (gotLink, print)
 import Compiler.ASTTools as ASTTools
 import Config
 import Document exposing (Document)
+import Duration
+import Effect.Command as Command exposing (Command)
+import Effect.Http
+import Effect.Process
+import Effect.Task
 import Either
-import Http
 import Json.Encode as E
 import Markup
 import Maybe.Extra
 import Parser.Block exposing (ExpressionBlock(..))
-import Process
 import Render.LaTeX as LaTeX
 import Render.Settings
-import Task
 import Tree
 import Types exposing (FrontendModel, FrontendMsg(..), MessageStatus(..), PrintingState(..))
 
@@ -20,18 +22,18 @@ import Types exposing (FrontendModel, FrontendMsg(..), MessageStatus(..), Printi
 print model =
     case model.currentDocument of
         Nothing ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Just doc ->
             ( { model | messages = [ { txt = "printToPDF", status = MSGreen } ] }
-            , Cmd.batch
+            , Command.batch
                 [ generatePdf doc
-                , Process.sleep 1 |> Task.perform (always (ChangePrintingState PrintProcessing))
+                , Effect.Process.sleep (Duration.milliseconds 1) |> Effect.Task.perform (always (ChangePrintingState PrintProcessing))
                 ]
             )
 
 
-generatePdf : Document -> Cmd FrontendMsg
+generatePdf : Document -> Command restriction toMsg FrontendMsg
 generatePdf document =
     let
         syntaxTree =
@@ -52,27 +54,27 @@ generatePdf document =
         contentForExport =
             LaTeX.export Render.Settings.defaultSettings syntaxTree
     in
-    Http.request
+    Effect.Http.request
         { method = "POST"
-        , headers = [ Http.header "Content-Type" "application/json" ]
+        , headers = [ Effect.Http.header "Content-Type" "application/json" ]
         , url = Config.pdfServer ++ "/pdf"
-        , body = Http.jsonBody (encodeForPDF document.id contentForExport imageUrls)
-        , expect = Http.expectString GotPdfLink
+        , body = Effect.Http.jsonBody (encodeForPDF document.id contentForExport imageUrls)
+        , expect = Effect.Http.expectString GotPdfLink
         , timeout = Nothing
         , tracker = Nothing
         }
 
 
-gotLink : FrontendModel -> Result error value -> ( FrontendModel, Cmd FrontendMsg )
+gotLink : FrontendModel -> Result error value -> ( FrontendModel, Command restriction toMsg FrontendMsg )
 gotLink model result =
     case result of
         Err _ ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         Ok _ ->
             ( model
-            , Cmd.batch
-                [ Process.sleep 5 |> Task.perform (always (ChangePrintingState PrintReady))
+            , Command.batch
+                [ Effect.Process.sleep (Duration.milliseconds 5) |> Effect.Task.perform (always (ChangePrintingState PrintReady))
                 ]
             )
 

@@ -3,12 +3,12 @@ module View.Index exposing (view, viewDocuments)
 import BoundedDeque
 import Config
 import Document exposing (Document)
+import Effect.Time
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import Frontend.Update
 import String.Extra
-import Time
 import Types exposing (ActiveDocList(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
 import View.Button as Button
 import View.Geometry as Geometry
@@ -85,7 +85,7 @@ viewSharedDocs model deltaH indexShift =
                     List.sortBy (\docInfo -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." docInfo.title)
 
                 SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
 
         docInfoList =
             case model.currentUser of
@@ -159,7 +159,7 @@ viewWorkingDocs model deltaH indexShift =
                     List.sortBy (\docInfo -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." docInfo.title)
 
                 SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
 
         docInfoList =
             case model.currentUser of
@@ -213,7 +213,7 @@ viewMydocs model deltaH indexShift =
                     List.sortBy (\doc -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." doc.title)
 
                 SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
 
         docs =
             sort model.documents |> filterBackups model.seeBackups
@@ -260,9 +260,9 @@ viewPinnedDocs model deltaH indexShift =
                     List.sortBy (\doc -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." doc.title)
 
                 SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
 
-        docs : List { title : String, id : String, slug : Maybe String, modified : Time.Posix, public : Bool }
+        docs : List { title : String, id : String, slug : Maybe String, modified : Effect.Time.Posix, public : Bool }
         docs =
             sort model.pinnedDocuments |> List.filter (\data -> not (String.contains "(BAK)" data.title))
 
@@ -330,7 +330,7 @@ viewPublicDocuments model =
                     List.sortBy (\doc -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." doc.title)
 
                 SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
     in
     viewDocuments StandardHandling model.currentDocument (sorter (model.publicDocuments |> filterBackups model.seeBackups))
 

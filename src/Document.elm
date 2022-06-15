@@ -23,20 +23,20 @@ module Document exposing
     , wordCount
     )
 
+import Effect.Lamdera exposing (ClientId)
+import Effect.Time
 import Element
-import Lamdera exposing (ClientId)
 import List.Extra
 import Parser.Helpers
 import Parser.Language exposing (Language(..))
 import Render.Settings
-import Time
 
 
 type alias Document =
     { id : String
     , publicId : String
-    , created : Time.Posix
-    , modified : Time.Posix
+    , created : Effect.Time.Posix
+    , modified : Effect.Time.Posix
     , content : String
     , title : String
     , public : Bool -- document visible to others if public == True
@@ -213,7 +213,7 @@ toDocInfo doc =
 
 
 type alias DocumentInfo =
-    { title : String, id : String, slug : Maybe String, modified : Time.Posix, public : Bool }
+    { title : String, id : String, slug : Maybe String, modified : Effect.Time.Posix, public : Bool }
 
 
 currentAuthor : Maybe Document -> String
@@ -242,8 +242,8 @@ defaultSettings =
 empty =
     { id = "-3"
     , publicId = "-1"
-    , created = Time.millisToPosix 0
-    , modified = Time.millisToPosix 0
+    , created = Effect.Time.millisToPosix 0
+    , modified = Effect.Time.millisToPosix 0
     , content = ""
     , title = "(Untitled)"
     , public = False

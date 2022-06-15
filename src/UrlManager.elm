@@ -1,6 +1,7 @@
 module UrlManager exposing (handleDocId)
 
-import Lamdera exposing (sendToBackend)
+import Effect.Command as Command exposing (Command)
+import Effect.Lamdera exposing (sendToBackend)
 import Parser exposing ((|.), (|=), chompWhile, getChompedString, oneOf, succeed, symbol)
 import Types exposing (FrontendMsg, ToBackend(..))
 import Url exposing (Url)
@@ -12,17 +13,17 @@ type DocUrl
     | NoDocUrl
 
 
-handleDocId : Url -> Cmd FrontendMsg
+handleDocId : Url -> Command Command.FrontendOnly ToBackend FrontendMsg
 handleDocId url =
     case parseDocUrl url of
         NoDocUrl ->
-            Cmd.none
+            Command.none
 
         HomePage str ->
-            sendToBackend (GetHomePage str)
+            Effect.Lamdera.sendToBackend (GetHomePage str)
 
         DocUrl slug ->
-            sendToBackend (SearchForDocumentsWithAuthorAndKey slug)
+            Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey slug)
 
 
 

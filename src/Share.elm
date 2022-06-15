@@ -18,7 +18,8 @@ module Share exposing
 
 import Dict
 import Document
-import Lamdera exposing (ClientId, sendToBackend, sendToFrontend)
+import Effect.Command as Command exposing (Command)
+import Effect.Lamdera exposing (ClientId, sendToBackend, sendToFrontend)
 import List.Extra
 import Maybe.Extra
 import Set
@@ -145,16 +146,16 @@ updateSharedDocumentDict user doc model =
     { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict }
 
 
-doShare : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
+doShare : Types.FrontendModel -> ( Types.FrontendModel, Command Command.FrontendOnly Types.ToBackend Types.FrontendMsg )
 doShare model =
     case model.currentDocument of
         Nothing ->
-            ( { model | popupState = Types.NoPopup }, Cmd.none )
+            ( { model | popupState = Types.NoPopup }, Command.none )
 
         Just doc ->
             case model.currentUser of
                 Nothing ->
-                    ( { model | popupState = Types.NoPopup }, Cmd.none )
+                    ( { model | popupState = Types.NoPopup }, Command.none )
 
                 Just user_ ->
                     let
@@ -170,14 +171,14 @@ doShare model =
                         cmdSaveUser =
                             case model.currentUser of
                                 Nothing ->
-                                    Cmd.none
+                                    Command.none
 
                                 Just user ->
                                     let
                                         folks =
                                             Set.union (Set.fromList readers) (Set.fromList editors)
                                     in
-                                    sendToBackend (Types.UpdateUserWith { user | sharedDocumentAuthors = Set.union folks user.sharedDocumentAuthors })
+                                    Effect.Lamdera.sendToBackend (Types.UpdateUserWith { user | sharedDocumentAuthors = Set.union folks user.sharedDocumentAuthors })
 
                         newDocument =
                             { doc | sharedWith = sharedWith }
@@ -186,35 +187,35 @@ doShare model =
                             List.Extra.setIf (\d -> d.id == newDocument.id) newDocument model.documents
                     in
                     ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
-                    , Cmd.batch
-                        [ sendToBackend (Types.SaveDocument model.currentUser newDocument)
-                        , sendToBackend (Types.UpdateSharedDocumentDict user_ newDocument)
+                    , Command.batch
+                        [ Effect.Lamdera.sendToBackend (Types.SaveDocument model.currentUser newDocument)
+                        , Effect.Lamdera.sendToBackend (Types.UpdateSharedDocumentDict user_ newDocument)
                         , cmdSaveUser
                         ]
                     )
 
 
-shareDocument : Types.FrontendModel -> ( Types.FrontendModel, Cmd Types.FrontendMsg )
+shareDocument : Types.FrontendModel -> ( Types.FrontendModel, Command restriction toMsg Types.FrontendMsg )
 shareDocument model =
     case ( model.currentDocument, model.popupState ) of
         ( Nothing, _ ) ->
-            ( model, Cmd.none )
+            ( model, Command.none )
 
         ( Just doc, Types.NoPopup ) ->
             let
                 ( inputReaders, inputEditors ) =
                     ( String.join ", " doc.sharedWith.readers, String.join ", " doc.sharedWith.editors )
             in
-            ( { model | popupState = Types.SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Cmd.none )
+            ( { model | popupState = Types.SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Command.none )
 
         ( Just doc, _ ) ->
-            ( { model | popupState = Types.NoPopup }, Cmd.none )
+            ( { model | popupState = Types.NoPopup }, Command.none )
 
 
 {-| Send the document to all the users listed in document.share who have active connections,
 except to the client calling narrowcast.
 -}
-narrowCast : ClientId -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
+narrowCast : ClientId -> Document.Document -> Types.ConnectionDict -> Command Command.BackendOnly Types.ToFrontend Types.BackendMsg
 narrowCast requestingClientId document connectionDict =
     let
         usernames =
@@ -230,10 +231,10 @@ narrowCast requestingClientId document connectionDict =
         clientIds =
             getClientIds usernames connectionDict |> List.filter (\id -> id /= requestingClientId)
     in
-    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
+    Command.batch (List.map (\clientId -> Effect.Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
 
 
-narrowCastIfShared : Types.ConnectionDict -> ClientId -> Types.Username -> Document.Document -> Cmd Types.BackendMsg
+narrowCastIfShared : Types.ConnectionDict -> ClientId -> Types.Username -> Document.Document -> Command Command.BackendOnly Types.ToFrontend Types.BackendMsg
 narrowCastIfShared connectionDict clientId username document =
     let
         numberOfDistinctEditors =
@@ -243,7 +244,7 @@ narrowCastIfShared connectionDict clientId username document =
         -- if the document is not shared,
         -- or if there is at most one editor,
         -- then do not narrowcast
-        Cmd.none
+        Command.none
 
     else
         let
@@ -254,7 +255,7 @@ narrowCastIfShared connectionDict clientId username document =
             clients =
                 clientIdsOfEditors connectionDict editors
         in
-        List.map (\client -> sendToFrontend client (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) clients |> Cmd.batch
+        List.map (\client -> Effect.Lamdera.sendToFrontend client (Types.ReceivedDocument (Types.HandleSharedDocument username) document)) clients |> Command.batch
 
 
 clientIdsOfEditors : Types.ConnectionDict -> List Document.EditorData -> List ClientId
@@ -265,7 +266,7 @@ clientIdsOfEditors connectionDict editors =
         |> List.map .client
 
 
-narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
+narrowCastToEditorsExceptForSender : Username -> Document.Document -> Types.ConnectionDict -> Command Command.BackendOnly Types.ToFrontend Types.BackendMsg
 narrowCastToEditorsExceptForSender sendersName document connectionDict =
     let
         usernames =
@@ -279,7 +280,7 @@ narrowCastToEditorsExceptForSender sendersName document connectionDict =
         clientIds =
             getClientIds usernames connectionDict
     in
-    Cmd.batch (List.map (\clientId -> Lamdera.sendToFrontend clientId (Types.ReceivedDocument (Types.HandleSharedDocument sendersName) document)) clientIds)
+    Command.batch (List.map (\clientId -> Effect.Lamdera.sendToFrontend clientId (Types.ReceivedDocument (Types.HandleSharedDocument sendersName) document)) clientIds)
 
 
 getClientIds : List Username -> Types.ConnectionDict -> List ClientId

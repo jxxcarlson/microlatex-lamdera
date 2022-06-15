@@ -1,14 +1,15 @@
 module Backend.Cmd exposing (getRandomNumber)
 
-import Http
+import Effect.Command as Command exposing (Command)
+import Effect.Http
 import Types exposing (BackendMsg(..))
 
 
-getRandomNumber : Cmd BackendMsg
+getRandomNumber : Command restriction toMsg BackendMsg
 getRandomNumber =
-    Http.get
+    Effect.Http.get
         { url = randomNumberUrl 9
-        , expect = Http.expectString GotAtomsphericRandomNumber
+        , expect = Effect.Http.expectString GotAtomsphericRandomNumber
         }
 
 

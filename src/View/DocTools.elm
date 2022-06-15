@@ -4,11 +4,11 @@ import Config
 import DateTimeUtility
 import Dict exposing (Dict)
 import Document exposing (Document)
+import Effect.Time
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import String.Extra
-import Time
 import Types exposing (FrontendModel, FrontendMsg, SidebarExtrasState(..), SidebarTagsState(..))
 import User
 import View.Button as Button
@@ -97,7 +97,7 @@ publicLink currentDocument =
                             [ E.text url, E.el [ E.alignRight ] Button.dismissPublicUrlBox ]
 
 
-dateCreated : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
+dateCreated : Effect.Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
 dateCreated zone maybeDocument =
     case maybeDocument of
         Nothing ->
@@ -115,7 +115,7 @@ docId model =
     E.el [ Font.size 12, Background.color Color.paleBlue, E.paddingXY 6 6 ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
 
 
-backup : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
+backup : Effect.Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
 backup zone maybeDocument =
     case maybeDocument of
         Nothing ->

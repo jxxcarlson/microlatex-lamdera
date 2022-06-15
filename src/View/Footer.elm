@@ -3,12 +3,12 @@ module View.Footer exposing (view)
 import Config
 import DateTimeUtility
 import Document exposing (Document)
+import Effect.Time
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Message
 import Predicate
-import Time
 import Types
 import View.Button as Button
 import View.Chat
@@ -111,7 +111,7 @@ timeElapsed model =
     let
         elapsedSinceLastInteraction : Int
         elapsedSinceLastInteraction =
-            (Time.posixToMillis model.currentTime - Time.posixToMillis model.lastInteractionTime) // 1000
+            (Effect.Time.posixToMillis model.currentTime - Effect.Time.posixToMillis model.lastInteractionTime) // 1000
     in
     if elapsedSinceLastInteraction < Config.automaticSignoutLimit - Config.automaticSignoutNoticePeriod then
         --E.el [ Font.color Color.white ] (E.text (String.fromInt elapsedSinceLastInteraction))
@@ -128,7 +128,7 @@ timeElapsed model =
         E.el [ Font.color Color.white, Background.color Color.red, E.paddingXY 8 4 ] (E.text message)
 
 
-backup : Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
+backup : Effect.Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
 backup zone maybeDocument =
     case maybeDocument of
         Nothing ->
@@ -146,7 +146,7 @@ backup zone maybeDocument =
                     E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
-showCurrentEditors : Maybe { name : String, activeAt : Time.Posix } -> Maybe Document.Document -> E.Element msg
+showCurrentEditors : Maybe { name : String, activeAt : Effect.Time.Posix } -> Maybe Document.Document -> E.Element msg
 showCurrentEditors activeEditor mDoc =
     case mDoc of
         Nothing ->

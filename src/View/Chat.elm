@@ -1,15 +1,16 @@
 module View.Chat exposing (focusMessageInput, scrollChatToBottom, view)
 
-import Browser.Dom as Dom
 import DateTimeUtility
+import Effect.Browser.Dom
+import Effect.Command as Command exposing (Command)
+import Effect.Task
+import Effect.Time
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
-import Task
-import Time
 import Types exposing (..)
 import View.Button
 import View.Color as Color
@@ -169,7 +170,7 @@ chatInput model msg =
         []
 
 
-viewMessage : Time.Zone -> ChatMsg -> E.Element msg
+viewMessage : Effect.Time.Zone -> ChatMsg -> E.Element msg
 viewMessage zone msg =
     case msg of
         Types.JoinedChat clientId username ->
@@ -187,17 +188,17 @@ fontStyles =
     [ style "font-family" "Helvetica", style "font-size" "14px", style "line-height" "1.5" ]
 
 
-scrollChatToBottom : Cmd FrontendMsg
+scrollChatToBottom : Command ToFrontend toMsg FrontendMsg
 scrollChatToBottom =
-    Dom.getViewportOf "message-box"
-        |> Task.andThen (\info -> Dom.setViewportOf "message-box" 0 info.scene.height)
-        |> Task.attempt (\_ -> Types.FENoOp)
+    Effect.Browser.Dom.getViewportOf "message-box"
+        |> Effect.Task.andThen (\info -> Effect.Browser.Dom.setViewportOf "message-box" 0 info.scene.height)
+        |> Effect.Task.attempt (\_ -> Types.FENoOp)
 
 
 
 -- |> Task.andThen (\_ -> Util.delay 100 Types.ScrollChatToBottom)
 
 
-focusMessageInput : Cmd FrontendMsg
+focusMessageInput : Command ToFrontend toMsg FrontendMsg
 focusMessageInput =
-    Task.attempt (always Types.FENoOp) (Dom.focus "message-input")
+    Effect.Task.attempt (always Types.FENoOp) (Effect.Browser.Dom.focus "message-input")

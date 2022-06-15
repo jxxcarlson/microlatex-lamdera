@@ -10,10 +10,11 @@ module Chat exposing
 
 import Chat.Message
 import Dict
-import Lamdera
+import Effect.Command as Command exposing (BackendOnly, Command)
+import Effect.Lamdera
+import Effect.Time
 import List.Extra
-import Time
-import Types exposing (ChatMsg(..))
+import Types exposing (ChatMsg(..), ToFrontend)
 
 
 consolidateOne : ChatMsg -> List ChatMsg -> List ChatMsg
@@ -57,7 +58,7 @@ timeOf msg =
             0
 
         ChatMsg _ data ->
-            data.date |> Time.posixToMillis
+            data.date |> Effect.Time.posixToMillis
 
 
 consolidate : List Types.ChatMsg -> List Types.ChatMsg
@@ -85,9 +86,9 @@ close mx1 mx2 =
             False
 
 
-interval : Time.Posix -> Time.Posix -> Float
+interval : Effect.Time.Posix -> Effect.Time.Posix -> Float
 interval t1 t2 =
-    toFloat (Time.posixToMillis t2 - Time.posixToMillis t1) / 1000.0
+    toFloat (Effect.Time.posixToMillis t2 - Effect.Time.posixToMillis t1) / 1000.0
 
 
 concat : List ( Types.ChatMsg, List Types.ChatMsg ) -> List Types.ChatMsg
@@ -141,7 +142,7 @@ toString chatMsg =
 -- NARROWCAST
 
 
-narrowCast : Types.BackendModel -> Chat.Message.ChatMessage -> List (Cmd backendMsg)
+narrowCast : Types.BackendModel -> Chat.Message.ChatMessage -> List (Command BackendOnly Types.ToFrontend backendMsg)
 narrowCast model message =
     let
         groupMembers =
@@ -150,9 +151,9 @@ narrowCast model message =
         clientIds =
             List.map (\username -> getClients username model.connectionDict) groupMembers |> List.concat
 
-        commands : List (Cmd backendMsg)
+        commands : List (Command BackendOnly Types.ToFrontend backendMsg)
         commands =
-            List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.ChatMessageReceived (Types.ChatMsg clientId_ message))) clientIds
+            List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (Types.ChatMessageReceived (Types.ChatMsg clientId_ message))) clientIds
     in
     commands
 
@@ -165,7 +166,7 @@ sendChatHistoryCmd groupName model clientId =
     let
         history : List Types.ChatMsg
         history =
-            Dict.get groupName model.chatDict |> Maybe.withDefault [] |> List.map (\m -> ChatMsg "0" m)
+            Dict.get groupName model.chatDict |> Maybe.withDefault [] |> List.map (\m -> ChatMsg ("0" |> Effect.Lamdera.clientIdFromString) m)
 
         groupMembers =
             Dict.get groupName model.chatGroupDict |> Maybe.map .members |> Maybe.withDefault []
@@ -173,14 +174,14 @@ sendChatHistoryCmd groupName model clientId =
         clientIds =
             List.map (\username -> getClients username model.connectionDict) groupMembers |> List.concat
 
-        cmds : List (Cmd backendMsg)
+        cmds : List (Command BackendOnly ToFrontend backendMsg)
         cmds =
-            List.map (\clientId_ -> Lamdera.sendToFrontend clientId_ (Types.GotChatHistory history)) clientIds
+            List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (Types.GotChatHistory history)) clientIds
     in
-    Cmd.batch cmds
+    Command.batch cmds
 
 
-getClients : Types.Username -> Types.ConnectionDict -> List Lamdera.ClientId
+getClients : Types.Username -> Types.ConnectionDict -> List Effect.Lamdera.ClientId
 getClients username dict =
     Dict.get username dict |> Maybe.map (List.map .client) |> Maybe.withDefault []
 

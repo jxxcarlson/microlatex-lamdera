@@ -1,8 +1,8 @@
 module Chat.Message exposing (ChatMessage, consolidate, consolidateOne, consolidateTwo, insert)
 
 import Dict exposing (Dict)
+import Effect.Time
 import List.Extra
-import Time
 
 
 type alias ChatMessage =
@@ -10,7 +10,7 @@ type alias ChatMessage =
     , group : String
     , subject : String
     , content : String
-    , date : Time.Posix
+    , date : Effect.Time.Posix
     }
 
 
@@ -71,7 +71,7 @@ consolidateTwo message1 message2 =
 
 timeOf : ChatMessage -> Int
 timeOf msg =
-    msg.date |> Time.posixToMillis
+    msg.date |> Effect.Time.posixToMillis
 
 
 consolidate : List ChatMessage -> List ChatMessage
@@ -93,9 +93,9 @@ close mx1 mx2 =
     mx1.sender == mx2.sender && (interval mx2.date mx1.date < 60.0)
 
 
-interval : Time.Posix -> Time.Posix -> Float
+interval : Effect.Time.Posix -> Effect.Time.Posix -> Float
 interval t1 t2 =
-    toFloat (Time.posixToMillis t2 - Time.posixToMillis t1) / 1000.0
+    toFloat (Effect.Time.posixToMillis t2 - Effect.Time.posixToMillis t1) / 1000.0
 
 
 concat : List ( ChatMessage, List ChatMessage ) -> List ChatMessage

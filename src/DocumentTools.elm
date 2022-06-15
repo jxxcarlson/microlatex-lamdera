@@ -1,7 +1,7 @@
 module DocumentTools exposing (..)
 
 import Document exposing (Document)
-import Time
+import Effect.Time
 import Types
 
 
@@ -14,6 +14,6 @@ sort sortMode documents =
                     List.sortBy (\doc -> doc.title)
 
                 Types.SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Time.posixToMillis b.modified) (Time.posixToMillis a.modified))
+                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
     in
     sort_ documents

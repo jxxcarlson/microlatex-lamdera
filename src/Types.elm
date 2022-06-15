@@ -55,8 +55,6 @@ module Types exposing
 import Abstract exposing (Abstract, AbstractOLD)
 import Authentication exposing (AuthenticationDict)
 import Browser exposing (UrlRequest)
-import Browser.Dom as Dom
-import Browser.Navigation
 import Chat.Message
 import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT
@@ -66,14 +64,16 @@ import Debounce exposing (Debounce)
 import Deque exposing (Deque)
 import Dict exposing (Dict)
 import Document exposing (Document)
-import Http
+import Effect.Browser.Dom
+import Effect.Browser.Navigation
+import Effect.Http
+import Effect.Lamdera exposing (ClientId, SessionId)
+import Effect.Time
 import Keyboard
-import Lamdera exposing (ClientId, SessionId)
 import Parser.Block exposing (ExpressionBlock)
 import Parser.Language exposing (Language)
 import Random
 import Render.Msg
-import Time
 import Url exposing (Url)
 import User exposing (User)
 
@@ -84,13 +84,13 @@ import User exposing (User)
 
 type alias FrontendModel =
     { --SYSTEM
-      key : Browser.Navigation.Key
+      key : Effect.Browser.Navigation.Key
     , url : Url
     , messages : List Message
-    , currentTime : Time.Posix
-    , zone : Time.Zone
-    , timeSignedIn : Time.Posix
-    , lastInteractionTime : Time.Posix
+    , currentTime : Effect.Time.Posix
+    , zone : Effect.Time.Zone
+    , timeSignedIn : Effect.Time.Posix
+    , lastInteractionTime : Effect.Time.Posix
 
     -- ADMIN
     , statusReport : List String
@@ -165,7 +165,7 @@ type alias FrontendModel =
     , networkModel : NetworkModel.NetworkModel
 
     -- SHARED EDITING
-    , activeEditor : Maybe { name : String, activeAt : Time.Posix }
+    , activeEditor : Maybe { name : String, activeAt : Effect.Time.Posix }
 
     -- FLAGS
     , documentDirty : Bool
@@ -222,7 +222,7 @@ type alias FrontendModel =
 
 type alias BackendModel =
     { message : String
-    , currentTime : Time.Posix
+    , currentTime : Effect.Time.Posix
 
     -- RANDOM
     , randomSeed : Random.Seed
@@ -259,12 +259,12 @@ type alias BackendModel =
 
 type FrontendMsg
     = FENoOp
-    | UrlClicked UrlRequest
+    | UrlClicked Browser.UrlRequest
     | UrlChanged Url
     | NoOpFrontendMsg
-    | FETick Time.Posix
-    | AdjustTimeZone Time.Zone
-    | GotTime Time.Posix
+    | FETick Effect.Time.Posix
+    | AdjustTimeZone Effect.Time.Zone
+    | GotTime Effect.Time.Posix
     | Render Render.Msg.MarkupMsg
       -- UI
     | ToggleCheatsheet
@@ -272,8 +272,8 @@ type FrontendMsg
     | OpenSharedDocumentList
     | SetAppMode AppMode
     | GotNewWindowDimensions Int Int
-    | GotViewport Dom.Viewport
-    | SetViewPortForElement (Result Dom.Error ( Dom.Element, Dom.Viewport ))
+    | GotViewport Effect.Browser.Dom.Viewport
+    | SetViewPortForElement (Result Effect.Browser.Dom.Error ( Effect.Browser.Dom.Element, Effect.Browser.Dom.Viewport ))
     | ChangePopupStatus PopupStatus
     | CloseEditor
     | OpenEditor
@@ -382,7 +382,7 @@ type FrontendMsg
     | Export
       -- PDF
     | PrintToPDF
-    | GotPdfLink (Result Http.Error String)
+    | GotPdfLink (Result Effect.Http.Error String)
     | ChangePrintingState PrintingState
     | FinallyDoCleanPrintArtefacts String
       ---
@@ -401,9 +401,9 @@ type ManualType
 type BackendMsg
     = ClientConnected SessionId ClientId
     | ClientDisconnected SessionId ClientId
-    | GotAtomsphericRandomNumber (Result Http.Error String)
-    | DelaySendingDocument Lamdera.ClientId Document
-    | Tick Time.Posix
+    | GotAtomsphericRandomNumber (Result Effect.Http.Error String)
+    | DelaySendingDocument Effect.Lamdera.ClientId Document
+    | Tick Effect.Time.Posix
 
 
 
@@ -787,7 +787,7 @@ type alias Username =
 
 type alias BackupOLD =
     { message : String
-    , currentTime : Time.Posix
+    , currentTime : Effect.Time.Posix
 
     -- RANDOM
     , randomSeed : Random.Seed

@@ -11,7 +11,7 @@ toString zone time =
         --++ "/"
         --++ String.fromInt (Time.toYear zone time)
         ++ ", "
-        ++ (String.fromInt (toHour zone time) |> String.padLeft 2 '0')
+        ++ (String.fromInt (Time.toHour zone time) |> String.padLeft 2 '0')
         ++ ":"
         ++ (String.fromInt (Time.toMinute zone time) |> String.padLeft 2 '0')
 
@@ -24,7 +24,7 @@ toStringWithYear zone time =
         ++ "/"
         ++ String.fromInt (Time.toYear zone time)
         ++ ", "
-        ++ (String.fromInt (toHour zone time) |> String.padLeft 2 '0')
+        ++ (String.fromInt (Time.toHour zone time) |> String.padLeft 2 '0')
         ++ ":"
         ++ (String.fromInt (Time.toMinute zone time) |> String.padLeft 2 '0')
 
@@ -36,38 +36,38 @@ toStringWithYear zone time =
 monthString : Time.Month -> String
 monthString month =
     case month of
-        Jan ->
+        Time.Jan ->
             "1"
 
-        Feb ->
+        Time.Feb ->
             "2"
 
-        Mar ->
+        Time.Mar ->
             "3"
 
-        Apr ->
+        Time.Apr ->
             "4"
 
-        May ->
+        Time.May ->
             "5"
 
-        Jun ->
+        Time.Jun ->
             "6"
 
-        Jul ->
+        Time.Jul ->
             "7"
 
-        Aug ->
+        Time.Aug ->
             "8"
 
-        Sep ->
+        Time.Sep ->
             "9"
 
-        Oct ->
+        Time.Oct ->
             "10"
 
-        Nov ->
+        Time.Nov ->
             "11"
 
-        Dec ->
+        Time.Dec ->
             "12"
