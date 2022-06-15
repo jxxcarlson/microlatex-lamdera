@@ -126,7 +126,7 @@ viewTagDict_ key dictItems =
     dictItems
         |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
         |> List.map (searchTags key)
-        |> List.map (List.filter (\item -> not (String.contains "id:" (String.toLower item.tag))))
+        |> List.map (List.filter (\item -> not (String.contains ":" (String.toLower item.tag))))
         |> List.map viewTagGroup
 
 

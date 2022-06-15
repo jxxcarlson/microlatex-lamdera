@@ -73,7 +73,7 @@ viewRenderedTextOnly model =
             , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
                 , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
-                , Sidebar.viewTags model
+                , E.el [ E.moveLeft 90 ] (Sidebar.viewTags model)
                 , Sidebar.viewExtras model
                 ]
             , Footer.view model (Geometry.smallHeaderWidth model.windowWidth)
