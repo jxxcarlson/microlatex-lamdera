@@ -41,6 +41,7 @@ module Types exposing
     , SidebarTagsState(..)
     , SignupState(..)
     , SortMode(..)
+    , TagItem
     , TagSelection(..)
     , ToBackend(..)
     , ToFrontend(..)
@@ -117,8 +118,8 @@ type alias FrontendModel =
     , inputEditors : String
 
     -- TAGS
-    , tagDict : Dict String (List { id : String, title : String })
-    , publicTagDict : Dict String (List { id : String, title : String })
+    , tagDict : Dict String (List TagItem)
+    , publicTagDict : Dict String (List TagItem)
     , documentList : DocumentList
 
     -- UI
@@ -214,6 +215,10 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+
+type alias TagItem =
+    { id : String, title : String }
 
 
 
@@ -485,8 +490,8 @@ type ToFrontend
     | InitializeNetworkModel NetworkModel.NetworkModel
     | ProcessEvent NetworkModel.EditEvent
     | GotIncludedData Document (List ( String, String ))
-    | AcceptUserTags (Dict String (List { id : String, title : String }))
-    | AcceptPublicTags (Dict String (List { id : String, title : String }))
+    | AcceptUserTags (Dict String (List TagItem))
+    | AcceptPublicTags (Dict String (List TagItem))
     | ReceivedDocument DocumentHandling Document
     | ReceivedNewDocument DocumentHandling Document
     | ReceivedDocuments DocumentHandling (List Document)

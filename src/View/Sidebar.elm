@@ -80,13 +80,16 @@ viewTags model =
 
 viewTagDict model =
     let
+        dictItems : List (List { tag : String, id : String, title : String })
         dictItems =
             case model.tagSelection of
                 Types.TagPublic ->
                     Dict.toList model.publicTagDict
+                        |> filterTags model.inputSearchTagsKey
 
                 Types.TagUser ->
                     Dict.toList model.tagDict
+                        |> filterTags model.inputSearchTagsKey
 
         header =
             E.el [ Font.size 14, E.paddingXY 2 4 ] (E.text <| "Tags: " ++ (List.length dictItems |> String.fromInt))
@@ -97,7 +100,15 @@ viewTagDict model =
         , E.spacing 4
         , E.height (E.px (Geometry.appHeight model - 190))
         ]
-        (header :: viewTagDict_ model.inputSearchTagsKey dictItems)
+        (header :: List.map viewTagGroup dictItems)
+
+
+filterTags : String -> List ( String, List { a | id : String, title : String } ) -> List (List { tag : String, id : String, title : String })
+filterTags key tags =
+    tags
+        |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
+        |> List.map (searchTags key)
+        |> List.map (List.filter (\item -> not (String.contains ":" (String.toLower item.tag))))
 
 
 search model =
@@ -119,15 +130,6 @@ searchTags key_ list =
 
     else
         List.filter (\item -> String.contains key item.tag || String.contains key (String.toLower item.title)) list
-
-
-viewTagDict_ : String -> List ( String, List { a | id : String, title : String } ) -> List (Element FrontendMsg)
-viewTagDict_ key dictItems =
-    dictItems
-        |> List.map (\( tag, list ) -> List.map (\item -> { tag = tag, id = item.id, title = item.title }) list)
-        |> List.map (searchTags key)
-        |> List.map (List.filter (\item -> not (String.contains ":" (String.toLower item.tag))))
-        |> List.map viewTagGroup
 
 
 viewTagGroup : List { tag : String, id : String, title : String } -> Element FrontendMsg
