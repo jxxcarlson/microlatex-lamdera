@@ -63,6 +63,7 @@ import Debounce
 import Dict exposing (Dict)
 import Docs
 import Document exposing (Document)
+import Duration
 import Effect.Browser.Dom exposing (Viewport)
 import Effect.Browser.Navigation
 import Effect.Command as Command exposing (Command, FrontendOnly)
@@ -1106,7 +1107,7 @@ softDeleteDocument model =
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = newUser
               }
-            , Command.batch [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc), Effect.Process.sleep 500 |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            , Command.batch [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc), Effect.Process.sleep (Duration.milliseconds 500) |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
 
@@ -1132,7 +1133,7 @@ hardDeleteDocument model =
                 , hardDeleteDocumentState = Types.WaitingForHardDeleteAction
                 , currentUser = newUser
               }
-            , Command.batch [ Effect.Lamdera.sendToBackend (HardDeleteDocumentBE doc), Effect.Process.sleep 500 |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+            , Command.batch [ Effect.Lamdera.sendToBackend (HardDeleteDocumentBE doc), Effect.Process.sleep (Duration.milliseconds 500) |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
 
@@ -1554,14 +1555,14 @@ runSpecial : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend Fr
 runSpecial model =
     case model.currentUser of
         Nothing ->
-            model |> withNoCmd
+            ( model, Command.none )
 
         Just user ->
             if user.username == "jxxcarlson" then
-                model |> withCmd (Effect.Lamdera.sendToBackend (ApplySpecial user model.inputSpecial))
+                ( model, Effect.Lamdera.sendToBackend (ApplySpecial user model.inputSpecial) )
 
             else
-                model |> withNoCmd
+                ( model, Command.none )
 
 
 

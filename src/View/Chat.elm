@@ -188,17 +188,13 @@ fontStyles =
     [ style "font-family" "Helvetica", style "font-size" "14px", style "line-height" "1.5" ]
 
 
-scrollChatToBottom : Command ToFrontend toMsg FrontendMsg
+scrollChatToBottom : Command Command.FrontendOnly toMsg FrontendMsg
 scrollChatToBottom =
-    Effect.Browser.Dom.getViewportOf "message-box"
-        |> Effect.Task.andThen (\info -> Effect.Browser.Dom.setViewportOf "message-box" 0 info.scene.height)
+    Effect.Browser.Dom.getViewportOf (Effect.Browser.Dom.id "message-box")
+        |> Effect.Task.andThen (\info -> Effect.Browser.Dom.setViewportOf (Effect.Browser.Dom.id "message-box") 0 info.scene.height)
         |> Effect.Task.attempt (\_ -> Types.FENoOp)
 
 
-
--- |> Task.andThen (\_ -> Util.delay 100 Types.ScrollChatToBottom)
-
-
-focusMessageInput : Command ToFrontend toMsg FrontendMsg
+focusMessageInput : Command Command.FrontendOnly toMsg FrontendMsg
 focusMessageInput =
-    Effect.Task.attempt (always Types.FENoOp) (Effect.Browser.Dom.focus "message-input")
+    Effect.Task.attempt (always Types.FENoOp) (Effect.Browser.Dom.focus (Effect.Browser.Dom.id "message-input"))

@@ -1,22 +1,10 @@
-module Debounce
-    exposing
-        ( Config
-        , Debounce
-        , Msg
-        , Send
-        , Strategy
-        , init
-        , later
-        , manual
-        , manualAfter
-        , push
-        , soon
-        , soonAfter
-        , takeAll
-        , takeLast
-        , unlock
-        , update
-        )
+module Debounce exposing
+    ( Debounce, Msg
+    , Config, init
+    , Strategy, soon, soonAfter, later, manual, manualAfter
+    , Send, takeLast, takeAll
+    , update, push, unlock
+    )
 
 {-| The Debouncer. See the full example [here](https://github.com/jinjor/elm-debounce/blob/master/examples/Main.elm).
 
@@ -50,8 +38,10 @@ module Debounce
 
 -}
 
-import Process
-import Task exposing (..)
+import Duration
+import Effect.Command as Command exposing (Command, FrontendOnly)
+import Effect.Process
+import Effect.Task exposing (..)
 
 
 {-| The state of the debouncer.
@@ -136,20 +126,20 @@ manualAfter =
 If you want to postpone sending, return the values back to keep them.
 
 -}
-type alias Send a msg =
-    a -> List a -> ( List a, Cmd msg )
+type alias Send a msg toMsg =
+    a -> List a -> ( List a, Command FrontendOnly toMsg msg )
 
 
 {-| Send a command using the latest value.
 -}
-takeLast : (a -> Cmd msg) -> Send a msg
+takeLast : (a -> Command FrontendOnly toMsg msg) -> Send a msg toMsg
 takeLast send head tail =
     ( [], send head )
 
 
 {-| Send a command using all the accumulated values.
 -}
-takeAll : (a -> List a -> Cmd msg) -> Send a msg
+takeAll : (a -> List a -> Command FrontendOnly toMsg msg) -> Send a msg toMsg
 takeAll send head tail =
     ( [], send head tail )
 
@@ -191,12 +181,12 @@ The config should be constant and shared with `push` function.
 The sending logic can depend on the current model. If you want to stop sending, return `Cmd.none`.
 
 -}
-update : Config msg -> Send a msg -> Msg -> Debounce a -> ( Debounce a, Cmd msg )
+update : Config msg -> Send a msg toMsg -> Msg -> Debounce a -> ( Debounce a, Command FrontendOnly toMsg msg )
 update config send msg (Debounce d) =
     case msg of
         NoOp ->
             ( Debounce d
-            , Cmd.none
+            , Command.none
             )
 
         Flush tryAgainAfter ->
@@ -212,19 +202,19 @@ update config send msg (Debounce d) =
                                     delayCmd delay (Flush (Just delay))
 
                                 Nothing ->
-                                    Cmd.none
+                                    Command.none
                     in
                     ( Debounce
                         { d
                             | input = input
                             , locked = True
                         }
-                    , Cmd.batch [ sendCmd, Cmd.map config.transform selfCmd ]
+                    , Command.batch [ sendCmd, Command.map identity config.transform selfCmd ]
                     )
 
                 _ ->
                     ( Debounce { d | locked = False }
-                    , Cmd.none
+                    , Command.none
                     )
 
         SendIfLengthNotChangedFrom lastInputLength ->
@@ -240,40 +230,41 @@ update config send msg (Debounce d) =
 
                 _ ->
                     ( Debounce d
-                    , Cmd.none
+                    , Command.none
                     )
 
 
 {-| Manually unlock. This works for `manual` or `manualAfter` Strategy.
 -}
-unlock : Config msg -> Cmd msg
+unlock : Config msg -> Command FrontendOnly toMsg msg
 unlock config =
-    Cmd.map config.transform <|
-        Task.perform
+    Command.map identity config.transform <|
+        Effect.Task.perform
             identity
-            (Task.succeed (Flush Nothing))
+            (Effect.Task.succeed (Flush Nothing))
 
 
 {-| Push a value into the debouncer.
 -}
-push : Config msg -> a -> Debounce a -> ( Debounce a, Cmd msg )
+push : Config msg -> a -> Debounce a -> ( Debounce a, Command FrontendOnly toMsg msg )
 push config a (Debounce d) =
     let
         newDebounce =
             Debounce { d | input = a :: d.input }
 
+        selfCmd : Command FrontendOnly toMsg Msg
         selfCmd =
             case config.strategy of
                 Manual offset ->
                     if d.locked then
-                        Cmd.none
+                        Command.none
 
                     else
                         delayCmd offset (Flush Nothing)
 
                 Soon offset delay ->
                     if d.locked then
-                        Cmd.none
+                        Command.none
 
                     else
                         delayCmd offset (Flush (Just delay))
@@ -281,9 +272,9 @@ push config a (Debounce d) =
                 Later delay ->
                     delayCmd delay (SendIfLengthNotChangedFrom (length newDebounce))
     in
-    ( newDebounce, Cmd.map config.transform selfCmd )
+    ( newDebounce, Command.map identity config.transform selfCmd )
 
 
-delayCmd : Float -> msg -> Cmd msg
+delayCmd : Float -> msg -> Command FrontendOnly toMsg msg
 delayCmd delay msg =
-    Task.perform (\_ -> msg) (Process.sleep delay)
+    Effect.Task.perform (\_ -> msg) (Effect.Process.sleep (Duration.milliseconds delay))
