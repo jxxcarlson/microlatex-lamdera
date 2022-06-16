@@ -321,7 +321,7 @@ quiver count acc settings args id str =
                     List.head arguments |> Maybe.withDefault "no-image"
 
                 remainingArguments =
-                    List.drop 1 arguments
+                    List.drop 1 args
 
                 keyValueStrings_ =
                     List.filter (\s -> String.contains ":" s) remainingArguments
@@ -339,7 +339,7 @@ quiver count acc settings args id str =
                     (captionLeadString :: List.filter (\s -> not (String.contains ":" s)) remainingArguments) |> String.join " "
 
                 dict =
-                    Render.Utility.keyValueDict keyValueStrings
+                    Render.Utility.keyValueDict args
 
                 --  |> Dict.insert "caption" (Maybe.andThen ASTTools.getText captionExpr |> Maybe.withDefault "")
                 description =
