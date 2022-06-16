@@ -1290,7 +1290,8 @@ updateFromBackend msg model =
                 , language = user.preferences.language
                 , timeSignedIn = model.currentTime
               }
-            , Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.newsDocId)
+            , Effect.Command.none
+              -- Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.newsDocId)
             )
 
         -- USER MESSAGES
