@@ -36,6 +36,7 @@ module Config exposing
     , xmarkdownId
     )
 
+import Effect.Command
 import Env
 import Parser.Language
 import Url

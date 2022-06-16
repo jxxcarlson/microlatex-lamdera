@@ -1184,7 +1184,7 @@ updateFromBackend msg model =
                     Frontend.Update.handleAsStandardReceivedDocument model doc
 
                 HandleAsManual ->
-                    Frontend.Update.handleReceivedDocumentAsCheatsheet model doc
+                    Frontend.Update.handleReceivedDocumentAsManual model doc
 
         ReceivedNewDocument _ doc ->
             let

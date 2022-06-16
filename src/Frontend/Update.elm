@@ -12,7 +12,7 @@ port module Frontend.Update exposing
     , handleAsStandardReceivedDocument
     , handleCurrentDocumentChange
     , handlePinnedDocuments
-    , handleReceivedDocumentAsCheatsheet
+    , handleReceivedDocumentAsManual
     , handleSharedDocument
     , handleSignUp
     , handleUrlRequest
@@ -882,13 +882,13 @@ updateEditRecord inclusionData doc model =
 ---    handle document
 
 
-handleReceivedDocumentAsCheatsheet : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleReceivedDocumentAsCheatsheet model doc =
+handleReceivedDocumentAsManual : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+handleReceivedDocumentAsManual model doc =
     ( { model
         | currentManual = Just doc
         , counter = model.counter + 1
         , messages =
-            { txt = "Cheatsheet: " ++ doc.title, status = MSGreen } :: []
+            { txt = "Manual: " ++ doc.title, status = MSGreen } :: []
       }
     , View.Utility.setViewPortToTop model.popupState
     )

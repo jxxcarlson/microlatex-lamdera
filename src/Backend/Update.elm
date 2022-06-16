@@ -449,12 +449,17 @@ fetchDocumentBySlugCmd model clientId docSlug documentHandling =
 
                 Just document ->
                     let
+                        filesToInclude : List String
                         filesToInclude =
                             IncludeFiles.getData document.content
                     in
                     Command.batch
                         [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling document)
-                        , getIncludedFilesCmd model clientId document filesToInclude
+                        , if List.isEmpty filesToInclude then
+                            Command.none
+
+                          else
+                            getIncludedFilesCmd model clientId document filesToInclude
                         ]
 
 
