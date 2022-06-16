@@ -796,11 +796,14 @@ signIn model sessionId clientId username encryptedPassword =
 
                             Just groupName ->
                                 Dict.get groupName model.chatGroupDict
+
+                    newsDoc =
+                        Dict.get Config.newsDocId model.documentDict |> Maybe.withDefault Document.empty
                 in
                 ( { model | connectionDict = newConnectionDict_ }
                 , Command.batch
                     [ -- TODO: restore the below
-                      Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling <| getMostRecentUserDocuments Types.SortByMostRecent Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
+                      Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling <| newsDoc :: getMostRecentUserDocuments Types.SortByMostRecent Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
 
                     --, sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
                     , Effect.Lamdera.sendToFrontend clientId (UserSignedUp userData.user)
