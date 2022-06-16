@@ -1232,11 +1232,11 @@ updateFromBackend msg model =
                     in
                     ( { model | publicDocuments = publicDocuments }, cmd )
 
-        ReceivedDocuments documentHandling documents_ ->
-            let
-                documents =
-                    DocumentTools.sort model.sortMode documents_
-            in
+        ReceivedDocuments documentHandling documents ->
+            --let
+            --    documents =
+            --        DocumentTools.sort model.sortMode documents_
+            --in
             case List.head documents of
                 Nothing ->
                     -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
