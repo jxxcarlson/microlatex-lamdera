@@ -10,6 +10,7 @@ module Compiler.ASTTools exposing
     , filterExpressionsOnName
     , filterExpressionsOnName_
     , filterForestForExpressionsWithName
+    , filterNotBlocksOnName
     , filterOutExpressionsOnName
     , getText
     , matchingIdsInAST
@@ -86,6 +87,11 @@ filterExpressionsOnName_ name exprs =
 filterBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
 filterBlocksOnName name blocks =
     List.filter (matchBlockName name) blocks
+
+
+filterNotBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
+filterNotBlocksOnName name blocks =
+    List.filter (matchBlockName name >> not) blocks
 
 
 matchBlockName : String -> ExpressionBlock -> Bool

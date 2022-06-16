@@ -113,6 +113,7 @@ rawExport settings ast =
     ast
         |> List.map Tree.flatten
         |> List.concat
+        |> ASTTools.filterNotBlocksOnName "runninghead"
         |> List.map Parser.Block.condenseUrls
         |> encloseLists
         |> List.map (exportBlock settings)
@@ -658,6 +659,7 @@ standardPackages =
 commands =
     """
 %% Commands
+
 \\newcommand{\\code}[1]{{\\tt #1}}
 \\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}
 % \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}
@@ -720,6 +722,7 @@ commands =
 \\newtheorem{exercises}{Exercises}
 \\newcommand{\\bs}[1]{$\\backslash$#1}
 \\newcommand{\\texarg}[1]{\\{#1\\}}
+
 
 \\newcommand{\\termx}[1]{}
 
