@@ -158,6 +158,7 @@ verbatimDict =
         , ( "chart", Render.Chart.view )
         , ( "svg", svg )
         , ( "quiver", quiver )
+        , ( "tikz", tikz )
         , ( "load-files", \_ _ _ _ _ _ -> Element.none )
         , ( "include", \_ _ _ _ _ _ -> Element.none )
         ]
@@ -197,6 +198,102 @@ svg count acc settings args id str =
 --        _ ->
 --            [ HStyled.fromUnstyled (text "Parsing error") ]
 --
+
+
+tikz : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+tikz count acc settings args id str =
+    let
+        maybePair =
+            case String.split "---" str of
+                a :: b :: [] ->
+                    Just ( a, b )
+
+                _ ->
+                    Nothing
+    in
+    case maybePair of
+        Nothing ->
+            Element.el [ Font.size 16, Font.color View.Color.red ] (Element.text "Something is wrong")
+
+        Just ( imageData, latexData ) ->
+            let
+                arguments : List String
+                arguments =
+                    String.words imageData
+
+                url =
+                    List.head arguments |> Maybe.withDefault "no-image"
+
+                remainingArguments =
+                    List.drop 1 args
+
+                keyValueStrings_ =
+                    List.filter (\s -> String.contains ":" s) remainingArguments
+
+                keyValueStrings : List String
+                keyValueStrings =
+                    List.filter (\s -> not (String.contains "caption" s)) keyValueStrings_
+
+                captionLeadString =
+                    List.filter (\s -> String.contains "caption" s) keyValueStrings_
+                        |> String.join ""
+                        |> String.replace "caption:" ""
+
+                captionPhrase =
+                    (captionLeadString :: List.filter (\s -> not (String.contains ":" s)) remainingArguments) |> String.join " "
+
+                dict =
+                    Render.Utility.keyValueDict args
+
+                --  |> Dict.insert "caption" (Maybe.andThen ASTTools.getText captionExpr |> Maybe.withDefault "")
+                description =
+                    Dict.get "caption" dict |> Maybe.withDefault ""
+
+                caption =
+                    if captionPhrase == "" then
+                        Element.none
+
+                    else
+                        Element.row [ placement, Element.width Element.fill ] [ Element.el [ Element.width Element.fill ] (Element.text captionPhrase) ]
+
+                width =
+                    case Dict.get "width" dict of
+                        Nothing ->
+                            Element.px displayWidth
+
+                        Just w_ ->
+                            case String.toInt w_ of
+                                Nothing ->
+                                    Element.px displayWidth
+
+                                Just w ->
+                                    Element.px w
+
+                placement =
+                    case Dict.get "placement" dict of
+                        Nothing ->
+                            Element.centerX
+
+                        Just "left" ->
+                            Element.alignLeft
+
+                        Just "right" ->
+                            Element.alignRight
+
+                        Just "center" ->
+                            Element.centerX
+
+                        _ ->
+                            Element.centerX
+
+                displayWidth =
+                    settings.width
+            in
+            Element.column [ Element.spacing 8, Element.width (Element.px settings.width), placement, Element.paddingXY 0 18 ]
+                [ Element.image [ Element.width width, placement ]
+                    { src = url, description = description }
+                , Element.el [ placement ] caption
+                ]
 
 
 quiver : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg

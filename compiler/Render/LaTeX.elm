@@ -304,6 +304,26 @@ exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as bl
                             in
                             data
 
+                        Just "tikz" ->
+                            let
+                                data =
+                                    String.split "---" str
+                                        |> List.drop 1
+                                        |> String.join ""
+                                        |> String.lines
+                                        |> List.map
+                                            (\line ->
+                                                if line == "" then
+                                                    "%"
+
+                                                else
+                                                    line
+                                            )
+                                        |> String.join "\n"
+                            in
+                            [ "\\[\n", data, "\n\\]" ]
+                                |> String.join ""
+
                         _ ->
                             environment "anon" str
 
@@ -574,6 +594,7 @@ preamble blockNames_ expressionNames_ title author date =
 
 packageList =
     [ ( "quiver", "quiver" )
+    , ( "tikz", "tikz" )
     ]
 
 
