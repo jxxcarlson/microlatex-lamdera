@@ -152,6 +152,13 @@ viewDocument windowWidth counter selectedId selectedSlug editRecord =
                 |> Maybe.withDefault E.none
                 |> E.map Render
 
+        banner =
+            Compiler.ASTTools.banner editRecord.parsed
+                |> Maybe.map (Parser.Block.setName "banner_")
+                |> Maybe.map (Render.Block.render counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth))
+                |> Maybe.withDefault E.none
+                |> E.map Render
+
         toc : Element FrontendMsg
         toc =
             Render.TOC.view counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth |> setSelectedId selectedId) editRecord.parsed |> E.map Render
@@ -159,12 +166,19 @@ viewDocument windowWidth counter selectedId selectedSlug editRecord =
         body : List (Element FrontendMsg)
         body =
             Render.Markup.renderFromAST counter editRecord.accumulator (renderSettings selectedId selectedSlug windowWidth) editRecord.parsed |> List.map (E.map Render)
+
+        titlePart =
+            if List.member "banner" blockNames then
+                runninghead :: title_ :: banner :: []
+
+            else
+                runninghead :: title_ :: []
     in
     if List.member "contents" blockNames then
-        runninghead :: title_ :: toc :: body
+        titlePart ++ (toc :: body)
 
     else
-        runninghead :: title_ :: body
+        titlePart ++ body
 
 
 setSelectedId : String -> Render.Settings.Settings -> Render.Settings.Settings

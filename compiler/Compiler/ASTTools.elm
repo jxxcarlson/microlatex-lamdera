@@ -1,5 +1,6 @@
 module Compiler.ASTTools exposing
-    ( blockNames
+    ( banner
+    , blockNames
     , existsBlockWithName
     , exprListToStringList
     , expressionNames
@@ -198,6 +199,10 @@ getBlockByName name ast =
 
 runninghead ast =
     getBlockByName "runninghead" ast
+
+
+banner ast =
+    getBlockByName "banner" ast
 
 
 title_ : List (Tree.Tree ExpressionBlock) -> String

@@ -128,6 +128,8 @@ blockDict =
         , ( "section", section )
         , ( "runninghead", \_ _ _ _ _ _ -> Element.none )
         , ( "runninghead_", runninghead )
+        , ( "banner", \_ _ _ _ _ _ -> Element.none )
+        , ( "banner_", banner )
         , ( "title", \_ _ _ _ _ _ -> Element.none )
         , ( "subtitle", \_ _ _ _ _ _ -> Element.none )
         , ( "author", \_ _ _ _ _ _ -> Element.none )
@@ -562,6 +564,11 @@ indented count acc settings _ id exprs =
 runninghead count acc settings _ id exprs =
     Element.paragraph ([ Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
         (renderWithDefault "| runninghead" count acc settings exprs)
+
+
+banner count acc settings _ id exprs =
+    Element.paragraph ([ Events.onClick (SendId id), Render.Utility.elementAttribute "id" id ] ++ highlightAttrs id settings)
+        (renderWithDefault "| banner" count acc settings exprs)
 
 
 quotation count acc settings args id exprs =
