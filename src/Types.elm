@@ -283,7 +283,6 @@ type FrontendMsg
     | CloseEditor
     | OpenEditor
     | Home
-    | News
     | KeyMsg Keyboard.Msg
       -- ADMIN
     | InputSpecial String
