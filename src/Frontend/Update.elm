@@ -187,7 +187,7 @@ signIn model =
                 ( { model | timer = 0, showSignInTimer = True, url = url }, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
     else
-        ( { model | messages = [ { txt = "Password must be at least 8 letters long.", status = MSWhite } ] }, Command.none )
+        ( { model | inputPassword = "", showSignInTimer = True, messages = [ { txt = "Password must be at least 8 letters long.", status = MSYellow } ] }, Command.none )
 
 
 handleSignUp : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
@@ -209,7 +209,7 @@ handleSignUp model =
         )
 
     else
-        ( { model | messages = [ { txt = String.join "; " errors, status = MSWhite } ] }, Command.none )
+        ( { model | messages = [ { txt = String.join "; " errors, status = MSYellow } ] }, Command.none )
 
 
 

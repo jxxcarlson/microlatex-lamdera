@@ -8,7 +8,7 @@ import Parser.Language exposing (Language(..))
 import Types exposing (AppMode(..), FrontendModel, FrontendMsg, PopupState(..))
 import View.Admin as Admin
 import View.Button as Button
-import View.CheatSheet as CheatSheet
+import View.CheatSheet as Manual
 import View.Color as Color
 import View.Editor as Editor
 import View.Footer as Footer
@@ -62,7 +62,7 @@ viewRenderedTextOnly model =
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 270 ] (Share.usermessage model.userMessage))
-            , E.inFront (E.el [ E.moveDown 93, E.moveRight 680 ] (CheatSheet.view model))
+            , E.inFront (E.el [ E.moveDown 93, E.moveRight 680 ] (Manual.view model))
             , E.centerX
             , E.width (E.px <| Geometry.smallAppWidth model.windowWidth)
 
@@ -93,7 +93,7 @@ viewEditorAndRenderedText model =
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 365 ] (Share.view model))
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 170 ] (Share.usermessage model.userMessage))
-            , E.inFront (E.el [ E.moveDown 93, dyCheatSheet model.showEditor ] (CheatSheet.view model))
+            , E.inFront (E.el [ E.moveDown 93, dyCheatSheet model.showEditor ] (Manual.view model))
             , E.width (E.px <| Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
             , E.height (E.px (Geometry.appHeight model))
             ]

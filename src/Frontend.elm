@@ -1274,7 +1274,11 @@ updateFromBackend msg model =
                     else
                         model.messages
             in
-            ( { model | messages = newMessages }, Effect.Command.none )
+            if message.txt == "Sorry, password and username don't match" then
+                ( { model | inputPassword = "", messages = newMessages }, Effect.Command.none )
+
+            else
+                ( { model | messages = newMessages }, Effect.Command.none )
 
         -- ADMIN
         SendBackupData data ->
