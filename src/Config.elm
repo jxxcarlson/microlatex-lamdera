@@ -44,7 +44,7 @@ import Url
 
 
 newsDocId =
-    "jxxcarlson:news"
+    "id-4deccfbd-6d20-4059-978b-f8eca2216700"
 
 
 fontWidth : Int
