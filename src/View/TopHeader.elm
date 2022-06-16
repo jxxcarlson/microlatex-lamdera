@@ -10,13 +10,14 @@ import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
 import View.Color as Color
 import View.Input
+import View.Popups.Signin
 import View.Style
 import View.Utility
 
 
 view : FrontendModel -> b -> Element FrontendMsg
 view model _ =
-    E.row [ E.spacing 12, E.width E.fill ]
+    E.row [ E.spacing 12, E.width E.fill, E.inFront (View.Popups.Signin.view model) ]
         [ E.el [ E.alignRight ] (title Config.appName)
         , Button.iLink Types.StandardHandling Config.welcomeDocId "Home"
         , Button.iLink Types.StandardHandling Config.newsDocId "News"

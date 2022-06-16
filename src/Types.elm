@@ -92,6 +92,8 @@ type alias FrontendModel =
     , zone : Effect.Time.Zone
     , timeSignedIn : Effect.Time.Posix
     , lastInteractionTime : Effect.Time.Posix
+    , timer : Int
+    , showSignInTimer : Bool
 
     -- ADMIN
     , statusReport : List String

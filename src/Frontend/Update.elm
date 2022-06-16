@@ -181,10 +181,10 @@ signIn model =
     if String.length model.inputPassword >= 8 then
         case Config.defaultUrl of
             Nothing ->
-                ( model, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
+                ( { model | timer = 0, showSignInTimer = True }, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
             Just url ->
-                ( { model | url = url }, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
+                ( { model | timer = 0, showSignInTimer = True, url = url }, Effect.Lamdera.sendToBackend (SignInBE model.inputUsername (Authentication.encryptForTransit model.inputPassword)) )
 
     else
         ( { model | messages = [ { txt = "Password must be at least 8 letters long.", status = MSWhite } ] }, Command.none )

@@ -85,6 +85,8 @@ init url key =
       , zone = Effect.Time.utc
       , timeSignedIn = Effect.Time.millisToPosix 0
       , lastInteractionTime = Effect.Time.millisToPosix 0
+      , timer = 0
+      , showSignInTimer = False
 
       -- ADMIN
       , statusReport = []
@@ -296,16 +298,24 @@ update msg model =
 
                             else
                                 model.activeEditor
+
+                newTimer =
+                    case model.currentUser of
+                        Nothing ->
+                            model.timer + 1
+
+                        Just _ ->
+                            0
             in
             -- If the lastInteractionTime has not been updated since init, do so now.
             if model.lastInteractionTime == Effect.Time.millisToPosix 0 && model.currentUser /= Nothing then
-                ( { model | activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Effect.Command.none )
+                ( { model | timer = newTimer, activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Effect.Command.none )
 
             else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then
-                Frontend.Update.signOut { model | currentTime = newTime }
+                Frontend.Update.signOut { model | timer = newTimer, currentTime = newTime }
 
             else
-                ( { model | activeEditor = activeEditor, currentTime = newTime }, Effect.Command.none )
+                ( { model | timer = newTimer, activeEditor = activeEditor, currentTime = newTime }, Effect.Command.none )
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Effect.Command.none )
@@ -1289,6 +1299,7 @@ updateFromBackend msg model =
                 , inputPasswordAgain = ""
                 , language = user.preferences.language
                 , timeSignedIn = model.currentTime
+                , showSignInTimer = False
               }
               -- , Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.newsDocId)
             , Effect.Command.none
