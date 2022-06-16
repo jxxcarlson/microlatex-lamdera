@@ -649,6 +649,9 @@ update msg model =
         Home ->
             ( model, Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId) )
 
+        News ->
+            ( model, Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.newsDocId) )
+
         ShowTOCInPhone ->
             ( { model | phoneMode = PMShowDocumentList }, Effect.Command.none )
 

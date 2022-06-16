@@ -22,6 +22,7 @@ module Config exposing
     , maxDocSearchLimit
     , microLaTeXGuideId
     , microLaTeXManualId
+    , newsDocId
     , notFoundDocId
     , pdfServer
     , plainTextCheatsheetId
@@ -40,6 +41,10 @@ import Effect.Command
 import Env
 import Parser.Language
 import Url
+
+
+newsDocId =
+    "jxxcarlson:news"
 
 
 fontWidth : Int

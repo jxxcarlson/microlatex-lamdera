@@ -331,14 +331,13 @@ getBadDocuments model =
 getDocumentById model clientId documentHandling id =
     case Dict.get id model.documentDict of
         Nothing ->
-            ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSRed }) )
+            -- ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSRed }) )
+            ( model, getDocumentByCmdId model clientId id )
 
         Just doc ->
             ( model
             , Command.batch
                 [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling doc)
-
-                --, sendToFrontend clientId (SetShowEditor False)
                 , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Sending doc " ++ id, status = MSGreen })
                 ]
             )

@@ -956,6 +956,11 @@ home =
     buttonTemplate [] Home "Home"
 
 
+news : Element FrontendMsg
+news =
+    buttonTemplate [] News "News"
+
+
 iLink documentHandling id label =
     buttonTemplate [] (AskForDocumentById documentHandling id) label
 

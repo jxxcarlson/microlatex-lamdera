@@ -19,6 +19,7 @@ view model _ =
     E.row [ E.spacing 12, E.width E.fill ]
         [ E.el [ E.alignRight ] (title Config.appName)
         , Button.iLink Types.StandardHandling Config.welcomeDocId "Home"
+        , Button.iLink Types.StandardHandling Config.newsDocId "News"
         , View.Input.searchDocsInput model
         , View.Utility.showIf (model.currentUser == Nothing) Button.signUp
         , View.Utility.showIf (model.currentUser == Nothing) Button.signIn
