@@ -132,7 +132,7 @@ automaticSignoutNoticePeriod =
 
 
 maxDocSearchLimit =
-    100
+    40
 
 
 publicDocumentStartupSearchKey =
