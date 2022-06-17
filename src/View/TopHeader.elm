@@ -2,22 +2,19 @@ module View.TopHeader exposing (view)
 
 import Config
 import Element as E exposing (Element)
-import Element.Font as Font
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
-import View.Color as Color
 import View.Input
-import View.Popups.Signin
 import View.Style
 import View.Utility
 
 
 view : FrontendModel -> b -> Element FrontendMsg
 view model _ =
-    E.row [ E.spacing 12, E.width E.fill, E.inFront (View.Popups.Signin.view model) ]
+    E.row [ E.spacing 12, E.width E.fill ]
         [ E.el [ E.alignRight ] (title Config.appName)
         , Button.iLink Types.StandardHandling Config.welcomeDocId "Home"
         , Button.iLink Types.StandardHandling Config.newsDocId "News"
@@ -47,12 +44,12 @@ passwordInput model =
          , style "margin-left" "18px"
          , style "width" "100px"
          , if model.inputPassword /= "" then
-            style "color" "#444"
+            style "color" gray
 
            else
             style "color" "#444"
          , if model.inputPassword /= "" then
-            style "background-color" "#444"
+            style "background-color" gray
 
            else
             style "background-color" "#fff"
@@ -60,6 +57,10 @@ passwordInput model =
             ++ fontStyles
         )
         []
+
+
+gray =
+    "#227"
 
 
 fontStyles : List (Html.Attribute msg)
