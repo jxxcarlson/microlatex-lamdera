@@ -21,7 +21,7 @@ view model =
             , Element.alignRight
             , Element.width (Element.px 250)
             ]
-            [ Element.text <| "Starting ... " ++ String.fromInt model.timer ++ " seconds"
+            [ Element.text <| "Signing in ... " ++ String.fromInt model.timer ++ " seconds"
             , Element.text (model.messages |> List.head |> Maybe.map .txt |> Maybe.withDefault "" |> filter)
             ]
 
