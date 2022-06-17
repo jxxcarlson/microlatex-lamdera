@@ -301,6 +301,7 @@ type FrontendMsg
     | RunCommand
     | InputUsername String
     | InputPassword String
+    | ClearPassword
     | InputPasswordAgain String
     | InputRealname String
     | InputEmail String

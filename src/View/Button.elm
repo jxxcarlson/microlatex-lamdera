@@ -4,6 +4,7 @@ module View.Button exposing
     , cancelSignUp
     , clearChatHistory
     , clearConnectionDict
+    , clearPassword
     , closeCollectionsIndex
     , closeEditor
     , createChatGroup
@@ -103,6 +104,15 @@ import View.Utility
 runCommand : Element FrontendMsg
 runCommand =
     buttonTemplate [] RunCommand "Run command"
+
+
+clearPassword : String -> Element FrontendMsg
+clearPassword passwordString =
+    if passwordString == "" then
+        buttonTemplate [ Background.color (E.rgb 1 1 1), E.height (E.px 25) ] ClearPassword "x"
+
+    else
+        buttonTemplate [ Background.color (E.rgb 0.0 0.0 0.6), E.height (E.px 25) ] ClearPassword "x"
 
 
 

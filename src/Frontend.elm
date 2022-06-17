@@ -498,6 +498,9 @@ update msg model =
         InputPassword str ->
             ( { model | inputPassword = str }, Effect.Command.none )
 
+        ClearPassword ->
+            ( { model | inputPassword = "" }, Effect.Command.none )
+
         InputPasswordAgain str ->
             ( { model | inputPasswordAgain = str }, Effect.Command.none )
 

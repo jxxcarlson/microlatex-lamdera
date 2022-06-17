@@ -7,9 +7,14 @@ import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value
 import Html.Events exposing (keyCode, on, onClick, onInput)
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
+import View.Geometry
 import View.Input
 import View.Style
 import View.Utility
+
+
+
+-- (View.Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth - 100 |> toFloat)
 
 
 view : FrontendModel -> b -> Element FrontendMsg
@@ -25,6 +30,7 @@ view model _ =
 
         --, View.Utility.showIf (model.currentUser == Nothing) (View.Input.password model)
         , View.Utility.showIf (model.currentUser == Nothing) (passwordInput model |> E.html)
+        , View.Utility.showIf (model.currentUser == Nothing) (E.el [ E.moveLeft 40 ] (Button.clearPassword model.inputPassword))
         , Button.signOut model
         , View.Utility.hideIf (model.currentUser == Nothing) (E.el [ E.alignRight, rightPaddingHeader model.showEditor ] (Button.toggleExtrasSidebar model.sidebarExtrasState))
         ]
