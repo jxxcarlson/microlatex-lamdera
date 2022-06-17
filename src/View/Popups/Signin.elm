@@ -22,8 +22,17 @@ view model =
             , Element.width (Element.px 250)
             ]
             [ Element.text <| "Starting ... " ++ String.fromInt model.timer ++ " seconds"
-            , Element.text (model.messages |> List.head |> Maybe.map .txt |> Maybe.withDefault "")
+            , Element.text (model.messages |> List.head |> Maybe.map .txt |> Maybe.withDefault "" |> filter)
             ]
 
     else
         Element.none
+
+
+filter : String -> String
+filter str =
+    if String.contains "(std)" str then
+        ""
+
+    else
+        str
