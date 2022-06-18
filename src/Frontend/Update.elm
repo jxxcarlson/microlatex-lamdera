@@ -80,7 +80,7 @@ import Markup
 import Message
 import Parser.Language exposing (Language(..))
 import Predicate
-import Render.LaTeX as LaTeX
+import Render.Export.LaTeX
 import Render.Markup
 import Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
 import Render.Settings as Settings
@@ -366,7 +366,7 @@ exportToLaTeX : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend
 exportToLaTeX model =
     let
         textToExport =
-            LaTeX.export Settings.defaultSettings model.editRecord.parsed
+            Render.Export.LaTeX.export Settings.defaultSettings model.editRecord.parsed
 
         fileName =
             (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
@@ -378,7 +378,7 @@ exportToRawLaTeX : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBack
 exportToRawLaTeX model =
     let
         textToExport =
-            LaTeX.rawExport Settings.defaultSettings model.editRecord.parsed
+            Render.Export.LaTeX.rawExport Settings.defaultSettings model.editRecord.parsed
 
         fileName =
             (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"

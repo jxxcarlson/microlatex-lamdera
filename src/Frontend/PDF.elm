@@ -13,7 +13,7 @@ import Json.Encode as E
 import Markup
 import Maybe.Extra
 import Parser.Block exposing (ExpressionBlock(..))
-import Render.LaTeX as LaTeX
+import Render.Export.LaTeX
 import Render.Settings
 import Tree
 import Types exposing (FrontendModel, FrontendMsg(..), MessageStatus(..), PrintingState(..))
@@ -52,7 +52,7 @@ generatePdf document =
                 |> Maybe.Extra.values
 
         contentForExport =
-            LaTeX.export Render.Settings.defaultSettings syntaxTree
+            Render.Export.LaTeX.export Render.Settings.defaultSettings syntaxTree
     in
     Effect.Http.request
         { method = "POST"

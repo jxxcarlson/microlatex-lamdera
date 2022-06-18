@@ -1,9 +1,10 @@
-module Render.LaTeX exposing (export, exportExpr, rawExport)
+module Render.Export.LaTeX exposing (export, exportExpr, newPackages, packages, rawExport)
 
 import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
+import List.Extra
 import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
@@ -100,12 +101,6 @@ getImageUrl_ str =
                     String.words imageData
             in
             List.head arguments
-
-
-
---|> ASTTools.filterExpressionsOnName "image"
---|> List.map ASTTools.getText
---|> Maybe.Extra.values
 
 
 rawExport : Settings -> Forest ExpressionBlock -> String
@@ -586,43 +581,75 @@ environment name body =
 preamble : List String -> List String -> String -> String -> String -> String
 preamble blockNames_ expressionNames_ title author date =
     [ "\\documentclass[11pt, oneside]{article}"
-    , packages blockNames_ expressionNames_
+    , packages (blockNames_ ++ expressionNames_)
     , commands
     , preamble_ blockNames_ title author date
     ]
         |> String.join "\n"
 
 
+
+-- PACKAGELIST
+
+
 packageList =
-    [ ( "quiver", "quiver" )
-    , ( "tikz", "tikz" )
+    [ ( "quiver", [ "quiver" ] )
+    , ( "tikz", [ "tikz" ] )
+    , ( "link", [ "hyperref" ] )
+    , ( "href", [ "hyperref" ] )
+    , ( "textcolor", [ "xcolor" ] )
+    , ( "blue", [ "xcolor" ] )
+    , ( "red", [ "xcolor" ] )
+    , ( "green", [ "xcolor" ] )
+    , ( "gray", [ "xcolor" ] )
+    , ( "magenta", [ "xcolor" ] )
+    , ( "violet", [ "xcolor" ] )
+    , ( "pink", [ "xcolor" ] )
+    , ( "highlight", [ "xcolor" ] )
+    , ( "highlight", [ "soul" ] )
+    , ( "strike", [ "soul" ] )
+    , ( "errorHighlight", [ "xcolor" ] )
+    , ( "image", [ "graphicx", "wrapfig" ] )
     ]
 
 
+{-|
+
+    'blockNames' is a list of blocks that occur in a document
+    to be exported.  'newPackageList blockNames' is a list
+    of the corresponding packages that the document will need
+    to handle the given blocks.
+
+-}
 newPackages : List String -> String
-newPackages blockNames =
-    blockNames
+newPackages names =
+    names
         |> newPackageList
+        |> List.Extra.unique
+        |> List.sort
+        |> Debug.log "PACKAGES"
         |> List.map (\name -> "\\usepackage{" ++ name ++ "}")
         |> String.join "\n"
 
 
 newPackageList : List String -> List String
-newPackageList blockNames =
-    List.foldl (\( blockName, packageName ) acc -> addPackage blockNames blockName packageName acc) [] packageList
+newPackageList names =
+    List.foldl (\( entityName, packageNames ) acc -> addPackage names entityName packageNames acc) [] packageList
 
 
-addPackage : List String -> String -> String -> List String -> List String
-addPackage blockNames blockName packageName packages_ =
-    if List.member blockName blockNames then
-        packageName :: packages_
+{-| If
+-}
+addPackage : List String -> String -> List String -> List String -> List String
+addPackage names entityName packageName packages_ =
+    if List.member entityName names then
+        packageName ++ packages_
 
     else
         packages_
 
 
-packages blockNames_ expressionNames_ =
-    [ newPackages blockNames_, standardPackages ] |> String.join "\n"
+packages entityNames =
+    [ newPackages entityNames, standardPackages ] |> String.join "\n"
 
 
 standardPackages =
@@ -639,20 +666,16 @@ standardPackages =
 \\usepackage{amsmath}
 
 %% Optional packages
-\\usepackage{graphicx}
 \\usepackage{wrapfig}
 \\graphicspath{ {image/} }
 
 \\usepackage{amscd}
-\\usepackage{hyperref}
 \\hypersetup{
     colorlinks=true,
     linkcolor=blue,
     filecolor=magenta,
     urlcolor=blue,
 }
-\\usepackage{xcolor}
-\\usepackage{soul}
 """
 
 
@@ -688,28 +711,39 @@ commands =
     \\caption{#2}
     \\end{wrapfigure}
 }
-
+% Font style
 \\newcommand{\\italic}[1]{{\\sl #1}}
 \\newcommand{\\strong}[1]{{\\bf #1}}
-\\newcommand{\\subheading}[1]{{\\bf #1}\\par}
-\\newcommand{\\ilink}[2]{\\href{{https://l0-lab.lamdera.app/p/#1}}{#2}}
+\\newcommand{\\strike}[1]{\\st{#1}}
+
+% Scripta
+\\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}
+
+% Color
 \\newcommand{\\red}[1]{\\textcolor{red}{#1}}
 \\newcommand{\\blue}[1]{\\textcolor{blue}{#1}}
 \\newcommand{\\violet}[1]{\\textcolor{violet}{#1}}
-\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}
-\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}
 \\newcommand{\\highlight}[1]{\\hl{#1}}
 \\newcommand{\\note}[2]{\\textcolor{blue}{#1}{\\hl{#1}}}
-\\newcommand{\\strike}[1]{\\st{#1}}
-\\newcommand{\\term}[1]{{\\sl #1}}
-\\newcommand{\\dollarSign}[0]{{\\$}}
 
-\\newcommand{\\backTick}[0]{\\`{}}
-\\newtheorem{remark}{Remark}
+% WTF?
+\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}
+\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}
+
+% Unclassified
+\\newcommand{\\subheading}[1]{{\\bf #1}\\par}
+\\newcommand{\\term}[1]{{\\sl #1}}
+\\newcommand{\\termx}[1]{}
 \\newcommand{\\comment}[1]{}
 \\newcommand{\\innertableofcontents}{}
 
+
+% Special character
+\\newcommand{\\dollarSign}[0]{{\\$}}
+\\newcommand{\\backTick}[0]{\\`{}}
+
 %% Theorems
+\\newtheorem{remark}{Remark}
 \\newtheorem{theorem}{Theorem}
 \\newtheorem{axiom}{Axiom}
 \\newtheorem{lemma}{Lemma}
@@ -724,8 +758,6 @@ commands =
 \\newcommand{\\texarg}[1]{\\{#1\\}}
 
 
-\\newcommand{\\termx}[1]{}
-
 %% Environments
 \\renewenvironment{quotation}
   {\\begin{adjustwidth}{2cm}{} \\footnotesize}
@@ -739,12 +771,10 @@ commands =
   {\\end{adjustwidth}}
 
 
-\\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}
-\\definecolor{mypink2}{RGB}{219, 48, 122}
-
-
 %% NEWCOMMAND
 
+\\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}
+\\definecolor{mypink2}{RGB}{219, 48, 122}
 \\newcommand{\\fontRGB}[4]{
     \\definecolor{mycolor}{RGB}{#1, #2, #3}
     \\textcolor{mycolor}{#4}
