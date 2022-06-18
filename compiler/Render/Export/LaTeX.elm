@@ -1,4 +1,4 @@
-module Render.Export.LaTeX exposing (export, exportExpr, newPackages, packages, rawExport)
+module Render.Export.LaTeX exposing (export, exportExpr, rawExport)
 
 import Compiler.ASTTools as ASTTools
 import Compiler.Lambda as Lambda
@@ -10,6 +10,7 @@ import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Helpers exposing (Step(..), loop)
+import Render.Export.Preamble
 import Render.Settings exposing (Settings, defaultSettings)
 import Render.Utility as Utility
 import Tree
@@ -18,8 +19,11 @@ import Tree
 export : Settings -> Forest ExpressionBlock -> String
 export settings ast =
     let
-        blockNames =
+        rawBlockNames =
             ASTTools.blockNames ast
+
+        blockNames =
+            List.Extra.unique rawBlockNames
 
         expressionNames =
             ASTTools.expressionNames ast
@@ -31,8 +35,8 @@ export settings ast =
         get ast_ name_ =
             ASTTools.filterASTOnName ast_ name_ |> String.join " "
     in
-    preamble
-        blockNames
+    Render.Export.Preamble.make
+        rawBlockNames
         expressionNames
         (get ast "title")
         (get ast "author")
@@ -486,18 +490,27 @@ blindIndex s exprs =
 
 section : List String -> String -> String
 section args body =
+    let
+        suffix =
+            case List.Extra.getAt 1 args of
+                Nothing ->
+                    ""
+
+                Just _ ->
+                    "*"
+    in
     case Utility.getArg "4" 0 args of
         "1" ->
-            macro1 "section" body
+            macro1 ("section" ++ suffix) body
 
         "2" ->
-            macro1 "subsection" body
+            macro1 ("subsection" ++ suffix) body
 
         "3" ->
-            macro1 "subsubsection" body
+            macro1 ("subsubsection" ++ suffix) body
 
         _ ->
-            macro1 "subheading" body
+            macro1 ("subheading" ++ suffix) body
 
 
 macro1 : String -> String -> String
@@ -572,258 +585,3 @@ tagged name body =
 
 environment name body =
     [ tagged "begin" name, body, tagged "end" name ] |> String.join "\n"
-
-
-
--- PREAMBLE
-
-
-preamble : List String -> List String -> String -> String -> String -> String
-preamble blockNames_ expressionNames_ title author date =
-    [ "\\documentclass[11pt, oneside]{article}"
-    , packages (blockNames_ ++ expressionNames_)
-    , commands
-    , preamble_ blockNames_ title author date
-    ]
-        |> String.join "\n"
-
-
-
--- PACKAGELIST
-
-
-packageList =
-    [ ( "quiver", [ "quiver" ] )
-    , ( "tikz", [ "tikz" ] )
-    , ( "link", [ "hyperref" ] )
-    , ( "href", [ "hyperref" ] )
-    , ( "textcolor", [ "xcolor" ] )
-    , ( "blue", [ "xcolor" ] )
-    , ( "red", [ "xcolor" ] )
-    , ( "green", [ "xcolor" ] )
-    , ( "gray", [ "xcolor" ] )
-    , ( "magenta", [ "xcolor" ] )
-    , ( "violet", [ "xcolor" ] )
-    , ( "pink", [ "xcolor" ] )
-    , ( "highlight", [ "xcolor" ] )
-    , ( "highlight", [ "soul" ] )
-    , ( "strike", [ "soul" ] )
-    , ( "errorHighlight", [ "xcolor" ] )
-    , ( "image", [ "graphicx", "wrapfig" ] )
-    ]
-
-
-{-|
-
-    'blockNames' is a list of blocks that occur in a document
-    to be exported.  'newPackageList blockNames' is a list
-    of the corresponding packages that the document will need
-    to handle the given blocks.
-
--}
-newPackages : List String -> String
-newPackages names =
-    names
-        |> newPackageList
-        |> List.Extra.unique
-        |> List.sort
-        |> Debug.log "PACKAGES"
-        |> List.map (\name -> "\\usepackage{" ++ name ++ "}")
-        |> String.join "\n"
-
-
-newPackageList : List String -> List String
-newPackageList names =
-    List.foldl (\( entityName, packageNames ) acc -> addPackage names entityName packageNames acc) [] packageList
-
-
-{-| If
--}
-addPackage : List String -> String -> List String -> List String -> List String
-addPackage names entityName packageName packages_ =
-    if List.member entityName names then
-        packageName ++ packages_
-
-    else
-        packages_
-
-
-packages entityNames =
-    [ newPackages entityNames, standardPackages ] |> String.join "\n"
-
-
-standardPackages =
-    """
-%% Packages
-
-%% Standard packages
-\\usepackage{geometry}
-\\geometry{letterpaper}
-\\usepackage{changepage}   % for the adjustwidth environment
-
-%% AMS
-\\usepackage{amssymb}
-\\usepackage{amsmath}
-
-%% Optional packages
-\\usepackage{wrapfig}
-\\graphicspath{ {image/} }
-
-\\usepackage{amscd}
-\\hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,
-    urlcolor=blue,
-}
-"""
-
-
-commands =
-    """
-%% Commands
-
-\\newcommand{\\code}[1]{{\\tt #1}}
-\\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}
-% \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}
-
-
-\\newcommand{\\imagecenter}[1]{
-   \\medskip
-   \\begin{figure}[htp]
-   \\centering
-    \\includegraphics[width=4truein,keepaspectratio]{#1}
-    \\vglue0pt
-    \\end{figure}
-    \\medskip
-}
-
-\\newcommand{\\imagefloatright}[3]{
-    \\begin{wrapfigure}{R}{0.30\\textwidth}
-    \\includegraphics[width=0.30\\textwidth]{#1}
-    \\caption{#2}
-    \\end{wrapfigure}
-}
-
-\\newcommand{\\imagefloatleft}[3]{
-    \\begin{wrapfigure}{L}{0.3-\\textwidth}
-    \\includegraphics[width=0.30\\textwidth]{#1}
-    \\caption{#2}
-    \\end{wrapfigure}
-}
-% Font style
-\\newcommand{\\italic}[1]{{\\sl #1}}
-\\newcommand{\\strong}[1]{{\\bf #1}}
-\\newcommand{\\strike}[1]{\\st{#1}}
-
-% Scripta
-\\newcommand{\\ilink}[2]{\\href{{https://scripta.io/s/#1}}{#2}}
-
-% Color
-\\newcommand{\\red}[1]{\\textcolor{red}{#1}}
-\\newcommand{\\blue}[1]{\\textcolor{blue}{#1}}
-\\newcommand{\\violet}[1]{\\textcolor{violet}{#1}}
-\\newcommand{\\highlight}[1]{\\hl{#1}}
-\\newcommand{\\note}[2]{\\textcolor{blue}{#1}{\\hl{#1}}}
-
-% WTF?
-\\newcommand{\\remote}[1]{\\textcolor{red}{#1}}
-\\newcommand{\\local}[1]{\\textcolor{blue}{#1}}
-
-% Unclassified
-\\newcommand{\\subheading}[1]{{\\bf #1}\\par}
-\\newcommand{\\term}[1]{{\\sl #1}}
-\\newcommand{\\termx}[1]{}
-\\newcommand{\\comment}[1]{}
-\\newcommand{\\innertableofcontents}{}
-
-
-% Special character
-\\newcommand{\\dollarSign}[0]{{\\$}}
-\\newcommand{\\backTick}[0]{\\`{}}
-
-%% Theorems
-\\newtheorem{remark}{Remark}
-\\newtheorem{theorem}{Theorem}
-\\newtheorem{axiom}{Axiom}
-\\newtheorem{lemma}{Lemma}
-\\newtheorem{proposition}{Proposition}
-\\newtheorem{corollary}{Corollary}
-\\newtheorem{definition}{Definition}
-\\newtheorem{example}{Example}
-\\newtheorem{exercise}{Exercise}
-\\newtheorem{problem}{Problem}
-\\newtheorem{exercises}{Exercises}
-\\newcommand{\\bs}[1]{$\\backslash$#1}
-\\newcommand{\\texarg}[1]{\\{#1\\}}
-
-
-%% Environments
-\\renewenvironment{quotation}
-  {\\begin{adjustwidth}{2cm}{} \\footnotesize}
-  {\\end{adjustwidth}}
-
-\\def\\changemargin#1#2{\\list{}{\\rightmargin#2\\leftmargin#1}\\item[]}
-\\let\\endchangemargin=\\endlist
-
-\\renewenvironment{indent}
-  {\\begin{adjustwidth}{0.75cm}{}}
-  {\\end{adjustwidth}}
-
-
-%% NEWCOMMAND
-
-\\definecolor{mypink1}{rgb}{0.858, 0.188, 0.478}
-\\definecolor{mypink2}{RGB}{219, 48, 122}
-\\newcommand{\\fontRGB}[4]{
-    \\definecolor{mycolor}{RGB}{#1, #2, #3}
-    \\textcolor{mycolor}{#4}
-    }
-
-\\newcommand{\\highlightRGB}[4]{
-    \\definecolor{mycolor}{RGB}{#1, #2, #3}
-    \\sethlcolor{mycolor}
-    \\hl{#4}
-     \\sethlcolor{yellow}
-    }
-
-\\newcommand{\\gray}[2]{
-\\definecolor{mygray}{gray}{#1}
-\\textcolor{mygray}{#2}
-}
-
-\\newcommand{\\white}[1]{\\gray{1}[#1]}
-\\newcommand{\\medgray}[1]{\\gray{0.5}[#1]}
-\\newcommand{\\black}[1]{\\gray{0}[#1]}
-
-% Spacing
-\\parindent0pt
-\\parskip5pt
-
-"""
-
-
-preamble_ blockNames_ title author date =
-    """
-\\begin{document}
-
-
-\\title{"""
-        ++ title
-        ++ """}
-\\author{"""
-        ++ author
-        ++ """}
-\\date{"""
-        ++ date
-        ++ """}
-
-\\maketitle
-
-"""
-        ++ (if List.member "section" blockNames_ then
-                "\\tableofcontents"
-
-            else
-                ""
-           )

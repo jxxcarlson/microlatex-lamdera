@@ -16,6 +16,7 @@ module Compiler.ASTTools exposing
     , getText
     , matchingIdsInAST
     , normalize
+    , rawBlockNames
     , runninghead
     , stringValueOfList
     , tableOfContents
@@ -50,12 +51,18 @@ filterForestForExpressionsWithName name forest =
 
 blockNames : List (Tree.Tree Parser.Block.ExpressionBlock) -> List String
 blockNames forest =
+    forest
+        |> rawBlockNames
+        |> List.Extra.unique
+        |> List.sort
+
+
+rawBlockNames : List (Tree.Tree Parser.Block.ExpressionBlock) -> List String
+rawBlockNames forest =
     List.map Tree.flatten forest
         |> List.concat
         |> List.map Parser.Block.getName
         |> Maybe.Extra.values
-        |> List.Extra.unique
-        |> List.sort
 
 
 expressionNames : List (Tree.Tree ExpressionBlock) -> List String

@@ -4,7 +4,8 @@ import Compiler.ASTTools as ASTTools
 import Config
 import Document exposing (Document)
 import Duration
-import Effect.Command as Command exposing (Command)
+import Effect.Command as Command exposing (Command, FrontendOnly)
+import Effect.File.Download
 import Effect.Http
 import Effect.Process
 import Effect.Task
@@ -33,7 +34,7 @@ print model =
             )
 
 
-generatePdf : Document -> Command restriction toMsg FrontendMsg
+generatePdf : Document -> Command FrontendOnly toMsg FrontendMsg
 generatePdf document =
     let
         syntaxTree =
@@ -49,20 +50,29 @@ generatePdf document =
                 |> List.concat
                 |> ASTTools.filterExpressionsOnName "image"
                 |> List.map (ASTTools.getText >> Maybe.map String.trim)
+                |> List.map (Maybe.andThen extractUrl)
                 |> Maybe.Extra.values
 
         contentForExport =
             Render.Export.LaTeX.export Render.Settings.defaultSettings syntaxTree
     in
-    Effect.Http.request
-        { method = "POST"
-        , headers = [ Effect.Http.header "Content-Type" "application/json" ]
-        , url = Config.pdfServer ++ "/pdf"
-        , body = Effect.Http.jsonBody (encodeForPDF document.id contentForExport imageUrls)
-        , expect = Effect.Http.expectString GotPdfLink
-        , timeout = Nothing
-        , tracker = Nothing
-        }
+    Command.batch
+        [ Effect.Http.request
+            { method = "POST"
+            , headers = [ Effect.Http.header "Content-Type" "application/json" ]
+            , url = Config.pdfServer ++ "/pdf"
+            , body = Effect.Http.jsonBody (encodeForPDF document.id contentForExport imageUrls)
+            , expect = Effect.Http.expectString GotPdfLink
+            , timeout = Nothing
+            , tracker = Nothing
+            }
+        , Effect.File.Download.string "export.tex" "application/x-latex" contentForExport
+        ]
+
+
+extractUrl : String -> Maybe String
+extractUrl str =
+    str |> String.split " " |> List.head
 
 
 gotLink : FrontendModel -> Result error value -> ( FrontendModel, Command restriction toMsg FrontendMsg )
