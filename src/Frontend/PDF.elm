@@ -66,7 +66,6 @@ generatePdf document =
             , timeout = Nothing
             , tracker = Nothing
             }
-        , Effect.File.Download.string "export.tex" "application/x-latex" contentForExport
         ]
 
 
