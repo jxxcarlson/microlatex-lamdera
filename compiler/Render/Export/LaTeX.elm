@@ -459,9 +459,9 @@ ilink : Settings -> List Expr -> String
 ilink s exprs =
     let
         args =
-            getTwoArgs exprs
+            getTwoArgs exprs |> Debug.log "ILINK, ARGS"
     in
-    [ "\\href{", "https://l0-lab-demo.lamdera.app/i/", args.second, "}{", args.first, "}" ] |> String.join ""
+    [ "\\href{", "https://scripta.io/i/", args.second, "}{", args.first, "}" ] |> String.join ""
 
 
 image : Settings -> List Expr -> String

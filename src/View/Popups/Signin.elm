@@ -20,7 +20,11 @@ view model =
             , Element.alignRight
             , Element.width (Element.px 265)
             ]
-            [ Element.text <| "Signing in ... " ++ String.fromInt model.timer ++ " seconds"
+            [ if model.timer < 10 then
+                Element.text <| "Signing in ... " ++ String.fromInt model.timer ++ " seconds"
+
+              else
+                Element.text <| "ost connection ... reload browser"
             , Element.text (model.messages |> List.head |> Maybe.map .txt |> Maybe.withDefault "" |> filter)
             ]
 
