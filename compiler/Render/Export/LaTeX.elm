@@ -459,7 +459,7 @@ ilink : Settings -> List Expr -> String
 ilink s exprs =
     let
         args =
-            getTwoArgs exprs |> Debug.log "ILINK, ARGS"
+            getTwoArgs exprs
     in
     [ "\\href{", "https://scripta.io/i/", args.second, "}{", args.first, "}" ] |> String.join ""
 
