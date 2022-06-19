@@ -24,7 +24,7 @@ view model =
                 Element.text <| "Signing in ... " ++ String.fromInt model.timer ++ " seconds"
 
               else
-                Element.text <| "ost connection ... reload browser"
+                Element.text <| String.fromInt model.timer ++ " ... " ++ "Lost connection? ... wait or reload browser"
             , Element.text (model.messages |> List.head |> Maybe.map .txt |> Maybe.withDefault "" |> filter)
             ]
 
