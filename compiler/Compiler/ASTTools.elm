@@ -63,7 +63,6 @@ rawBlockNames forest =
         |> List.concat
         |> List.map Parser.Block.getName
         |> Maybe.Extra.values
-        |> Debug.log "BLOCKS (0)"
 
 
 expressionNames : List (Tree.Tree ExpressionBlock) -> List String
