@@ -8,8 +8,11 @@ import List.Extra
 make : List String -> List String -> String -> String -> String -> String
 make blockNames_ expressionNames_ title author date =
     let
+        names =
+            blockNames_ ++ expressionNames_
+
         packagesUsed =
-            packagesNeeded (blockNames_ ++ expressionNames_)
+            packagesNeeded names
     in
     [ "\\documentclass[11pt, oneside]{article}"
     , newPackageText packagesUsed
@@ -29,6 +32,7 @@ packageList =
     [ ( "quiver", [ "quiver" ] )
     , ( "tikz", [ "tikz" ] )
     , ( "link", [ "hyperref" ] )
+    , ( "ilink", [ "hyperref" ] )
     , ( "href", [ "hyperref" ] )
     , ( "textcolor", [ "xcolor" ] )
     , ( "blue", [ "xcolor" ] )

@@ -357,6 +357,9 @@ exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as bl
                             [ "\\[\n", data, "\n\\]" ]
                                 |> String.join ""
 
+                        Just "comment" ->
+                            ""
+
                         _ ->
                             environment "anon" str
 
@@ -401,6 +404,10 @@ functionDict =
         ]
 
 
+
+-- MACRODICT
+
+
 macroDict : Dict String (Settings -> List Expr -> String)
 macroDict =
     Dict.fromList
@@ -412,6 +419,10 @@ macroDict =
         ]
 
 
+
+-- BLOCKDICT
+
+
 blockDict : Dict String (Settings -> List String -> String -> String)
 blockDict =
     Dict.fromList
@@ -420,6 +431,7 @@ blockDict =
         , ( "author", \_ _ _ -> "" )
         , ( "date", \_ _ _ -> "" )
         , ( "contents", \_ _ _ -> "" )
+        , ( "comment", \_ _ _ -> "" )
         , ( "section", \_ args body -> section args body )
         , ( "item", \_ _ body -> macro1 "item" body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
@@ -495,7 +507,7 @@ ilink s exprs =
         args =
             getTwoArgs exprs
     in
-    [ "\\href{", "https://scripta.io/i/", args.second, "}{", args.first, "}" ] |> String.join ""
+    [ "\\href{", "https://scripta.io/s/", args.second, "}{", args.first, "}" ] |> String.join ""
 
 
 image : Settings -> List Expr -> String

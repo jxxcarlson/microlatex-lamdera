@@ -154,8 +154,8 @@ verbatimDict =
         , ( "code", renderCode )
         , ( "verse", renderVerse )
         , ( "verbatim", renderVerbatim )
-        , ( "comment", renderComment )
-        , ( "mathmacros", renderComment )
+        , ( "comment", renderNothing )
+        , ( "mathmacros", renderNothing )
         , ( "datatable", datatable )
         , ( "chart", Render.Chart.view )
         , ( "svg", svg )
@@ -166,8 +166,8 @@ verbatimDict =
         ]
 
 
-renderComment : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
-renderComment _ _ _ _ _ _ =
+renderNothing : Int -> Accumulator -> Settings -> List String -> String -> String -> Element MarkupMsg
+renderNothing _ _ _ _ _ _ =
     Element.none
 
 
