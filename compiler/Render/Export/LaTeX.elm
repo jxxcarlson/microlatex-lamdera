@@ -20,7 +20,7 @@ export : Settings -> Forest ExpressionBlock -> String
 export settings ast =
     let
         rawBlockNames =
-            ASTTools.blockNames ast
+            ASTTools.rawBlockNames ast
 
         blockNames =
             List.Extra.unique rawBlockNames
@@ -41,9 +41,41 @@ export settings ast =
         (get ast "title")
         (get ast "author")
         (get ast "date")
+        ++ tableofcontents rawBlockNames
         ++ "\n\n"
         ++ rawExport settings ast
         ++ "\n\n\\end{document}\n"
+
+
+tableofcontents rawBlockNames_ =
+    if List.length (List.filter (\name -> name == "section") rawBlockNames_) > 1 then
+        "\n\n\\tableofcontents"
+
+    else
+        ""
+
+
+shiftSection : Int -> ExpressionBlock -> ExpressionBlock
+shiftSection delta ((ExpressionBlock data) as block) =
+    if data.name == Just "section" then
+        case data.args of
+            level :: rest ->
+                case String.toInt level of
+                    Nothing ->
+                        block
+
+                    Just kk ->
+                        let
+                            newLevel =
+                                String.fromInt (kk + delta)
+                        in
+                        ExpressionBlock { data | args = newLevel :: rest }
+
+            _ ->
+                block
+
+    else
+        block
 
 
 getImageUrls : Forest ExpressionBlock -> List String
@@ -115,6 +147,7 @@ rawExport settings ast =
         |> ASTTools.filterNotBlocksOnName "runninghead"
         |> List.map Parser.Block.condenseUrls
         |> encloseLists
+        |> List.map (shiftSection 1)
         |> List.map (exportBlock settings)
         |> String.join "\n\n"
 
@@ -395,6 +428,7 @@ blockDict =
         , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
         , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
         , ( "mathmacros", \_ args body -> body ++ "\nHa ha ha!" )
+        , ( "setcounter", \_ args body -> setcounter args body )
         ]
 
 
@@ -488,6 +522,11 @@ blindIndex s exprs =
     [] |> String.join ""
 
 
+setcounter : List String -> String -> String
+setcounter args body =
+    [ "\\setcounter{section}{", Utility.getArg "0" 0 args, "}" ] |> String.join ""
+
+
 section : List String -> String -> String
 section args body =
     let
@@ -496,8 +535,11 @@ section args body =
                 Nothing ->
                     ""
 
-                Just _ ->
+                Just "-" ->
                     "*"
+
+                Just _ ->
+                    ""
     in
     case Utility.getArg "4" 0 args of
         "1" ->

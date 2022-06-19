@@ -58,6 +58,7 @@ import CollaborativeEditing.OT as OT
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
+import Compiler.Util
 import Config
 import Debounce
 import Dict exposing (Dict)
@@ -369,7 +370,14 @@ exportToLaTeX model =
             Render.Export.LaTeX.export Settings.defaultSettings model.editRecord.parsed
 
         fileName =
-            (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
+            (model.currentDocument
+                |> Maybe.map .title
+                |> Maybe.withDefault "doc"
+                |> String.toLower
+                |> Compiler.Util.compressWhitespace
+                |> String.replace " " "-"
+            )
+                ++ ".tex"
     in
     ( model, Effect.File.Download.string fileName "application/x-latex" textToExport )
 
@@ -381,7 +389,14 @@ exportToRawLaTeX model =
             Render.Export.LaTeX.rawExport Settings.defaultSettings model.editRecord.parsed
 
         fileName =
-            (model.currentDocument |> Maybe.map .title |> Maybe.withDefault "doc") ++ ".tex"
+            (model.currentDocument
+                |> Maybe.map .title
+                |> Maybe.withDefault "doc"
+                |> String.toLower
+                |> Compiler.Util.compressWhitespace
+                |> String.replace " " "-"
+            )
+                ++ ".tex"
     in
     ( model, Effect.File.Download.string fileName "application/x-latex" textToExport )
 

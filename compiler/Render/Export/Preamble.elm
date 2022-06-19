@@ -281,9 +281,3 @@ preamble_ rawBlockNames_ title author date =
 \\maketitle
 
 """
-        ++ (if List.length (List.filter (\name -> name == "section") rawBlockNames_) > 1 then
-                "\\tableofcontents"
-
-            else
-                ""
-           )
