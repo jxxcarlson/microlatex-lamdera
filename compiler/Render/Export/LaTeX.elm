@@ -10,7 +10,9 @@ import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
 import Parser.Helpers exposing (Step(..), loop)
+import Render.Export.Image
 import Render.Export.Preamble
+import Render.Export.Util
 import Render.Settings exposing (Settings, defaultSettings)
 import Render.Utility as Utility
 import Tree
@@ -415,7 +417,7 @@ macroDict =
         , ( "ilink", ilink )
         , ( "index_", blindIndex )
         , ( "code", code )
-        , ( "image", image )
+        , ( "image", Render.Export.Image.export )
         ]
 
 
@@ -454,49 +456,16 @@ verbatimExprDict =
 -- END DICTIONARIES
 
 
-getArgs : List Expr -> List String
-getArgs =
-    ASTTools.exprListToStringList >> List.map String.words >> List.concat >> List.filter (\x -> x /= "")
-
-
-getOneArg : List Expr -> String
-getOneArg exprs =
-    case List.head (getArgs exprs) of
-        Nothing ->
-            ""
-
-        Just str ->
-            str
-
-
-getTwoArgs : List Expr -> { first : String, second : String }
-getTwoArgs exprs =
-    let
-        args =
-            getArgs exprs
-
-        n =
-            List.length args
-
-        first =
-            List.take (n - 1) args |> String.join " "
-
-        second =
-            List.drop (n - 1) args |> String.join ""
-    in
-    { first = first, second = second }
-
-
 code : Settings -> List Expr -> String
 code _ exprs =
-    getOneArg exprs |> fixChars
+    Render.Export.Util.getOneArg exprs |> fixChars
 
 
 link : Settings -> List Expr -> String
 link s exprs =
     let
         args =
-            getTwoArgs exprs
+            Render.Export.Util.getTwoArgs exprs
     in
     [ "\\href{", args.second, "}{", args.first, "}" ] |> String.join ""
 
@@ -505,30 +474,16 @@ ilink : Settings -> List Expr -> String
 ilink s exprs =
     let
         args =
-            getTwoArgs exprs
+            Render.Export.Util.getTwoArgs exprs
     in
     [ "\\href{", "https://scripta.io/s/", args.second, "}{", args.first, "}" ] |> String.join ""
-
-
-image : Settings -> List Expr -> String
-image s exprs =
-    let
-        args =
-            getOneArg exprs |> String.words
-    in
-    case List.head args of
-        Nothing ->
-            "ERROR IN IMAGE"
-
-        Just url ->
-            [ "\\imagecenter{", url, "}" ] |> String.join ""
 
 
 blindIndex : Settings -> List Expr -> String
 blindIndex s exprs =
     let
         args =
-            getTwoArgs exprs
+            Render.Export.Util.getTwoArgs exprs
     in
     -- TODO
     [] |> String.join ""

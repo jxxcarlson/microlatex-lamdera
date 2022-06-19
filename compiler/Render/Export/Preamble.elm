@@ -151,12 +151,12 @@ commands =
 \\newcommand{\\ellie}[1]{\\href{#1}{Link to Ellie}}
 % \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}
 
-
-\\newcommand{\\imagecenter}[1]{
+%% width=4truein,keepaspectratio]
+\\newcommand{\\imagecenter}[2]{
    \\medskip
    \\begin{figure}[htp]
    \\centering
-    \\includegraphics[width=4truein,keepaspectratio]{#1}
+    \\includegraphics[#2]{#1}
     \\vglue0pt
     \\end{figure}
     \\medskip

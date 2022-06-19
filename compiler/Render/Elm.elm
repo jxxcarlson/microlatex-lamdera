@@ -13,6 +13,7 @@ import List.Extra
 import Maybe.Extra
 import Parser.Expr exposing (Expr(..))
 import Parser.MathMacro
+import Render.Image
 import Render.Math
 import Render.Msg exposing (MarkupMsg(..))
 import Render.Settings exposing (Settings)
@@ -108,7 +109,7 @@ markupDict =
         , ( "label", \_ _ _ _ -> Element.none )
         , ( "cite", \g acc s exprList -> cite g acc s exprList )
         , ( "table", \g acc s exprList -> table g acc s exprList )
-        , ( "image", \g acc s exprList -> image g acc s exprList )
+        , ( "image", \g acc s exprList -> Render.Image.view g acc s exprList )
         , ( "tags", invisible )
         , ( "vskip", vskip )
         , ( "syspar", syspar )
@@ -288,87 +289,6 @@ cslink _ _ _ exprList =
                 { onPress = Just (GetPublicDocumentFromAuthor Render.Msg.MHAsCheatSheet username fragment)
                 , label = Element.el [ Element.centerX, Element.centerY, Font.size 14, Font.color (Element.rgb 0 0 0.8) ] (Element.text label)
                 }
-
-
-image generation acc settings body =
-    let
-        arguments : List String
-        arguments =
-            ASTTools.exprListToStringList body |> List.map String.words |> List.concat
-
-        url =
-            List.head arguments |> Maybe.withDefault "no-image"
-
-        remainingArguments =
-            List.drop 1 arguments
-
-        keyValueStrings_ =
-            List.filter (\s -> String.contains ":" s) remainingArguments
-
-        keyValueStrings : List String
-        keyValueStrings =
-            List.filter (\s -> not (String.contains "caption" s)) keyValueStrings_
-
-        captionLeadString =
-            List.filter (\s -> String.contains "caption" s) keyValueStrings_
-                |> String.join ""
-                |> String.replace "caption:" ""
-
-        captionPhrase =
-            (captionLeadString :: List.filter (\s -> not (String.contains ":" s)) remainingArguments) |> String.join " "
-
-        dict =
-            Utility.keyValueDict keyValueStrings
-
-        --  |> Dict.insert "caption" (Maybe.andThen ASTTools.getText captionExpr |> Maybe.withDefault "")
-        description =
-            Dict.get "caption" dict |> Maybe.withDefault ""
-
-        caption =
-            if captionPhrase == "" then
-                Element.none
-
-            else
-                Element.row [ placement, Element.width Element.fill ] [ el [ Element.width Element.fill ] (Element.text captionPhrase) ]
-
-        width =
-            case Dict.get "width" dict of
-                Nothing ->
-                    px displayWidth
-
-                Just w_ ->
-                    case String.toInt w_ of
-                        Nothing ->
-                            px displayWidth
-
-                        Just w ->
-                            px w
-
-        placement =
-            case Dict.get "placement" dict of
-                Nothing ->
-                    centerX
-
-                Just "left" ->
-                    alignLeft
-
-                Just "right" ->
-                    alignRight
-
-                Just "center" ->
-                    centerX
-
-                _ ->
-                    centerX
-
-        displayWidth =
-            settings.width
-    in
-    column [ spacing 8, Element.width (px settings.width), placement, Element.paddingXY 0 18 ]
-        [ Element.image [ Element.width width, placement ]
-            { src = url, description = description }
-        , el [ placement ] caption
-        ]
 
 
 bibitem : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
