@@ -158,7 +158,7 @@ commands =
    \\medskip
    \\begin{figure}[htp]
    \\centering
-    \\includegraphics[#2]{#1}
+    \\includegraphics[width=#2]{#1}
     \\vglue0pt
     \\caption{#3}
     \\end{figure}
@@ -169,11 +169,19 @@ commands =
    \\medskip
    \\begin{figure}[htp]
    \\centering
-    \\includegraphics[#2]{#1}
+    \\includegraphics[width=#2]{#1}
     \\vglue0pt
     \\end{figure}
     \\medskip
 }
+
+\\newcommand{\\imagefloat}[4]{
+    \\begin{wrapfigure}{#4}{#2}
+    \\includegraphics[width=#2]{#1}
+    \\caption{#3}
+    \\end{wrapfigure}
+}
+
 
 \\newcommand{\\imagefloatright}[3]{
     \\begin{wrapfigure}{R}{0.30\\textwidth}
@@ -181,6 +189,9 @@ commands =
     \\caption{#2}
     \\end{wrapfigure}
 }
+
+
+
 
 \\newcommand{\\imagefloatleft}[3]{
     \\begin{wrapfigure}{L}{0.3-\\textwidth}
