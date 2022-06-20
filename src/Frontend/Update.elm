@@ -524,23 +524,6 @@ setPermissions currentUser permissions document =
                 permissions
 
 
-changeLanguage : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-changeLanguage model =
-    case model.currentDocument of
-        Nothing ->
-            ( model, Command.none )
-
-        Just doc ->
-            let
-                newDoc =
-                    { doc | language = model.language }
-            in
-            ( { model | documentDirty = False }
-            , Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
-            )
-                |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
-
-
 setPublic : FrontendModel -> Document -> Bool -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setPublic model doc public =
     let
@@ -1361,6 +1344,23 @@ setLanguage dismiss lang model =
 
     else
         ( { model | language = lang }, Command.none )
+
+
+changeLanguage : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+changeLanguage model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Command.none )
+
+        Just doc ->
+            let
+                newDoc =
+                    { doc | language = model.language }
+            in
+            ( { model | documentDirty = False }
+            , Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
+            )
+                |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
 
 
 setUserLanguage : Language -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )

@@ -434,6 +434,13 @@ blockDict =
         , ( "date", \_ _ _ -> "" )
         , ( "contents", \_ _ _ -> "" )
         , ( "comment", \_ _ _ -> "" )
+
+        -- UNIMPLEMENTED
+        , ( "chart", \_ _ _ -> "chart: unimplemented" )
+        , ( "svg", \_ _ _ -> "svg: unimplemented" )
+        , ( "datatable", \_ _ _ -> "datatable: unimplemented" )
+
+        --
         , ( "section", \_ args body -> section args body )
         , ( "item", \_ _ body -> macro1 "item" body )
         , ( "numbered", \_ _ body -> macro1 "item" body )
