@@ -43,7 +43,11 @@ export s exprs =
             "ERROR IN IMAGE"
 
         Just url ->
-            [ "\\imagecenter{", url, "}{" ++ options ++ "}" ] |> String.join ""
+            if params.caption == "" then
+                [ "\\imagecenter{", url, "}{" ++ options ++ "}" ] |> String.join ""
+
+            else
+                [ "\\imagecentercaptioned{", url, "}{" ++ options ++ "}{" ++ params.caption ++ "}" ] |> String.join ""
 
 
 type alias ImageParameters =

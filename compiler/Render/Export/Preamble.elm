@@ -154,6 +154,17 @@ commands =
 %% width=4truein,keepaspectratio]
 
 
+\\newcommand{\\imagecentercaptioned}[3]{
+   \\medskip
+   \\begin{figure}[htp]
+   \\centering
+    \\includegraphics[#2]{#1}
+    \\vglue0pt
+    \\caption{#3}
+    \\end{figure}
+    \\medskip
+}
+
 \\newcommand{\\imagecenter}[2]{
    \\medskip
    \\begin{figure}[htp]
