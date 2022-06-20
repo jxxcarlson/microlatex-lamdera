@@ -46,7 +46,7 @@ packageList =
     , ( "highlight", [ "soul" ] )
     , ( "strike", [ "soul" ] )
     , ( "errorHighlight", [ "xcolor" ] )
-    , ( "image", [ "graphicx", "wrapfig" ] )
+    , ( "image", [ "graphicx", "wrapfig", "float" ] )
     ]
 
 
@@ -152,6 +152,8 @@ commands =
 % \\newcommand{\\image}[3]{\\includegraphics[width=3cm]{#1}}
 
 %% width=4truein,keepaspectratio]
+
+
 \\newcommand{\\imagecenter}[2]{
    \\medskip
    \\begin{figure}[htp]
