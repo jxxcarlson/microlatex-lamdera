@@ -363,7 +363,7 @@ exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as bl
                             ""
 
                         _ ->
-                            environment "anon" str
+                            Maybe.withDefault "??" name ++ ": export of this block is unimplemented"
 
                 Right _ ->
                     "???(13)"
@@ -434,11 +434,6 @@ blockDict =
         , ( "date", \_ _ _ -> "" )
         , ( "contents", \_ _ _ -> "" )
         , ( "comment", \_ _ _ -> "" )
-
-        -- UNIMPLEMENTED
-        , ( "chart", \_ _ _ -> "chart: unimplemented" )
-        , ( "svg", \_ _ _ -> "svg: unimplemented" )
-        , ( "datatable", \_ _ _ -> "datatable: unimplemented" )
 
         --
         , ( "section", \_ args body -> section args body )
