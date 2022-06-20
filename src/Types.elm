@@ -24,6 +24,7 @@ module Types exposing
     , FrontendModel
     , FrontendMsg(..)
     , GroupName
+    , ImageData
     , ManualType(..)
     , MaximizedIndex(..)
     , Message
@@ -47,6 +48,7 @@ module Types exposing
     , ToFrontend(..)
     , ToggleChatGroupDisplay(..)
     , UMButtons(..)
+    , UploadState(..)
     , UserId
     , UserMessage
     , Username
@@ -67,7 +69,8 @@ import Dict exposing (Dict)
 import Document exposing (Document)
 import Effect.Browser.Dom
 import Effect.Browser.Navigation
-import Effect.Http
+import Effect.File exposing (File)
+import Effect.Http exposing (Error, Progress(..))
 import Effect.Lamdera exposing (ClientId, SessionId)
 import Effect.Time
 import Keyboard
@@ -149,6 +152,9 @@ type alias FrontendModel =
     , chatVisible : Bool
     , inputGroup : String
     , currentChatGroup : Maybe ChatGroup
+
+    -- IMAGE
+    , uploadState : UploadState
 
     -- SYNC
     , foundIds : List String
@@ -322,6 +328,9 @@ type FrontendMsg
     | ToggleExtrasSidebar
     | ToggleTagsSidebar
     | ChangePopup PopupState
+      -- IMAGE UPLOAD
+    | FileUploading File (List File) Progress
+    | FileUploaded (Result Error ImageData)
       -- SHARE
     | DismissUserMessage
     | Narrow String Document
@@ -400,6 +409,15 @@ type FrontendMsg
 type ManualType
     = TManual
     | TGuide
+
+
+type alias ImageData =
+    { src : String
+    , description : String
+    , width : Maybe Int
+    , height : Maybe Int
+    , mimeType : Maybe String
+    }
 
 
 
@@ -552,6 +570,15 @@ type MessageStatus
     | MSYellow
     | MSGreen
     | MSRed
+
+
+
+-- IMGBB Image upload
+
+
+type UploadState
+    = Uploading File (List File) Float
+    | Ready
 
 
 

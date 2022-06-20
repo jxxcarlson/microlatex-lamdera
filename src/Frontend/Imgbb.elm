@@ -15,11 +15,14 @@ Typical response after a successul upload is:
 See <https://api.imgbb.com> for the full API documentation.
 -}
 
-import Document exposing (ImageData)
+import Duration
+import Effect.Command exposing (Command, FrontendOnly)
+import Effect.File
+import Effect.Http
 import File exposing (File)
 import Http exposing (Error)
 import Json.Decode as D exposing (Decoder)
-import Model exposing (Msg(..), UploadState(..))
+import Types exposing (FrontendMsg(..), ImageData, ToBackend, UploadState(..))
 
 
 endpointUrl =
@@ -40,28 +43,28 @@ uploadNextFile key files =
 
         [] ->
             ( Ready
-            , Cmd.none
+            , Effect.Command.none
             )
 
 
-postTo : String -> File -> Cmd Msg
+postTo : String -> Effect.File.File -> Command FrontendOnly ToBackend FrontendMsg
 postTo key file =
-    Http.request
+    Effect.Http.request
         { method = "POST"
         , headers = []
         , url = endpointUrl ++ key
         , body =
-            Http.multipartBody
-                [ Http.filePart "image" file
+            Effect.Http.multipartBody
+                [ Effect.Http.filePart "image" file
                 ]
-        , expect = Http.expectJson FileUploaded responseDecoder
-        , timeout = Just uploadTimeout
-        , tracker = Just (File.name file)
+        , expect = Effect.Http.expectJson FileUploaded responseDecoder
+        , timeout = Just (Duration.milliseconds uploadTimeout)
+        , tracker = Just (Effect.File.name file)
         }
 
 
 track current others =
-    Http.track (File.name current) (FileUploading current others)
+    Effect.Http.track (Effect.File.name current) (FileUploading current others)
 
 
 responseDecoder : Decoder ImageData

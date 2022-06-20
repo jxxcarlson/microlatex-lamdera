@@ -20,6 +20,7 @@ import Effect.Browser.Events
 import Effect.Browser.Navigation
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.File.Download
+import Effect.Http exposing (Error, Progress(..))
 import Effect.Lamdera exposing (sendToBackend)
 import Effect.Process
 import Effect.Subscription as Subscription exposing (Subscription)
@@ -40,7 +41,7 @@ import Predicate
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Share
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..), UploadState(..))
 import Url exposing (Url)
 import UrlManager
 import User
@@ -107,6 +108,9 @@ init url key =
       , publicTagDict = Dict.empty
       , inputLanguage = L0Lang
       , documentList = StandardList
+
+      -- IMAGE UPLOAD
+      , uploadState = Ready
 
       -- CHAT (FrontendModel)
       , chatDisplay = Types.TCGDisplay
@@ -340,6 +344,31 @@ update msg model =
             in
             ( { model | url = url }, cmd )
 
+        -- IMAGE UPLOAD
+        FileUploading current others progress ->
+            case progress of
+                Sending sent ->
+                    ( { model
+                        | uploadState = Types.Uploading current others (Effect.Http.fractionSent sent)
+                      }
+                    , Effect.Command.none
+                    )
+
+                _ ->
+                    ( model, Effect.Command.none )
+
+        FileUploaded result ->
+            case result of
+                Ok image ->
+                    ( { model | messages = [ { txt = "Image upload successful", status = MSGreen } ] }
+                    , Effect.Command.none
+                    )
+
+                Err _ ->
+                    ( { model | messages = [ { txt = "Image upload unsuccessful", status = MSGreen } ] }
+                    , Effect.Command.none
+                    )
+
         -- CHAT (update)
         AskToClearChatHistory ->
             ( model, Effect.Lamdera.sendToBackend (ClearChatHistory model.inputGroup) )
@@ -368,7 +397,7 @@ update msg model =
                             ( [], Effect.Lamdera.sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
 
                         --if Just (String.trim model.inputGroup) == oldPreferences.group then
-                        --    ( model.chatMessages, Cmd.none )
+                        --    ( model.chatMessages, Effect.Command.none )
                         --
                         --else
                         --    ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
@@ -1045,9 +1074,9 @@ fixId_ str =
 --                "Oops, this is a backup or version document -- no edits"
 --    in
 --    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
---    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
+--    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Effect.Command.none )
 --    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
---    ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
+--    ( { model | messages = [ { txt = m, status = MSYellow } ] }, Effect.Command.none )
 
 
 changePrintingState : PrintingState -> { a | id : String } -> Command FrontendOnly ToBackend FrontendMsg
