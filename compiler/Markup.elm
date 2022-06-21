@@ -28,19 +28,6 @@ import Tree
 import XMarkdown.Expression
 
 
-isVerbatimLine : String -> Bool
-isVerbatimLine str =
-    (String.left 2 str == "||")
-        || (String.left 3 str == "```")
-        || (String.left 16 str == "\\begin{equation}")
-        || (String.left 15 str == "\\begin{aligned}")
-        || (String.left 15 str == "\\begin{comment}")
-        || (String.left 12 str == "\\begin{code}")
-        || (String.left 12 str == "\\begin{verbatim}")
-        || (String.left 18 str == "\\begin{mathmacros}")
-        || (String.left 2 str == "$$")
-
-
 {-| -}
 parse : Language -> String -> Forest ExpressionBlock
 parse lang sourceText =
@@ -61,7 +48,7 @@ parse lang sourceText =
     in
     sourceText
         |> toPrimitiveBlockForest lang
-        |> List.map (Tree.map (Parser.BlockUtil.toExpressionBlock lang parser))
+        |> Parser.Forest.map (Parser.BlockUtil.toExpressionBlock lang parser)
 
 
 messagesFromTree : Tree.Tree ExpressionBlock -> List String
@@ -91,6 +78,19 @@ toPrimitiveBlockForest lang str =
         |> List.map (Compiler.Transform.transform lang)
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
         |> Result.withDefault []
+
+
+isVerbatimLine : String -> Bool
+isVerbatimLine str =
+    (String.left 2 str == "||")
+        || (String.left 3 str == "```")
+        || (String.left 16 str == "\\begin{equation}")
+        || (String.left 15 str == "\\begin{aligned}")
+        || (String.left 15 str == "\\begin{comment}")
+        || (String.left 12 str == "\\begin{code}")
+        || (String.left 12 str == "\\begin{verbatim}")
+        || (String.left 18 str == "\\begin{mathmacros}")
+        || (String.left 2 str == "$$")
 
 
 f str =
