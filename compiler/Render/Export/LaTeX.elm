@@ -147,19 +147,6 @@ getImageUrl_ str =
             List.head arguments
 
 
-rawExport1 : Settings -> Forest ExpressionBlock -> String
-rawExport1 settings ast =
-    ast
-        |> List.map Tree.flatten
-        |> List.concat
-        |> ASTTools.filterNotBlocksOnName "runninghead"
-        |> List.map Parser.Block.condenseUrls
-        |> encloseLists
-        |> List.map (shiftSection 1)
-        |> List.map (exportBlock settings)
-        |> String.join "\n\n"
-
-
 exportTree : Settings -> Tree ExpressionBlock -> String
 exportTree settings tree =
     case Tree.children tree of
@@ -186,9 +173,9 @@ exportTree settings tree =
 rawExport : Settings -> List (Tree ExpressionBlock) -> String
 rawExport settings ast =
     ast
-        --|> ASTTools.filterNotBlocksOnName "runninghead"
+        -- |> ASTTools.filterNotBlocksOnName "runninghead"
         --  |> List.map Parser.Block.condenseUrls
-        --|> encloseLists
+        |> encloseLists
         |> Parser.Forest.map (shiftSection 1)
         |> List.map (exportTree settings)
         |> String.join "\n\n"
@@ -200,23 +187,23 @@ type Status
     | InsideNumberedList
 
 
-encloseLists : List ExpressionBlock -> List ExpressionBlock
+encloseLists : Forest ExpressionBlock -> Forest ExpressionBlock
 encloseLists blocks =
-    loop { status = OutsideList, inputList = blocks, outputList = [], itemNumber = 0 } nextStep |> List.reverse
+    loop { status = OutsideList, input = blocks, output = [], itemNumber = 0 } nextStep |> List.reverse
 
 
 type alias State =
-    { status : Status, inputList : List ExpressionBlock, outputList : List ExpressionBlock, itemNumber : Int }
+    { status : Status, input : Forest ExpressionBlock, output : Forest ExpressionBlock, itemNumber : Int }
 
 
-nextStep : State -> Step State (List ExpressionBlock)
+nextStep : State -> Step State (Forest ExpressionBlock)
 nextStep state =
-    case List.head state.inputList of
+    case List.head state.input of
         Nothing ->
-            Done state.outputList
+            Done state.output
 
-        Just block ->
-            Loop (nextState block state)
+        Just tree ->
+            Loop (nextState tree state)
 
 
 beginItemizedBlock : ExpressionBlock
@@ -287,32 +274,38 @@ endNumberedBlock =
         }
 
 
-nextState : ExpressionBlock -> State -> State
-nextState ((ExpressionBlock { name }) as block) state =
-    case ( state.status, name ) of
+nextState : Tree ExpressionBlock -> State -> State
+nextState tree state =
+    let
+        name_ =
+            case Tree.label tree of
+                ExpressionBlock { name } ->
+                    name
+    in
+    case ( state.status, name_ ) of
         -- ITEMIZED LIST
         ( OutsideList, Just "item" ) ->
-            { state | status = InsideItemizedList, itemNumber = 1, outputList = block :: beginItemizedBlock :: state.outputList, inputList = List.drop 1 state.inputList }
+            { state | status = InsideItemizedList, itemNumber = 1, output = tree :: Tree.singleton beginItemizedBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideItemizedList, Just "item" ) ->
-            { state | outputList = block :: state.outputList, itemNumber = state.itemNumber + 1, inputList = List.drop 1 state.inputList }
+            { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideItemizedList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, outputList = block :: endItemizedBlock :: state.outputList, inputList = List.drop 1 state.inputList }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endItemizedBlock :: state.output, input = List.drop 1 state.input }
 
         -- NUMBERED LIST
         ( OutsideList, Just "numbered" ) ->
-            { state | status = InsideNumberedList, itemNumber = 1, outputList = block :: beginNumberedBlock :: state.outputList, inputList = List.drop 1 state.inputList }
+            { state | status = InsideNumberedList, itemNumber = 1, output = tree :: Tree.singleton beginNumberedBlock :: state.output, input = List.drop 1 state.input }
 
         ( InsideNumberedList, Just "numbered" ) ->
-            { state | outputList = block :: state.outputList, itemNumber = state.itemNumber + 1, inputList = List.drop 1 state.inputList }
+            { state | output = tree :: state.output, itemNumber = state.itemNumber + 1, input = List.drop 1 state.input }
 
         ( InsideNumberedList, _ ) ->
-            { state | status = OutsideList, itemNumber = 0, outputList = block :: endNumberedBlock :: state.outputList, inputList = List.drop 1 state.inputList }
+            { state | status = OutsideList, itemNumber = 0, output = tree :: Tree.singleton endNumberedBlock :: state.output, input = List.drop 1 state.input }
 
         --- OUTSIDE
         ( OutsideList, _ ) ->
-            { state | outputList = block :: state.outputList, inputList = List.drop 1 state.inputList }
+            { state | output = tree :: state.output, input = List.drop 1 state.input }
 
 
 exportBlock : Settings -> ExpressionBlock -> String

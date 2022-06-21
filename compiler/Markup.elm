@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
+    , example, example2, example3, f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -26,6 +26,35 @@ import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 import Parser.Tree
 import Tree
 import XMarkdown.Expression
+
+
+example2 =
+    ""
+
+
+example3 =
+    ""
+
+
+example =
+    """
+| item
+AAA
+
+|item
+BBB
+
+| item
+CCC
+
+"""
+
+
+
+--[
+--  Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "AAA" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "2", indent = 0, lineNumber = 2, messages = [], name = Just "item", numberOfLines = 2, sourceText = "| item\nAAA", tag = "" }) []
+-- ,Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "BBB" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "5", indent = 0, lineNumber = 5, messages = [], name = Just "tem", numberOfLines = 2, sourceText = "|item\nBBB", tag = "" }) []
+-- ,Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "CCC" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "8", indent = 0, lineNumber = 8, messages = [], name = Just "item", numberOfLines = 2, sourceText = "| item\nCCC", tag = "" }) []]
 
 
 {-| -}
