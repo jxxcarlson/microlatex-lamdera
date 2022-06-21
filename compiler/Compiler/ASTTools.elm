@@ -11,6 +11,7 @@ module Compiler.ASTTools exposing
     , filterExpressionsOnName
     , filterExpressionsOnName_
     , filterForestForExpressionsWithName
+    , filterForestOnLabelNames
     , filterNotBlocksOnName
     , filterOutExpressionsOnName
     , getText
@@ -31,7 +32,7 @@ import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
-import Tree
+import Tree exposing (Tree)
 
 
 normalize : Either String (List Expr) -> Either String (List Expr)
@@ -100,6 +101,20 @@ filterBlocksOnName name blocks =
 filterNotBlocksOnName : String -> List ExpressionBlock -> List ExpressionBlock
 filterNotBlocksOnName name blocks =
     List.filter (matchBlockName name >> not) blocks
+
+
+filterForestOnLabelNames : (Maybe String -> Bool) -> Forest ExpressionBlock -> Forest ExpressionBlock
+filterForestOnLabelNames predicate forest =
+    List.filter (\tree -> predicate (labelName tree)) forest
+
+
+labelName : Tree ExpressionBlock -> Maybe String
+labelName tree =
+    let
+        (ExpressionBlock { name }) =
+            Tree.label tree
+    in
+    name
 
 
 matchBlockName : String -> ExpressionBlock -> Bool

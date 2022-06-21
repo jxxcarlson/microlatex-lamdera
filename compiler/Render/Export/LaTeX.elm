@@ -18,12 +18,6 @@ import Render.Utility as Utility
 import Tree exposing (Tree)
 
 
-
---t = [Tree "" []
---      ,Tree "\\begin{theorem}\nThis is a test.\n\\end{theorem}" []
---      ,Tree "\\begin{equation}\n    a^2 + b^2 = c^2\n    \n\\end{equation}" [Tree "          Isn't that nice?" []]]
-
-
 export : Settings -> Forest ExpressionBlock -> String
 export settings ast =
     let
@@ -173,7 +167,7 @@ exportTree settings tree =
 rawExport : Settings -> List (Tree ExpressionBlock) -> String
 rawExport settings ast =
     ast
-        -- |> ASTTools.filterNotBlocksOnName "runninghead"
+        |> ASTTools.filterForestOnLabelNames (\name -> not (name == Just "runninghead"))
         |> Parser.Forest.map Parser.Block.condenseUrls
         |> encloseLists
         |> Parser.Forest.map (shiftSection 1)
