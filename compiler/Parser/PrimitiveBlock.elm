@@ -12,6 +12,7 @@ module Parser.PrimitiveBlock exposing
 -}
 
 import List.Extra
+import MicroLaTeX.Parser.PrimitiveBlock
 import MicroLaTeX.Parser.TransformLaTeX
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)
@@ -175,6 +176,10 @@ init lang isVerbatimLine lines =
 
 blockFromLine : Language -> Line -> PrimitiveBlock
 blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
+    let
+        _ =
+            Debug.log "!! (INDENT, LINE)" ( indent, content )
+    in
     { indent = indent
     , lineNumber = lineNumber
     , position = position

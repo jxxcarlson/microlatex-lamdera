@@ -15,7 +15,13 @@ import Render.Export.Preamble
 import Render.Export.Util
 import Render.Settings exposing (Settings, defaultSettings)
 import Render.Utility as Utility
-import Tree
+import Tree exposing (Tree)
+
+
+
+--t = [Tree "" []
+--      ,Tree "\\begin{theorem}\nThis is a test.\n\\end{theorem}" []
+--      ,Tree "\\begin{equation}\n    a^2 + b^2 = c^2\n    \n\\end{equation}" [Tree "          Isn't that nice?" []]]
 
 
 export : Settings -> Forest ExpressionBlock -> String
@@ -141,8 +147,8 @@ getImageUrl_ str =
             List.head arguments
 
 
-rawExport : Settings -> Forest ExpressionBlock -> String
-rawExport settings ast =
+rawExport1 : Settings -> Forest ExpressionBlock -> String
+rawExport1 settings ast =
     ast
         |> List.map Tree.flatten
         |> List.concat
@@ -152,6 +158,55 @@ rawExport settings ast =
         |> List.map (shiftSection 1)
         |> List.map (exportBlock settings)
         |> String.join "\n\n"
+
+
+
+--TREE:
+--Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "AAA" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "4", indent = 0, lineNumber = 4, messages = [], name = Just "indent", numberOfLines = 2, sourceText = "| indent\nAAA", tag = "" })
+--   [Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "BBB" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "7", indent = 2, lineNumber = 7, messages = [], name = Just "indent", numberOfLines = 2, sourceText = "  | indent \nBBB", tag = "" })
+--      [Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "CCC" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "10", indent = 4, lineNumber = 10, messages = [], name = Just "indent", numberOfLines = 2, sourceText = "    | indent\nCCC", tag = "" })
+--        []
+--      ]
+--   ]
+
+
+exportTree : Settings -> Tree ExpressionBlock -> String
+exportTree settings tree =
+    let
+        _ =
+            Debug.log "TREE" tree
+    in
+    case Tree.children tree of
+        [] ->
+            exportBlock settings (Tree.label tree)
+
+        children ->
+            let
+                renderedChildren : List String
+                renderedChildren =
+                    List.map (exportTree settings) children |> List.map String.lines |> List.concat |> Debug.log "CHILDRESN"
+
+                root =
+                    exportBlock settings (Tree.label tree) |> String.lines |> Debug.log "ROOT"
+            in
+            case List.Extra.unconsLast root of
+                Nothing ->
+                    ""
+
+                Just ( lastLine, precedingLines ) ->
+                    precedingLines ++ renderedChildren ++ [ lastLine ] |> Debug.log "OUT" |> String.join "\n"
+
+
+rawExport : Settings -> List (Tree ExpressionBlock) -> String
+rawExport settings ast =
+    ast
+        --|> ASTTools.filterNotBlocksOnName "runninghead"
+        --  |> List.map Parser.Block.condenseUrls
+        --|> encloseLists
+        |> Parser.Forest.map (shiftSection 1)
+        |> List.map (exportTree settings)
+        |> String.join "\n\n"
+        |> Debug.log "FOREST"
 
 
 type Status

@@ -241,7 +241,9 @@ nextState2 line (MyMacro name args) state =
                 List.drop 1 state.stack
         in
         if name == "end" && not (List.member (List.Extra.last state.stack) [ Just (InVerbatimBlock "code"), Just (InVerbatimBlock "equation"), Just (InVerbatimBlock "aligned") ]) then
-            { state | output = "\\red{^^^ missmatched end tags}" :: "" :: state.output, stack = newStack } |> fakeDebugLog state.i "(12)"
+            --{ state | output = "\\red{^^^ missmatched end tags}" :: "" :: state.output, stack = newStack } |> fakeDebugLog state.i "(12)"
+            -- TODO is the change (line above to line below) a good move?)
+            { state | output = state.output, stack = newStack } |> fakeDebugLog state.i "(12)"
 
         else
             { state | output = line :: state.output } |> fakeDebugLog state.i "(12)"
@@ -265,7 +267,9 @@ handleError line state =
                     { state | output = line :: state.output }
 
                 Just "" ->
-                    { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+                    -- { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+                    -- TODO is the change (line above to line below) a good move?)
+                    { state | output = line :: state.output }
 
                 _ ->
                     if outputHead == Just endTag then

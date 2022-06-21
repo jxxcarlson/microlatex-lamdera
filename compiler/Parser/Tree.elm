@@ -2,7 +2,7 @@ module Parser.Tree exposing (fromBlocks, forestFromBlocks, Error(..))
 
 {-| This module provides tools for building
 a tree from a string or a list of blocks. As noted
-in the README, a tree
+in the README.md, a tree
 is represented in text as an outline:
 
      > data = "1\n 2\n 3\n 4\n5\n 6\n 7"

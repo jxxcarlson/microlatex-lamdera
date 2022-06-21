@@ -31,6 +31,8 @@ renderFromAST count accumulator settings ast =
         |> List.map (renderTree count accumulator settings)
 
 
+{-| Transform a tree of expression blocks to Element MarkupMsg ("HTML")
+-}
 renderTree : Int -> Accumulator -> Settings -> Tree ExpressionBlock -> Element MarkupMsg
 renderTree count accumulator settings tree =
     let

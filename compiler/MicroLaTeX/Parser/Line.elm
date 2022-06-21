@@ -127,6 +127,9 @@ getNameAndArgs lang line =
             else
                 ( PBParagraph, Nothing, [] )
 
+        PlainTextLang ->
+            ( PBOrdinary, Nothing, [] )
+
 
 prefixLength : Int -> Int -> String -> Int
 prefixLength position lineNumber str =
