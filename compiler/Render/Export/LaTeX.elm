@@ -174,7 +174,7 @@ rawExport : Settings -> List (Tree ExpressionBlock) -> String
 rawExport settings ast =
     ast
         -- |> ASTTools.filterNotBlocksOnName "runninghead"
-        --  |> List.map Parser.Block.condenseUrls
+        |> Parser.Forest.map Parser.Block.condenseUrls
         |> encloseLists
         |> Parser.Forest.map (shiftSection 1)
         |> List.map (exportTree settings)
