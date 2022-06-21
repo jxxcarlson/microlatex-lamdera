@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , example, f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
+    , example, example2, example3, f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -33,7 +33,29 @@ example =
 \\begin{theorem}
 This is a test.
 
+  \\begin{indent}
+  a^2 + b^2 = c^3
+"""
+
+
+example2 =
+    """
+\\begin{theorem}
+This is a test.
+
   \\begin{equation}
+  a^2 + b^2 = c^3
+
+  Isn't that nice?
+"""
+
+
+example3 =
+    """
+| theorem
+This is a test.
+
+  || equation
   a^2 + b^2 = c^3
 
   Isn't that nice?
@@ -120,7 +142,6 @@ parse lang sourceText =
     in
     sourceText
         |> toPrimitiveBlockForest lang
-        |> Debug.log "!! PrimitiveBlockForest"
         |> Parser.Forest.map (Parser.BlockUtil.toExpressionBlock lang parser)
 
 
@@ -148,11 +169,8 @@ toPrimitiveBlockForest lang str =
     str
         |> String.lines
         |> Parser.PrimitiveBlock.parse lang isVerbatimLine
-        |> Debug.log "!! PRIMITIVE BLOCKS (1)"
         |> List.map (Compiler.Transform.transform lang)
-        |> Debug.log "!! PRIMITIVE BLOCKS (2)"
         |> Parser.Tree.forestFromBlocks { emptyBlock | indent = -2 } identity identity
-        |> Debug.log "!! FOREST (0)"
         |> Result.withDefault []
 
 

@@ -28,6 +28,7 @@ import List.Extra
 import Parser.Line
 import Parser.Settings exposing (Arity, blockData)
 import Parser.TextMacro exposing (MyMacro(..))
+import Parser.Utility
 
 
 example =
@@ -179,6 +180,7 @@ nextState state =
                             Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
+nextState2 : String -> MyMacro -> State -> State
 nextState2 line (MyMacro name args) state =
     let
         firstArg =
@@ -190,7 +192,8 @@ nextState2 line (MyMacro name args) state =
 
     else if name == "begin" && List.member firstArg [ "code", "equation", "aligned" ] then
         -- HANDLE VERBATIM BLOCKS (CODE, EQUATION, ALIGNED), BEGIN
-        { state | output = ("|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog state.i "(1)"
+        -- ADDED 6/21/2022: Parser.Utility.getLeadingBlanks line ++
+        { state | output = (Parser.Utility.getLeadingBlanks line ++ "|| " ++ firstArg) :: state.output, status = InVerbatimBlock firstArg, stack = InVerbatimBlock firstArg :: state.stack } |> fakeDebugLog state.i "(1)"
 
     else if name == "end" && List.member firstArg [ "code", "equation", "aligned" ] then
         -- HANDLE CODE BLOCKS, END

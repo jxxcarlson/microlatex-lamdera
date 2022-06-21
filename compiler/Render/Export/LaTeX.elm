@@ -184,17 +184,17 @@ exportTree settings tree =
             let
                 renderedChildren : List String
                 renderedChildren =
-                    List.map (exportTree settings) children |> List.map String.lines |> List.concat |> Debug.log "CHILDRESN"
+                    List.map (exportTree settings) children |> List.map String.lines |> List.concat
 
                 root =
-                    exportBlock settings (Tree.label tree) |> String.lines |> Debug.log "ROOT"
+                    exportBlock settings (Tree.label tree) |> String.lines
             in
             case List.Extra.unconsLast root of
                 Nothing ->
                     ""
 
                 Just ( lastLine, precedingLines ) ->
-                    precedingLines ++ renderedChildren ++ [ lastLine ] |> Debug.log "OUT" |> String.join "\n"
+                    precedingLines ++ renderedChildren ++ [ lastLine ] |> String.join "\n"
 
 
 rawExport : Settings -> List (Tree ExpressionBlock) -> String
@@ -206,7 +206,6 @@ rawExport settings ast =
         |> Parser.Forest.map (shiftSection 1)
         |> List.map (exportTree settings)
         |> String.join "\n\n"
-        |> Debug.log "FOREST"
 
 
 type Status

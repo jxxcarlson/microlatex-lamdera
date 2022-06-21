@@ -176,10 +176,6 @@ init lang isVerbatimLine lines =
 
 blockFromLine : Language -> Line -> PrimitiveBlock
 blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
-    let
-        _ =
-            Debug.log "!! (INDENT, LINE)" ( indent, content )
-    in
     { indent = indent
     , lineNumber = lineNumber
     , position = position

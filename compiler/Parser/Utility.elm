@@ -4,6 +4,25 @@ import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
 
 
+getLeadingBlanks : String -> String
+getLeadingBlanks str =
+    case Parser.run leadingBlanks str of
+        Err _ ->
+            ""
+
+        Ok s ->
+            s
+
+
+leadingBlanks : Parser String
+leadingBlanks =
+    Parser.succeed (\start end src -> String.slice start end src)
+        |= Parser.getOffset
+        |. Parser.chompWhile (\c -> c == ' ')
+        |= Parser.getOffset
+        |= Parser.getSource
+
+
 l0TitleParser : Parser String
 l0TitleParser =
     Parser.succeed (\start end src -> String.slice start end src |> String.dropLeft 8 |> String.trimRight)
