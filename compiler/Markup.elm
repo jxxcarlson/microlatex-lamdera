@@ -29,11 +29,47 @@ import XMarkdown.Expression
 
 
 example2 =
-    ""
+    """
+| theorem
+
+  $$
+  x^2
+
+  $$
+  y^2
+
+
+   """
 
 
 example3 =
-    ""
+    """
+| theorem
+
+  $$
+  x^2
+  $$
+
+  $$
+  y^2
+  $$
+"""
+
+
+
+--> Markup.parse MicroLaTeXLang example3
+--[
+--  Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [], id = "2", indent = 0, lineNumber = 2, messages = [], name = Just "theorem", numberOfLines = 1, sourceText = "| theorem", tag = "" })
+--    [  Tree (ExpressionBlock { args = [], blockType = VerbatimBlock [], content = Left "x^2", id = "4", indent = 2, lineNumber = 4, messages = [], name = Just "math", numberOfLines = 2, sourceText = "$$\nx^2", tag = "" }) []
+--     , Tree (ExpressionBlock { args = [], blockType = VerbatimBlock [], content = Left "y^2", id = "8", indent = 2, lineNumber = 8, messages = [], name = Just "math", numberOfLines = 2, sourceText = "$$\ny^2", tag = "" }) []
+--    ]
+--]
+--
+--> Markup.parse MicroLaTeXLang example2
+--[
+--  Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [], id = "2", indent = 0, lineNumber = 2, messages = [], name = Just "theorem", numberOfLines = 1, sourceText = "| theorem", tag = "" })
+--    [  Tree (ExpressionBlock { args = [], blockType = VerbatimBlock [], content = Left "x^2", id = "4", indent = 2, lineNumber = 4, messages = [], name = Just "math", numberOfLines = 2, sourceText = "$$\nx^2", tag = "" }) []
+--      ,Tree (ExpressionBlock { args = [], blockType = Paragraph, content = Right [Text ("   y^2") { begin = 0, end = 4, id = "0.4", index = 0 }], id = "8", indent = 2, lineNumber = 8, messages = [], name = Nothing, numberOfLines = 1, sourceText = "  y^2", tag = "" }) []]]
 
 
 example =

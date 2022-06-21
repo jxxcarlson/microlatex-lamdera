@@ -89,14 +89,6 @@ It seems that function 'indentStrings' is unnecessary.
 TODO: test the foregoing.
 TODO: at the moment, there is no error-handling. Think about this
 -}
-
-
-
---toL0 : List String -> List String
---toL0 strings =
---    strings |> toL0Aux
-
-
 verbatimBlockNames =
     [ "math", "equation", "aligned", "code", "mathmacros", "verbatim", "$$" ]
 
