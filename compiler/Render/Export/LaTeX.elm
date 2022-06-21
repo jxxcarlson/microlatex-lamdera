@@ -160,22 +160,8 @@ rawExport1 settings ast =
         |> String.join "\n\n"
 
 
-
---TREE:
---Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "AAA" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "4", indent = 0, lineNumber = 4, messages = [], name = Just "indent", numberOfLines = 2, sourceText = "| indent\nAAA", tag = "" })
---   [Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "BBB" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "7", indent = 2, lineNumber = 7, messages = [], name = Just "indent", numberOfLines = 2, sourceText = "  | indent \nBBB", tag = "" })
---      [Tree (ExpressionBlock { args = [], blockType = OrdinaryBlock [], content = Right [Text "CCC" { begin = 0, end = 2, id = "0.0", index = 0 }], id = "10", indent = 4, lineNumber = 10, messages = [], name = Just "indent", numberOfLines = 2, sourceText = "    | indent\nCCC", tag = "" })
---        []
---      ]
---   ]
-
-
 exportTree : Settings -> Tree ExpressionBlock -> String
 exportTree settings tree =
-    let
-        _ =
-            Debug.log "TREE" tree
-    in
     case Tree.children tree of
         [] ->
             exportBlock settings (Tree.label tree)

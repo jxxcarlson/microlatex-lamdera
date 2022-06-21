@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , example, example2, example3, f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
+    , f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -26,100 +26,6 @@ import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 import Parser.Tree
 import Tree
 import XMarkdown.Expression
-
-
-example =
-    """
-\\begin{theorem}
-This is a test.
-
-  \\begin{indent}
-  a^2 + b^2 = c^3
-"""
-
-
-example2 =
-    """
-\\begin{theorem}
-This is a test.
-
-  \\begin{equation}
-  a^2 + b^2 = c^3
-
-  Isn't that nice?
-"""
-
-
-example3 =
-    """
-| theorem
-This is a test.
-
-  || equation
-  a^2 + b^2 = c^3
-
-  Isn't that nice?
-"""
-
-
-
--- [
---   { args = [], blockType = PBOrdinary, content = ["| title","L0 Test"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 0, sourceText = "| title\nL0 Test" }
---  ,{ args = [], blockType = PBOrdinary, content = ["| indent","AAA"], indent = 0, lineNumber = 4, name = Just "indent", named = True, position = 14, sourceText = "| indent\nAAA" }
---  ,{ args = [], blockType = PBOrdinary, content = ["  | indent ","BBB"], indent = 2, lineNumber = 7, name = Just "indent", named = True, position = 25, sourceText = "  | indent \nBBB" }
---  ,{ args = [], blockType = PBOrdinary, content = ["    | indent","CCC"], indent = 4, lineNumber = 10, name = Just "indent", named = True, position = 37, sourceText = "    | indent\nCCC" }
---]
---
---!! FOREST (0): Ok
---[
---   Tree { args = [], blockType = PBOrdinary, content = ["| title","L0 Test"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 0, sourceText = "| title\nL0 Test" } []
---  ,Tree { args = [], blockType = PBOrdinary, content = ["| indent","AAA"], indent = 0, lineNumber = 4, name = Just "indent", named = True, position = 14, sourceText = "| indent\nAAA" }
---    [Tree { args = [], blockType = PBOrdinary, content = ["  | indent ","BBB"], indent = 2, lineNumber = 7, name = Just "indent", named = True, position = 25, sourceText = "  | indent \nBBB" }
---      [Tree { args = [], blockType = PBOrdinary, content = ["    | indent","CCC"], indent = 4, lineNumber = 10, name = Just "indent", named = True, position = 37, sourceText = "    | indent\nCCC" }
---        []
---      ]
---    ]
---  ]
---FOREST!!!:
---[
---  Tree "" []
--- ,Tree "\\begin{indent}\nAAA\n\\end{indent}"
---    [Tree "\\begin{indent}\nBBB\n\\end{indent}"
---       [Tree "\\begin{indent}\nCCC\n\\end{indent}"
---          []
---       ]
---    ]
--- ]
---FOREST!!!:
---[
---   Tree "" []
---  ,Tree "\\begin{theorem}\nAlso a test.\n\\end{theorem}"
---     [
---        Tree "\\begin{theorem}\nFoo, bar!\n\\end{theorem}" [],
---        Tree "   Isn't that nice?" []
---     ]
---]
---
---[
---  Tree { args = ["MicroLaTeX  Test"], blockType = PBOrdinary, content = ["| title","MicroLaTeX  Test"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 0, sourceText = "\\title{MicroLaTeX Test}" }
---    []
--- ,Tree { args = [], blockType = PBOrdinary, content = ["| theorem","This is a test."], indent = 0, lineNumber = 4, name = Just "theorem", named = True, position = 24, sourceText = "| theorem\nThis is a test." }
---    []
--- ,Tree { args = [], blockType = PBVerbatim, content = ["|| equation","  a^2 + b^2 = c^3"], indent = 0, lineNumber = 7, name = Just "equation", named = True, position = 48, sourceText = "|| equation\n  a^2 + b^2 = c^3" }
---   [Tree { args = [], blockType = PBParagraph, content = ["  Isn't that nice?"], indent = 2, lineNumber = 10, name = Nothing, named = True, position = 74, sourceText = "  Isn't that nice?" }
---     []
---   ]
---]
---[
---   Tree { args = ["MicroLaTeX  Test"], blockType = PBOrdinary, content = ["| title","MicroLaTeX  Test"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 0, sourceText = "\\title{MicroLaTeX Test}" }
---     []
---  ,Tree { args = [], blockType = PBOrdinary, content = ["| theorem","This is a test."], indent = 0, lineNumber = 4, name = Just "theorem", named = True, position = 24, sourceText = "| theorem\nThis is a test." }
---     []
---  ,Tree { args = [], blockType = PBVerbatim, content = ["|| equation","  a^2 + b^2 = c^3"], indent = 0, lineNumber = 7, name = Just "equation", named = True, position = 48, sourceText = "|| equation\n  a^2 + b^2 = c^3" }
---     [Tree { args = [], blockType = PBParagraph, content = [" Isn't that nice?"], indent = 1, lineNumber = 10, name = Nothing, named = True, position = 74, sourceText = " Isn't that nice?" }
---       []]
---]
--- f = [Tree { args = ["MicroLaTeX  Test"], blockType = PBOrdinary, content = ["| title","MicroLaTeX  Test"], indent = 0, lineNumber = 1, name = Just "title", named = True, position = 0, sourceText = "\\title{MicroLaTeX Test}" } [],Tree { args = [], blockType = PBOrdinary, content = ["| theorem","This is a test."], indent = 0, lineNumber = 4, name = Just "theorem", named = True, position = 24, sourceText = "| theorem\nThis is a test." } [],Tree { args = [], blockType = PBVerbatim, content = ["|| equation","    a^2 + b^2 = c^2","    "], indent = 0, lineNumber = 7, name = Just "equation", named = True, position = 48, sourceText = "|| equation\n    a^2 + b^2 = c^2\n    " } [Tree { args = [], blockType = PBParagraph, content = ["    Isn't that nice?"], indent = 4, lineNumber = 11, name = Nothing, named = True, position = 74, sourceText = "    Isn't that nice?" } []]]
 
 
 {-| -}
