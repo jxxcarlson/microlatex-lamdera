@@ -45,14 +45,13 @@ There are infinitely many primes:
 """
 
 
-fakeDebugLog =
-    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
-
-
 
 --fakeDebugLog =
---    \_ _ -> identity
---
+--    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
+
+
+fakeDebugLog =
+    \_ _ -> identity
 
 
 xx1 =
@@ -279,16 +278,12 @@ handleError line state =
 
         InOrdinaryBlock name ->
             let
-                --_ =
-                --    Debug.log "LINE" line
                 endTag =
                     "\\end{" ++ name ++ "}"
 
-                -- |> Debug.log "endTag"
                 outputHead =
                     List.head state.output
 
-                --  |> Debug.log "outputHead"
                 n =
                     Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
             in
