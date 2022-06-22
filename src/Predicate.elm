@@ -7,12 +7,29 @@ module Predicate exposing
     , isSharedToMe
     , isSharedToMe_
     , isShared_
+    , shouldNarrowcast
     )
 
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Document
 import User
+
+
+shouldNarrowcast : Maybe User.User -> Maybe Document.Document -> Bool
+shouldNarrowcast currentUser currentDocument =
+    let
+        mCurrentUsername : Maybe String
+        mCurrentUsername =
+            Maybe.map .username currentUser
+
+        currentEditorsOtherThanMe =
+            currentDocument
+                |> Maybe.map .currentEditorList
+                |> Maybe.withDefault []
+                |> List.filter (\item -> Just item.username /= mCurrentUsername)
+    in
+    List.length currentEditorsOtherThanMe > 0
 
 
 documentIsMineOrSharedToMe : Maybe Document.Document -> Maybe User.User -> Bool
