@@ -508,7 +508,8 @@ equationLabelPadding =
 
 subheading count acc settings args id exprs =
     Element.link
-        ([ Font.size 14
+        ([ Font.size 16
+         , Font.bold
          , Render.Utility.makeId exprs
          , Render.Utility.elementAttribute "id" id
          , Events.onClick (SendId "title")
