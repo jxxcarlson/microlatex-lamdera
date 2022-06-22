@@ -126,6 +126,7 @@ blockDict =
 
         -- , ( "heading", section )
         , ( "section", section )
+        , ( "subheading", subheading )
         , ( "runninghead", \_ _ _ _ _ _ -> Element.none )
         , ( "runninghead_", runninghead )
         , ( "banner", \_ _ _ _ _ _ -> Element.none )
@@ -503,6 +504,19 @@ aligned count acc settings args id str =
 
 equationLabelPadding =
     Element.paddingEach { left = 0, right = 18, top = 0, bottom = 0 }
+
+
+subheading count acc settings args id exprs =
+    Element.link
+        ([ Font.size 14
+         , Render.Utility.makeId exprs
+         , Render.Utility.elementAttribute "id" id
+         , Events.onClick (SendId "title")
+         , Element.paddingEach { top = 10, bottom = 0, left = 0, right = 0 }
+         ]
+            ++ highlightAttrs id settings
+        )
+        { url = Render.Utility.internalLink (settings.titlePrefix ++ "title"), label = Element.paragraph [] (renderWithDefault "| subheading" count acc settings exprs) }
 
 
 section count acc settings args id exprs =
