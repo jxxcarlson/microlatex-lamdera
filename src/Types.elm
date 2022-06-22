@@ -298,7 +298,7 @@ type FrontendMsg
     | DoSignUp
     | SignOut
     | InputCommand String
-    | RunCommand
+    | RunNetworkModelCommand
     | InputUsername String
     | InputPassword String
     | ClearPassword

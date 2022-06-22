@@ -995,7 +995,7 @@ update msg model =
         Export ->
             issueCommandIfDefined model.currentDocument model exportDoc
 
-        RunCommand ->
+        RunNetworkModelCommand ->
             ( { model | counter = model.counter + 1, editCommand = { counter = model.counter, command = OTCommand.parseCommand model.inputCommand } }, Effect.Command.none )
 
         PrintToPDF ->

@@ -80,35 +80,44 @@ update event state =
 
 
 events1 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+    [ { userId = "a", docId = "1", dp = 0, operations = [ Insert 0 "A" ] }
+    , { userId = "b", docId = "1", dp = 0, operations = [ Insert 0 "B" ] }
     ]
 
 
 events2 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+    [ { userId = "a", docId = "1", dp = 0, operations = [ Insert 0 "A" ] }
+    , { userId = "b", docId = "1", dp = 0, operations = [ Insert 0 "B" ] }
+    , { userId = "b", docId = "1", dp = 0, operations = [ Insert 2 "X" ] }
     ]
 
 
-events3 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -1 ] }
-    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -3 ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
-    ]
 
-
-events4 =
-    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
-    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
-    , { userId = "b", dp = -3, dx = -3, dy = 0, operations = [ Insert "X" ] }
-    ]
+--
+--events2 =
+--    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
+--    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+--    ]
+--
+--
+--events3 =
+--    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "DE" ] }
+--    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -1 ] }
+--    , { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Delete 1 ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ MoveCursor -3 ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "XY" ] }
+--    ]
+--
+--
+--events4 =
+--    [ { userId = "a", dp = 0, dx = 0, dy = 0, operations = [ Insert "A" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "B" ] }
+--    , { userId = "b", dp = 0, dx = 0, dy = 0, operations = [ Insert "C" ] }
+--    , { userId = "b", dp = -3, dx = -3, dy = 0, operations = [ Insert "X" ] }
+--    ]

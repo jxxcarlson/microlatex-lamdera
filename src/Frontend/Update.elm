@@ -259,6 +259,16 @@ openEditor doc model =
                 sendersName =
                     currentUser.username
 
+                mCurrentUsername : Maybe String
+                mCurrentUsername =
+                    model.currentUser |> Maybe.map .username
+
+                currentEditors =
+                    model.currentDocument
+                        |> Maybe.map .currentEditorList
+                        |> Maybe.withDefault []
+                        |> List.filter (\item -> Just item.username /= mCurrentUsername)
+
                 sendersId =
                     currentUser.id
             in
@@ -275,7 +285,9 @@ openEditor doc model =
 
                   else
                     Command.none
-                , if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
+
+                --, if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
+                , if List.length currentEditors > 0 then
                     Effect.Lamdera.sendToBackend (NarrowcastExceptToSender sendersName sendersId updatedDoc)
 
                   else
@@ -321,7 +333,11 @@ closeEditor model =
                 Just doc ->
                     Command.batch
                         [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser doc)
-                        , Effect.Lamdera.sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
+                        , if List.length currentEditors > 0 then
+                            Effect.Lamdera.sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
+
+                          else
+                            Command.none
                         ]
 
         clearEditEventsCmd =
@@ -840,6 +856,16 @@ updateDoc_ doc str model =
         newDocument_ =
             { doc | content = safeContent, title = safeTitle }
 
+        mCurrentUsername : Maybe String
+        mCurrentUsername =
+            model.currentUser |> Maybe.map .username
+
+        currentEditors =
+            model.currentDocument
+                |> Maybe.map .currentEditorList
+                |> Maybe.withDefault []
+                |> List.filter (\item -> Just item.username /= mCurrentUsername)
+
         documents =
             Util.updateDocumentInList newDocument_ model.documents
 
@@ -866,7 +892,13 @@ updateDoc_ doc str model =
       }
     , Command.batch
         [ saveDocumentToBackend model.currentUser newDocument_
-        , Effect.Lamdera.sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument_)
+
+        -- NarrowcastExceptToSender : propagate document changes to the current active editors
+        , if List.length currentEditors > 0 then
+            Effect.Lamdera.sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument_)
+
+          else
+            Command.none
         ]
     )
 

@@ -32,18 +32,17 @@ view model =
                 , E.paddingXY 20 20
                 ]
                 [ E.row [ E.width (E.px 360) ] [ E.text "NetworkMonitor", E.el [ E.alignRight ] View.Button.dismissPopup ]
-                , E.row [ E.spacing 12 ] [ View.Input.editorCommand 200 model, View.Button.runCommand ]
+                , E.row [ E.spacing 12 ] [ View.Input.editorCommand 200 model, View.Button.runNetworkModelCommand ]
                 , E.text <| "Source length: " ++ String.fromInt (String.length model.sourceText)
-
-                --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "Editor event: " ++ Debug.toString model.editorEvent ]
-                --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
-                --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document: " ++ Debug.toString model.networkModel.serverState.document ]
-                --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "Local Msgs: " ++ Debug.toString model.networkModel.localMsgs ]
-                --, E.paragraph [ E.width (E.px 350) ]
-                --    [ E.text <|
-                --        "Cursor Pos: "
-                --            ++ Debug.toString (model.networkModel.serverState.cursorPositions |> NetworkModel.shortenDictKeys)
-                --    ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Editor event: " ++ Debug.toString model.editorEvent ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document: " ++ Debug.toString model.networkModel.serverState.document ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Local Msgs: " ++ Debug.toString model.networkModel.localMsgs ]
+                , E.paragraph [ E.width (E.px 350) ]
+                    [ E.text <|
+                        "Cursor Pos: "
+                            ++ Debug.toString (model.networkModel.serverState.cursorPositions |> NetworkModel.shortenDictKeys)
+                    ]
                 ]
 
         _ ->

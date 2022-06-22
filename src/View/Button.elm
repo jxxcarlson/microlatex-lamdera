@@ -42,7 +42,7 @@ module View.Button exposing
     , popupNewDocumentForm
     , printToPDF
     , reply
-    , runCommand
+    , runNetworkModelCommand
     , runSpecial
     , sendUnlockMessage
     , setChatCreate
@@ -101,9 +101,9 @@ import View.Style
 import View.Utility
 
 
-runCommand : Element FrontendMsg
-runCommand =
-    buttonTemplate [] RunCommand "Run command"
+runNetworkModelCommand : Element FrontendMsg
+runNetworkModelCommand =
+    buttonTemplate [] RunNetworkModelCommand "Run command"
 
 
 clearPassword : String -> Element FrontendMsg
