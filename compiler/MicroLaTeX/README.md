@@ -2,7 +2,9 @@
 
 ## TransformLaTeX
 
-L242, L266: I've removed the error handling for
+L153, modified also re $$
+
+L243, L270: I've removed the error handling for
 missing end-of-block tags.  This is so that
 constructs such as 
 

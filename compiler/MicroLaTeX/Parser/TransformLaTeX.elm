@@ -45,14 +45,14 @@ There are infinitely many primes:
 """
 
 
+fakeDebugLog =
+    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
+
+
 
 --fakeDebugLog =
---    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
+--    \_ _ -> identity
 --
-
-
-fakeDebugLog =
-    \_ _ -> identity
 
 
 xx1 =
@@ -150,7 +150,11 @@ nextState state =
             case Parser.TextMacro.get trimmedLine of
                 Err _ ->
                     if trimmedLine == "$$" then
-                        Loop (nextState2 line (MyMacro "$$" []) { state | i = state.i + 1, input = List.drop 1 state.input }) |> fakeDebugLog state.i "(0a)"
+                        --Loop (nextState2 line (MyMacro "$$" []) { state | i = state.i + 1, input = List.drop 1 state.input }) |> fakeDebugLog state.i "(0a)"
+                        -- TODO: the change from above to belo is made so that indented occurrences of $$ blocks
+                        -- need not be terminated with $$.  Keeping this comment around for a while we
+                        -- test to see if this works out in the field.
+                        Loop { state | i = state.i + 1, output = line :: state.output, status = LXNormal, input = List.drop 1 state.input } |> fakeDebugLog state.i "(0b)"
 
                     else if List.isEmpty state.stack && line == "" then
                         Loop { state | i = state.i + 1, output = line :: state.output, status = LXNormal, input = List.drop 1 state.input } |> fakeDebugLog state.i "(0b)"
