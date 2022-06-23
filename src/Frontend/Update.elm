@@ -241,7 +241,8 @@ openEditor doc model =
 
                 editorItem : Document.EditorData
                 editorItem =
-                    { userId = currentUser.id, username = currentUser.username }
+                    -- TODO: need actual clients
+                    { userId = currentUser.id, username = currentUser.username, clients = [] }
 
                 currentEditorList =
                     if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
@@ -349,8 +350,14 @@ handleEditorChange model cursor content =
 
         --oldDocument =
         --model.networkModel.serverState.document |> Debug.log "OT OLD"
-        editEvent =
+        editEvent_ =
             NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "OT EVENT"
+
+        ops =
+            List.filter (\op -> op /= OT.Delete 0 -1) editEvent_.operations
+
+        editEvent =
+            { editEvent_ | operations = ops }
     in
     ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent) )
 

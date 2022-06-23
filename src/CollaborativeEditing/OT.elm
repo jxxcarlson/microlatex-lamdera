@@ -6,6 +6,7 @@ module CollaborativeEditing.OT exposing
     , encodeOperation
     , findOps
     , reconcile
+    , toString
     )
 
 import Json.Encode as E
@@ -24,6 +25,22 @@ type Operation
     | Delete Cursor Int
     | MoveCursor Cursor
     | OTNoOp
+
+
+toString : Operation -> String
+toString op =
+    case op of
+        Insert cursor str ->
+            "INS " ++ String.fromInt cursor ++ " " ++ str
+
+        Delete cursor k ->
+            "DEL " ++ String.fromInt cursor ++ " " ++ String.fromInt k
+
+        MoveCursor cursor ->
+            "MOV " ++ String.fromInt cursor
+
+        OTNoOp ->
+            "NOP"
 
 
 encodeOperation : Operation -> E.Value

@@ -36,8 +36,11 @@ view model =
                 , E.text <| "Source length: " ++ String.fromInt (String.length model.sourceText)
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Editor event: " ++ Debug.toString model.editorEvent ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
-                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "OT Document: " ++ Debug.toString model.networkModel.serverState.document ]
-                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Local Msgs: " ++ Debug.toString model.networkModel.localMsgs ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursor: " ++ String.fromInt model.networkModel.serverState.document.cursor ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Content: " ++ model.networkModel.serverState.document.content ]
+                , View.Button.applyEdits
+                , E.column [ E.height (E.px 300), E.scrollbarY ]
+                    (List.map (NetworkModel.toStringList >> viewData) model.networkModel.localMsgs)
                 , E.paragraph [ E.width (E.px 350) ]
                     [ E.text <|
                         "Cursor Pos: "
@@ -47,3 +50,12 @@ view model =
 
         _ ->
             E.none
+
+
+viewData : { ids : String, dp : String, ops : String } -> E.Element msg
+viewData { ids, dp, ops } =
+    E.row [ E.spacing 4 ]
+        [ E.el [ E.width (E.px 50) ] (E.text ids)
+        , E.el [ E.width (E.px 20), E.alignRight ] (E.text dp)
+        , E.el [ E.width (E.px 120) ] (E.text ops)
+        ]

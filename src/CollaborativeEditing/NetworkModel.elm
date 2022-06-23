@@ -4,6 +4,7 @@ module CollaborativeEditing.NetworkModel exposing
     , ServerState
     , applyEvent
     , applyEvent2
+    , applyLocalEvents
     , createEvent
     , emptyServerState
     , getLocalDocument
@@ -14,7 +15,8 @@ module CollaborativeEditing.NetworkModel exposing
     , manyUserInitialServerState
     , nullEvent
     , shortenDictKeys
-    , toString
+    , toString1
+    , toStringList
     , updateFromBackend
     , updateFromUser
     )
@@ -23,6 +25,32 @@ import CollaborativeEditing.OT as OT
 import Dict exposing (Dict)
 import Json.Encode as E
 import List.Extra
+
+
+type alias NetworkModel =
+    { localMsgs : List EditEvent, serverState : ServerState }
+
+
+type alias ServerState =
+    { cursorPositions : Dict UserId Int
+    , document : OT.Document
+    }
+
+
+applyLocalEvents : (EditEvent -> ServerState -> ServerState) -> NetworkModel -> NetworkModel
+applyLocalEvents updateFunc localModel =
+    let
+        newServerState =
+            List.foldl (\event serverState -> updateFunc event serverState) localModel.serverState localModel.localMsgs
+    in
+    { localMsgs = [], serverState = newServerState }
+
+
+updateFromBackend2 : (EditEvent -> ServerState -> ServerState) -> EditEvent -> NetworkModel -> NetworkModel
+updateFromBackend2 updateFunc event localModel =
+    { localMsgs = List.Extra.remove event localModel.localMsgs
+    , serverState = updateFunc event localModel.serverState
+    }
 
 
 type alias UserId =
@@ -37,14 +65,19 @@ type alias EditEvent =
     { docId : String, userId : String, dp : Int, operations : List OT.Operation }
 
 
-type alias NetworkModel =
-    { localMsgs : List EditEvent, serverState : ServerState }
+toStringList : EditEvent -> { ids : String, dp : String, ops : String }
+toStringList event =
+    let
+        ids =
+            "(" ++ (event.userId |> String.left 2) ++ ", " ++ (event.docId |> String.dropLeft 3 |> String.left 2) ++ ")"
 
+        dp =
+            String.fromInt event.dp
 
-type alias ServerState =
-    { cursorPositions : Dict UserId Int
-    , document : OT.Document
-    }
+        ops =
+            List.map OT.toString event.operations |> String.join "; "
+    in
+    { ids = ids, dp = dp, ops = ops }
 
 
 shortenDictKeys : Dict String a -> Dict String a
@@ -55,8 +88,8 @@ shortenDictKeys dict =
         |> Dict.fromList
 
 
-toString : { counter : Int, cursor : Int, event : Maybe EditEvent } -> String
-toString { counter, cursor, event } =
+toString1 : { counter : Int, cursor : Int, event : Maybe EditEvent } -> String
+toString1 { counter, cursor, event } =
     case event of
         Nothing ->
             "null: " ++ String.fromInt counter

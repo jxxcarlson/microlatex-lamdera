@@ -1,5 +1,6 @@
 module View.Button exposing
-    ( buttonTemplate
+    ( applyEdits
+    , buttonTemplate
     , cancelDeleteDocument
     , cancelSignUp
     , clearChatHistory
@@ -104,6 +105,11 @@ import View.Utility
 runNetworkModelCommand : Element FrontendMsg
 runNetworkModelCommand =
     buttonTemplate [] RunNetworkModelCommand "Run command"
+
+
+applyEdits : Element FrontendMsg
+applyEdits =
+    buttonTemplate [] ApplyEvents "Apply edits"
 
 
 clearPassword : String -> Element FrontendMsg
@@ -704,10 +710,10 @@ popupMonitor : PopupState -> Element FrontendMsg
 popupMonitor popupState =
     case popupState of
         NoPopup ->
-            buttonTemplate [] (ChangePopup NetworkMonitorPopup) "Monitor off"
+            buttonTemplate [] (ChangePopup NetworkMonitorPopup) "Monitor OFF"
 
         _ ->
-            buttonTemplate [] (ChangePopup NoPopup) "Monitor of"
+            buttonTemplate [] (ChangePopup NoPopup) "Monitor ON"
 
 
 dismissPopup : Element FrontendMsg

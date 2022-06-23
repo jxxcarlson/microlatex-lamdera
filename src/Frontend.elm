@@ -76,6 +76,10 @@ subscriptions _ =
         ]
 
 
+
+-- INIT
+
+
 init : Url.Url -> Effect.Browser.Navigation.Key -> ( Model, Command FrontendOnly ToBackend FrontendMsg )
 init url key =
     ( { key = key
@@ -260,6 +264,13 @@ urlIsForGuest url =
 update : FrontendMsg -> Model -> ( Model, Command FrontendOnly ToBackend FrontendMsg )
 update msg model =
     case msg of
+        ApplyEvents ->
+            let
+                newNetworkModel =
+                    NetworkModel.applyLocalEvents NetworkModel.applyEvent model.networkModel
+            in
+            ( { model | networkModel = newNetworkModel }, Effect.Command.none )
+
         FENoOp ->
             ( model, Effect.Command.none )
 
@@ -1156,7 +1167,8 @@ updateFromBackend msg model =
                     "P1a. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
 
                 newNetworkModel =
-                    NetworkModel.updateFromBackend NetworkModel.applyEvent
+                    --NetworkModel.updateFromBackend NetworkModel.applyEvent
+                    NetworkModel.updateFromUser
                         event
                         model.networkModel
 
