@@ -105,6 +105,7 @@ type alias FrontendModel =
     -- USER
     , userMessage : Maybe UserMessage
     , currentUser : Maybe User
+    , clientIds : List ClientId
 
     -- INPUT
     , inputCommand : String
@@ -484,7 +485,7 @@ type ToFrontend
       -- USER
     | UserMessageReceived UserMessage
     | UndeliverableMessage UserMessage
-    | UserSignedUp User
+    | UserSignedUp User ClientId
       -- CHAT
     | GotChatHistory (List ChatMsg)
     | GotChatGroup (Maybe ChatGroup)
