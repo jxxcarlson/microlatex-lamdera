@@ -78,14 +78,14 @@ findOps before after =
 
     else if after.cursor < before.cursor then
         let
-            tailAfter =
-                String.dropLeft after.cursor after.content
+            headAfter =
+                String.left after.cursor after.content
 
-            tailBefore =
-                String.dropLeft before.cursor before.content
+            headBefore =
+                String.left before.cursor before.content
 
             n =
-                String.length tailBefore - String.length tailAfter
+                String.length headAfter - String.length headBefore
         in
         [ Delete before.cursor n ]
 
