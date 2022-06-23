@@ -2,6 +2,7 @@ module CollaborativeEditing.OT exposing
     ( Document
     , Operation(..)
     , apply
+    , applyOp
     , emptyDoc
     , encodeOperation
     , findOps
@@ -120,10 +121,19 @@ applyOp op doc =
             }
 
         Delete cursor n ->
-            { docId = doc.docId
-            , cursor = cursor - 1
-            , content = String.left cursor doc.content ++ String.dropLeft n (String.dropLeft cursor doc.content)
-            }
+            if n >= 0 then
+                { docId = doc.docId
+                , cursor = cursor - 1
+                , content = String.left cursor doc.content ++ String.dropLeft n (String.dropLeft cursor doc.content)
+                }
+
+            else
+                { docId = doc.docId
+                , cursor = cursor + n
+                , content =
+                    (doc.content |> String.left cursor |> String.dropRight -n)
+                        ++ String.dropLeft cursor doc.content
+                }
 
         MoveCursor cursor ->
             { docId = doc.docId
