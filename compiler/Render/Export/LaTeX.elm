@@ -461,6 +461,7 @@ blockDict =
         , ( "date", \_ _ _ -> "" )
         , ( "contents", \_ _ _ -> "" )
         , ( "comment", \_ _ _ -> "" )
+        , ( "tags", \_ _ _ -> "" )
 
         --
         , ( "section", \_ args body -> section args body )
