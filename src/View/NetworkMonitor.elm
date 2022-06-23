@@ -1,6 +1,7 @@
 module View.NetworkMonitor exposing (view)
 
 import CollaborativeEditing.NetworkModel as NetworkModel
+import Dict
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
@@ -38,6 +39,7 @@ view model =
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursor: " ++ String.fromInt model.networkModel.serverState.document.cursor ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Content: " ++ model.networkModel.serverState.document.content ]
+                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursors: " ++ cursorsToString model.networkModel.serverState.cursorPositions ]
                 , View.Button.applyEdits
                 , E.column [ E.height (E.px 300), E.scrollbarY ]
                     (List.map (NetworkModel.toStringList >> viewData) model.networkModel.localMsgs)
@@ -50,6 +52,17 @@ view model =
 
         _ ->
             E.none
+
+
+cursorsToString : Dict.Dict String Int -> String
+cursorsToString dict =
+    dict
+        |> Dict.toList
+        |> List.map
+            (\( id, cursor ) ->
+                "(" ++ String.left 3 id ++ ", " ++ String.fromInt cursor ++ ")"
+            )
+        |> String.join "; "
 
 
 viewData : { ids : String, dp : String, ops : String } -> E.Element msg
