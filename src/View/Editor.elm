@@ -18,9 +18,12 @@ import View.Geometry as Geometry
 view : FrontendModel -> Element FrontendMsg
 view model =
     Element.Keyed.el
-        [ E.htmlAttribute onSelectionChange -- receive info from codemirror
+        [ -- RECEIVE INOFRMATION FROM CODEMIRROR
+          E.htmlAttribute onSelectionChange -- receive info from codemirror
         , E.htmlAttribute onTextChange -- receive info from codemirror
         , E.htmlAttribute onCursorChange -- receive info from codemirror
+
+        --
         , htmlId "editor-here"
         , E.width (E.px 550)
         , E.height (E.px (Geometry.appHeight model - 110))
@@ -32,7 +35,8 @@ view model =
         ( stringOfBool model.showEditor
         , E.html
             (Html.node "codemirror-editor"
-                [ HtmlAttr.attribute "text" model.initialText -- send info to codemirror
+                [ -- SEND INFORMATION TO CODEMIRROR
+                  HtmlAttr.attribute "text" model.initialText -- send info to codemirror
                 , HtmlAttr.attribute "linenumber" (String.fromInt (model.linenumber - 1)) -- send info to codemirror
                 , HtmlAttr.attribute "selection" (stringOfBool model.doSync) -- send info to codemirror
 

@@ -156,6 +156,7 @@ init url key =
       , editorCursor = 0
       , myCursorPosition = { x = 0, y = 0, p = 0 }
       , networkModel = NetworkModel.init (NetworkModel.initialServerState "foo" "bar" "baz")
+      , oTDocument = { docId = "!---!", cursor = 0, content = "" }
 
       -- SHARED EDITING
       , activeEditor = Nothing
@@ -1147,6 +1148,9 @@ updateFromBackend msg model =
         -- COLLABORATIVE EDITING
         ProcessEvent event ->
             let
+                _ =
+                    Debug.log "ProcessEvent" event
+
                 debugLabel =
                     "P1a. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
 

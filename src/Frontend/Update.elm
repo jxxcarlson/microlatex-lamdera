@@ -265,6 +265,7 @@ openEditor doc model =
             ( { model
                 | showEditor = True
                 , sourceText = doc.content
+                , oTDocument = { docId = doc.id, cursor = 0, content = doc.content }
                 , initialText = ""
                 , currentDocument = Just updatedDoc
               }
@@ -332,23 +333,25 @@ closeEditor model =
 handleEditorChange : FrontendModel -> Int -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleEditorChange model cursor content =
     let
+        _ =
+            Debug.log "(cursor, content)" ( cursor, content )
+
         newOTDocument =
             let
                 id =
                     Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
             in
-            { docId = id, cursor = cursor, content = content }
+            { docId = id, cursor = cursor, content = content } |> Debug.log "OT NEW"
 
         userId =
             model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
-        oldDocument =
-            model.networkModel.serverState.document
-
+        --oldDocument =
+        --model.networkModel.serverState.document |> Debug.log "OT OLD"
         editEvent =
-            NetworkModel.createEvent userId oldDocument newOTDocument
+            NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "OT EVENT"
     in
-    ( { model | counter = model.counter + 1 }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent) )
+    ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent) )
 
 
 
@@ -695,6 +698,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
             in
             ( { model
                 | currentDocument = Just updatedDoc
+                , oTDocument = { docId = updatedDoc.id, cursor = 0, content = updatedDoc.content }
                 , selectedSlug = Document.getSlug updatedDoc
                 , currentMasterDocument = currentMasterDocument
                 , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
@@ -1197,7 +1201,7 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputText model { position, source } =
-    if Document.numberOfEditors model.currentDocument > 123 then
+    if Document.numberOfEditors model.currentDocument > 1 && Config.collaborativeEditingExperiment then
         handleEditorChange model position source
 
     else

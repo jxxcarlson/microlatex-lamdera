@@ -166,6 +166,7 @@ type alias FrontendModel =
     , editorCursor : Int
     , myCursorPosition : { x : Int, y : Int, p : Int }
     , networkModel : NetworkModel.NetworkModel
+    , oTDocument : OT.Document
 
     -- SHARED EDITING
     , activeEditor : Maybe { name : String, activeAt : Effect.Time.Posix }

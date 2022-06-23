@@ -1,4 +1,4 @@
-module OTSimulatorTest exposing (suite)
+module OTTests exposing (..)
 
 import CollaborativeEditing.NetworkModel2
     exposing
@@ -38,30 +38,3 @@ suite =
             )
             (Just { cursorChange = 3, operations = [ Insert 0 "abc" ] })
         ]
-
-
-userA =
-    { username = "Alice", clientId = "1" }
-
-
-userB =
-    { username = "Bob", clientId = "2" }
-
-
-users =
-    [ userA, userB ]
-
-
-server0 =
-    initialServer |> startSession "doc" users ""
-
-
-s0 =
-    setLocalState "doc" "" userA
-
-
-s1 =
-    s0
-        |> applyEditorOperations [ Insert 0 "abc" ]
-        |> applyEventToLocalState
-        |> Tuple.first
