@@ -108,7 +108,7 @@ update : Username -> Types.UserId -> Document.Document -> ClientId -> Types.Shar
 update username userId doc clientId dict =
     let
         newEditor =
-            { username = username, userId = userId }
+            { username = username, userId = userId, clients = clientId :: (List.map .clients doc.currentEditorList |> List.concat) }
 
         equal a b =
             a.userId == b.userId

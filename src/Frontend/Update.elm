@@ -142,6 +142,7 @@ signOut model =
     in
     ( { model
         | currentUser = Nothing
+        , clientIds = []
         , currentDocument = Just Docs.simpleWelcomeDoc
         , currentMasterDocument = Nothing
         , documents = []
@@ -658,7 +659,8 @@ setDocumentAsCurrent_ cmd model doc permissions =
 
                 editorItem : Document.EditorData
                 editorItem =
-                    { userId = currentUser.id, username = currentUser.username }
+                    -- TODO: need actual clients
+                    { userId = currentUser.id, username = currentUser.username, clients = [] }
 
                 currentEditorList =
                     Util.insertInListOrUpdate equal editorItem oldEditorList

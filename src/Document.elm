@@ -52,7 +52,7 @@ type alias Document =
 
 
 type alias EditorData =
-    { userId : String, username : String }
+    { userId : String, username : String, clients : List ClientId }
 
 
 type DocStatus

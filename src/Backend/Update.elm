@@ -809,7 +809,7 @@ signIn model sessionId clientId username encryptedPassword =
                       Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling <| (newsDoc :: docs))
 
                     --, sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
-                    , Effect.Lamdera.sendToFrontend clientId (UserSignedUp userData.user)
+                    , Effect.Lamdera.sendToFrontend clientId (UserSignedUp userData.user clientId)
                     , Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Signed in as " ++ userData.user.username, status = MSGreen })
                     , Effect.Lamdera.sendToFrontend clientId (GotChatGroup chatGroup)
                     , Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict newConnectionDict_))
@@ -1144,7 +1144,7 @@ signUpUser model sessionId clientId username lang transitPassword realname email
         Ok authDict ->
             ( { model | connectionDict = newConnectionDict_, randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
             , Command.batch
-                [ Effect.Lamdera.sendToFrontend clientId (UserSignedUp user)
+                [ Effect.Lamdera.sendToFrontend clientId (UserSignedUp user clientId)
                 , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Success! Your account is set up.", status = MSGreen })
                 ]
             )

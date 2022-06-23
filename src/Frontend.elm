@@ -98,6 +98,7 @@ init url key =
       -- USER
       , userMessage = Nothing
       , currentUser = Nothing
+      , clientIds = []
       , inputUsername = ""
       , inputPassword = ""
       , inputPasswordAgain = ""
@@ -1297,10 +1298,11 @@ updateFromBackend msg model =
         SetShowEditor flag ->
             ( { model | showEditor = flag }, Effect.Command.none )
 
-        UserSignedUp user ->
+        UserSignedUp user clientId ->
             ( { model
                 | signupState = HideSignUpForm
                 , currentUser = Just user
+                , clientIds = clientId :: model.clientIds
                 , maximizedIndex = MMyDocs
                 , inputRealname = ""
                 , inputEmail = ""
