@@ -41,13 +41,8 @@ view model =
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Content: " ++ model.networkModel.serverState.document.content ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursors: " ++ cursorsToString model.networkModel.serverState.cursorPositions ]
                 , View.Button.applyEdits
-                , E.column [ E.height (E.px 300), E.scrollbarY ]
+                , E.column [ E.height (E.px 300), E.scrollbarY, E.spacing 6 ]
                     (List.map (NetworkModel.toStringList >> viewData) model.networkModel.localMsgs)
-                , E.paragraph [ E.width (E.px 350) ]
-                    [ E.text <|
-                        "Cursor Pos: "
-                            ++ Debug.toString (model.networkModel.serverState.cursorPositions |> NetworkModel.shortenDictKeys)
-                    ]
                 ]
 
         _ ->
@@ -60,7 +55,7 @@ cursorsToString dict =
         |> Dict.toList
         |> List.map
             (\( id, cursor ) ->
-                "(" ++ String.left 3 id ++ ", " ++ String.fromInt cursor ++ ")"
+                "(" ++ String.left 2 id ++ ", " ++ String.fromInt cursor ++ ")"
             )
         |> String.join "; "
 
