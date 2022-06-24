@@ -218,7 +218,7 @@ nextState2 line (MyMacro name args) state =
         -- HANDLE ENVIRONMENT, END
         { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(6)"
 
-    else if state.status == LXNormal && List.member name [ "item", "numbered", "bibref", "desc", "contents" ] then
+    else if state.status == LXNormal && List.member name [ "tags", "item", "numbered", "bibref", "desc", "contents" ] then
         -- HANDLE \item, \bibref, etc
         { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> fakeDebugLog state.i "(7)"
         -- ??
