@@ -19,7 +19,7 @@ type Command
 
 toString : Int -> Maybe Command -> String
 toString counter command =
-    encodeCommand counter command |> E.encode 2
+    encode counter command |> E.encode 2
 
 
 toCommand : NetworkModel.EditEvent -> Maybe Command
@@ -35,8 +35,8 @@ toCommand event =
             Nothing
 
 
-encodeCommand : Int -> Maybe Command -> E.Value
-encodeCommand counter mCommand =
+encode : Int -> Maybe Command -> E.Value
+encode counter mCommand =
     case mCommand of
         Nothing ->
             E.object [ ( "no Op", E.string "NoOp" ) ]
