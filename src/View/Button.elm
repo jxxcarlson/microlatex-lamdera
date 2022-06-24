@@ -109,7 +109,7 @@ runNetworkModelCommand =
 
 applyEdits : Element FrontendMsg
 applyEdits =
-    buttonTemplate [] ApplyEvents "Apply edits"
+    buttonTemplate [] ApplyEdits "Apply edits"
 
 
 clearPassword : String -> Element FrontendMsg

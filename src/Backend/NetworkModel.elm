@@ -20,7 +20,6 @@ processEventCmd sharedDocumentDict event =
             Command.none
 
         Just sharedDoc ->
-            -- Command.none
             let
                 clients =
                     List.map .clients sharedDoc.currentEditors |> List.concat

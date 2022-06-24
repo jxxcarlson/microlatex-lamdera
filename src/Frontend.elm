@@ -264,7 +264,7 @@ urlIsForGuest url =
 update : FrontendMsg -> Model -> ( Model, Command FrontendOnly ToBackend FrontendMsg )
 update msg model =
     case msg of
-        ApplyEvents ->
+        ApplyEdits ->
             let
                 newNetworkModel =
                     NetworkModel.applyLocalEvents NetworkModel.applyEvent model.networkModel
@@ -1168,9 +1168,7 @@ updateFromBackend msg model =
 
                 newNetworkModel =
                     --NetworkModel.updateFromBackend NetworkModel.applyEvent
-                    NetworkModel.updateFromUser
-                        event
-                        model.networkModel
+                    NetworkModel.updateFromUser event model.networkModel
 
                 doc : OT.Document
                 doc =

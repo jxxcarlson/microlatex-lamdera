@@ -345,7 +345,7 @@ type FrontendMsg
     | InputChoseGroup String
       -- DOCUMENT
     | ToggleCollaborativeEditing
-    | ApplyEvents
+    | ApplyEdits
     | SetDocumentStatus Document.DocStatus
     | ChangeLanguage
     | MakeBackup
