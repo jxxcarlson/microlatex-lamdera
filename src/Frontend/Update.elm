@@ -352,14 +352,8 @@ handleEditorChange model cursor content =
         --model.networkModel.serverState.document |> Debug.log "OT OLD"
         editEvent_ =
             NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "OT EVENT"
-
-        ops =
-            List.filter (\op -> op /= OT.Delete 0 -1) editEvent_.operations
-
-        editEvent =
-            { editEvent_ | operations = ops }
     in
-    ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent) )
+    ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent_) )
 
 
 

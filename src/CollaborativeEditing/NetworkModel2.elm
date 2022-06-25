@@ -161,7 +161,7 @@ createEvent oldDocument newDocument =
 
         operations : List OT.Operation
         operations =
-            OT.findOps oldDocument newDocument
+            OT.findOp oldDocument newDocument
     in
     { cursorChange = cursorChange, operations = operations }
 

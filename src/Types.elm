@@ -160,7 +160,7 @@ type alias FrontendModel =
     , linenumber : Int
 
     -- COLLABORATIVE EDITING
-    , editCommand : { counter : Int, command : Maybe OTCommand.Command }
+    , editCommand : { counter : Int, command : OTCommand.Command }
     , editorEvent : { counter : Int, cursor : Int, event : Maybe NetworkModel.EditEvent }
     , eventQueue : Deque NetworkModel.EditEvent
     , collaborativeEditing : Bool

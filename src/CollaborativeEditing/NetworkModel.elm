@@ -2,7 +2,7 @@ module CollaborativeEditing.NetworkModel exposing
     ( EditEvent
     , NetworkModel
     , ServerState
-    , applyEvent
+    , appendEvent
     , applyLocalEvents
     , createEvent
     , getLocalDocument
@@ -12,9 +12,8 @@ module CollaborativeEditing.NetworkModel exposing
     , nullEvent
     , shortenDictKeys
     , toString1
-    , toStringList
+    , toStringRecord
     , updateFromBackend
-    , updateFromUser
     )
 
 import CollaborativeEditing.OT as OT
@@ -42,7 +41,7 @@ type alias DocId =
 
 
 type alias EditEvent =
-    { docId : String, userId : String, dp : Int, operations : List OT.Operation }
+    { docId : String, userId : String, dp : Int, operation : OT.Operation }
 
 
 
@@ -77,17 +76,17 @@ manyUserInitialServerState docId userIds content =
 -- UPDATE
 
 
-updateFromUser : EditEvent -> NetworkModel -> NetworkModel
-updateFromUser event localModel =
+appendEvent : EditEvent -> NetworkModel -> NetworkModel
+appendEvent event localModel =
     { localMsgs = localModel.localMsgs ++ [ event ]
     , serverState = localModel.serverState
     }
 
 
-updateFromBackend : (EditEvent -> ServerState -> ServerState) -> EditEvent -> NetworkModel -> NetworkModel
-updateFromBackend updateFunc event localModel =
+updateFromBackend : EditEvent -> NetworkModel -> NetworkModel
+updateFromBackend event localModel =
     { localMsgs = List.Extra.remove event localModel.localMsgs
-    , serverState = updateFunc event localModel.serverState
+    , serverState = applyEventToServerState event localModel.serverState
     }
 
 
@@ -95,14 +94,14 @@ updateFromBackend updateFunc event localModel =
 -- LOCAL
 
 
-localState : (EditEvent -> ServerState -> ServerState) -> NetworkModel -> ServerState
-localState updateFunc localModel =
-    List.foldl updateFunc localModel.serverState localModel.localMsgs
+localState : NetworkModel -> ServerState
+localState localModel =
+    List.foldl applyEventToServerState localModel.serverState localModel.localMsgs
 
 
 getLocalDocument : NetworkModel -> OT.Document
 getLocalDocument localModel =
-    localState applyEvent localModel |> .document
+    localState localModel |> .document
 
 
 
@@ -114,7 +113,7 @@ encodeEvent { counter, cursor, event } =
     E.object
         [ ( "name", E.string "OTOp" )
         , ( "dp", E.int event.dp )
-        , ( "ops", E.list OT.encodeOperation event.operations )
+        , ( "op", OT.encodeOperation event.operation )
         , ( "cursor", E.int cursor )
         , ( "counter", E.int counter )
         ]
@@ -131,28 +130,24 @@ nullEvent =
 
 createEvent : String -> OT.Document -> OT.Document -> EditEvent
 createEvent userId_ oldDocument newDocument =
-    let
-        dp =
-            newDocument.cursor - oldDocument.cursor
-
-        operations : List OT.Operation
-        operations =
-            OT.findOps oldDocument newDocument
-    in
-    { docId = oldDocument.docId, userId = userId_, dp = dp, operations = operations }
+    { docId = oldDocument.docId
+    , userId = userId_
+    , dp = newDocument.cursor - oldDocument.cursor
+    , operation = OT.findOp oldDocument newDocument
+    }
 
 
-applyLocalEvents : (EditEvent -> ServerState -> ServerState) -> NetworkModel -> NetworkModel
-applyLocalEvents updateFunc localModel =
+applyLocalEvents : NetworkModel -> NetworkModel
+applyLocalEvents localModel =
     let
         newServerState =
-            List.foldl (\event serverState -> updateFunc event serverState) localModel.serverState localModel.localMsgs
+            List.foldl applyEventToServerState localModel.serverState localModel.localMsgs
     in
     { localMsgs = [], serverState = newServerState }
 
 
-applyEvent : EditEvent -> ServerState -> ServerState
-applyEvent event serverState =
+applyEventToServerState : EditEvent -> ServerState -> ServerState
+applyEventToServerState event serverState =
     case Dict.get event.userId serverState.cursorPositions of
         Nothing ->
             --serverState
@@ -160,12 +155,12 @@ applyEvent event serverState =
             -- TODO: so that events from different user will be applied.
             -- TODO: Need to understand the process: why the Dict.get ...
             { cursorPositions = serverState.cursorPositions
-            , document = OT.apply event.operations serverState.document
+            , document = OT.applyOp event.operation serverState.document
             }
 
         Just p ->
             { cursorPositions = Dict.insert event.userId (p + event.dp) serverState.cursorPositions
-            , document = OT.apply event.operations serverState.document
+            , document = OT.applyOp event.operation serverState.document
             }
 
 
@@ -173,19 +168,13 @@ applyEvent event serverState =
 -- TO STRING
 
 
-toStringList : EditEvent -> { ids : String, dp : String, ops : String }
-toStringList event =
+toStringRecord : EditEvent -> { ids : String, dp : String, op : String }
+toStringRecord event =
     let
         ids =
             "(" ++ (event.userId |> String.left 2) ++ ", " ++ (event.docId |> String.dropLeft 3 |> String.left 2) ++ ")"
-
-        dp =
-            String.fromInt event.dp
-
-        ops =
-            List.map OT.toString event.operations |> String.join "; "
     in
-    { ids = ids, dp = dp, ops = ops }
+    { ids = ids, dp = String.fromInt event.dp, op = OT.toString event.operation }
 
 
 shortenDictKeys : Dict String a -> Dict String a

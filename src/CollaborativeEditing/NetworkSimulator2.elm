@@ -90,23 +90,23 @@ loop s f =
 
 toOps : Cursor -> ( EditEvent, List OT.Operation ) -> Step ( EditEvent, List OT.Operation ) (List OT.Operation)
 toOps cursor ( event, ops ) =
-    case List.head event.operations of
+    case List.head event.operation of
         Nothing ->
             Done ops
 
         Just op ->
             case op of
                 Insert cur str ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, Insert cur str :: ops )
+                    Loop ( { event | operation = List.drop 1 event.operation }, Insert cur str :: ops )
 
                 Delete cur n ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, Delete cur n :: ops )
+                    Loop ( { event | operation = List.drop 1 event.operation }, Delete cur n :: ops )
 
                 MoveCursor _ ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, ops )
+                    Loop ( { event | operation = List.drop 1 event.operation }, ops )
 
                 OTNoOp ->
-                    Loop ( { event | operations = List.drop 1 event.operations }, ops )
+                    Loop ( { event | operation = List.drop 1 event.operation }, ops )
 
 
 applyEditOp : OT.Operation -> OT.Document -> OT.Document

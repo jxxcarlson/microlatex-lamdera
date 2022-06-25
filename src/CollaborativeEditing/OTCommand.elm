@@ -12,63 +12,61 @@ import Parser exposing (..)
 
 type Command
     = CInsert Int String
-    | CMoveCursor Int Int
+    | CMoveCursor Int
     | CDelete Int Int
-    | CNoOp Int
+    | CNoOp
 
 
-toString : Int -> Maybe Command -> String
+toString : Int -> Command -> String
 toString counter command =
     encode counter command |> E.encode 2
 
 
-toCommand : NetworkModel.EditEvent -> Maybe Command
+toCommand : NetworkModel.EditEvent -> Command
 toCommand event =
-    case event.operations of
-        (OT.Insert cursor str) :: [] ->
-            Just (CInsert cursor str)
+    case event.operation of
+        OT.Insert cursor str ->
+            CInsert cursor str
 
-        (OT.Delete cursor k) :: [] ->
-            Just (CDelete cursor k)
+        OT.Delete cursor k ->
+            CDelete cursor k
+
+        OT.MoveCursor cursor ->
+            CMoveCursor cursor
 
         _ ->
-            Nothing
+            CNoOp
 
 
-encode : Int -> Maybe Command -> E.Value
-encode counter mCommand =
-    case mCommand of
-        Nothing ->
-            E.object [ ( "no Op", E.string "NoOp" ) ]
+encode : Int -> Command -> E.Value
+encode counter command =
+    case command of
+        CInsert cursor str ->
+            E.object [ ( "op", E.string "insert" ), ( "cursor", E.int cursor ), ( "strval", E.string str ), ( "counter", E.int counter ) ]
 
-        Just command ->
-            case command of
-                CInsert cursor str ->
-                    E.object [ ( "op", E.string "insert" ), ( "cursor", E.int cursor ), ( "strval", E.string str ), ( "counter", E.int counter ) ]
+        CMoveCursor cursor ->
+            -- cursor is the new absolute value of the cursor
+            E.object [ ( "op", E.string "movecursor" ), ( "cursor", E.int cursor ), ( "intval", E.int 0 ), ( "counter", E.int counter ) ]
 
-                CMoveCursor cursor skip ->
-                    -- cursor is the new absolute value of the cursor
-                    E.object [ ( "op", E.string "movecursor" ), ( "cursor", E.int cursor ), ( "intval", E.int skip ), ( "counter", E.int counter ) ]
+        CDelete cursor k ->
+            E.object [ ( "op", E.string "delete" ), ( "cursor", E.int cursor ), ( "intval", E.int k ), ( "counter", E.int counter ) ]
 
-                CDelete cursor k ->
-                    E.object [ ( "op", E.string "delete" ), ( "cursor", E.int cursor ), ( "intval", E.int k ), ( "counter", E.int counter ) ]
-
-                CNoOp cursor ->
-                    E.object [ ( "op", E.string "noop" ), ( "cursor", E.int cursor ), ( "intval", E.int 0 ), ( "counter", E.int counter ) ]
+        CNoOp ->
+            E.object [ ( "op", E.string "noop" ), ( "cursor", E.int 0 ), ( "intval", E.int 0 ), ( "counter", E.int counter ) ]
 
 
-parseCommand : String -> Maybe Command
+parseCommand : String -> Command
 parseCommand str =
     case run commandParser str of
         Ok command ->
-            Just command
+            command
 
         Err _ ->
-            Nothing
+            CNoOp
 
 
 commandParser =
-    oneOf [ insertionParser, skipParser, deleteParser ]
+    oneOf [ insertionParser, moveParser, deleteParser ]
 
 
 insertionParser : Parser Command
@@ -81,12 +79,10 @@ insertionParser =
         |= wordParser
 
 
-skipParser : Parser Command
-skipParser =
-    succeed (\c k -> CMoveCursor c k)
-        |. symbol "skip"
-        |. spaces
-        |= int
+moveParser : Parser Command
+moveParser =
+    succeed (\c -> CMoveCursor c)
+        |. symbol "move"
         |. spaces
         |= int
 

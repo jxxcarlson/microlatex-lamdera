@@ -42,7 +42,7 @@ view model =
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursors: " ++ cursorsToString model.networkModel.serverState.cursorPositions ]
                 , View.Button.applyEdits
                 , E.column [ E.height (E.px 300), E.scrollbarY, E.spacing 6 ]
-                    (List.map (NetworkModel.toStringList >> viewData) model.networkModel.localMsgs)
+                    (List.map (NetworkModel.toStringRecord >> viewData) model.networkModel.localMsgs)
                 ]
 
         _ ->
@@ -60,10 +60,10 @@ cursorsToString dict =
         |> String.join "; "
 
 
-viewData : { ids : String, dp : String, ops : String } -> E.Element msg
-viewData { ids, dp, ops } =
+viewData : { ids : String, dp : String, op : String } -> E.Element msg
+viewData { ids, dp, op } =
     E.row [ E.spacing 4 ]
         [ E.el [ E.width (E.px 50) ] (E.text ids)
         , E.el [ E.width (E.px 20), E.alignRight ] (E.text dp)
-        , E.el [ E.width (E.px 120) ] (E.text ops)
+        , E.el [ E.width (E.px 120) ] (E.text op)
         ]

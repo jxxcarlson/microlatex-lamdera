@@ -5,8 +5,9 @@ module CollaborativeEditing.OT exposing
     , applyOp
     , emptyDoc
     , encodeOperation
-    , findOps
-    , reconcile
+    ,  findOp
+       --, reconcile
+
     , toString
     )
 
@@ -67,19 +68,19 @@ emptyDoc =
 reconcile : Document -> Document -> Document
 reconcile a b =
     let
-        ops_ =
-            findOps a b
+        op =
+            findOp a b
     in
-    apply ops_ a
+    apply [ op ] a
 
 
-findOps : Document -> Document -> List Operation
-findOps before after =
+findOp : Document -> Document -> Operation
+findOp before after =
     if before.content == after.content then
-        [ MoveCursor (after.cursor - before.cursor) ]
+        MoveCursor (after.cursor - before.cursor)
 
     else if after.cursor > before.cursor then
-        [ Insert before.cursor (String.slice before.cursor after.cursor after.content) ]
+        Insert before.cursor (String.slice before.cursor after.cursor after.content)
 
     else if after.cursor == before.cursor then
         let
@@ -92,7 +93,7 @@ findOps before after =
             n =
                 String.length tailBefore - String.length tailAfter
         in
-        [ Delete after.cursor n ]
+        Delete after.cursor n
 
     else if after.cursor < before.cursor then
         let
@@ -105,10 +106,10 @@ findOps before after =
             n =
                 String.length headAfter - String.length headBefore
         in
-        [ Delete before.cursor n ]
+        Delete before.cursor n
 
     else
-        []
+        OTNoOp
 
 
 applyOp : Operation -> Document -> Document

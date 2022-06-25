@@ -154,7 +154,7 @@ init url key =
       , syncRequestIndex = 0
 
       -- COLLABORATIVE EDITING
-      , editCommand = { counter = -1, command = Nothing }
+      , editCommand = { counter = -1, command = OTCommand.CNoOp }
       , editorEvent = { counter = 0, cursor = 0, event = Nothing }
       , eventQueue = Deque.empty
       , collaborativeEditing = False
@@ -267,7 +267,7 @@ update msg model =
         ApplyEdits ->
             let
                 newNetworkModel =
-                    NetworkModel.applyLocalEvents NetworkModel.applyEvent model.networkModel
+                    NetworkModel.applyLocalEvents model.networkModel
             in
             ( { model | networkModel = newNetworkModel }, Effect.Command.none )
 
@@ -1121,7 +1121,7 @@ updateFromBackend msg model =
             ( { model
                 | collaborativeEditing = True
                 , networkModel = networkModel
-                , editCommand = { counter = model.counter, command = Just (OTCommand.CMoveCursor 0 0) }
+                , editCommand = { counter = model.counter, command = OTCommand.CMoveCursor 0 }
               }
             , Effect.Command.none
             )
@@ -1168,7 +1168,7 @@ updateFromBackend msg model =
 
                 newNetworkModel =
                     --NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
-                    NetworkModel.updateFromUser event model.networkModel
+                    NetworkModel.appendEvent event model.networkModel
 
                 doc : OT.Document
                 doc =
@@ -1183,7 +1183,7 @@ updateFromBackend msg model =
                         { counter = model.counter, command = event |> OTCommand.toCommand }
 
                     else
-                        { counter = model.counter, command = Nothing }
+                        { counter = model.counter, command = OTCommand.CNoOp }
             in
             ( { model
                 | editCommand = editCommand
