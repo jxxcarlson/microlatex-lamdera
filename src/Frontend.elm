@@ -1167,7 +1167,7 @@ updateFromBackend msg model =
                     "P1a. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
 
                 newNetworkModel =
-                    --NetworkModel.updateFromBackend NetworkModel.applyEvent
+                    --NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
                     NetworkModel.updateFromUser event model.networkModel
 
                 doc : OT.Document
