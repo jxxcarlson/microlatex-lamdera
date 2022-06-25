@@ -28,12 +28,19 @@ view model width_ =
 
             else
                 width_ - Geometry.chatPaneWidth
+
+        currentUsername =
+            Maybe.map .username model.currentUser
     in
     E.row
         [ E.spacing 1
         , E.inFront (View.DocTools.view model)
         , E.inFront (View.DocTools.urlPopup model)
-        , E.inFront (View.NetworkMonitor.view model)
+        , if List.member currentUsername [ Just "jxxcarlson", Just "aristotle" ] then
+            E.inFront (View.NetworkMonitor.view model)
+
+          else
+            E.inFront E.none
         , E.paddingXY 8 8
         , E.height (E.px 35)
         , Background.color Color.black
