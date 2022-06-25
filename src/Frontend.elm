@@ -1180,7 +1180,12 @@ updateFromBackend msg model =
 
                 editCommand =
                     if Util.currentUserId model.currentUser /= event.userId then
+                        -- FOR NOW: execute edits from other users (?? check on docId also?)
                         { counter = model.counter, command = event |> OTCommand.toCommand }
+
+                    else if event.operation == OT.Delete 0 -1 then
+                        -- TODO: Why is this even happening?
+                        { counter = model.counter, command = OTCommand.CNoOp }
 
                     else
                         { counter = model.counter, command = OTCommand.CNoOp }

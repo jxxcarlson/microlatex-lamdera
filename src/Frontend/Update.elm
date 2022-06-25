@@ -1204,7 +1204,12 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputText model { position, source } =
-    if Document.numberOfEditors model.currentDocument > 1 && Config.collaborativeEditingExperiment then
+    if
+        Document.numberOfEditors model.currentDocument
+            > 1
+            && Config.collaborativeEditingExperiment
+            && List.member (Maybe.map .username model.currentUser) [ Just "jxxcarlson", Just "aristotle" ]
+    then
         handleEditorChange model position source
 
     else
