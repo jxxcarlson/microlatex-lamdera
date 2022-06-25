@@ -35,8 +35,9 @@ view model =
                 [ E.row [ E.width (E.px 360) ] [ E.text "NetworkMonitor", E.el [ E.alignRight ] View.Button.dismissPopup ]
                 , E.row [ E.spacing 12 ] [ View.Input.editorCommand 200 model, View.Button.runNetworkModelCommand ]
                 , E.text <| "Source length: " ++ String.fromInt (String.length model.sourceText)
-                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Editor event: " ++ Debug.toString model.editorEvent ]
-                , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
+
+                --, E.paragraph [ E.width (E.px 350) ] [ E.text <| "Editor event: " ++ NetworkModel.toString model.editorEvent ]
+                --  , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Edit command: " ++ Debug.toString model.editCommand ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursor: " ++ String.fromInt model.networkModel.serverState.document.cursor ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Content: " ++ model.networkModel.serverState.document.content ]
                 , E.paragraph [ E.width (E.px 350) ] [ E.text <| "Cursors: " ++ cursorsToString model.networkModel.serverState.cursorPositions ]

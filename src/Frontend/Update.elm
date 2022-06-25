@@ -335,23 +335,25 @@ closeEditor model =
 handleEditorChange : FrontendModel -> Int -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleEditorChange model cursor content =
     let
-        _ =
-            Debug.log "(cursor, content)" ( cursor, content )
-
+        --_ =
+        --    Debug.log "(cursor, content)" ( cursor, content )
         newOTDocument =
             let
                 id =
                     Maybe.map .id model.currentDocument |> Maybe.withDefault "---"
             in
-            { docId = id, cursor = cursor, content = content } |> Debug.log "OT NEW"
+            { docId = id, cursor = cursor, content = content }
 
+        -- |> Debug.log "OT NEW"
         userId =
             model.currentUser |> Maybe.map .id |> Maybe.withDefault "---"
 
         --oldDocument =
         --model.networkModel.serverState.document |> Debug.log "OT OLD"
         editEvent_ =
-            NetworkModel.createEvent userId model.oTDocument newOTDocument |> Debug.log "OT EVENT"
+            NetworkModel.createEvent userId model.oTDocument newOTDocument
+
+        -- |> Debug.log "OT EVENT"
     in
     ( { model | counter = model.counter + 1, oTDocument = newOTDocument }, Effect.Lamdera.sendToBackend (PushEditorEvent editEvent_) )
 
@@ -1188,17 +1190,6 @@ handleCursor { position, source } model =
             ( model, Command.none )
 
         Just currentUserId ->
-            --let
-            --    id =
-            --        model.networkModel.serverState.document.id
-            --
-            --    newOTDocument =
-            --        { id = id, cursor = position, content = source } |> Debug.log "!!! NEW OT DOC"
-            --
-            --    editEvent =
-            --        NetworkModel.createEvent currentUserId model.networkModel.serverState.document newOTDocument |> Debug.log "!! NEW EDIT EVENT"
-            --in
-            --( { model | editorCursor = position |> Debug.log "!!! CURSOR" }, sendToBackend (PushEditorEvent editEvent) )
             handleEditorChange model position source
 
 

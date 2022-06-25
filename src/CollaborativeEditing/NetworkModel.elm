@@ -11,6 +11,7 @@ module CollaborativeEditing.NetworkModel exposing
     , initialServerState
     , nullEvent
     , shortenDictKeys
+    , toString
     , toString1
     , toStringRecord
     , updateFromBackend
@@ -175,6 +176,15 @@ toStringRecord event =
             "(" ++ (event.userId |> String.left 2) ++ ", " ++ (event.docId |> String.dropLeft 3 |> String.left 2) ++ ")"
     in
     { ids = ids, dp = String.fromInt event.dp, op = OT.toString event.operation }
+
+
+toString : EditEvent -> String
+toString event =
+    let
+        data =
+            toStringRecord event
+    in
+    [ data.ids, data.dp, data.op ] |> String.join "; "
 
 
 shortenDictKeys : Dict String a -> Dict String a

@@ -1160,9 +1160,8 @@ updateFromBackend msg model =
         -- COLLABORATIVE EDITING
         ProcessEvent event ->
             let
-                _ =
-                    Debug.log "ProcessEvent" event
-
+                --_ =
+                --    Debug.log "ProcessEvent" event
                 debugLabel =
                     "P1a. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
 
