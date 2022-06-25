@@ -18,7 +18,7 @@ view model =
 
         ShowSignUpForm ->
             E.column [ E.moveRight 400, E.spacing 12, E.width (E.px 400), E.height (E.px 600), E.padding 30, Background.color Color.paleViolet ]
-                [ E.row [] [ label "Username", View.Input.usernameLarge model ]
+                [ E.row [] [ label "Username", View.Input.signupUsername model ]
                 , E.row [] [ label "Real name*", View.Input.realName model ]
                 , E.row [] [ label "Email*", View.Input.email model ]
                 , E.row [] [ label "Password", View.Input.passwordLarge model ]

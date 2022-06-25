@@ -110,6 +110,7 @@ type alias FrontendModel =
     -- INPUT
     , inputCommand : String
     , inputUsername : String
+    , inputSignupUsername : String
     , inputPassword : String
     , inputPasswordAgain : String
     , inputRealname : String
@@ -297,11 +298,12 @@ type FrontendMsg
     | SendUserMessage UserMessage
     | SignIn
     | SetSignupState SignupState
-    | DoSignUp
+    | SignUp
     | SignOut
     | InputCommand String
     | RunNetworkModelCommand
     | InputUsername String
+    | InputSignupUsername String
     | InputPassword String
     | ClearPassword
     | InputPasswordAgain String

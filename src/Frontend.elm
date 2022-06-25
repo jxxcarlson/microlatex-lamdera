@@ -104,6 +104,7 @@ init url key =
       , currentUser = Nothing
       , clientIds = []
       , inputUsername = ""
+      , inputSignupUsername = ""
       , inputPassword = ""
       , inputPasswordAgain = ""
       , inputEmail = ""
@@ -473,7 +474,7 @@ update msg model =
         SetSignupState state ->
             ( { model
                 | signupState = state
-                , inputUsername = ""
+                , inputSignupUsername = ""
                 , inputPassword = ""
                 , inputPasswordAgain = ""
                 , inputEmail = ""
@@ -483,8 +484,8 @@ update msg model =
             , Effect.Command.none
             )
 
-        DoSignUp ->
-            Frontend.Update.handleSignUp model
+        SignUp ->
+            Frontend.Update.signUp model
 
         SignIn ->
             Frontend.Update.signIn model
@@ -507,6 +508,9 @@ update msg model =
 
         InputUsername str ->
             ( { model | inputUsername = str }, Effect.Command.none )
+
+        InputSignupUsername str ->
+            ( { model | inputSignupUsername = str }, Effect.Command.none )
 
         InputPassword str ->
             ( { model | inputPassword = str }, Effect.Command.none )

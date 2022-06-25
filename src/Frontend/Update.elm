@@ -14,7 +14,6 @@ port module Frontend.Update exposing
     , handlePinnedDocuments
     , handleReceivedDocumentAsManual
     , handleSharedDocument
-    , handleSignUp
     , handleUrlRequest
     , hardDeleteDocument
     , inputCursor
@@ -39,6 +38,7 @@ port module Frontend.Update exposing
     , setViewportForElement
     , signIn
     , signOut
+    , signUp
     , softDeleteDocument
     , syncLR
     , updateDoc
@@ -192,13 +192,13 @@ signIn model =
         ( { model | inputPassword = "", showSignInTimer = True, messages = [ { txt = "Password must be at least 8 letters long.", status = MSYellow } ] }, Command.none )
 
 
-handleSignUp : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleSignUp model =
+signUp : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+signUp model =
     let
         errors =
             []
-                |> reject (String.length model.inputUsername < 3) "username: at least three letters"
-                |> reject (String.toLower model.inputUsername /= model.inputUsername) "username: all lower case characters"
+                |> reject (String.length model.inputSignupUsername < 3) "username: at least three letters"
+                |> reject (String.toLower model.inputSignupUsername /= model.inputSignupUsername) "username: all lower case characters"
                 |> reject (model.inputPassword == "") "password: cannot be empty"
                 |> reject (String.length model.inputPassword < 8) "password: at least 8 letters long."
                 |> reject (model.inputPassword /= model.inputPasswordAgain) "passwords do not match"
@@ -207,7 +207,7 @@ handleSignUp model =
     in
     if List.isEmpty errors then
         ( model
-        , Effect.Lamdera.sendToBackend (SignUpBE model.inputUsername model.inputLanguage (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
+        , Effect.Lamdera.sendToBackend (SignUpBE model.inputSignupUsername model.inputLanguage (Authentication.encryptForTransit model.inputPassword) model.inputRealname model.inputEmail)
         )
 
     else
@@ -246,7 +246,7 @@ openEditor doc model =
 
                 currentEditorList =
                     if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
-                        Util.insertInListOrUpdate equal editorItem oldEditorList
+                        Util.insertInListOrUpdate equal editorItem oldEditorList |> Debug.log "CE List"
 
                     else
                         oldEditorList

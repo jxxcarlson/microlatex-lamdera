@@ -15,6 +15,7 @@ module View.Input exposing
     , searchDocsInput
     , searchSourceText
     , searchTagsInput
+    , signupUsername
     , specialInput
     , title
     , username
@@ -124,6 +125,10 @@ searchTagsInput model =
 
 username model =
     inputFieldTemplate (E.px 120) "Username" InputUsername model.inputUsername
+
+
+signupUsername model =
+    inputFieldTemplate (E.px 220) "Username" InputSignupUsername model.inputSignupUsername
 
 
 title model =

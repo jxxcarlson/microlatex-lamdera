@@ -766,7 +766,7 @@ cancelSignUp =
 
 doSignUp : Element FrontendMsg
 doSignUp =
-    buttonTemplate [] DoSignUp "Sign up"
+    buttonTemplate [] SignUp "Sign up"
 
 
 
