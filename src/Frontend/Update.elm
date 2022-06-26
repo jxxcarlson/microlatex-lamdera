@@ -246,7 +246,7 @@ openEditor doc model =
 
                 currentEditorList =
                     if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
-                        Util.insertInListOrUpdate equal editorItem oldEditorList |> Debug.log "CE List"
+                        Util.insertInListOrUpdate equal editorItem oldEditorList
 
                     else
                         oldEditorList
@@ -274,7 +274,7 @@ openEditor doc model =
             , Command.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
                 , if Predicate.documentIsMineOrSharedToMe (Just updatedDoc) model.currentUser then
-                    Effect.Lamdera.sendToBackend (AddEditor (Debug.log "ADD EDITOR" currentUser) updatedDoc)
+                    Effect.Lamdera.sendToBackend (AddEditor currentUser updatedDoc)
 
                   else
                     Command.none
