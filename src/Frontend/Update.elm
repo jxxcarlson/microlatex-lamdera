@@ -273,8 +273,8 @@ openEditor doc model =
               }
             , Command.batch
                 [ Frontend.Cmd.setInitialEditorContent 20
-                , if Predicate.documentIsMineOrIAmAnEditor (Just updatedDoc) model.currentUser then
-                    Effect.Lamdera.sendToBackend (AddEditor currentUser updatedDoc)
+                , if Predicate.documentIsMineOrSharedToMe (Just updatedDoc) model.currentUser then
+                    Effect.Lamdera.sendToBackend (AddEditor (Debug.log "ADD EDITOR" currentUser) updatedDoc)
 
                   else
                     Command.none
@@ -312,7 +312,7 @@ closeEditor model =
                 Just doc ->
                     Command.batch
                         [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser doc)
-                        , if Predicate.shouldNarrowcast model.currentUser updatedDoc then
+                        , if Predicate.documentIsMineOrSharedToMe updatedDoc model.currentUser then
                             Effect.Lamdera.sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
 
                           else
