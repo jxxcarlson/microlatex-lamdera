@@ -1176,7 +1176,7 @@ inputTitle model str =
 
 inputCursor : { position : Int, source : String } -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputCursor { position, source } model =
-    if Document.numberOfEditors model.currentDocument > 1 then
+    if Document.numberOfEditors model.currentDocument > 1 && Predicate.permitExperimentalCollabEditing model.currentUser model.experimentalMode then
         handleCursor { position = position, source = source } model
 
     else
