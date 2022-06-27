@@ -1195,10 +1195,6 @@ handleCursor { position, source } model =
 
 inputText : FrontendModel -> Document.SourceTextRecord -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 inputText model { position, source } =
-    let
-        _ =
-            Debug.log "SOURCE" source
-    in
     if
         Document.numberOfEditors model.currentDocument
             > 1
