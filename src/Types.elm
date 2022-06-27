@@ -180,6 +180,7 @@ type alias FrontendModel =
     , showDocTools : Bool
     , showPublicUrl : Bool
     , doSync : Bool
+    , experimentalMode : Bool
 
     -- DOCUMENT
     -- DATA STRUCTURES
@@ -325,6 +326,7 @@ type FrontendMsg
     | ToggleIndexSize
     | ToggleExtrasSidebar
     | ToggleTagsSidebar
+    | ToggleExperimentalMode
     | ChangePopup PopupState
       -- SHARE
     | DismissUserMessage

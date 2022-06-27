@@ -4,7 +4,6 @@ module Config exposing
     , automaticSignoutNoticePeriod
     , backendTickSeconds
     , cheatSheetRenderedTextId
-    , collaborativeEditingExperiment
     , debounceSaveDocumentInterval
     , defaultUrl
     , documentDeletedNotice
@@ -42,10 +41,6 @@ import Effect.Command
 import Env
 import Parser.Language
 import Url
-
-
-collaborativeEditingExperiment =
-    True
 
 
 newsDocId =

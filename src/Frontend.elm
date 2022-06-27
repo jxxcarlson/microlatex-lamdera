@@ -127,6 +127,7 @@ init url key =
 
       -- UI
       , appMode = UserMode
+      , experimentalMode = False
       , windowWidth = 600
       , windowHeight = 900
       , popupStatus = PopupClosed
@@ -428,6 +429,9 @@ update msg model =
 
         TogglePublicUrl ->
             ( { model | showPublicUrl = not model.showPublicUrl }, Effect.Command.none )
+
+        ToggleExperimentalMode ->
+            ( { model | experimentalMode = not model.experimentalMode }, Effect.Command.none )
 
         -- CHAT
         ToggleChat ->

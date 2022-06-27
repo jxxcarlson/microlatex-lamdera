@@ -3,10 +3,12 @@ module Predicate exposing
     , documentIsMineOrIAmAnEditor
     , documentIsMineOrIAmAnEditor_
     , documentIsMineOrSharedToMe
+    , isExperimentalEditor
     , isMaster
     , isSharedToMe
     , isSharedToMe_
     , isShared_
+    , permitExperimentalCollabEditing
     , shouldNarrowcast
     )
 
@@ -14,6 +16,16 @@ import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Document
 import User
+
+
+isExperimentalEditor : Maybe User.User -> Bool
+isExperimentalEditor currentUser =
+    List.member (Maybe.map .username currentUser) [ Just "jxxcarlson", Just "aristotle" ]
+
+
+permitExperimentalCollabEditing : Maybe User.User -> Bool -> Bool
+permitExperimentalCollabEditing currentUser experimentalMode =
+    List.member (Maybe.map .username currentUser) [ Just "jxxcarlson", Just "aristotle" ] && experimentalMode
 
 
 shouldNarrowcast : Maybe User.User -> Maybe Document.Document -> Bool

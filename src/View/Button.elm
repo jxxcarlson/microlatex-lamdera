@@ -16,6 +16,7 @@ module View.Button exposing
     , doShare
     , doSignUp
     , editDocument
+    , experimentalMode
     , export
     , exportToLaTeX
     , exportToLaTeXRaw
@@ -746,7 +747,15 @@ help =
 
 
 startupHelp =
-    buttonTemplate [] (Help Config.startupHelpDocumentId) "Help"
+    buttonTemplate [] (Help Config.helpDocumentId) "Help"
+
+
+experimentalMode mode =
+    if mode then
+        buttonTemplate [] ToggleExperimentalMode "Exp: ON"
+
+    else
+        buttonTemplate [] ToggleExperimentalMode "Exp: OFF"
 
 
 signIn : Element FrontendMsg

@@ -36,7 +36,7 @@ view model width_ =
         [ E.spacing 1
         , E.inFront (View.DocTools.view model)
         , E.inFront (View.DocTools.urlPopup model)
-        , if List.member currentUsername [ Just "jxxcarlson", Just "aristotle" ] then
+        , if Predicate.permitExperimentalCollabEditing model.currentUser model.experimentalMode then
             E.inFront (View.NetworkMonitor.view model)
 
           else
@@ -89,7 +89,8 @@ view model width_ =
         , E.el [ E.paddingXY 12 0 ] (showCurrentEditors model.activeEditor model.currentDocument)
         , E.el [] (wordCount model)
         , E.el [ E.width E.fill, E.scrollbarX ] (messageRow model)
-        , Button.popupMonitor model.popupState
+        , View.Utility.showIf (Predicate.isExperimentalEditor model.currentUser) (Button.experimentalMode model.experimentalMode)
+        , View.Utility.showIf (Predicate.isExperimentalEditor model.currentUser && model.experimentalMode) (Button.popupMonitor model.popupState)
         , E.el [ E.alignRight, E.moveUp 6 ] Button.togglePublicUrl
         , View.Utility.showIf (Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser) (E.el [ E.alignRight, E.moveUp 6 ] (Button.toggleDocTools model))
         ]
