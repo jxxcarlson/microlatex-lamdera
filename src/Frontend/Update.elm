@@ -622,7 +622,7 @@ setDocumentInPhoneAsCurrent model doc permissions =
 
 setDocumentAsCurrent : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 setDocumentAsCurrent cmd model doc permissions =
-    -- TODO!
+    -- TODO: A
     let
         filesToInclude =
             IncludeFiles.getData doc.content
@@ -897,9 +897,24 @@ handleReceivedDocumentAsManual model doc =
     )
 
 
+
+-- TODO: B
+
+
 handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleAsStandardReceivedDocument model doc =
     let
+        filesToInclude =
+            IncludeFiles.getData doc.content
+
+        cmd =
+            case List.isEmpty filesToInclude of
+                True ->
+                    Command.none
+
+                False ->
+                    Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
+
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
@@ -928,7 +943,8 @@ handleAsStandardReceivedDocument model doc =
         , counter = model.counter + 1
       }
     , Command.batch
-        [ savePreviousCurrentDocumentCmd model
+        [ cmd
+        , savePreviousCurrentDocumentCmd model
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
         , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
