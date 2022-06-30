@@ -940,7 +940,7 @@ handleAsStandardReceivedDocument model doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
-        , messages = message :: [] --{ txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
+        , messages = message --{ txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
