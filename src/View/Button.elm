@@ -80,6 +80,7 @@ module View.Button exposing
     , toggleManuals
     , togglePublic
     , togglePublicUrl
+    , toggleTOC
     , toggleTagsSidebar
     , workingDocs
     )
@@ -191,6 +192,16 @@ buttonTemplate3 attrList msg label_ =
         [ Input.button View.Style.buttonStyle3
             { onPress = Just msg
             , label = E.el [ E.centerY, Font.size 14, Font.color Color.blue ] (E.text label_)
+            }
+        ]
+
+
+buttonTemplate4 : List (E.Attribute msg) -> msg -> String -> Element msg
+buttonTemplate4 attrList msg label_ =
+    E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
+        [ Input.button View.Style.buttonStyleSmallWhite
+            { onPress = Just msg
+            , label = E.el [ E.centerY, Font.size 18, Font.color Color.white ] (E.text label_)
             }
         ]
 
@@ -570,7 +581,7 @@ setSortModeAlpha sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0 0 0)
     in
-    buttonTemplateSmall [ bg, E.width (E.px 50), Font.size 12 ] [] (SetSortMode SortAlphabetically) "Alpha"
+    buttonTemplateSmall [ bg ] [ Font.size 10 ] (SetSortMode SortAlphabetically) "Alpha"
 
 
 setSortModeMostRecent : SortMode -> Element FrontendMsg
@@ -584,7 +595,7 @@ setSortModeMostRecent sortMode =
                 SortByMostRecent ->
                     Background.color (E.rgb 0.5 0 0)
     in
-    buttonTemplateSmall [ bg ] [] (SetSortMode SortByMostRecent) "Recent"
+    buttonTemplateSmall [ bg ] [ Font.size 10 ] (SetSortMode SortByMostRecent) "Recent"
 
 
 darkRed =
@@ -597,30 +608,30 @@ charcoal =
 
 workingDocs currentDocumentList =
     if currentDocumentList == WorkingList then
-        buttonTemplateSmall [ Background.color darkRed ] [] FENoOp "Work "
+        buttonTemplateSmall [ Background.color darkRed ] [ Font.size 10 ] FENoOp "Work "
 
     else
-        buttonTemplateSmall [] [] (SelectList WorkingList) "Work "
+        buttonTemplateSmall [] [ Font.size 10 ] (SelectList WorkingList) "Work "
 
 
 standardDocs currentDocumentList =
     if currentDocumentList == StandardList then
-        buttonTemplateSmall [ Background.color darkRed ] [] FENoOp "Docs "
+        buttonTemplateSmall [ Background.color darkRed ] [ Font.size 10 ] FENoOp "Docs "
 
     else
-        buttonTemplateSmall [] [] (SelectList StandardList) "Docs "
+        buttonTemplateSmall [] [ Font.size 10 ] (SelectList StandardList) "Docs "
 
 
 pinnedDocs currentDocumentList =
     if currentDocumentList == PinnedDocs then
-        buttonTemplateSmall [ Background.color darkRed ] [] FENoOp (String.fromChar '📌')
+        buttonTemplateSmall [ Background.color darkRed ] [ Font.size 10 ] FENoOp (String.fromChar '📌')
 
     else
-        buttonTemplateSmall [] [] (SelectList PinnedDocs) (String.fromChar '📌')
+        buttonTemplateSmall [] [ Font.size 10 ] (SelectList PinnedDocs) (String.fromChar '📌')
 
 
 getPinnedDocs =
-    buttonTemplateSmall [] [] GetPinnedDocuments (String.fromChar '📌')
+    buttonTemplateSmall [] [ Font.size 10 ] GetPinnedDocuments (String.fromChar '📌')
 
 
 sharedDocs currentDocumentList =
@@ -822,6 +833,15 @@ sendUnlockMessage_ doc currentUser =
 
 clearConnectionDict =
     buttonTemplate [] Types.ClearConnectionDict "Clear ConnectionDict"
+
+
+toggleTOC : Bool -> Element FrontendMsg
+toggleTOC showTOC =
+    if showTOC then
+        buttonTemplateSmall [] [ Font.size 18 ] ToggleTOC "-"
+
+    else
+        buttonTemplateSmall [] [ Font.size 12 ] ToggleTOC "+"
 
 
 toggleActiveDocList : String -> Element FrontendMsg

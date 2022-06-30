@@ -4,6 +4,7 @@ module View.Style exposing
     , buttonStyle2
     , buttonStyle3
     , buttonStyleSmall
+    , buttonStyleSmallWhite
     , fgGray
     , mainColumn
     )
@@ -45,6 +46,13 @@ buttonStyle : List (Element.Attr () msg)
 buttonStyle =
     [ Font.color (Element.rgb255 255 255 255)
     , Element.paddingXY 15 8
+    ]
+
+
+buttonStyleSmallWhite : List (Element.Attr () msg)
+buttonStyleSmallWhite =
+    [ Font.color (Element.rgb255 255 255 255)
+    , Element.paddingXY 4 4
     ]
 
 

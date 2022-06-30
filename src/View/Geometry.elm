@@ -46,9 +46,13 @@ panelHeight_ model =
     appHeight model - 110
 
 
-panelWidth_ : SidebarExtrasState -> SidebarTagsState -> Int -> Int
-panelWidth_ sidebarState sidebarTagsState ww =
-    (appWidth sidebarState sidebarTagsState ww - indexWidth ww) // 2 - innerGutter - outerGutter
+panelWidth_ : Bool -> SidebarExtrasState -> SidebarTagsState -> Int -> Int
+panelWidth_ showTOC sidebarState sidebarTagsState ww =
+    if showTOC then
+        (appWidth sidebarState sidebarTagsState ww - indexWidth ww) // 2 - innerGutter - outerGutter
+
+    else
+        appWidth sidebarState sidebarTagsState ww // 2 - innerGutter - outerGutter - 22
 
 
 panelWidth2_ : SidebarExtrasState -> SidebarTagsState -> Int -> Int

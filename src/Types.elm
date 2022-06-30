@@ -138,6 +138,7 @@ type alias FrontendModel =
     , sidebarExtrasState : SidebarExtrasState
     , sidebarTagsState : SidebarTagsState
     , tagSelection : TagSelection
+    , showTOC : Bool
     , signupState : SignupState
     , popupState : PopupState
 
@@ -319,6 +320,7 @@ type FrontendMsg
     | SendSyncLR
     | GetSelection String
       -- UI
+    | ToggleTOC
     | TogglePublicUrl
     | ToggleDocTools
     | ToggleActiveDocList

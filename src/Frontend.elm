@@ -128,6 +128,7 @@ init url key =
 
       -- UI
       , appMode = UserMode
+      , showTOC = True
       , experimentalMode = False
       , windowWidth = 600
       , windowHeight = 900
@@ -427,6 +428,9 @@ update msg model =
 
         InputChoseGroup str ->
             ( { model | inputGroup = str }, Effect.Lamdera.sendToBackend (GetChatGroup str) )
+
+        ToggleTOC ->
+            ( { model | showTOC = not model.showTOC }, Effect.Command.none )
 
         TogglePublicUrl ->
             ( { model | showPublicUrl = not model.showPublicUrl }, Effect.Command.none )

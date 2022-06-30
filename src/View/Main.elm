@@ -102,10 +102,11 @@ viewEditorAndRenderedText model =
             [ headerRow model
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
-                , Rendered.viewForEditor model (Geometry.panelWidth_ model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
-                , Index.view model (Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth) (deltaH + 10)
+                , Rendered.viewForEditor model (Geometry.panelWidth_ model.showTOC model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
+                , View.Utility.showIf model.showTOC (Index.view model (Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth) (deltaH + 10))
                 , Sidebar.viewExtras model
                 , Sidebar.viewTags model
+                , View.Utility.showIf (model.showEditor && not model.showTOC) <| E.el [ E.alignTop, E.paddingXY 0 30 ] (Button.toggleTOC model.showTOC)
                 ]
             , Footer.view model (Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState (model.windowWidth - 80))
             ]

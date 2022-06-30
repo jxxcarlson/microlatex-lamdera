@@ -40,6 +40,7 @@ view model width_ deltaH =
                         [ Button.setSortModeMostRecent model.sortMode
                         , Button.setSortModeAlpha model.sortMode
                         ]
+                    , View.Utility.hideIf (model.currentUser == Nothing || not model.showEditor) (Button.toggleTOC model.showTOC)
                     ]
                 , case model.documentList of
                     WorkingList ->
