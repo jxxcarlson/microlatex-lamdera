@@ -907,13 +907,15 @@ handleAsStandardReceivedDocument model doc =
         filesToInclude =
             IncludeFiles.getData doc.content
 
-        cmd =
+        ( cmd, message ) =
             case List.isEmpty filesToInclude of
                 True ->
-                    Command.none
+                    ( Command.none, Message.make "No included file" MSYellow )
 
                 False ->
-                    Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
+                    ( Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
+                    , Message.make ("Included file: " ++ doc.title) MSYellow
+                    )
 
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
@@ -938,7 +940,7 @@ handleAsStandardReceivedDocument model doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
-        , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
+        , messages = message :: [] --{ txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
