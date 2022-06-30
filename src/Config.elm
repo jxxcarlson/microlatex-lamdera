@@ -203,7 +203,7 @@ host =
             "https://scripta.io"
 
         Env.Development ->
-            "localhost/8000"
+            "localhost:8000"
 
 
 defaultUrl : Maybe Url.Url

@@ -31,6 +31,7 @@ import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
 import Html
+import IncludeFiles
 import Keyboard
 import Lamdera
 import Markup
@@ -1258,6 +1259,17 @@ updateFromBackend msg model =
 
                 Just doc ->
                     let
+                        filesToInclude =
+                            IncludeFiles.getData doc.content
+
+                        loadCmd =
+                            case List.isEmpty filesToInclude of
+                                True ->
+                                    Effect.Command.none
+
+                                False ->
+                                    Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
+
                         cmd =
                             case model.currentUser of
                                 Nothing ->
@@ -1270,7 +1282,7 @@ updateFromBackend msg model =
                                 Just _ ->
                                     Util.delay 40 (SetDocumentCurrent doc)
                     in
-                    ( { model | publicDocuments = publicDocuments }, cmd )
+                    ( { model | publicDocuments = publicDocuments }, Effect.Command.batch [ loadCmd, cmd ] )
 
         ReceivedDocuments documentHandling documents ->
             --let

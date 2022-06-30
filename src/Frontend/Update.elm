@@ -904,19 +904,6 @@ handleReceivedDocumentAsManual model doc =
 handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleAsStandardReceivedDocument model doc =
     let
-        filesToInclude =
-            IncludeFiles.getData doc.content
-
-        ( cmd, message ) =
-            case List.isEmpty filesToInclude of
-                True ->
-                    ( Command.none, Message.make "No included file" MSYellow )
-
-                False ->
-                    ( Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
-                    , Message.make ("Included file: " ++ doc.title) MSYellow
-                    )
-
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
@@ -940,13 +927,12 @@ handleAsStandardReceivedDocument model doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
-        , messages = message --{ txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
+        , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
     , Command.batch
-        [ cmd
-        , savePreviousCurrentDocumentCmd model
+        [ savePreviousCurrentDocumentCmd model
         , Frontend.Cmd.setInitialEditorContent 20
         , View.Utility.setViewPortToTop model.popupState
         , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
