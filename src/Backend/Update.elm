@@ -18,6 +18,7 @@ module Backend.Update exposing
     , getUserAndDocumentData
     , getUserData
     , getUserDocuments
+    , getUserDocumentsForAuthor
     , getUsersAndOnlineStatus
     , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
@@ -873,11 +874,11 @@ stripKey str key =
 
 
 searchForDocumentsByAuthorAndKey model clientId key =
-    ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling (searchForDocumentsByAuthorAndKey_ model clientId key)) )
+    ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling (searchForDocumentsByAuthorAndKey_ model key)) )
 
 
-searchForDocumentsByAuthorAndKey_ : Model -> ClientId -> String -> List Document.Document
-searchForDocumentsByAuthorAndKey_ model clientId key =
+searchForDocumentsByAuthorAndKey_ : Model -> String -> List Document.Document
+searchForDocumentsByAuthorAndKey_ model key =
     case String.split "/" key of
         [] ->
             []

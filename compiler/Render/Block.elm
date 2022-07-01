@@ -138,6 +138,7 @@ blockDict =
         , ( "textmacros", \_ _ _ _ _ _ -> Element.none )
         , ( "contents", \_ _ _ _ _ _ -> Element.none )
         , ( "tags", \_ _ _ _ _ _ -> Element.none )
+        , ( "type", \_ _ _ _ _ _ -> Element.none )
         , ( "env", env_ )
         , ( "item", item )
         , ( "desc", desc )

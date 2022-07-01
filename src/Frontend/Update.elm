@@ -73,6 +73,7 @@ import Effect.Lamdera exposing (sendToBackend)
 import Effect.Process
 import Effect.Task
 import Effect.Time
+import ExtractInfo
 import Frontend.Cmd
 import IncludeFiles
 import Keyboard
@@ -654,6 +655,23 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 currentUserName_ =
                     currentUser.username
 
+                smartDocCommand =
+                    case ExtractInfo.parseInfo "type" doc.content of
+                        Nothing ->
+                            Command.none
+
+                        Just ( label, dict ) ->
+                            if label == "folder" then
+                                case Dict.get "get" dict of
+                                    Nothing ->
+                                        Command.none
+
+                                    Just tag ->
+                                        sendToBackend (MakeCollection currentUser.username ("folder:" ++ tag))
+
+                            else
+                                Command.none
+
                 oldEditorList =
                     doc.currentEditorList
 
@@ -727,6 +745,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 [ View.Utility.setViewPortToTop model.popupState
                 , Command.batch [ cmd, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc) ]
                 , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
+                , smartDocCommand
                 ]
             )
 

@@ -8,6 +8,7 @@ module Compiler.Util exposing
     , getItem
     , getMarkdownImageArgs
     , getMicroLaTeXItem
+    , many
     , middle
     , size
     )

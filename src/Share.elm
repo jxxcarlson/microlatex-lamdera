@@ -142,7 +142,6 @@ removeEditor userId doc dict =
 
 updateSharedDocumentDict : User.User -> Document.Document -> Types.BackendModel -> Types.BackendModel
 updateSharedDocumentDict user doc model =
-    -- { model | sharedDocumentDict = update user.username user.id doc clientId model.sharedDocumentDict |> Debug.log "UPDATE sharedDocumentDict" }
     { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict }
 
 

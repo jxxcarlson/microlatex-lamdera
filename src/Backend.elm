@@ -391,6 +391,29 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
 
         -- DOCUMENT
+        MakeCollection username tag ->
+            let
+                docInfo =
+                    Backend.Update.getUserDocumentsForAuthor username model
+                        |> List.filter (\doc -> List.member tag doc.tags)
+                        |> List.sortBy (\doc -> String.toLower doc.title)
+                        |> List.map makeDocLink
+                        |> String.join "\n\n"
+
+                makeDocLink doc =
+                    "| document " ++ doc.id ++ "\n" ++ doc.title
+
+                content =
+                    "| title\nFolder\n\n| collection\n\n" ++ docInfo
+
+                emptyDoc =
+                    Document.empty
+
+                collectionDoc =
+                    { emptyDoc | content = content }
+            in
+            ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocument Types.StandardHandling collectionDoc) )
+
         GetSharedDocuments username ->
             Backend.Update.getSharedDocuments model clientId username
 
