@@ -563,7 +563,7 @@ type ToBackend
     | UpdateSharedDocumentDict Evergreen.V681.User.User Evergreen.V681.Document.Document
     | AddEditor Evergreen.V681.User.User Evergreen.V681.Document.Document
     | RemoveEditor Evergreen.V681.User.User Evergreen.V681.Document.Document
-    | MakeCollection String String
+    | MakeCollection String String String
     | InitializeNetworkModelsWithDocument Evergreen.V681.Document.Document
     | ResetNetworkModelForDocument Evergreen.V681.Document.Document
     | PushEditorEvent Evergreen.V681.CollaborativeEditing.NetworkModel.EditEvent
