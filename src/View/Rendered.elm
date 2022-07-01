@@ -188,7 +188,7 @@ setSelectedId id settings =
 
 renderSettings : String -> Maybe String -> Int -> Render.Settings.Settings
 renderSettings id slug w =
-    Render.Settings.makeSettings id slug 0.85 w
+    Render.Settings.makeSettings id slug 0.8 w
 
 
 
