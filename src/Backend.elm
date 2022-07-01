@@ -404,7 +404,7 @@ updateFromFrontend sessionId clientId msg model =
                     "| document " ++ doc.id ++ "\n" ++ doc.title
 
                 content =
-                    "| title\n" ++ title ++ "\n\n| collection\n\n" ++ docInfo
+                    "| title\n" ++ title ++ "_\n\n| collection\n\n" ++ docInfo
 
                 emptyDoc =
                     Document.empty
