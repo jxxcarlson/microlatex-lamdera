@@ -455,7 +455,7 @@ type ToBackend
     | RemoveEditor User Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
-    | MakeCollection String String
+    | MakeCollection String String String
     | InitializeNetworkModelsWithDocument Document
     | ResetNetworkModelForDocument Document
     | PushEditorEvent NetworkModel.EditEvent

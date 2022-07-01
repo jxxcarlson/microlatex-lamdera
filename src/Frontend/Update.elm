@@ -667,7 +667,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
                                         Command.none
 
                                     Just tag ->
-                                        sendToBackend (MakeCollection currentUser.username ("folder:" ++ tag))
+                                        sendToBackend (MakeCollection doc.title currentUser.username ("folder:" ++ tag))
 
                             else
                                 Command.none

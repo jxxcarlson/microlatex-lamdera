@@ -391,7 +391,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
 
         -- DOCUMENT
-        MakeCollection username tag ->
+        MakeCollection title username tag ->
             let
                 docInfo =
                     Backend.Update.getUserDocumentsForAuthor username model
@@ -404,7 +404,7 @@ updateFromFrontend sessionId clientId msg model =
                     "| document " ++ doc.id ++ "\n" ++ doc.title
 
                 content =
-                    "| title\nFolder\n\n| collection\n\n" ++ docInfo
+                    "| title\n" ++ title ++ "\n\n| collection\n\n" ++ docInfo
 
                 emptyDoc =
                     Document.empty
