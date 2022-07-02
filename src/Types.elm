@@ -108,6 +108,8 @@ type alias FrontendModel =
     , clientIds : List ClientId
 
     -- INPUT
+    , inputFolderName : String
+    , inputFolderTag : String
     , inputCommand : String
     , inputUsername : String
     , inputSignupUsername : String
@@ -368,6 +370,8 @@ type FrontendMsg
     | SetInitialEditorContent
     | SetDocumentInPhoneAsCurrent DocumentHandling Document
     | ShowTOCInPhone
+    | InputFolderName String
+    | InputFolderTag String
     | InputSearchSource String
     | InputText { position : Int, source : String }
     | InputCursor { position : Int, source : String }
@@ -580,6 +584,7 @@ type PopupState
     | ManualsPopup
     | SharePopup
     | NetworkMonitorPopup
+    | FolderPopup
 
 
 type TagSelection

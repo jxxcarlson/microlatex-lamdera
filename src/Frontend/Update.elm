@@ -424,7 +424,7 @@ newFolder : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend Fro
 newFolder model =
     let
         folderDocument =
-            ExtractInfo.makeFolder model.currentTime (model.currentUser |> Maybe.map .username |> Maybe.withDefault "anon") "Folder" "work"
+            ExtractInfo.makeFolder model.currentTime (model.currentUser |> Maybe.map .username |> Maybe.withDefault "anon") model.inputFolderName model.inputFolderTag
 
         documentsCreatedCounter =
             model.documentsCreatedCounter + 1

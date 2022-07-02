@@ -3,6 +3,8 @@ module View.Input exposing
     , editors
     , email
     , enterPrivateId
+    , folderName
+    , folderTag
     , group
     , groupAssistant
     , groupMembers
@@ -96,6 +98,16 @@ passwordTemplate width_ default msg text =
 editorCommand : Int -> FrontendModel -> Element FrontendMsg
 editorCommand width_ model =
     inputFieldTemplate (E.px width_) "Editor command" InputCommand model.inputCommand
+
+
+folderName : FrontendModel -> Element FrontendMsg
+folderName model =
+    inputFieldTemplate (E.px 220) "Folder name" InputFolderName model.inputFolderName
+
+
+folderTag : FrontendModel -> Element FrontendMsg
+folderTag model =
+    inputFieldTemplate (E.px 220) "Tag" InputFolderTag model.inputFolderTag
 
 
 groupMembers : Int -> Int -> FrontendModel -> Element FrontendMsg

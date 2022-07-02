@@ -38,6 +38,7 @@ module View.Button exposing
     , makeCurrentGroupPreferred
     , maximizeMyDocs
     , maximizePublicDocs
+    , newFolder
     , nextSyncButton
     , openEditor
     , pinnedDocs
@@ -836,6 +837,10 @@ sendUnlockMessage_ doc currentUser =
 
 clearConnectionDict =
     buttonTemplate [] Types.ClearConnectionDict "Clear ConnectionDict"
+
+
+newFolder =
+    buttonTemplate [] (Types.ChangePopup Types.FolderPopup) "New Folder"
 
 
 createFolder =

@@ -171,6 +171,8 @@ init url key =
       , activeEditor = Nothing
 
       -- DOCUMENT
+      , inputFolderName = ""
+      , inputFolderTag = ""
       , allowOpenFolder = True
       , includedContent = Dict.empty
       , showPublicUrl = False
@@ -417,6 +419,12 @@ update msg model =
 
         SetChatDisplay option ->
             ( { model | chatDisplay = option }, Effect.Command.none )
+
+        InputFolderName str ->
+            ( { model | inputFolderName = str }, Effect.Command.none )
+
+        InputFolderTag str ->
+            ( { model | inputFolderTag = str }, Effect.Command.none )
 
         InputGroupName str ->
             ( { model | inputGroupName = str }, Effect.Command.none )
