@@ -647,7 +647,7 @@ update msg model =
                         Effect.Lamdera.sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
 
                     else if list == PinnedDocs then
-                        Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin")
+                        Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList model.currentUser "pin")
 
                     else
                         Effect.Command.none
@@ -829,7 +829,7 @@ update msg model =
                             ( model, Effect.Lamdera.sendToBackend (ResetNetworkModelForDocument doc) )
 
         GetPinnedDocuments ->
-            ( { model | documentList = StandardList }, Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList (model.currentUser |> Maybe.map .username) "pin") )
+            ( { model | documentList = StandardList }, Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList model.currentUser "pin") )
 
         -- TAGS
         GetUserTags ->
@@ -894,7 +894,7 @@ update msg model =
                 , documentList = StandardList
                 , currentMasterDocument = Nothing
               }
-            , Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling (model.currentUser |> Maybe.map .username) model.inputSearchKey)
+            , Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser model.inputSearchKey)
             )
 
         SearchText ->

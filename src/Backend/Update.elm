@@ -14,6 +14,7 @@ module Backend.Update exposing
     , getDocumentById
     , getDocumentByPublicId
     , getHomePage
+    , getMostRecentUserDocuments
     , getSharedDocuments
     , getUserAndDocumentData
     , getUserData
@@ -855,16 +856,16 @@ getUsersAndOnlineStatus_ authenticationDict connectionDict =
     List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
 
 
-searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe String -> String -> ( Model, Command BackendOnly ToFrontend backendMsg )
-searchForDocuments model clientId documentHandling maybeUsername key =
+searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe User -> String -> ( Model, Command BackendOnly ToFrontend backendMsg )
+searchForDocuments model clientId documentHandling currentUser key =
     ( model
     , if String.contains ":user" key then
-        Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername (stripKey ":user" key) model))
+        Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments (Maybe.map .username currentUser) (stripKey ":user" key) model))
 
       else
         Command.batch
-            [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments maybeUsername key model))
-            , Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit maybeUsername key model))
+            [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments (Maybe.map .username currentUser) key model))
+            , Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Maybe.map .username currentUser) key model))
             ]
     )
 

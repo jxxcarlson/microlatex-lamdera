@@ -472,7 +472,7 @@ type ToBackend
     | GetPublicDocuments SortMode (Maybe String)
     | SaveDocument (Maybe User) Document
     | SearchForDocumentsWithAuthorAndKey String
-    | SearchForDocuments DocumentHandling (Maybe String) String
+    | SearchForDocuments DocumentHandling (Maybe User) String
     | GetDocumentByPublicId String
     | GetDocumentById DocumentHandling String
     | CreateDocument (Maybe User) Document

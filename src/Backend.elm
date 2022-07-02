@@ -384,8 +384,22 @@ updateFromFrontend sessionId clientId msg model =
         SearchForDocumentsWithAuthorAndKey segment ->
             Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
 
-        SearchForDocuments documentHandling maybeUsername key ->
-            Backend.Update.searchForDocuments model clientId documentHandling maybeUsername key
+        SearchForDocuments documentHandling currentUser key ->
+            -- TODO: Refactor!
+            case currentUser of
+                Nothing ->
+                    Backend.Update.searchForDocuments model clientId documentHandling currentUser key
+
+                Just user ->
+                    if key == "" then
+                        let
+                            docs =
+                                Backend.Update.getMostRecentUserDocuments Types.SortByMostRecent Config.maxDocSearchLimit user model.usersDocumentsDict model.documentDict
+                        in
+                        ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling docs) )
+
+                    else
+                        Backend.Update.searchForDocuments model clientId documentHandling currentUser key
 
         FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
             Backend.Update.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
