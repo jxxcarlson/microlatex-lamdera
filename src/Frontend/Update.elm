@@ -721,12 +721,23 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 errorMessages =
                     Message.make (newEditRecord.messages |> String.join "; ") MSYellow
 
-                currentMasterDocument =
+                ( currentMasterDocument, getFirstDocumentCommand ) =
                     if Predicate.isMaster newEditRecord then
-                        Just doc
+                        let
+                            maybeFirstDocId =
+                                ExtractInfo.parseBlockNameWithArgs "document" doc.content
+                                    |> Maybe.map Tuple.second
+                                    |> Maybe.andThen List.head
+                        in
+                        case maybeFirstDocId of
+                            Nothing ->
+                                ( Nothing, Command.none )
+
+                            Just id ->
+                                ( Just doc, sendToBackend (FetchDocumentById (KeepMasterDocument doc) id) )
 
                     else
-                        Nothing
+                        ( Nothing, Command.none )
 
                 ( readers, editors ) =
                     View.Utility.getReadersAndEditors (Just doc)
@@ -768,7 +779,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
               }
             , Command.batch
                 [ View.Utility.setViewPortToTop model.popupState
-                , Command.batch [ cmd, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc) ]
+                , Command.batch [ getFirstDocumentCommand, cmd, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc) ]
                 , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
                 , smartDocCommand
                 ]
