@@ -353,6 +353,8 @@ type FrontendMsg
     | MessageSubmitted
     | InputChoseGroup String
       -- DOCUMENT
+    | GetFolders
+    | GetDocs
     | CreateFolder
     | ToggleAllowOpenFolder
     | ToggleCollaborativeEditing

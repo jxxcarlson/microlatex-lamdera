@@ -22,8 +22,10 @@ module View.Button exposing
     , exportToLaTeX
     , exportToLaTeXRaw
     , exportToMarkown
+    , getDocs
     , getDocument
     , getDocumentByPrivateId
+    , getFolders
     , getPinnedDocs
     , getPublicTags
     , getUserList
@@ -855,6 +857,14 @@ newFolder =
 
 createFolder =
     buttonTemplate [] Types.CreateFolder "Create Folder"
+
+
+getFolders =
+    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetFolders "Get Folders"
+
+
+getDocs =
+    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetDocs "Get docs"
 
 
 toggleAllowOpenFolder allowOpenFolder =

@@ -247,7 +247,14 @@ viewMydocs model deltaH indexShift =
         , Font.color (E.rgb 0.1 0.1 1.0)
         , E.spacing 8
         ]
-        (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, Button.toggleAllowOpenFolder model.allowOpenFolder, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
+        (E.row [ E.spacing 16, E.width E.fill ]
+            [ titleButton ]
+            :: E.row [ E.spacing 8, E.width E.fill ]
+                [ View.Utility.showIf (model.currentUser /= Nothing) Button.getFolders
+                , View.Utility.showIf (model.currentUser /= Nothing) Button.getDocs
+                , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleAllowOpenFolder model.allowOpenFolder)
+                , E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex))
+                ]
             :: viewDocuments StandardHandling model.currentDocument docs
         )
 

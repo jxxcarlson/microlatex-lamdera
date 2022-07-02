@@ -8,6 +8,7 @@ module View.Color exposing
     , lightBlue
     , lightGray
     , medGray
+    , mediumBlue
     , mediumPaleBlue
     , paleBlue
     , paleGreen
@@ -84,6 +85,11 @@ lightBlue =
 
 yellow =
     E.rgb 0.8 0.8 0
+
+
+mediumBlue : E.Color
+mediumBlue =
+    E.rgb255 80 80 255
 
 
 paleBlue : E.Color

@@ -897,6 +897,12 @@ update msg model =
             else
                 ( model, Effect.Command.none )
 
+        GetFolders ->
+            ( model, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser ":folder") )
+
+        GetDocs ->
+            ( model, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser "") )
+
         Search ->
             ( { model
                 | actualSearchKey = model.inputSearchKey
