@@ -27,6 +27,7 @@ import Effect.Task
 import Effect.Time
 import Element
 import Env
+import ExtractInfo
 import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
@@ -1233,6 +1234,9 @@ updateFromBackend msg model =
             case documentHandling of
                 StandardHandling ->
                     Frontend.Update.handleAsStandardReceivedDocument model doc
+
+                KeepMasterDocument masterDoc ->
+                    Frontend.Update.handleKeepingMasterDocument model masterDoc doc
 
                 HandleSharedDocument username ->
                     Frontend.Update.handleSharedDocument model username doc

@@ -11,6 +11,7 @@ port module Frontend.Update exposing
     , handleAsReceivedDocumentWithDelay
     , handleAsStandardReceivedDocument
     , handleCurrentDocumentChange
+    , handleKeepingMasterDocument
     , handlePinnedDocuments
     , handleReceivedDocumentAsManual
     , handleSharedDocument
@@ -947,6 +948,11 @@ handleReceivedDocumentAsManual model doc =
 handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 handleAsStandardReceivedDocument model doc =
     let
+        maybeFirstDocId =
+            ExtractInfo.parseBlockNameWithArgs "document" doc.content
+                |> Maybe.map Tuple.second
+                |> Maybe.andThen List.head
+
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
@@ -960,6 +966,46 @@ handleAsStandardReceivedDocument model doc =
 
             else
                 model.currentMasterDocument
+    in
+    case maybeFirstDocId of
+        Nothing ->
+            ( { model
+                | editRecord = editRecord
+                , selectedSlug = Document.getSlug doc
+                , title = Compiler.ASTTools.title editRecord.parsed
+                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
+                , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+                , currentDocument = Just doc
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+                , sourceText = doc.content
+                , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
+                , currentMasterDocument = currentMasterDocument
+                , counter = model.counter + 1
+              }
+            , Command.batch
+                [ savePreviousCurrentDocumentCmd model
+                , Frontend.Cmd.setInitialEditorContent 20
+                , View.Utility.setViewPortToTop model.popupState
+                , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
+                ]
+            )
+
+        Just id ->
+            ( model, sendToBackend (FetchDocumentById (KeepMasterDocument doc) id) )
+
+
+handleKeepingMasterDocument : FrontendModel -> Document -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+handleKeepingMasterDocument model masterDoc doc =
+    let
+        editRecord =
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+
+        errorMessages : List Types.Message
+        errorMessages =
+            Message.make (editRecord.messages |> String.join "; ") MSYellow
+
+        currentMasterDocument =
+            Just masterDoc
     in
     ( { model
         | editRecord = editRecord

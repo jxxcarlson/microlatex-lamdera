@@ -424,7 +424,7 @@ updateFromFrontend sessionId clientId msg model =
                     Document.empty
 
                 collectionDoc =
-                    { emptyDoc | content = content }
+                    { emptyDoc | title = title, id = "jxxcarlson:folder-" ++ title, content = content }
             in
             ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocument Types.StandardHandling collectionDoc) )
 

@@ -641,6 +641,7 @@ type PrintingState
 
 type DocumentHandling
     = StandardHandling
+    | KeepMasterDocument Document
     | HandleSharedDocument Username
     | PinnedDocumentList
     | DelayedHandling

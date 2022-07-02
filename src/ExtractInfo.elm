@@ -1,4 +1,4 @@
-module ExtractInfo exposing (makeFolder, parseInfo)
+module ExtractInfo exposing (makeFolder, parseBlockName, parseBlockNameWithArgs, parseInfo)
 
 import Dict exposing (Dict)
 import Document exposing (Document)
@@ -46,6 +46,38 @@ parseInfo label str =
             Nothing
 
 
+{-|
+
+    > parseBlockName "collection" "ddd\\n| collection foo 77\\ndkfdj"
+    > Just "collection" : Maybe String
+
+-}
+parseBlockName : String -> String -> Maybe String
+parseBlockName name str =
+    case Parser.run (blockNameParser name) str of
+        Ok data ->
+            Just data
+
+        Err _ ->
+            Nothing
+
+
+{-|
+
+    > parseBlockNameWithArgs "collection" "ddd\n| collection foo 77\ndkfdj"
+     Just ("collection",["foo","77"])
+
+-}
+parseBlockNameWithArgs : String -> String -> Maybe ( String, List String )
+parseBlockNameWithArgs name str =
+    case Parser.run (blockNameWithArgsParser name) str of
+        Ok data ->
+            Just data
+
+        Err _ ->
+            Nothing
+
+
 infoParser : String -> Parser ( String, Dict String String )
 infoParser label =
     first (infoParser_ label) (Parser.symbol "\n")
@@ -86,6 +118,25 @@ typeParser label =
         |= Parser.getSource
 
 
+blockNameWithArgsParser : String -> Parser ( String, List String )
+blockNameWithArgsParser label =
+    blockNameParser label |> Parser.andThen (\name -> lineParser |> Parser.map (\line -> ( name, line |> String.trim |> String.words )))
+
+
+blockNameParser : String -> Parser String
+blockNameParser label =
+    let
+        target =
+            "| " ++ label
+    in
+    Parser.succeed (\labelStart labelEnd source -> String.slice (labelStart + 2) labelEnd source)
+        |. Parser.chompUntil target
+        |= Parser.getOffset
+        |. Parser.symbol target
+        |= Parser.getOffset
+        |= Parser.getSource
+
+
 kvParser : Parser ( String, String )
 kvParser =
     Parser.succeed
@@ -99,6 +150,15 @@ kvParser =
         |. Parser.symbol ":"
         |= Parser.getOffset
         |. Parser.chompUntil " "
+        |= Parser.getOffset
+        |= Parser.getSource
+
+
+lineParser : Parser String
+lineParser =
+    Parser.succeed (\start end source -> String.slice start end source)
+        |= Parser.getOffset
+        |. Parser.chompUntilEndOr "\n"
         |= Parser.getOffset
         |= Parser.getSource
 
