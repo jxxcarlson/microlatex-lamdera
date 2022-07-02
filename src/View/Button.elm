@@ -151,6 +151,16 @@ buttonTemplateWithTooltip buttonData =
         ]
 
 
+buttonTemplateWithTooltip2 : ButtonData -> Element FrontendMsg
+buttonTemplateWithTooltip2 buttonData =
+    E.row ([ View.Style.bgGray 0.2, E.pointer, E.mouseDown [ Background.color Color.darkRed ] ] ++ buttonData.attributes)
+        [ Input.button View.Style.buttonStyle
+            { onPress = Just buttonData.msg
+            , label = View.Utility.addTooltip buttonData.tooltipPlacement buttonData.tooltipText (E.el [ Font.color Color.black, E.centerX, E.centerY, Font.size 14 ] (E.text buttonData.label))
+            }
+        ]
+
+
 type alias ButtonData =
     { tooltipText : String
     , tooltipPlacement : Element FrontendMsg -> E.Attribute FrontendMsg
@@ -849,10 +859,22 @@ createFolder =
 
 toggleAllowOpenFolder allowOpenFolder =
     if allowOpenFolder then
-        buttonTemplateSmall [ Background.color Color.veryPaleBlue ] [ Font.size 12, Font.color Color.black ] Types.ToggleAllowOpenFolder "o"
+        buttonTemplateWithTooltip2
+            { tooltipText = "Edit smart docs"
+            , tooltipPlacement = E.below
+            , attributes = [ Background.color Color.veryPaleBlue ]
+            , msg = Types.ToggleAllowOpenFolder
+            , label = "o"
+            }
 
     else
-        buttonTemplateSmall [ Background.color Color.veryPaleBlue ] [ Font.size 12, Font.color Color.black ] Types.ToggleAllowOpenFolder "e"
+        buttonTemplateWithTooltip2
+            { tooltipText = "Activate smart docs"
+            , tooltipPlacement = E.below
+            , attributes = [ Background.color Color.veryPaleBlue ]
+            , msg = Types.ToggleAllowOpenFolder
+            , label = "e"
+            }
 
 
 toggleTOC : Bool -> Element FrontendMsg
