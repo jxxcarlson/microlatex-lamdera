@@ -661,7 +661,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
                             Command.none
 
                         Just ( label, dict ) ->
-                            if label == "folder" then
+                            if label == "folder" && model.allowOpenFolder then
                                 case Dict.get "get" dict of
                                     Nothing ->
                                         Command.none

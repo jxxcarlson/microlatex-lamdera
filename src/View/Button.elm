@@ -69,6 +69,7 @@ module View.Button exposing
     , syncButton
     , syncLR
     , toggleActiveDocList
+    , toggleAllowOpenFolder
     , toggleAppMode
     , toggleBackupVisibility
     , toggleChat
@@ -93,6 +94,7 @@ import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
+import ExtractInfo
 import Parser.Language exposing (Language(..))
 import Predicate
 import String.Extra
@@ -835,6 +837,14 @@ clearConnectionDict =
     buttonTemplate [] Types.ClearConnectionDict "Clear ConnectionDict"
 
 
+toggleAllowOpenFolder allowOpenFolder =
+    if allowOpenFolder then
+        buttonTemplateSmall [ Background.color Color.veryPaleBlue ] [ Font.size 12, Font.color Color.black ] Types.ToggleAllowOpenFolder "o"
+
+    else
+        buttonTemplateSmall [ Background.color Color.veryPaleBlue ] [ Font.size 12, Font.color Color.black ] Types.ToggleAllowOpenFolder "e"
+
+
 toggleTOC : Bool -> Element FrontendMsg
 toggleTOC showTOC =
     if showTOC then
@@ -1041,9 +1051,18 @@ setDocumentAsCurrent docHandling currentDocument document =
                 Font.unitalicized
 
         titleString =
-            document.title
-                |> Compiler.Util.compressWhitespace
-                |> String.Extra.ellipsisWith 40 " ..."
+            case ExtractInfo.parseInfo "type" document.content of
+                Nothing ->
+                    document.title
+                        |> Compiler.Util.compressWhitespace
+                        |> String.Extra.ellipsisWith 40 " ..."
+
+                Just _ ->
+                    "["
+                        ++ document.title
+                        ++ "]"
+                        |> Compiler.Util.compressWhitespace
+                        |> String.Extra.ellipsisWith 40 " ..."
     in
     Input.button []
         { onPress = Just (SetDocumentAsCurrent docHandling document)

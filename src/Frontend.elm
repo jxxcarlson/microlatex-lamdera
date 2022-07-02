@@ -171,6 +171,7 @@ init url key =
       , activeEditor = Nothing
 
       -- DOCUMENT
+      , allowOpenFolder = True
       , includedContent = Dict.empty
       , showPublicUrl = False
       , documentDirty = False
@@ -762,6 +763,9 @@ update msg model =
             ( model, Effect.Lamdera.sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
 
         -- DOCUMENT
+        ToggleAllowOpenFolder ->
+            ( { model | allowOpenFolder = not model.allowOpenFolder }, Effect.Command.none )
+
         ChangeLanguage ->
             case model.currentDocument of
                 Nothing ->

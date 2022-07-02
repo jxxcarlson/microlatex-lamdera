@@ -185,6 +185,7 @@ type alias FrontendModel =
 
     -- DOCUMENT
     -- DATA STRUCTURES
+    , allowOpenFolder : Bool
     , activeDocList : ActiveDocList
     , includedContent : Dict String String
     , currentDocument : Maybe Document
@@ -350,6 +351,7 @@ type FrontendMsg
     | MessageSubmitted
     | InputChoseGroup String
       -- DOCUMENT
+    | ToggleAllowOpenFolder
     | ToggleCollaborativeEditing
     | ApplyEdits
     | SetDocumentStatus Document.DocStatus
