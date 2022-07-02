@@ -29,6 +29,7 @@ documentControls model =
         -- , View.Utility.hideIf (model.currentUser == Nothing) (View.Utility.showIf model.showEditor (Button.editDocument model))
         -- , Button.startCollaborativeEditing model
         , View.Utility.hideIf (model.currentUser == Nothing) (Button.popupNewDocumentForm model.popupState)
+        , View.Utility.hideIf (model.currentUser == Nothing) Button.createFolder
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.softDeleteDocument model)
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.hardDeleteDocument model)
         , showIfUserIsDocumentAuthor model (model.currentUser /= Nothing) (Button.cancelDeleteDocument model)

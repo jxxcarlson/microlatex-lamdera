@@ -1,7 +1,33 @@
-module ExtractInfo exposing (parseInfo)
+module ExtractInfo exposing (makeFolder, parseInfo)
 
 import Dict exposing (Dict)
+import Document exposing (Document)
 import Parser exposing ((|.), (|=), Parser, Step(..), loop)
+import Parser.Language
+import Time
+
+
+makeFolder : Time.Posix -> String -> String -> String -> Document
+makeFolder time username title tag =
+    let
+        content =
+            [ "| title", title, "", "[tags :folder]", "", "| type folder get:" ++ tag ++ " ;", "" ] |> String.join "\n"
+
+        empty =
+            Document.empty
+
+        slug =
+            username ++ ":folder-" ++ tag
+    in
+    { empty
+        | id = slug
+        , title = title
+        , author = Just username
+        , language = Parser.Language.L0Lang
+        , content = content
+        , created = time
+        , modified = time
+    }
 
 
 {-|
@@ -22,7 +48,27 @@ parseInfo label str =
 
 infoParser : String -> Parser ( String, Dict String String )
 infoParser label =
-    typeParser label |> Parser.andThen (\name -> dictParser |> Parser.map (\dict -> ( name, dict )))
+    first (infoParser_ label) (Parser.symbol "\n")
+
+
+infoParser_ : String -> Parser ( String, Dict String String )
+infoParser_ label =
+    typeParser label
+        |> Parser.andThen
+            (\name ->
+                dictParser
+                    |> Parser.map (\dict -> ( name, dict ))
+            )
+
+
+first : Parser a -> Parser b -> Parser a
+first p q =
+    p |> Parser.andThen (\x -> q |> Parser.map (\_ -> x))
+
+
+second : Parser a -> Parser b -> Parser b
+second p q =
+    p |> Parser.andThen (\_ -> q)
 
 
 typeParser : String -> Parser String
@@ -52,14 +98,14 @@ kvParser =
         |= Parser.getOffset
         |. Parser.symbol ":"
         |= Parser.getOffset
-        |. Parser.chompUntilEndOr " "
+        |. Parser.chompUntil " "
         |= Parser.getOffset
         |= Parser.getSource
 
 
 dictParser : Parser (Dict String String)
 dictParser =
-    many kvParser |> Parser.map Dict.fromList
+    first (many kvParser) (Parser.symbol ";") |> Parser.map Dict.fromList
 
 
 {-| Apply a parser zero or more times and return a list of the results.

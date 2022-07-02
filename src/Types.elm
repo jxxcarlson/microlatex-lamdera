@@ -351,6 +351,7 @@ type FrontendMsg
     | MessageSubmitted
     | InputChoseGroup String
       -- DOCUMENT
+    | CreateFolder
     | ToggleAllowOpenFolder
     | ToggleCollaborativeEditing
     | ApplyEdits

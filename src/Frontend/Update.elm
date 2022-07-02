@@ -20,6 +20,7 @@ port module Frontend.Update exposing
     , inputText
     , inputTitle
     , newDocument
+    , newFolder
     , nextSyncLR
     , openEditor
     , postProcessDocument
@@ -417,6 +418,29 @@ exportToMarkdown model =
 
 
 --- DOCUMENT
+
+
+newFolder : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+newFolder model =
+    let
+        folderDocument =
+            ExtractInfo.makeFolder model.currentTime (model.currentUser |> Maybe.map .username |> Maybe.withDefault "anon") "Folder" "work"
+
+        documentsCreatedCounter =
+            model.documentsCreatedCounter + 1
+
+        editRecord =
+            Compiler.DifferentialParser.init model.includedContent folderDocument.language folderDocument.content
+    in
+    ( { model
+        | showEditor = False
+        , inputTitle = ""
+        , title = Compiler.ASTTools.title editRecord.parsed
+        , documentsCreatedCounter = documentsCreatedCounter
+        , popupState = NoPopup
+      }
+    , Command.batch [ Effect.Lamdera.sendToBackend (CreateDocument model.currentUser folderDocument) ]
+    )
 
 
 newDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )

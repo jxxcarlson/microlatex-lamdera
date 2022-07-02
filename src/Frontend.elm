@@ -930,6 +930,9 @@ update msg model =
         InputSearchTagsKey str ->
             ( { model | inputSearchTagsKey = str }, Effect.Command.none )
 
+        CreateFolder ->
+            Frontend.Update.newFolder model
+
         NewDocument ->
             Frontend.Update.newDocument model
 

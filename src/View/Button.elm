@@ -10,6 +10,7 @@ module View.Button exposing
     , closeEditor
     , createChatGroup
     , createDocument
+    , createFolder
     , dismissPopup
     , dismissPublicUrlBox
     , dismissUserMessage
@@ -835,6 +836,10 @@ sendUnlockMessage_ doc currentUser =
 
 clearConnectionDict =
     buttonTemplate [] Types.ClearConnectionDict "Clear ConnectionDict"
+
+
+createFolder =
+    buttonTemplate [] Types.CreateFolder "Create Folder"
 
 
 toggleAllowOpenFolder allowOpenFolder =
