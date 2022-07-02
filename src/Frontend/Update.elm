@@ -25,6 +25,7 @@ port module Frontend.Update exposing
     , nextSyncLR
     , openEditor
     , postProcessDocument
+    , prepareMasterDocument
     , render
     , runSpecial
     , saveCurrentDocumentToBackend
@@ -711,33 +712,16 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 currentEditorList =
                     Util.insertInListOrUpdate equal editorItem oldEditorList
 
-                newEditRecord : Compiler.DifferentialParser.EditRecord
-                newEditRecord =
-                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+                --    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+                filesToInclude =
+                    newEditRecord.includedFiles
 
-                -- filesToInclude =
-                --    newEditRecord.includedFiles
                 errorMessages : List Types.Message
                 errorMessages =
                     Message.make (newEditRecord.messages |> String.join "; ") MSYellow
 
-                ( currentMasterDocument, getFirstDocumentCommand ) =
-                    if Predicate.isMaster newEditRecord && model.allowOpenFolder then
-                        let
-                            maybeFirstDocId =
-                                ExtractInfo.parseBlockNameWithArgs "document" doc.content
-                                    |> Maybe.map Tuple.second
-                                    |> Maybe.andThen List.head
-                        in
-                        case maybeFirstDocId of
-                            Nothing ->
-                                ( Nothing, Command.none )
-
-                            Just id ->
-                                ( Just doc, sendToBackend (FetchDocumentById (KeepMasterDocument doc) id) )
-
-                    else
-                        ( Nothing, Command.none )
+                ( currentMasterDocument, newEditRecord, getFirstDocumentCommand ) =
+                    prepareMasterDocument model doc
 
                 ( readers, editors ) =
                     View.Utility.getReadersAndEditors (Just doc)
@@ -784,6 +768,31 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 , smartDocCommand
                 ]
             )
+
+
+prepareMasterDocument : FrontendModel -> Document -> ( Maybe Document, Compiler.DifferentialParser.EditRecord, Command FrontendOnly ToBackend FrontendMsg )
+prepareMasterDocument model doc =
+    let
+        newEditRecord : Compiler.DifferentialParser.EditRecord
+        newEditRecord =
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+    in
+    if Predicate.isMaster newEditRecord && model.allowOpenFolder then
+        let
+            maybeFirstDocId =
+                ExtractInfo.parseBlockNameWithArgs "document" doc.content
+                    |> Maybe.map Tuple.second
+                    |> Maybe.andThen List.head
+        in
+        case maybeFirstDocId of
+            Nothing ->
+                ( Nothing, newEditRecord, Command.none )
+
+            Just id ->
+                ( Just doc, newEditRecord, sendToBackend (FetchDocumentById (KeepMasterDocument doc) id) )
+
+    else
+        ( Nothing, newEditRecord, Command.none )
 
 
 
@@ -967,6 +976,7 @@ handleAsStandardReceivedDocument model doc =
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
+        -- TODO: fix this
         errorMessages : List Types.Message
         errorMessages =
             Message.make (editRecord.messages |> String.join "; ") MSYellow
@@ -1011,12 +1021,10 @@ handleKeepingMasterDocument model masterDoc doc =
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
+        -- TODO: fix this
         errorMessages : List Types.Message
         errorMessages =
             Message.make (editRecord.messages |> String.join "; ") MSYellow
-
-        currentMasterDocument =
-            Just masterDoc
     in
     ( { model
         | editRecord = editRecord
@@ -1027,8 +1035,9 @@ handleKeepingMasterDocument model masterDoc doc =
         , currentDocument = Just doc
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
+        , initialText = doc.content
         , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
-        , currentMasterDocument = currentMasterDocument
+        , currentMasterDocument = Just masterDoc
         , counter = model.counter + 1
       }
     , Command.batch

@@ -1288,6 +1288,10 @@ updateFromBackend msg model =
 
                 Just doc ->
                     let
+                        ( currentMasterDocument, newEditRecord, getFirstDocumentCommand ) =
+                            Frontend.Update.prepareMasterDocument model doc
+
+                        -- TODO: fix this
                         filesToInclude =
                             IncludeFiles.getData doc.content
 
@@ -1299,19 +1303,27 @@ updateFromBackend msg model =
                                 False ->
                                     Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
 
-                        cmd =
-                            case model.currentUser of
-                                Nothing ->
-                                    if model.actualSearchKey == "" && model.url.path == "/" then
-                                        Effect.Command.none
-
-                                    else
-                                        Util.delay 40 (SetDocumentCurrent doc)
-
-                                Just _ ->
-                                    Util.delay 40 (SetDocumentCurrent doc)
+                        --cmd =
+                        --    case model.currentUser of
+                        --        Nothing ->
+                        --            if model.actualSearchKey == "" && model.url.path == "/" then
+                        --                Effect.Command.none
+                        --
+                        --            else
+                        --                Util.delay 40 (SetDocumentCurrent doc)
+                        --
+                        --        Just _ ->
+                        --            Util.delay 40 (SetDocumentCurrent doc)
                     in
-                    ( { model | publicDocuments = publicDocuments }, Effect.Command.batch [ loadCmd, cmd ] )
+                    ( { model
+                        | currentMasterDocument = currentMasterDocument
+                        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
+
+                        -- , editRecord = newEditRecord
+                        , publicDocuments = publicDocuments
+                      }
+                    , Effect.Command.batch [ loadCmd, getFirstDocumentCommand ]
+                    )
 
         ReceivedDocuments documentHandling documents ->
             --let
