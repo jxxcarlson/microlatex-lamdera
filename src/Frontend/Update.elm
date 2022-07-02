@@ -722,7 +722,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
                     Message.make (newEditRecord.messages |> String.join "; ") MSYellow
 
                 ( currentMasterDocument, getFirstDocumentCommand ) =
-                    if Predicate.isMaster newEditRecord then
+                    if Predicate.isMaster newEditRecord && model.allowOpenFolder then
                         let
                             maybeFirstDocId =
                                 ExtractInfo.parseBlockNameWithArgs "document" doc.content
