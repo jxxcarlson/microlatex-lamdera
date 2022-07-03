@@ -16,6 +16,7 @@ import View.Color as Color
 import View.DocTools
 import View.Geometry as Geometry
 import View.NetworkMonitor
+import View.Popups.NewFolder
 import View.Style
 import View.Utility
 
@@ -34,6 +35,7 @@ view model width_ =
     in
     E.row
         [ E.spacing 1
+        , E.inFront (E.el [ E.moveUp ((Geometry.appHeight model |> toFloat) - 70), E.moveRight 300 ] (View.Popups.NewFolder.view model))
         , E.inFront (View.DocTools.view model)
         , E.inFront (View.DocTools.urlPopup model)
         , if Predicate.permitExperimentalCollabEditing model.currentUser model.experimentalMode then

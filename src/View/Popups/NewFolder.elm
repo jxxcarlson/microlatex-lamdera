@@ -22,7 +22,10 @@ view model =
                 , Element.alignRight
                 , Element.width (Element.px 265)
                 ]
-                [ Element.el [ Element.paddingXY 0 8, Font.size 18, Font.color (Element.rgb 1 1 1) ] (Element.text "New Folder")
+                [ Element.row [ Element.width (Element.px 250) ]
+                    [ Element.el [ Element.paddingXY 0 8, Font.size 18, Font.color (Element.rgb 1 1 1) ] (Element.text "New Folder")
+                    , Element.el [ Element.alignRight, Element.paddingXY 8 0 ] View.Button.dismissPopup
+                    ]
                 , View.Input.folderName model
                 , View.Input.folderTag model
                 , View.Button.createFolder

@@ -61,7 +61,6 @@ viewRenderedTextOnly model =
     E.column (Style.mainColumn model)
         [ E.column
             [ E.inFront (languageMenu model)
-            , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (View.Popups.NewFolder.view model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (newDocumentPopup model))
             , E.inFront (E.el [ E.moveDown 70, E.moveRight 10 ] (Share.view model))
             , E.inFront (E.el [ E.moveDown 90, E.moveRight 270 ] (Share.usermessage model.userMessage))
