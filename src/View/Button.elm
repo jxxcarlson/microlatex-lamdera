@@ -860,11 +860,11 @@ createFolder =
 
 
 getFolders =
-    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetFolders "Get Folders"
+    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetFolders "Show folders"
 
 
 getDocs =
-    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetDocs "Get docs"
+    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetDocs "Show docs"
 
 
 toggleAllowOpenFolder allowOpenFolder =
