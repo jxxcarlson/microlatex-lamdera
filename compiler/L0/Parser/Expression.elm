@@ -72,7 +72,7 @@ parse lineNumber str =
         state =
             parseToState lineNumber str
     in
-    ( state.committed, state.messages )
+    ( state.committed, state.messages |> Debug.log "Messages (3)" )
 
 
 parseToState : Int -> String -> State
@@ -88,7 +88,14 @@ parseToState lineNumber str =
 
 parseTokenListToState : Int -> List Token -> State
 parseTokenListToState lineNumber tokens =
-    tokens |> initWithTokens lineNumber |> run
+    let
+        state =
+            tokens |> initWithTokens lineNumber |> run
+
+        _ =
+            Debug.log "MESSAGES (STATE)" (extractMessages state)
+    in
+    state
 
 
 parseTokenList : Int -> List Token -> List Expr
@@ -104,9 +111,9 @@ run state =
 
 nextStep : State -> Step State State
 nextStep state =
-    case List.Extra.getAt state.tokenIndex state.tokens of
+    case getToken state of
         Nothing ->
-            if List.isEmpty state.stack then
+            if stackIsEmpty state then
                 Done state
 
             else
@@ -114,24 +121,41 @@ nextStep state =
                 recoverFromError state
 
         Just token ->
-            pushToken token { state | tokenIndex = state.tokenIndex + 1 }
+            state
+                |> advanceTokenIndex
+                |> pushOrCommit token
                 |> reduceState
                 |> (\st -> { st | step = st.step + 1 })
                 |> Loop
+
+
+advanceTokenIndex : State -> State
+advanceTokenIndex state =
+    { state | tokenIndex = state.tokenIndex + 1 }
+
+
+getToken : State -> Maybe Token
+getToken state =
+    List.Extra.getAt state.tokenIndex state.tokens
+
+
+stackIsEmpty : State -> Bool
+stackIsEmpty state =
+    List.isEmpty state.stack
 
 
 
 -- PUSH
 
 
-pushToken : Token -> State -> State
-pushToken token state =
+pushOrCommit : Token -> State -> State
+pushOrCommit token state =
     case token of
         S _ _ ->
-            pushOrCommit token state
+            pushOrCommit_ token state
 
         W _ _ ->
-            pushOrCommit token state
+            pushOrCommit_ token state
 
         MathToken _ ->
             pushOnStack token state
@@ -154,8 +178,8 @@ pushOnStack token state =
     { state | stack = token :: state.stack }
 
 
-pushOrCommit : Token -> State -> State
-pushOrCommit token state =
+pushOrCommit_ : Token -> State -> State
+pushOrCommit_ token state =
     if List.isEmpty state.stack then
         commit token state
 
@@ -199,7 +223,7 @@ reduceState : State -> State
 reduceState state =
     let
         symbols =
-            state.stack |> Symbol.convertTokens |> List.reverse
+            state.stack |> Symbol.convertTokens |> List.reverse |> Debug.log "SYMBOLS"
     in
     if M.reducible symbols then
         case List.head symbols of
@@ -272,7 +296,7 @@ eval lineNumber tokens =
     if areBracketed tokens then
         let
             args =
-                unbracket tokens
+                unbracket tokens |> Debug.log "ARGS"
         in
         case List.head args of
             -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
@@ -348,17 +372,17 @@ recoverFromError state =
                     | committed = errorMessage "[?]" :: state.committed
                     , stack = []
                     , tokenIndex = meta.index + 1
-                    , messages = Helpers.prependMessage state.lineNumber "Brackets need to enclose something" state.messages
+                    , messages = Helpers.prependMessage state.lineNumber "Brackets must enclose something" state.messages
                 }
 
         -- consecutive left brackets
         (LB _) :: (LB meta) :: _ ->
             Loop
                 { state
-                    | committed = errorMessage "[" :: state.committed
+                    | committed = errorMessage "[@" :: state.committed
                     , stack = []
-                    , tokenIndex = meta.index
-                    , messages = Helpers.prependMessage state.lineNumber "You have consecutive left brackets" state.messages
+                    , tokenIndex = meta.index + 1
+                    , messages = Helpers.prependMessage state.lineNumber "Consecutive left brackets" state.messages
                 }
 
         -- missing right bracket // OK

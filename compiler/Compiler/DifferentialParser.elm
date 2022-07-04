@@ -66,7 +66,7 @@ init inclusionData lang str =
     , chunks = chunks
     , parsed = parsed
     , accumulator = newAccumulator
-    , messages = Markup.messagesFromForest parsed
+    , messages = Markup.messagesFromForest parsed |> Debug.log "Messages !!"
     , includedFiles = includedFiles
     }
 
