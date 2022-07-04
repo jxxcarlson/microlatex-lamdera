@@ -276,10 +276,10 @@ unbracket list =
     List.drop 1 (List.take (List.length list - 1) list)
 
 
-{-| areBracketed tokns == True iff tokens are derived from "[ ... ]"
+{-| areBracketed tokens == True iff tokens are derived from "[ ... ]"
 -}
-areBracketed : List Token -> Bool
-areBracketed tokens =
+isExpr : List Token -> Bool
+isExpr tokens =
     List.map Token.type_ (List.take 1 tokens)
         == [ TLB ]
         && List.map Token.type_ (List.take 1 (List.reverse tokens))
@@ -293,7 +293,7 @@ boostMeta lineNumber tokenIndex { begin, end, index } =
 
 eval : Int -> List Token -> List Expr
 eval lineNumber tokens =
-    if areBracketed tokens then
+    if isExpr tokens then
         let
             args =
                 unbracket tokens |> Debug.log "ARGS"
@@ -320,7 +320,7 @@ evalList lineNumber tokens =
         Just token ->
             case Token.type_ token of
                 TLB ->
-                    case M.match (Symbol.convertTokens2 tokens) of
+                    case M.match (Symbol.convertTokens tokens) of
                         Nothing ->
                             [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLocWithId ]
 

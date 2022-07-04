@@ -1,15 +1,17 @@
-module L0.Parser.Symbol exposing (Symbol(..), balance, convertTokens, convertTokens2, toString, value)
+module L0.Parser.Symbol exposing (Symbol(..), balance, convertTokens, toString, value)
 
 import L0.Parser.Token exposing (Token(..))
 import Maybe.Extra
 
 
 type Symbol
-    = L
-    | R
-    | O
-    | M
-    | C
+    = L -- LB, [
+    | R -- RB, ]
+    | ST -- S String (string)
+    | M -- $
+    | C -- `
+    | WS -- W String (whitespace)
+    | E -- Token error
 
 
 value : Symbol -> Int
@@ -21,13 +23,19 @@ value symbol =
         R ->
             -1
 
-        O ->
+        ST ->
+            0
+
+        WS ->
             0
 
         M ->
             0
 
         C ->
+            0
+
+        E ->
             0
 
 
@@ -45,14 +53,20 @@ symbolToString symbol =
         R ->
             "R"
 
-        O ->
-            "O"
+        ST ->
+            "S"
+
+        WS ->
+            "W"
 
         M ->
             "M"
 
         C ->
             "C"
+
+        E ->
+            "E"
 
 
 toString : List Symbol -> String
@@ -62,35 +76,11 @@ toString symbols =
 
 convertTokens : List Token -> List Symbol
 convertTokens tokens =
-    List.map toSymbol tokens |> Maybe.Extra.values
+    List.map toSymbol tokens
 
 
-convertTokens2 : List Token -> List Symbol
-convertTokens2 tokens =
-    List.map toSymbol2 tokens
-
-
-toSymbol : Token -> Maybe Symbol
+toSymbol : Token -> Symbol
 toSymbol token =
-    case token of
-        LB _ ->
-            Just L
-
-        RB _ ->
-            Just R
-
-        MathToken _ ->
-            Just M
-
-        CodeToken _ ->
-            Just C
-
-        _ ->
-            Nothing
-
-
-toSymbol2 : Token -> Symbol
-toSymbol2 token =
     case token of
         LB _ ->
             L
@@ -98,5 +88,17 @@ toSymbol2 token =
         RB _ ->
             R
 
-        _ ->
-            O
+        S _ _ ->
+            ST
+
+        W _ _ ->
+            WS
+
+        MathToken _ ->
+            M
+
+        CodeToken _ ->
+            C
+
+        TokenError _ _ ->
+            E

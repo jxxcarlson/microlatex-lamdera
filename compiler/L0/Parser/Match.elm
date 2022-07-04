@@ -5,43 +5,70 @@ import Parser.Helpers exposing (Step(..), loop)
 
 
 reducible : List Symbol -> Bool
-reducible symbols =
-    case List.head symbols of
-        Just M ->
-            List.head (List.reverse (List.drop 1 symbols)) == Just M
+reducible symbols_ =
+    let
+        symbols =
+            Debug.log "SYMBOLS (1)" (List.filter (\sym -> sym /= WS) symbols_)
+    in
+    case symbols of
+        M :: rest ->
+            List.head (List.reverse rest) == Just M
 
-        Just C ->
-            List.head (List.reverse (List.drop 1 symbols)) == Just C
+        C :: rest ->
+            List.head (List.reverse rest) == Just C
+
+        L :: ST :: rest ->
+            case List.head (List.reverse rest) of
+                Just R ->
+                    reducibleList (dropLast rest)
+
+                _ ->
+                    False
 
         _ ->
-            reducibleF symbols
+            False
 
 
-reducibleF : List Symbol -> Bool
-reducibleF symbols =
-    case List.head symbols of
-        Nothing ->
+dropLast : List a -> List a
+dropLast list =
+    let
+        n =
+            List.length list
+    in
+    List.take (n - 1) list
+
+
+reducibleList : List Symbol -> Bool
+reducibleList symbols =
+    let
+        _ =
+            Debug.log "SYMBOLS (2)" symbols
+    in
+    case symbols of
+        [] ->
             True
 
-        Just R ->
-            False
-
-        Just O ->
-            False
-
-        Just M ->
-            False
-
-        Just C ->
-            False
-
-        Just L ->
+        L :: _ ->
             case match symbols of
                 Nothing ->
                     False
 
                 Just k ->
-                    reducibleF (List.drop 1 (deleteAt k symbols))
+                    let
+                        ( a, b ) =
+                            splitAt (k + 1) symbols
+                    in
+                    if reducible a then
+                        reducibleList b
+
+                    else
+                        False
+
+        ST :: rest ->
+            reducibleList rest
+
+        _ ->
+            False
 
 
 {-|
