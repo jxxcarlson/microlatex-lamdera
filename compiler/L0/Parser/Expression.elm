@@ -72,7 +72,7 @@ parse lineNumber str =
         state =
             parseToState lineNumber str
     in
-    ( state.committed, state.messages |> Debug.log "Messages (3)" )
+    ( state.committed, state.messages )
 
 
 parseToState : Int -> String -> State
