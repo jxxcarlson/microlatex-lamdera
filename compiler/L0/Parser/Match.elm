@@ -8,7 +8,7 @@ reducible : List Symbol -> Bool
 reducible symbols_ =
     let
         symbols =
-            Debug.log "SYMBOLS (1)" (List.filter (\sym -> sym /= WS) symbols_)
+            List.filter (\sym -> sym /= WS) symbols_
     in
     case symbols of
         M :: rest ->
@@ -40,10 +40,6 @@ dropLast list =
 
 reducibleList : List Symbol -> Bool
 reducibleList symbols =
-    let
-        _ =
-            Debug.log "SYMBOLS (2)" symbols
-    in
     case symbols of
         [] ->
             True

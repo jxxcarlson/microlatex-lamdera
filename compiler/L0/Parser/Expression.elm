@@ -91,9 +91,6 @@ parseTokenListToState lineNumber tokens =
     let
         state =
             tokens |> initWithTokens lineNumber |> run
-
-        _ =
-            Debug.log "MESSAGES (STATE)" (extractMessages state)
     in
     state
 
@@ -223,7 +220,7 @@ reduceState : State -> State
 reduceState state =
     let
         symbols =
-            state.stack |> Symbol.convertTokens |> List.reverse |> Debug.log "SYMBOLS"
+            state.stack |> Symbol.convertTokens |> List.reverse
     in
     if M.reducible symbols then
         case List.head symbols of
@@ -296,7 +293,7 @@ eval lineNumber tokens =
     if isExpr tokens then
         let
             args =
-                unbracket tokens |> Debug.log "ARGS"
+                unbracket tokens
         in
         case List.head args of
             -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
@@ -376,12 +373,19 @@ recoverFromError state =
                 }
 
         -- consecutive left brackets
-        (LB _) :: (LB meta) :: _ ->
+        (LB meta1) :: (LB meta2) :: _ ->
+            let
+                k =
+                    meta1.index
+
+                shiftedTokens =
+                    Token.changeTokenIndicesFrom (k + 1) 1 state.tokens
+            in
             Loop
                 { state
-                    | committed = errorMessage "[@" :: state.committed
+                    | tokens = List.take (k + 1) state.tokens ++ (S "[??" { dummyLoc | index = k + 1 } :: List.drop (k + 1) shiftedTokens)
                     , stack = []
-                    , tokenIndex = meta.index + 1
+                    , tokenIndex = meta1.index
                     , messages = Helpers.prependMessage state.lineNumber "Consecutive left brackets" state.messages
                 }
 

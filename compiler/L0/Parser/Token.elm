@@ -2,6 +2,7 @@ module L0.Parser.Token exposing
     ( Meta
     , Token(..)
     , TokenType(..)
+    , changeTokenIndicesFrom
     , idem
     , idemTest
     , indexOf
@@ -38,6 +39,24 @@ type Token
     | MathToken Meta
     | CodeToken Meta
     | TokenError (List (DeadEnd Context Problem)) Meta
+
+
+changeTokenIndicesFrom : Int -> Int -> List Token -> List Token
+changeTokenIndicesFrom from delta tokens =
+    let
+        f : Token -> Token
+        f token =
+            let
+                k =
+                    indexOf token
+            in
+            if k >= from then
+                setIndex (k + delta) token
+
+            else
+                token
+    in
+    List.map (\token -> f token) tokens
 
 
 indexOf : Token -> Int
