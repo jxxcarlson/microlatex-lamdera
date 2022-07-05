@@ -1,6 +1,7 @@
-module L0.Parser.Match exposing (deleteAt, match, reducible, splitAt)
+module L0.Parser.Match exposing (deleteAt, getSegment, match, reducible, splitAt)
 
 import L0.Parser.Symbol exposing (Symbol(..), value)
+import List.Extra
 import Parser.Helpers exposing (Step(..), loop)
 
 
@@ -45,26 +46,44 @@ reducibleList symbols =
             True
 
         L :: _ ->
-            case match symbols of
-                Nothing ->
-                    False
+            reducibleAux symbols
 
-                Just k ->
-                    let
-                        ( a, b ) =
-                            splitAt (k + 1) symbols
-                    in
-                    if reducible a then
-                        reducibleList b
+        C :: _ ->
+            reducibleAux symbols
 
-                    else
-                        False
+        M :: _ ->
+            let
+                seg =
+                    getSegment M symbols
+            in
+            if reducible seg then
+                reducibleList (List.drop (List.length seg) symbols)
+
+            else
+                False
 
         ST :: rest ->
             reducibleList rest
 
         _ ->
             False
+
+
+reducibleAux symbols =
+    case match symbols of
+        Nothing ->
+            False
+
+        Just k ->
+            let
+                ( a, b ) =
+                    splitAt (k + 1) symbols
+            in
+            if reducible a then
+                reducibleList b
+
+            else
+                False
 
 
 {-|
@@ -94,6 +113,23 @@ type alias State =
     { symbols : List Symbol, index : Int, brackets : Int }
 
 
+getSegment : Symbol -> List Symbol -> List Symbol
+getSegment sym symbols =
+    let
+        seg_ =
+            List.Extra.takeWhile (\sym_ -> sym_ /= sym) (List.drop 1 symbols)
+
+        n =
+            List.length seg_
+    in
+    case List.Extra.getAt (n + 1) symbols of
+        Nothing ->
+            sym :: seg_
+
+        Just last ->
+            sym :: seg_ ++ [ last ]
+
+
 match : List Symbol -> Maybe Int
 match symbols =
     case List.head symbols of
@@ -101,7 +137,10 @@ match symbols =
             Nothing
 
         Just symbol ->
-            if value symbol < 0 then
+            if List.member symbol [ C, M ] then
+                Just (List.length (getSegment symbol symbols) - 1)
+
+            else if value symbol < 0 then
                 Nothing
 
             else

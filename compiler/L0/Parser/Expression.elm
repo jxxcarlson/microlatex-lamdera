@@ -218,49 +218,49 @@ push token state =
 
 reduceState : State -> State
 reduceState state =
-    let
-        symbols =
-            state.stack |> Symbol.convertTokens |> List.reverse
-    in
-    if M.reducible symbols then
-        case List.head symbols of
-            Just L ->
-                case eval state.lineNumber (state.stack |> List.reverse) of
-                    (Expr "invisible (1)" [ Text message _ ] _) :: rest ->
-                        { state | stack = [], committed = rest ++ state.committed, messages = Helpers.prependMessage state.lineNumber message state.messages }
-
-                    whatever ->
-                        { state | stack = [], committed = whatever ++ state.committed }
-
-            -- { state | stack = [], committed = eval (state.stack |> List.reverse) ++ state.committed }
-            Just M ->
-                { state
-                    | stack = []
-                    , committed =
-                        Verbatim "math"
-                            (Token.toString <|
-                                unbracket <|
-                                    List.reverse state.stack
-                            )
-                            { begin = 0, end = 0, index = 0, id = makeIdFromState state }
-                            :: state.committed
-                }
-
-            Just C ->
-                { state
-                    | stack = []
-                    , committed =
-                        Verbatim "code"
-                            (Token.toString <|
-                                unbracket <|
-                                    List.reverse state.stack
-                            )
-                            { begin = 0, end = 0, index = 0, id = makeIdFromState state }
-                            :: state.committed
-                }
-
-            _ ->
-                state
+    if M.reducible (state.stack |> Symbol.convertTokens |> List.reverse) then
+        let
+            newCommit =
+                eval state.lineNumber (state.stack |> List.reverse)
+        in
+        { state | stack = [], committed = newCommit ++ state.committed }
+        --case List.head symbols of
+        --    Just L ->
+        --        let
+        --            c =
+        --                eval state.lineNumber (state.stack |> List.reverse)
+        --        in
+        --        { state | stack = [], committed = Debug.log "NEW COMMIT (L)" c ++ state.committed }
+        --
+        --    -- { state | stack = [], committed = eval (state.stack |> List.reverse) ++ state.committed }
+        --    Just M ->
+        --        { state
+        --            | stack = []
+        --            , committed =
+        --                Verbatim "math"
+        --                    (Token.toString <|
+        --                        unbracket <|
+        --                            List.reverse state.stack
+        --                    )
+        --                    { begin = 0, end = 0, index = 0, id = makeIdFromState state }
+        --                    :: state.committed
+        --        }
+        --
+        --    Just C ->
+        --        { state
+        --            | stack = []
+        --            , committed =
+        --                Verbatim "code"
+        --                    (Token.toString <|
+        --                        unbracket <|
+        --                            List.reverse state.stack
+        --                    )
+        --                    { begin = 0, end = 0, index = 0, id = makeIdFromState state }
+        --                    :: state.committed
+        --        }
+        --
+        --    _ ->
+        --        state
 
     else
         state
@@ -295,20 +295,25 @@ eval lineNumber tokens =
             args =
                 unbracket tokens
         in
-        case List.head args of
+        case args of
             -- The reversed token list is of the form [LB name EXPRS RB], so return [Expr name (evalList EXPRS)]
-            Just (S name meta) ->
+            (S name meta) :: _ ->
                 [ Expr name (evalList lineNumber (List.drop 1 args)) (boostMeta lineNumber meta.index meta) ]
 
-            Nothing ->
-                -- this happens with input of "[]"
-                [ errorMessage "[ ]" ]
-
             _ ->
-                [ errorMessage "[••]" ]
+                -- this happens with input of "[]"
+                [ errorMessage "[????]" ]
 
     else
-        []
+        case tokens of
+            (MathToken meta) :: (S str _) :: (MathToken meta2) :: rest ->
+                Verbatim "math" str (boostMeta lineNumber meta.index meta) :: evalList lineNumber rest
+
+            (CodeToken meta) :: (S str _) :: (CodeToken meta2) :: rest ->
+                Verbatim "code" str (boostMeta lineNumber meta.index meta) :: evalList lineNumber rest
+
+            _ ->
+                [ errorMessage "[????]" ]
 
 
 evalList : Int -> List Token -> List Expr
@@ -328,6 +333,20 @@ evalList lineNumber tokens =
                             in
                             eval lineNumber a ++ evalList lineNumber b
 
+                TMath ->
+                    let
+                        ( a, b ) =
+                            M.splitAt (segLength tokens + 1) tokens
+                    in
+                    eval lineNumber a ++ evalList lineNumber b
+
+                TCode ->
+                    let
+                        ( a, b ) =
+                            M.splitAt (segLength tokens + 1) tokens
+                    in
+                    eval lineNumber a ++ evalList lineNumber b
+
                 _ ->
                     case exprOfToken token of
                         Just expr ->
@@ -338,6 +357,11 @@ evalList lineNumber tokens =
 
         _ ->
             []
+
+
+segLength : List Token -> Int
+segLength tokens =
+    M.getSegment M (tokens |> Symbol.convertTokens) |> List.length
 
 
 errorMessageInvisible : Int -> String -> Expr
