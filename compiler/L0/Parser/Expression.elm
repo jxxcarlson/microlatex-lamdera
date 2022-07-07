@@ -114,7 +114,6 @@ nextStep state =
                 Done state
 
             else
-                -- the stack is not empty, so we need to handle the parse error
                 recoverFromError state
 
         Just token ->
@@ -186,7 +185,7 @@ pushOrCommit_ token state =
 
 commit : Token -> State -> State
 commit token state =
-    case exprOfToken token of
+    case stringTokenToExpr token of
         Nothing ->
             state
 
@@ -194,8 +193,8 @@ commit token state =
             { state | committed = expr :: state.committed }
 
 
-exprOfToken : Token -> Maybe Expr
-exprOfToken token =
+stringTokenToExpr : Token -> Maybe Expr
+stringTokenToExpr token =
     case token of
         S str loc ->
             Just (Text str (boostMeta 0 (Token.indexOf token) loc))
@@ -218,52 +217,20 @@ push token state =
 
 reduceState : State -> State
 reduceState state =
-    if M.reducible (state.stack |> Symbol.convertTokens |> List.reverse) then
-        let
-            newCommit =
-                eval state.lineNumber (state.stack |> List.reverse)
-        in
-        { state | stack = [], committed = newCommit ++ state.committed }
-        --case List.head symbols of
-        --    Just L ->
-        --        let
-        --            c =
-        --                eval state.lineNumber (state.stack |> List.reverse)
-        --        in
-        --        { state | stack = [], committed = Debug.log "NEW COMMIT (L)" c ++ state.committed }
-        --
-        --    -- { state | stack = [], committed = eval (state.stack |> List.reverse) ++ state.committed }
-        --    Just M ->
-        --        { state
-        --            | stack = []
-        --            , committed =
-        --                Verbatim "math"
-        --                    (Token.toString <|
-        --                        unbracket <|
-        --                            List.reverse state.stack
-        --                    )
-        --                    { begin = 0, end = 0, index = 0, id = makeIdFromState state }
-        --                    :: state.committed
-        --        }
-        --
-        --    Just C ->
-        --        { state
-        --            | stack = []
-        --            , committed =
-        --                Verbatim "code"
-        --                    (Token.toString <|
-        --                        unbracket <|
-        --                            List.reverse state.stack
-        --                    )
-        --                    { begin = 0, end = 0, index = 0, id = makeIdFromState state }
-        --                    :: state.committed
-        --        }
-        --
-        --    _ ->
-        --        state
+    if tokensAreReducible state then
+        { state | stack = [], committed = evalStack state ++ state.committed }
 
     else
         state
+
+
+evalStack : State -> List Expr
+evalStack state =
+    eval state.lineNumber (state.stack |> List.reverse)
+
+
+tokensAreReducible state =
+    M.reducible (state.stack |> Symbol.convertTokens |> List.reverse)
 
 
 {-| remove first and last token
@@ -316,44 +283,56 @@ eval lineNumber tokens =
                 [ errorMessage "[????]" ]
 
 
+splitTokens : List Token -> Maybe ( List Token, List Token )
+splitTokens tokens =
+    case M.match (Symbol.convertTokens tokens) of
+        Nothing ->
+            Nothing
+
+        Just k ->
+            Just (M.splitAt (k + 1) tokens)
+
+
+splitTokensWithSegment : List Token -> ( List Token, List Token )
+splitTokensWithSegment tokens =
+    M.splitAt (segLength tokens + 1) tokens
+
+
 evalList : Int -> List Token -> List Expr
 evalList lineNumber tokens =
-    case List.head tokens of
-        Just token ->
-            case Token.type_ token of
-                TLB ->
-                    case M.match (Symbol.convertTokens tokens) of
-                        Nothing ->
-                            [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLocWithId ]
+    case tokens of
+        (LB _) :: _ ->
+            case splitTokens tokens of
+                Nothing ->
+                    [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLocWithId ]
 
-                        Just k ->
-                            let
-                                ( a, b ) =
-                                    M.splitAt (k + 1) tokens
-                            in
-                            eval lineNumber a ++ evalList lineNumber b
-
-                TMath ->
-                    let
-                        ( a, b ) =
-                            M.splitAt (segLength tokens + 1) tokens
-                    in
+                Just ( a, b ) ->
                     eval lineNumber a ++ evalList lineNumber b
 
-                TCode ->
-                    let
-                        ( a, b ) =
-                            M.splitAt (segLength tokens + 1) tokens
-                    in
-                    eval lineNumber a ++ evalList lineNumber b
+        (MathToken _) :: _ ->
+            let
+                ( a, b ) =
+                    splitTokensWithSegment tokens
+            in
+            eval lineNumber a ++ evalList lineNumber b
 
-                _ ->
-                    case exprOfToken token of
-                        Just expr ->
-                            expr :: evalList lineNumber (List.drop 1 tokens)
+        (CodeToken _) :: _ ->
+            let
+                ( a, b ) =
+                    splitTokensWithSegment tokens
+            in
+            eval lineNumber a ++ evalList lineNumber b
 
-                        Nothing ->
-                            [ errorMessage ("Line " ++ String.fromInt lineNumber ++ ", error converting token"), Text "error converting Token" dummyLocWithId ]
+        (S str meta) :: _ ->
+            Text str (boostMeta 0 (Token.indexOf (S str meta)) meta) :: evalList lineNumber (List.drop 1 tokens)
+
+        token :: _ ->
+            case stringTokenToExpr token of
+                Just expr ->
+                    expr :: evalList lineNumber (List.drop 1 tokens)
+
+                Nothing ->
+                    [ errorMessage ("Line " ++ String.fromInt lineNumber ++ ", error converting token"), Text "error converting Token" dummyLocWithId ]
 
         _ ->
             []
