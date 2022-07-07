@@ -1318,18 +1318,14 @@ updateFromBackend msg model =
                     ( { model
                         | currentMasterDocument = currentMasterDocument
                         , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-
-                        -- , editRecord = newEditRecord
+                        , currentDocument = Just doc
+                        , editRecord = newEditRecord
                         , publicDocuments = publicDocuments
                       }
                     , Effect.Command.batch [ loadCmd, getFirstDocumentCommand ]
                     )
 
         ReceivedDocuments documentHandling documents ->
-            --let
-            --    documents =
-            --        DocumentTools.sort model.sortMode documents_
-            --in
             case List.head documents of
                 Nothing ->
                     -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
