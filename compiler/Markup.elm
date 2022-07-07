@@ -1,6 +1,6 @@
 module Markup exposing
     ( parse
-    , example, example2, example3, f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
+    , example1a, example1b, example2, example3, f, g, h, isVerbatimLine, messagesFromForest, parsePlainText, toPrimitiveBlockForest, x1, x2
     )
 
 {-| A Parser for the experimental Markup module. See the app folder to see how it is used.
@@ -72,16 +72,16 @@ example3 =
 --      ,Tree (ExpressionBlock { args = [], blockType = Paragraph, content = Right [Text ("   y^2") { begin = 0, end = 4, id = "0.4", index = 0 }], id = "8", indent = 2, lineNumber = 8, messages = [], name = Nothing, numberOfLines = 1, sourceText = "  y^2", tag = "" }) []]]
 
 
-example =
+example1a =
     """
-| item
-AAA
+\\cslink{Tips jxxcarlson:tips}
 
-|item
-BBB
+"""
 
-| item
-CCC
+
+example1b =
+    """
+[cslink Tips jxxcarlson:tips]
 
 """
 

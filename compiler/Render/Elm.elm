@@ -263,7 +263,7 @@ ulink _ _ _ exprList =
 cslink _ _ _ exprList =
     case List.head <| ASTTools.exprListToStringList exprList of
         Nothing ->
-            errorText_ "Please id or slug"
+            errorText_ "Please: id or slug"
 
         Just argString ->
             let
@@ -275,9 +275,6 @@ cslink _ _ _ exprList =
 
                 label =
                     List.take (n - 1) args |> String.join " "
-
-                id =
-                    List.drop (n - 1) args |> String.join " "
 
                 fragment =
                     List.drop (n - 1) args |> String.join " "
