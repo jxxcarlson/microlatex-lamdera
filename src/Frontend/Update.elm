@@ -682,21 +682,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
                     currentUser.username
 
                 smartDocCommand =
-                    case ExtractInfo.parseInfo "type" doc.content of
-                        Nothing ->
-                            Command.none
-
-                        Just ( label, dict ) ->
-                            if label == "folder" && model.allowOpenFolder then
-                                case Dict.get "get" dict of
-                                    Nothing ->
-                                        Command.none
-
-                                    Just tag ->
-                                        sendToBackend (MakeCollection doc.title currentUserName_ ("folder:" ++ tag))
-
-                            else
-                                Command.none
+                    makeSmartDocCommand doc model.allowOpenFolder currentUserName_
 
                 oldEditorList =
                     doc.currentEditorList
@@ -768,6 +754,25 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 , smartDocCommand
                 ]
             )
+
+
+makeSmartDocCommand : Document -> Bool -> String -> Command FrontendOnly ToBackend FrontendMsg
+makeSmartDocCommand doc allowOpenFolder currentUserName_ =
+    case ExtractInfo.parseInfo "type" doc.content of
+        Nothing ->
+            Command.none
+
+        Just ( label, dict ) ->
+            if label == "folder" && allowOpenFolder then
+                case Dict.get "get" dict of
+                    Nothing ->
+                        Command.none
+
+                    Just tag ->
+                        sendToBackend (MakeCollection doc.title currentUserName_ ("folder:" ++ tag))
+
+            else
+                Command.none
 
 
 prepareMasterDocument : FrontendModel -> Document -> ( Maybe Document, Compiler.DifferentialParser.EditRecord, Command FrontendOnly ToBackend FrontendMsg )
@@ -987,6 +992,9 @@ handleAsStandardReceivedDocument model doc =
 
             else
                 model.currentMasterDocument
+
+        smartDocCommand =
+            makeSmartDocCommand doc model.allowOpenFolder (model.currentUser |> Maybe.map .username |> Maybe.withDefault "---")
     in
     case maybeFirstDocId of
         Nothing ->
@@ -1008,11 +1016,12 @@ handleAsStandardReceivedDocument model doc =
                 , Frontend.Cmd.setInitialEditorContent 20
                 , View.Utility.setViewPortToTop model.popupState
                 , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
+                , smartDocCommand
                 ]
             )
 
         Just id ->
-            ( model, sendToBackend (FetchDocumentById (KeepMasterDocument doc) id) )
+            ( model, Command.batch [ sendToBackend (FetchDocumentById (KeepMasterDocument doc) id), smartDocCommand ] )
 
 
 handleKeepingMasterDocument : FrontendModel -> Document -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
