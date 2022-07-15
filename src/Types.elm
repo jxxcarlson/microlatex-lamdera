@@ -393,6 +393,7 @@ type FrontendMsg
     | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId
     | SoftDeleteDocument
+    | Undelete
     | HardDeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
     | SetHardDeleteDocumentState DocumentHardDeleteState

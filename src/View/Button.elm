@@ -460,7 +460,7 @@ softDeleteDocument model =
             Just doc ->
                 case doc.status of
                     Document.DSSoftDelete ->
-                        deleteDocument_ "Undelete" model
+                        buttonTemplate [] Undelete "Undelete"
 
                     Document.DSCanEdit ->
                         deleteDocument_ "Delete" model
@@ -513,6 +513,8 @@ hardDelete title model =
 
 
 deleteDocument_ title model =
+    --if Maybe.map .status model.currentDocument == Just Document.DocStatus.DSSoftDelete then
+    --    Undelete
     case model.deleteDocumentState of
         WaitingForDeleteAction ->
             buttonTemplate [] (SetDeleteDocumentState CanDelete) title
@@ -870,20 +872,20 @@ getDocs =
 toggleAllowOpenFolder allowOpenFolder =
     if allowOpenFolder then
         buttonTemplateWithTooltip2
-            { tooltipText = "Edit smart docs"
-            , tooltipPlacement = E.below
+            { tooltipText = "Smart docs: ACTIVE"
+            , tooltipPlacement = E.onLeft
             , attributes = [ Background.color Color.veryPaleBlue ]
             , msg = Types.ToggleAllowOpenFolder
-            , label = "o"
+            , label = "A"
             }
 
     else
         buttonTemplateWithTooltip2
-            { tooltipText = "Activate smart docs"
-            , tooltipPlacement = E.below
+            { tooltipText = "Smart docs: EDIT"
+            , tooltipPlacement = E.onLeft
             , attributes = [ Background.color Color.veryPaleBlue ]
             , msg = Types.ToggleAllowOpenFolder
-            , label = "e"
+            , label = "E"
             }
 
 

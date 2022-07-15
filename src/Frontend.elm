@@ -960,6 +960,9 @@ update msg model =
         SoftDeleteDocument ->
             Frontend.Update.softDeleteDocument model
 
+        Undelete ->
+            Frontend.Update.undeleteDocument model
+
         HardDeleteDocument ->
             Frontend.Update.hardDeleteDocument model
 

@@ -44,6 +44,7 @@ port module Frontend.Update exposing
     , signUp
     , softDeleteDocument
     , syncLR
+    , undeleteDocument
     , updateDoc
     , updateEditRecord
     , updateKeys
@@ -52,6 +53,7 @@ port module Frontend.Update exposing
 
 --
 
+import Abstract
 import Authentication
 import BoundedDeque exposing (BoundedDeque)
 import Browser exposing (UrlRequest(..))
@@ -716,7 +718,10 @@ setDocumentAsCurrent_ cmd model doc permissions =
                     addDocToCurrentUser model doc
 
                 newDocumentStatus =
-                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
+                    if doc.status == Document.DSSoftDelete then
+                        Document.DSSoftDelete
+
+                    else if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
                         Document.DSCanEdit
 
                     else
@@ -1202,6 +1207,47 @@ savePreviousCurrentDocumentCmd model =
 ---    delete
 
 
+undeleteDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+undeleteDocument model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Command.none )
+
+        Just doc ->
+            let
+                updatedUser : Maybe User
+                updatedUser =
+                    case model.currentUser of
+                        Nothing ->
+                            Nothing
+
+                        Just user ->
+                            Just user
+
+                -- deleteDocFromCurrentUser model doc
+                ( newDoc, currentDocument, newDocuments ) =
+                    let
+                        newDoc_ =
+                            { doc | status = Document.DSCanEdit } |> removeTag "folder:deleted"
+                    in
+                    ( newDoc_, Just Docs.deleted, newDoc_ :: List.filter (\doc_ -> doc_.id /= doc.id) model.documents )
+            in
+            ( { model
+                | currentDocument = currentDocument
+                , documents = newDocuments
+                , documentDirty = False
+                , deleteDocumentState = WaitingForDeleteAction
+                , currentUser = updatedUser
+              }
+                |> postProcessDocument newDoc
+            , Command.batch
+                [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
+
+                --, Effect.Process.sleep (Duration.milliseconds 500) |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice))
+                ]
+            )
+
+
 softDeleteDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 softDeleteDocument model =
     case model.currentDocument of
@@ -1210,7 +1256,7 @@ softDeleteDocument model =
 
         Just doc ->
             let
-                newUser =
+                updatedUser =
                     case model.currentUser of
                         Nothing ->
                             Nothing
@@ -1219,21 +1265,108 @@ softDeleteDocument model =
                             deleteDocFromCurrentUser model doc
 
                 ( newDoc, currentDocument, newDocuments ) =
-                    if doc.status == Document.DSSoftDelete then
-                        ( { doc | status = Document.DSCanEdit }, model.currentDocument, model.documents )
-
-                    else
-                        ( { doc | status = Document.DSSoftDelete }, Just Docs.deleted, List.filter (\d -> d.id /= doc.id) model.documents )
+                    ( { doc | status = Document.DSSoftDelete } |> addTag "folder:deleted", Just Docs.deleted, List.filter (\d -> d.id /= doc.id) model.documents )
             in
             ( { model
                 | currentDocument = currentDocument
                 , documents = newDocuments
                 , documentDirty = False
                 , deleteDocumentState = WaitingForDeleteAction
-                , currentUser = newUser
+                , currentUser = updatedUser
               }
-            , Command.batch [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc), Effect.Process.sleep (Duration.milliseconds 500) |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
+                |> postProcessDocument Docs.deleted
+            , Command.batch
+                [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
+                ]
             )
+
+
+addTag : String -> Document -> Document
+addTag tag doc =
+    let
+        oldTagString_ =
+            Abstract.getRawItem doc.language "tags" doc.content
+
+        newTags =
+            tag :: doc.tags |> String.join ", "
+
+        newTagString =
+            case doc.language of
+                L0Lang ->
+                    [ "[tags ", newTags, "]" ] |> String.join ""
+
+                MicroLaTeXLang ->
+                    [ "\\tags{", newTags, "}" ] |> String.join ""
+
+                XMarkdownLang ->
+                    [ "@[tags ", newTags, "]" ] |> String.join ""
+
+                _ ->
+                    ""
+
+        newContent =
+            case oldTagString_ of
+                Nothing ->
+                    let
+                        tagString =
+                            case doc.language of
+                                L0Lang ->
+                                    "[tags folder:deleted]"
+
+                                MicroLaTeXLang ->
+                                    "\\tags{folder:deleted}"
+
+                                XMarkdownLang ->
+                                    "@[tags folder:deleted]"
+
+                                PlainTextLang ->
+                                    ""
+                    in
+                    case String.split "\n\n" doc.content of
+                        head :: rest ->
+                            head :: tagString :: rest |> String.join "\n\n"
+
+                        [] ->
+                            ""
+
+                Just oldTagString ->
+                    String.replace oldTagString newTagString doc.content
+    in
+    { doc | content = newContent }
+
+
+removeTag : String -> Document -> Document
+removeTag tag doc =
+    let
+        oldTagsString_ =
+            Abstract.getRawItem doc.language "tags" doc.content
+
+        newTags =
+            doc.tags |> List.filter (\tag_ -> tag_ /= tag)
+
+        newTagString =
+            case doc.language of
+                L0Lang ->
+                    [ "[tags ", String.join ", " newTags, "]" ] |> String.join ""
+
+                MicroLaTeXLang ->
+                    [ "\\tags{", String.join ", " newTags, "}" ] |> String.join ""
+
+                XMarkdownLang ->
+                    [ "@[tags ", String.join ", " newTags, "]" ] |> String.join ""
+
+                PlainTextLang ->
+                    ""
+
+        newContent =
+            case oldTagsString_ of
+                Nothing ->
+                    doc.content
+
+                Just oldTagString ->
+                    String.replace oldTagString newTagString doc.content
+    in
+    { doc | content = newContent, tags = newTags }
 
 
 hardDeleteDocument : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
