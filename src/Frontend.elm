@@ -1276,7 +1276,6 @@ updateFromBackend msg model =
                 | editRecord = editRecord
                 , title = Compiler.ASTTools.title editRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , documents = doc :: model.documents -- insertInListOrUpdate
                 , currentDocument = Just doc
                 , sourceText = doc.content
                 , currentMasterDocument = currentMasterDocument
