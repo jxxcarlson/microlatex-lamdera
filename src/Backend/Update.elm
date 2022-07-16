@@ -27,6 +27,7 @@ module Backend.Update exposing
     , handleChatMsg
     , handlePing
     , hardDeleteDocument
+    , hardDeleteDocumentsWithIdList
     , insertDocument
     , join
     , publicTags
@@ -1074,6 +1075,46 @@ searchForUserDocuments maybeUsername key model =
 
 
 -- SYSTEM
+
+
+hardDeleteDocumentsWithIdList : List String -> Model -> Model
+hardDeleteDocumentsWithIdList ids model =
+    List.foldl (\id acc -> hardDeleteDocumentById id acc) model ids
+
+
+hardDeleteDocumentById : String -> Model -> Model
+hardDeleteDocumentById docId model =
+    let
+        documentDict =
+            Dict.remove docId model.documentDict
+
+        publicIdDict =
+            Dict.remove docId model.publicIdDict
+
+        abstractDict =
+            Dict.remove docId model.abstractDict
+
+        usersDocumentsDict =
+            Dict.remove docId model.usersDocumentsDict
+
+        authorIdDict =
+            Dict.remove docId model.authorIdDict
+
+        publicDocuments =
+            List.filter (\d -> d.id /= docId) model.publicDocuments
+
+        documents =
+            List.filter (\d -> d.id /= docId) model.documents
+    in
+    { model
+        | documentDict = documentDict
+        , authorIdDict = authorIdDict
+        , publicIdDict = publicIdDict
+        , abstractDict = abstractDict
+        , usersDocumentsDict = usersDocumentsDict
+        , publicDocuments = publicDocuments
+        , documents = documents
+    }
 
 
 hardDeleteDocument : ClientId -> Document.Document -> Model -> ( Model, Command BackendOnly ToFrontend msg )

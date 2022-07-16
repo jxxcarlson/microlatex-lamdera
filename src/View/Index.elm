@@ -63,12 +63,15 @@ view model width_ deltaH =
             let
                 indexShift =
                     150
+
+                isDeleteFolder currentDocument =
+                    Maybe.map .title currentDocument == Just "Deleted Docs"
             in
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 8 ]
                     [ Button.setSortModeMostRecent model.sortMode
                     , Button.setSortModeAlpha model.sortMode
-                    , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleAllowOpenFolder model.allowOpenFolder)
+                    , View.Utility.showIf (isDeleteFolder model.currentMasterDocument) Button.hardDeleteAll
                     ]
                 , Rendered.viewInIndexPanel model doc width_ deltaH indexShift
                 , case model.activeDocList of

@@ -394,6 +394,7 @@ type FrontendMsg
     | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId
     | SoftDeleteDocument
+    | HardDeleteAll
     | Undelete
     | HardDeleteDocument
     | SetDeleteDocumentState DocumentDeleteState
@@ -466,6 +467,7 @@ type ToBackend
     | RemoveEditor User Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections
       -- DOCUMENT
+    | DeleteDocumentsWithIds (List String)
     | MakeCollection String String String
     | InitializeNetworkModelsWithDocument Document
     | ResetNetworkModelForDocument Document

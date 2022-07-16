@@ -405,6 +405,9 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
 
         -- DOCUMENT
+        DeleteDocumentsWithIds ids ->
+            ( Backend.Update.hardDeleteDocumentsWithIdList ids model, Command.none )
+
         MakeCollection title username tag ->
             let
                 docInfo =

@@ -961,6 +961,28 @@ update msg model =
         SoftDeleteDocument ->
             Frontend.Update.softDeleteDocument model
 
+        HardDeleteAll ->
+            case model.currentMasterDocument of
+                Nothing ->
+                    ( model, Effect.Command.none )
+
+                Just masterDoc ->
+                    if masterDoc.title /= "Deleted Docs" then
+                        ( model, Effect.Command.none )
+
+                    else
+                        let
+                            ids =
+                                masterDoc.content
+                                    |> String.split "\n"
+                                    |> List.filter (\line -> String.left 10 line == "| document")
+                                    |> List.map (\line -> String.trim (String.dropLeft 10 line))
+
+                            newMasterDoc =
+                                { masterDoc | content = "| title\nDeleted Docs\n\n" }
+                        in
+                        ( { model | currentMasterDocument = Just newMasterDoc } |> Frontend.Update.postProcessDocument Docs.deleteDocsRemovedForever, sendToBackend (DeleteDocumentsWithIds ids) )
+
         Undelete ->
             Frontend.Update.undeleteDocument model
 

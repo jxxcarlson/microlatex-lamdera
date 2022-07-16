@@ -1,5 +1,6 @@
 module Docs exposing
-    ( deleted
+    ( deleteDocsRemovedForever
+    , deleted
     , deletedDocsFolder
     , docsNotFound
     , notSignedIn
@@ -38,6 +39,14 @@ Your document has been deleted.
 
 
 """
+
+
+deleteDocsRemovedForever =
+    { empty
+        | content = "| title\nDone ...\n\nAll deleted documents have been destroyed"
+        , id = "id-sys-deleteDocsRemovedForever"
+        , publicId = "public-sys-deleteDocsRemovedForever"
+    }
 
 
 docsNotFound =

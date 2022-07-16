@@ -30,6 +30,7 @@ module View.Button exposing
     , getPublicTags
     , getUserList
     , getUserTags
+    , hardDeleteAll
     , hardDeleteDocument
     , help
     , home
@@ -586,6 +587,11 @@ signOut model =
 getDocumentByPrivateId : Element FrontendMsg
 getDocumentByPrivateId =
     buttonTemplate [] AskForDocumentByAuthorId "Get document"
+
+
+hardDeleteAll : Element FrontendMsg
+hardDeleteAll =
+    buttonTemplate [] HardDeleteAll "Destroy deleted docs?"
 
 
 setSortModeAlpha : SortMode -> Element FrontendMsg
