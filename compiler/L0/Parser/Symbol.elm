@@ -7,6 +7,7 @@ import Maybe.Extra
 type Symbol
     = L -- LB, [
     | R -- RB, ]
+    | BM -- bracketed math, e.g., \[x^2\]
     | ST -- S String (string)
     | M -- $
     | C -- `
@@ -30,6 +31,9 @@ value symbol =
             0
 
         M ->
+            0
+
+        BM ->
             0
 
         C ->
@@ -61,6 +65,9 @@ symbolToString symbol =
 
         M ->
             "M"
+
+        BM ->
+            "BM"
 
         C ->
             "C"
@@ -96,6 +103,9 @@ toSymbol token =
 
         MathToken _ ->
             M
+
+        BracketedMath _ _ ->
+            BM
 
         CodeToken _ ->
             C

@@ -156,6 +156,9 @@ pushOrCommit token state =
         MathToken _ ->
             pushOnStack token state
 
+        BracketedMath _ _ ->
+            pushOrCommit_ token state
+
         CodeToken _ ->
             pushOnStack token state
 
@@ -201,6 +204,9 @@ stringTokenToExpr token =
 
         W str loc ->
             Just (Text str (boostMeta 0 (Token.indexOf token) loc))
+
+        BracketedMath str loc ->
+            Just (Verbatim "math" str (boostMeta 0 (Token.indexOf token) loc))
 
         _ ->
             Nothing

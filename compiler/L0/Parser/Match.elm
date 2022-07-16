@@ -1,4 +1,4 @@
-module L0.Parser.Match exposing (deleteAt, getSegment, match, reducible, splitAt)
+module L0.Parser.Match exposing (deleteAt, getSegment, match, reducible, reducibleList, splitAt)
 
 import L0.Parser.Symbol exposing (Symbol(..), value)
 import List.Extra
@@ -61,6 +61,9 @@ reducibleList symbols =
 
             else
                 False
+
+        BM :: rest ->
+            reducibleList rest
 
         ST :: rest ->
             reducibleList rest

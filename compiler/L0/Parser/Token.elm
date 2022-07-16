@@ -12,7 +12,7 @@ module L0.Parser.Token exposing
     , type_
     )
 
-import Parser.Advanced as Parser exposing (DeadEnd, Parser)
+import Parser.Advanced as Parser exposing ((|.), (|=), DeadEnd, Parser)
 import Parser.Helpers exposing (Step(..), loop)
 import Parser.Tools as PT exposing (Context, Problem)
 
@@ -37,6 +37,7 @@ type Token
     | S String Meta
     | W String Meta
     | MathToken Meta
+    | BracketedMath String Meta
     | CodeToken Meta
     | TokenError (List (DeadEnd Context Problem)) Meta
 
@@ -77,6 +78,9 @@ indexOf token =
         MathToken meta ->
             meta.index
 
+        BracketedMath _ meta ->
+            meta.index
+
         CodeToken meta ->
             meta.index
 
@@ -101,6 +105,9 @@ setIndex k token =
 
         MathToken meta ->
             MathToken { meta | index = k }
+
+        BracketedMath str meta ->
+            BracketedMath str { meta | index = k }
 
         CodeToken meta ->
             CodeToken { meta | index = k }
@@ -136,6 +143,7 @@ type TokenType
     | TS
     | TW
     | TMath
+    | TBracketedMath
     | TCode
     | TTokenError
 
@@ -157,6 +165,9 @@ type_ token =
 
         MathToken _ ->
             TMath
+
+        BracketedMath _ _ ->
+            TBracketedMath
 
         CodeToken _ ->
             TCode
@@ -183,6 +194,9 @@ getMeta token =
         MathToken m ->
             m
 
+        BracketedMath _ m ->
+            m
+
         CodeToken m ->
             m
 
@@ -207,6 +221,9 @@ stringValue token =
 
         MathToken _ ->
             "$"
+
+        BracketedMath s _ ->
+            "\\[" ++ s ++ "\\]"
 
         CodeToken _ ->
             "`"
@@ -238,6 +255,9 @@ length token =
         CodeToken meta ->
             meta.end - meta.begin
 
+        BracketedMath _ meta ->
+            meta.end - meta.begin
+
         W _ meta ->
             meta.end - meta.begin
 
@@ -259,6 +279,10 @@ init str =
 
 type alias TokenParser =
     Parser Context Problem Token
+
+
+type alias QParser a =
+    Parser Context Problem a
 
 
 run : String -> List Token
@@ -428,7 +452,7 @@ tokenParser mode start index =
 
 
 languageChars =
-    [ '[', ']', '`', '$' ]
+    [ '[', ']', '`', '$', '\\' ]
 
 
 mathChars =
@@ -445,6 +469,7 @@ tokenParser_ start index =
         [ textParser start index
         , leftBracketParser start index
         , rightBracketParser start index
+        , bracketedMathParser start index
         , mathParser start index
         , codeParser start index
         , whiteSpaceParser start index
@@ -487,6 +512,17 @@ rightBracketParser start index =
         |> Parser.map (\_ -> RB { begin = start, end = start, index = index })
 
 
+bracketedMathParser : Int -> Int -> TokenParser
+bracketedMathParser start index =
+    Parser.succeed (\a b content -> BracketedMath (String.slice a (b - 2) content) { begin = start, end = start + b - a + 2, index = index })
+        |. Parser.symbol (Parser.Token "\\[" (PT.ExpectingSymbol "\\["))
+        |= Parser.getOffset
+        |. Parser.chompUntil (Parser.Token "\\]" (PT.ExpectingSymbol "\\]"))
+        |. Parser.symbol (Parser.Token "\\]" (PT.ExpectingSymbol "\\]"))
+        |= Parser.getOffset
+        |= Parser.getSource
+
+
 textParser start index =
     PT.text (\c -> not <| List.member c (' ' :: languageChars)) (\c -> not <| List.member c (' ' :: languageChars))
         |> Parser.map (\data -> S data.content { begin = start, end = start + data.end - data.begin - 1, index = index })
@@ -512,3 +548,13 @@ codeParser : Int -> Int -> TokenParser
 codeParser start index =
     PT.text (\c -> c == '`') (\_ -> False)
         |> Parser.map (\_ -> CodeToken { begin = start, end = start, index = index })
+
+
+first : QParser a -> QParser b -> QParser a
+first p q =
+    p |> Parser.andThen (\x -> q |> Parser.map (\_ -> x))
+
+
+second : QParser a -> QParser b -> QParser b
+second p q =
+    p |> Parser.andThen (\_ -> q)
