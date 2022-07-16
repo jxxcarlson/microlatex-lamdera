@@ -14,6 +14,7 @@ module Config exposing
     , host
     , indentationQuantum
     , initialLanguage
+    , initialText
     , l0GuideId
     , l0ManualId
     , loadingId
@@ -242,6 +243,10 @@ titleSize =
 
 indentationQuantum =
     2
+
+
+initialText =
+    "***"
 
 
 loadingText =

@@ -456,35 +456,44 @@ newDocument model =
         documentsCreatedCounter =
             model.documentsCreatedCounter + 1
 
+        titleString =
+            if String.length model.inputTitle < 3 then
+                "??"
+
+            else
+                model.inputTitle
+
         title =
             case model.language of
                 MicroLaTeXLang ->
-                    "\\title{" ++ model.inputTitle ++ "}\n\n"
+                    "\\title{" ++ titleString ++ "}\n\n"
 
                 _ ->
-                    "| title\n" ++ model.inputTitle ++ "\n\n"
+                    "| title\n" ++ titleString ++ "\n\n"
 
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         doc =
             { emptyDoc
-                | title = title
+                | title = titleString
                 , content = title
                 , author = Maybe.map .username model.currentUser
                 , language = model.language
             }
     in
     ( { model
-        | showEditor = True
-        , inputTitle = ""
-        , title = Compiler.ASTTools.title editRecord.parsed
+        | -- showEditor = True
+          inputTitle = ""
+        , counter = model.counter + 1
 
+        -- , title = title
         --, editRecord = editRecord
-        -- , documents = doc::model.documents
+        , documents = doc :: model.documents
         , documentsCreatedCounter = documentsCreatedCounter
         , popupState = NoPopup
       }
+        |> postProcessDocument doc
     , Command.batch [ Effect.Lamdera.sendToBackend (CreateDocument model.currentUser doc) ]
     )
 
