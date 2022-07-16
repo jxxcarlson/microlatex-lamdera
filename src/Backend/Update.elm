@@ -4,6 +4,7 @@ module Backend.Update exposing
     , applySpecial
     , authorTags
     , createDocument
+    , createDocumentAtBackend
     , deliverUserMessage
     , fetchDocumentById
     , findDocumentByAuthorAndKey
@@ -53,6 +54,7 @@ import Config
 import DateTimeUtility
 import Deque
 import Dict
+import Docs
 import Document exposing (Document)
 import DocumentTools
 import Effect.Browser.Dom
@@ -619,6 +621,48 @@ createDocument model clientId maybeCurrentUser doc_ =
     )
 
 
+createDocumentAtBackend : Maybe User -> Document -> Model -> Model
+createDocumentAtBackend maybeCurrentUser doc_ model =
+    let
+        idTokenData =
+            Token.get model.randomSeed
+
+        authorIdTokenData =
+            Token.get idTokenData.seed
+
+        doc =
+            { doc_
+                | id = "id-" ++ idTokenData.token
+                , created = model.currentTime
+                , modified = model.currentTime
+            }
+
+        documentDict =
+            Dict.insert ("id-" ++ idTokenData.token) doc model.documentDict
+
+        authorIdDict =
+            Dict.insert ("au-" ++ authorIdTokenData.token) doc.id model.authorIdDict
+
+        usersDocumentsDict =
+            case maybeCurrentUser of
+                Nothing ->
+                    model.usersDocumentsDict
+
+                Just user ->
+                    let
+                        oldIdList =
+                            Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
+                    in
+                    Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
+    in
+    { model
+        | randomSeed = authorIdTokenData.seed
+        , documentDict = documentDict
+        , authorIdDict = authorIdDict
+        , usersDocumentsDict = usersDocumentsDict
+    }
+
+
 insertDocument model clientId user doc_ =
     let
         doc =
@@ -1138,13 +1182,22 @@ signUpUser model sessionId clientId username lang transitPassword realname email
             , sharedDocumentAuthors = Set.empty
             , pings = []
             }
+
+        deletedDocsFolder_ =
+            Docs.deletedDocsFolder username
     in
     case Authentication.insert user randomHex transitPassword model.authenticationDict of
         Err str ->
             ( { model | randomSeed = tokenData.seed }, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Error: " ++ str, status = MSRed }) )
 
         Ok authDict ->
-            ( { model | connectionDict = newConnectionDict_, randomSeed = tokenData.seed, authenticationDict = authDict, usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict }
+            ( { model
+                | connectionDict = newConnectionDict_
+                , randomSeed = tokenData.seed
+                , authenticationDict = authDict
+                , usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict
+              }
+                |> createDocumentAtBackend (Just user) deletedDocsFolder_
             , Command.batch
                 [ Effect.Lamdera.sendToFrontend clientId (UserSignedUp user clientId)
                 , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Success! Your account is set up.", status = MSGreen })

@@ -1,6 +1,13 @@
-module Docs exposing (deleted, docsNotFound, notSignedIn, simpleWelcomeDoc)
+module Docs exposing
+    ( deleted
+    , deletedDocsFolder
+    , docsNotFound
+    , notSignedIn
+    , simpleWelcomeDoc
+    )
 
 import Document exposing (Document, empty)
+import Parser.Language
 import View.Data
 
 
@@ -67,3 +74,24 @@ Welcome to Scripta.io!
 
 [image https://news.wttw.com/sites/default/files/styles/full/public/field/image/CardinalSnowtlparadisPixabayCrop.jpg?itok=iyp0zGMz]
 """
+
+
+deletedDocsFolder username =
+    let
+        emptyDoc =
+            Document.empty
+
+        content =
+            "| title\nDeleted Documents\n\n[tags :folder, " ++ slug ++ "]\n\n" ++ "| type folder get:deleted ;\n"
+
+        slug =
+            username ++ ":folder-deleted"
+    in
+    { emptyDoc
+        | id = slug
+        , title = "Deleted Documents"
+        , content = content
+
+        -- , tags = [ ":folder", slug ]
+        , language = Parser.Language.L0Lang
+    }
