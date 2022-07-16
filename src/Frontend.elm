@@ -980,8 +980,11 @@ update msg model =
 
                             newMasterDoc =
                                 { masterDoc | content = "| title\nDeleted Docs\n\n" }
+
+                            documents =
+                                List.filter (\doc -> not (List.member doc.id ids)) model.documents
                         in
-                        ( { model | currentMasterDocument = Just newMasterDoc } |> Frontend.Update.postProcessDocument Docs.deleteDocsRemovedForever, sendToBackend (DeleteDocumentsWithIds ids) )
+                        ( { model | documents = documents, currentMasterDocument = Just newMasterDoc } |> Frontend.Update.postProcessDocument Docs.deleteDocsRemovedForever, sendToBackend (DeleteDocumentsWithIds ids) )
 
         Undelete ->
             Frontend.Update.undeleteDocument model
@@ -1299,6 +1302,7 @@ updateFromBackend msg model =
                 , title = Compiler.ASTTools.title editRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
                 , currentDocument = Just doc
+                , documents = doc :: model.documents
                 , sourceText = doc.content
                 , currentMasterDocument = currentMasterDocument
                 , counter = model.counter + 1

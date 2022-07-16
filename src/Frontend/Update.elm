@@ -483,13 +483,8 @@ newDocument model =
             }
     in
     ( { model
-        | -- showEditor = True
-          inputTitle = ""
+        | inputTitle = ""
         , counter = model.counter + 1
-
-        -- , title = title
-        --, editRecord = editRecord
-        , documents = doc :: model.documents
         , documentsCreatedCounter = documentsCreatedCounter
         , popupState = NoPopup
       }
