@@ -66,11 +66,14 @@ view model width_ deltaH =
 
                 isDeleteFolder currentDocument =
                     Maybe.map .title currentDocument == Just "Deleted Docs"
+
+                isCollection currentDocument =
+                    (Maybe.map .content currentDocument |> Maybe.map (\s -> String.contains "| collection" s)) == Just True
             in
             E.column [ E.spacing 8 ]
                 [ E.row [ E.spacing 8 ]
-                    [ Button.setSortModeMostRecent model.sortMode
-                    , Button.setSortModeAlpha model.sortMode
+                    [ View.Utility.hideIf (isCollection model.currentMasterDocument) (Button.setSortModeMostRecent model.sortMode)
+                    , View.Utility.hideIf (isCollection model.currentMasterDocument) (Button.setSortModeAlpha model.sortMode)
                     , View.Utility.showIf (isDeleteFolder model.currentMasterDocument) Button.hardDeleteAll
                     ]
                 , Rendered.viewInIndexPanel model doc width_ deltaH indexShift
