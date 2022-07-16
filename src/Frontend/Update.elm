@@ -1393,13 +1393,30 @@ hardDeleteDocument model =
 
                         Just _ ->
                             deleteDocFromCurrentUser model doc
+
+                newMasterDocument =
+                    case model.currentMasterDocument of
+                        Nothing ->
+                            Nothing
+
+                        Just masterDoc ->
+                            let
+                                newContent =
+                                    masterDoc.content
+                                        |> String.lines
+                                        |> List.filter (\line -> not (String.contains doc.title line || String.contains doc.id line))
+                                        |> String.join "\n"
+                            in
+                            Just { masterDoc | content = newContent }
             in
             ( { model
                 | currentDocument = Just Docs.deleted
+                , currentMasterDocument = newMasterDocument
                 , documents = List.filter (\d -> d.id /= doc.id) model.documents
                 , hardDeleteDocumentState = Types.WaitingForHardDeleteAction
                 , currentUser = newUser
               }
+                |> postProcessDocument Docs.deleted
             , Command.batch [ Effect.Lamdera.sendToBackend (HardDeleteDocumentBE doc), Effect.Process.sleep (Duration.milliseconds 500) |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 

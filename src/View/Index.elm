@@ -10,6 +10,7 @@ import Element.Font as Font
 import Frontend.Update
 import String.Extra
 import Types exposing (ActiveDocList(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
+import Util
 import View.Button as Button
 import View.Geometry as Geometry
 import View.Rendered as Rendered
@@ -58,13 +59,18 @@ view model width_ deltaH =
                 ]
 
         Just doc ->
+            -- View Master Document (collection, folder)
             let
                 indexShift =
                     150
             in
             E.column [ E.spacing 8 ]
-                [ E.row [ E.spacing 8 ] [ Button.setSortModeMostRecent model.sortMode, Button.setSortModeAlpha model.sortMode ]
-                , Rendered.viewSmall model doc width_ deltaH indexShift
+                [ E.row [ E.spacing 8 ]
+                    [ Button.setSortModeMostRecent model.sortMode
+                    , Button.setSortModeAlpha model.sortMode
+                    , View.Utility.showIf (model.currentUser /= Nothing) (Button.toggleAllowOpenFolder model.allowOpenFolder)
+                    ]
+                , Rendered.viewInIndexPanel model doc width_ deltaH indexShift
                 , case model.activeDocList of
                     PublicDocsList ->
                         viewPublicDocs model deltaH indexShift
@@ -120,11 +126,11 @@ viewSharedDocs model deltaH indexShift =
 
 
 filterBackups seeBackups docs =
-    if seeBackups then
-        docs
+    Util.applyIf seeBackups (List.filter (\doc -> doc.handling == Document.DHStandard)) docs
 
-    else
-        List.filter (\doc -> doc.handling == Document.DHStandard) docs
+
+filterDeletedDocs hideDeletedDocs docs =
+    Util.applyIf hideDeletedDocs (List.filter (\doc -> doc.status /= Document.DSSoftDelete)) docs
 
 
 viewShareDocuments : Maybe Document -> List ( String, Bool, Types.SharedDocument ) -> List (Element FrontendMsg)
@@ -217,7 +223,7 @@ viewMydocs model deltaH indexShift =
                     List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
 
         docs =
-            sort model.documents |> filterBackups model.seeBackups
+            model.documents |> filterBackups model.seeBackups |> filterDeletedDocs model.hideDeletedDocuments |> sort
 
         searchKey =
             if model.actualSearchKey == "" then
@@ -340,7 +346,7 @@ viewPublicDocuments model =
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
     in
-    viewDocuments StandardHandling model.currentDocument (sorter (model.publicDocuments |> filterBackups model.seeBackups))
+    viewDocuments StandardHandling model.currentDocument (sorter (model.publicDocuments |> filterDeletedDocs model.hideDeletedDocuments |> filterBackups model.seeBackups))
 
 
 viewDocuments : DocumentHandling -> Maybe Document -> List Document -> List (Element FrontendMsg)

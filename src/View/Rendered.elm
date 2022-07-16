@@ -1,4 +1,4 @@
-module View.Rendered exposing (view, viewForEditor, viewSmall)
+module View.Rendered exposing (view, viewForEditor, viewInIndexPanel)
 
 import Compiler.ASTTools
 import Compiler.DifferentialParser
@@ -43,8 +43,8 @@ view model width_ =
                 ]
 
 
-viewSmall : FrontendModel -> Document -> Int -> Int -> Int -> Element FrontendMsg
-viewSmall model doc width_ deltaH indexShift =
+viewInIndexPanel : FrontendModel -> Document -> Int -> Int -> Int -> Element FrontendMsg
+viewInIndexPanel model doc width_ deltaH indexShift =
     let
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content

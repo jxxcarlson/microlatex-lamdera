@@ -202,6 +202,7 @@ init url key =
       , printingState = PrintWaiting
       , documentDeleteState = WaitingForDeleteAction
       , publicDocuments = []
+      , hideDeletedDocuments = True
       , deleteDocumentState = WaitingForDeleteAction
       , hardDeleteDocumentState = WaitingForHardDeleteAction
       , sortMode = SortByMostRecent

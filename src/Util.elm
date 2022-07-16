@@ -1,5 +1,6 @@
 module Util exposing
     ( Step(..)
+    , applyIf
     , currentUserId
     , currentUsername
     , delay
@@ -19,6 +20,20 @@ import Effect.Process
 import Effect.Task
 import List.Extra
 import User
+
+
+{-|
+
+    Apply f to a if the flat is true, otherwise return a
+
+-}
+applyIf : Bool -> (a -> a) -> a -> a
+applyIf flag f x =
+    if flag then
+        f x
+
+    else
+        x
 
 
 liftToMaybe : (a -> b) -> (Maybe a -> Maybe b)

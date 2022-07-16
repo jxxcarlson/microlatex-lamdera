@@ -220,6 +220,7 @@ type alias FrontendModel =
     , printingState : PrintingState
     , documentDeleteState : DocumentDeleteState
     , counter : Int
+    , hideDeletedDocuments : Bool
     , deleteDocumentState : DocumentDeleteState
     , hardDeleteDocumentState : DocumentHardDeleteState
     , sortMode : SortMode

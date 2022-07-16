@@ -335,8 +335,8 @@ applyFunctions fs a =
     List.foldl (\f acc -> f a :: acc) [] fs |> List.reverse
 
 
-ifApply : Bool -> (a -> a) -> a -> a
-ifApply flag f x =
+applyIf : Bool -> (a -> a) -> a -> a
+applyIf flag f x =
     if flag then
         f x
 
