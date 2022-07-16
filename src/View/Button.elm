@@ -591,7 +591,7 @@ getDocumentByPrivateId =
 
 hardDeleteAll : Element FrontendMsg
 hardDeleteAll =
-    buttonTemplate [] HardDeleteAll "Destroy deleted docs?"
+    buttonTemplateSmall [ Background.color (E.rgb 0.9 0.9 0) ] [ Font.size 11, Font.color (E.rgb 0 0 0) ] HardDeleteAll "Destroy deleted docs?"
 
 
 setSortModeAlpha : SortMode -> Element FrontendMsg
