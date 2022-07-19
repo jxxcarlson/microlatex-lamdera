@@ -1,6 +1,7 @@
 module Util exposing
     ( Step(..)
     , applyIf
+    , compressWhitespace
     , currentUserId
     , currentUsername
     , delay
@@ -19,6 +20,7 @@ import Effect.Command as Command exposing (Command)
 import Effect.Process
 import Effect.Task
 import List.Extra
+import Regex
 import User
 
 
@@ -154,3 +156,18 @@ loop s nextState_ =
 
         Done b ->
             b
+
+
+userReplace : String -> (Regex.Match -> String) -> String -> String
+userReplace userRegex replacer string =
+    case Regex.fromString userRegex of
+        Nothing ->
+            string
+
+        Just regex ->
+            Regex.replace regex replacer string
+
+
+compressWhitespace : String -> String
+compressWhitespace string =
+    userReplace "\\s\\s+" (\_ -> " ") string

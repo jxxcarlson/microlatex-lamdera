@@ -92,7 +92,6 @@ module View.Button exposing
     , workingDocs
     )
 
-import Compiler.Util
 import Config
 import Document
 import Element as E exposing (Element)
@@ -1110,7 +1109,7 @@ setDocumentAsCurrent docHandling currentDocument document =
             case ExtractInfo.parseInfo "type" document.content of
                 Nothing ->
                     document.title
-                        |> Compiler.Util.compressWhitespace
+                        |> Util.compressWhitespace
                         |> fixBlankTitle
                         |> String.Extra.ellipsisWith 40 " ..."
 
@@ -1118,7 +1117,7 @@ setDocumentAsCurrent docHandling currentDocument document =
                     "["
                         ++ document.title
                         ++ "]"
-                        |> Compiler.Util.compressWhitespace
+                        |> Util.compressWhitespace
                         |> String.Extra.ellipsisWith 40 " ..."
     in
     Input.button []

@@ -380,7 +380,7 @@ exportToLaTeX model =
                 |> Maybe.map .title
                 |> Maybe.withDefault "doc"
                 |> String.toLower
-                |> Compiler.Util.compressWhitespace
+                |> Util.compressWhitespace
                 |> String.replace " " "-"
             )
                 ++ ".tex"
@@ -399,7 +399,7 @@ exportToRawLaTeX model =
                 |> Maybe.map .title
                 |> Maybe.withDefault "doc"
                 |> String.toLower
-                |> Compiler.Util.compressWhitespace
+                |> Util.compressWhitespace
                 |> String.replace " " "-"
             )
                 ++ ".tex"
