@@ -43,8 +43,8 @@ view model width_ =
                 ]
 
 
-viewInIndexPanel : FrontendModel -> Document -> Int -> Int -> Int -> Element FrontendMsg
-viewInIndexPanel model doc width_ deltaH indexShift =
+viewInIndexPanel : FrontendModel -> Document -> Int -> Int -> Element FrontendMsg
+viewInIndexPanel model doc deltaH indexShift =
     let
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
@@ -65,7 +65,7 @@ viewInIndexPanel model doc width_ deltaH indexShift =
         ]
         [ View.Utility.katexCSS
         , E.column [ E.spacing 4, E.width (E.px (Geometry.indexWidth model.windowWidth - 20)) ]
-            (viewDocumentSmall (affine 1.75 -650 (Geometry.indexWidth model.windowWidth)) model.counter currentDocId model.selectedSlug editRecord)
+            (viewDocumentSmall smallDocumentWidth model.counter currentDocId model.selectedSlug editRecord)
         ]
 
 
@@ -200,8 +200,8 @@ affine1 a b x =
     a * toFloat x + b |> truncate
 
 
-affine : Float -> Float -> Int -> Int
-affine a b x =
+smallDocumentWidth : Int
+smallDocumentWidth =
     996
 
 

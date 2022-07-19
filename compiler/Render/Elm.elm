@@ -116,7 +116,7 @@ markupDict =
 
         -- MiniLaTeX stuff
         , ( "term", \g acc s exprList -> term g acc s exprList )
-        , ( "term_", \g acc s exprList -> Element.none )
+        , ( "term_", \_ _ _ _ -> Element.none )
         , ( "emph", \g acc s exprList -> emph g acc s exprList )
         , ( "group", \g acc s exprList -> identityFunction g acc s exprList )
 

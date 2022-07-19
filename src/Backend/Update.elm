@@ -520,7 +520,7 @@ saveDocument model clientId currentUser document =
         let
             updateDoc : Document.Document -> Document.Document
             updateDoc =
-                \d -> { document | modified = model.currentTime }
+                \_ -> { document | modified = model.currentTime }
 
             mUpdateDoc =
                 Util.liftToMaybe updateDoc
@@ -700,7 +700,7 @@ getConnectedUser clientId dict =
         usernames =
             connectionData
                 |> List.filter (\( _, data ) -> List.member clientId data)
-                |> List.map (\( a, b ) -> a)
+                |> List.map (\( a, _ ) -> a)
                 |> List.Extra.unique
     in
     List.head usernames
@@ -708,7 +708,7 @@ getConnectedUser clientId dict =
 
 resetCurrentEditorForUser : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 resetCurrentEditorForUser username dict =
-    Dict.map (\user shareDocInfo -> Share.resetDocument username shareDocInfo) dict
+    Dict.map (\_ shareDocInfo -> Share.resetDocument username shareDocInfo) dict
 
 
 

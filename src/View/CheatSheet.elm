@@ -65,7 +65,7 @@ viewManual model =
                        , View.Utility.htmlId Config.cheatSheetRenderedTextId
                        ]
                 )
-                (viewDocument w h model.counter model.selectedId editRecord)
+                (viewDocument w model.counter model.selectedId editRecord)
 
         Nothing ->
             E.none
@@ -96,13 +96,13 @@ viewCheatSheet model =
                        , View.Utility.htmlId Config.cheatSheetRenderedTextId
                        ]
                 )
-                (viewDocument w h model.counter model.selectedId editRecord)
+                (viewDocument w model.counter model.selectedId editRecord)
 
         Nothing ->
             E.none
 
 
-viewDocument windowWidth windowHeight counter selectedId editRecord =
+viewDocument windowWidth counter selectedId editRecord =
     let
         title_ : E.Element Types.FrontendMsg
         title_ =

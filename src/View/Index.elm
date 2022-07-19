@@ -17,7 +17,7 @@ import View.Rendered as Rendered
 import View.Utility
 
 
-view model width_ deltaH =
+view model deltaH =
     case model.currentMasterDocument of
         Nothing ->
             let
@@ -76,7 +76,7 @@ view model width_ deltaH =
                     , View.Utility.hideIf (isCollection model.currentMasterDocument) (Button.setSortModeAlpha model.sortMode)
                     , View.Utility.showIf (isDeleteFolder model.currentMasterDocument) Button.hardDeleteAll
                     ]
-                , Rendered.viewInIndexPanel model doc width_ deltaH indexShift
+                , Rendered.viewInIndexPanel model doc deltaH indexShift
                 , case model.activeDocList of
                     PublicDocsList ->
                         viewPublicDocs model deltaH indexShift

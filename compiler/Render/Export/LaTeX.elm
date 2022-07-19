@@ -471,7 +471,7 @@ blockDict =
         , ( "endBlock", \_ _ _ -> "\\end{itemize}" )
         , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
         , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
-        , ( "mathmacros", \_ args body -> body ++ "\nHa ha ha!" )
+        , ( "mathmacros", \_ _ body -> body ++ "\nHa ha ha!" )
         , ( "setcounter", \_ args body -> setcounter args body )
         ]
 

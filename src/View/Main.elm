@@ -75,7 +75,7 @@ viewRenderedTextOnly model =
             [ headerRow model
             , E.row [ E.spacing 18, E.inFront (SignUp.view model) ]
                 [ viewRenderedContainer model
-                , Index.view model (Geometry.smallAppWidth model.windowWidth) deltaH
+                , Index.view model deltaH
                 , E.el [ E.moveLeft 90 ] (Sidebar.viewTags model)
                 , Sidebar.viewExtras model
                 ]
@@ -104,7 +104,7 @@ viewEditorAndRenderedText model =
             , E.row [ E.spacing 12 ]
                 [ Editor.view model
                 , Rendered.viewForEditor model (Geometry.panelWidth_ model.showTOC model.sidebarExtrasState model.sidebarTagsState model.windowWidth)
-                , View.Utility.showIf model.showTOC (Index.view model (Geometry.appWidth model.sidebarExtrasState model.sidebarTagsState model.windowWidth) (deltaH + 10))
+                , View.Utility.showIf model.showTOC (Index.view model (deltaH + 10))
                 , Sidebar.viewExtras model
                 , Sidebar.viewTags model
                 , View.Utility.showIf (model.showEditor && not model.showTOC) <| E.el [ E.alignTop, E.paddingXY 0 30 ] (Button.toggleTOC model.showTOC)
