@@ -204,7 +204,7 @@ viewWorkingDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocInfoList model.currentDocument model.documents (docInfoList |> filterDocInfo model.hideBackups)
+            :: viewDocInfoList model.currentDocument (docInfoList |> filterDocInfo model.hideBackups)
         )
 
 
@@ -306,7 +306,7 @@ viewPinnedDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocInfoList model.currentDocument model.documents docs
+            :: viewDocInfoList model.currentDocument docs
          --  (docInfoList |> filterDocInfo model.seeBackups)
         )
 
@@ -360,6 +360,6 @@ viewDocuments docHandling currentDocument docs =
     List.map (Button.setDocumentAsCurrent docHandling currentDocument) docs
 
 
-viewDocInfoList : Maybe Document -> List Document -> List Document.DocumentInfo -> List (Element FrontendMsg)
-viewDocInfoList currentDocument documents docInfoList =
-    List.map (\docInfo -> Button.setDocAsCurrentWithDocInfo currentDocument documents docInfo) docInfoList
+viewDocInfoList : Maybe Document -> List Document.DocumentInfo -> List (Element FrontendMsg)
+viewDocInfoList currentDocument docInfoList =
+    List.map (\docInfo -> Button.setDocAsCurrentWithDocInfo currentDocument docInfo) docInfoList

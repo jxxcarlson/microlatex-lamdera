@@ -1148,8 +1148,8 @@ fixBlankTitle str =
 
 {-| Use for document collections
 -}
-setDocAsCurrentWithDocInfo : Maybe Document.Document -> List Document.Document -> Document.DocumentInfo -> Element FrontendMsg
-setDocAsCurrentWithDocInfo currentDocument documents docInfo =
+setDocAsCurrentWithDocInfo : Maybe Document.Document -> Document.DocumentInfo -> Element FrontendMsg
+setDocAsCurrentWithDocInfo currentDocument docInfo =
     let
         username =
             Maybe.andThen .author currentDocument |> Maybe.withDefault "-"
