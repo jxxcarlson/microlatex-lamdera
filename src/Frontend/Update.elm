@@ -481,6 +481,7 @@ newDocument model =
                 , author = Maybe.map .username model.currentUser
                 , language = model.language
             }
+                |> Document.addSlug
     in
     ( { model
         | inputTitle = ""

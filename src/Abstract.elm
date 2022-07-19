@@ -4,8 +4,6 @@ module Abstract exposing
     , empty
     , get
     , getBlockContents
-    , getElement
-    , getItem
     , str1
     , str2
     , str3
@@ -16,6 +14,7 @@ import Dict exposing (Dict)
 import Document exposing (Document)
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
+import TextTools
 
 
 type alias Abstract =
@@ -38,33 +37,6 @@ empty =
     , tags = ""
     , digest = ""
     }
-
-
-runParser stringParser str default =
-    case Parser.run stringParser str of
-        Ok s ->
-            s
-
-        Err _ ->
-            default
-
-
-getItem : Language -> String -> String -> String
-getItem language key str =
-    -- TODO: review this
-    case language of
-        -- TODO: deal with the XX's
-        L0Lang ->
-            getElement key str
-
-        MicroLaTeXLang ->
-            runParser (macroValParser key) str ("XX:" ++ key)
-
-        PlainTextLang ->
-            "XX:" ++ key
-
-        XMarkdownLang ->
-            "XX:" ++ key
 
 
 get : Maybe String -> Language -> String -> Abstract
@@ -106,7 +78,7 @@ getForL0 author source =
             getBlockContents "abstract" source
 
         tags =
-            getElement "tags" source
+            TextTools.getElement "tags" source
     in
     { title = title
     , author = author
@@ -121,18 +93,18 @@ getForMiniLaTeX author source =
     let
         title =
             --getBlockContents "title" source
-            runParser (macroValParser "title") source "title"
+            TextTools.runParser (TextTools.macroValParser "title") source "title"
 
         subtitle =
             --getBlockContents "subtitle" source
-            runParser (macroValParser "subtitle") source "subtitle"
+            TextTools.runParser (TextTools.macroValParser "subtitle") source "subtitle"
 
         abstract =
             --getBlockContents "abstract" source
-            runParser (macroValParser "abstract") source "abstract"
+            TextTools.runParser (TextTools.macroValParser "abstract") source "abstract"
 
         tags =
-            runParser (macroValParser "tags") source "abstract"
+            TextTools.runParser (TextTools.macroValParser "tags") source "abstract"
     in
     { title = title
     , author = author
@@ -140,16 +112,6 @@ getForMiniLaTeX author source =
     , tags = tags
     , digest = [ title, subtitle, author, abstract, tags ] |> String.join " " |> String.toLower
     }
-
-
-getElement : String -> String -> String
-getElement itemName source =
-    case Parser.run (elementParser itemName) source of
-        Err _ ->
-            ""
-
-        Ok str ->
-            str
 
 
 {-|
@@ -168,25 +130,6 @@ getBlockContents blockName source =
             str
 
 
-{-|
-
-    > getItem "title" "o [foo bar] ho ho ho [title Foo] blah blah"
-    "Foo" : String
-
--}
-elementParser : String -> Parser String
-elementParser name =
-    Parser.succeed String.slice
-        |. Parser.chompUntil "["
-        |. Parser.chompUntil name
-        |. Parser.symbol name
-        |. Parser.spaces
-        |= Parser.getOffset
-        |. Parser.chompUntil "]"
-        |= Parser.getOffset
-        |= Parser.getSource
-
-
 blockParser : String -> Parser String
 blockParser name =
     (Parser.succeed String.slice
@@ -196,26 +139,6 @@ blockParser name =
         |. Parser.spaces
         |= Parser.getOffset
         |. Parser.chompUntil "\n"
-        |= Parser.getOffset
-        |= Parser.getSource
-    )
-        |> Parser.map String.trim
-
-
-{-|
-
-    > run (rawElementParser "title") "o [tags foo, bar] ho ho ho [title    Foo] blah blah"
-    Ok ("[title    Foo]")
-
--}
-macroValParser : String -> Parser String
-macroValParser macroName =
-    (Parser.succeed String.slice
-        |. Parser.chompUntil ("\\" ++ macroName ++ "{")
-        |. Parser.symbol ("\\" ++ macroName ++ "{")
-        |. Parser.spaces
-        |= Parser.getOffset
-        |. Parser.chompUntil "}"
         |= Parser.getOffset
         |= Parser.getSource
     )

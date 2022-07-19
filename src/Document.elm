@@ -7,6 +7,7 @@ module Document exposing
     , EditorData
     , SharedWith
     , SourceTextRecord
+    , addSlug
     , addTag
     , canEditSharedDoc
     , currentAuthor
@@ -290,14 +291,38 @@ wordCount doc =
     doc.content |> String.words |> List.length
 
 
+makeSlug : Document -> String
+makeSlug doc =
+    let
+        a =
+            doc.author |> Maybe.withDefault "anon" |> String.toLower
+
+        b =
+            doc.title |> String.toLower |> String.replace " " "-"
+    in
+    a ++ ":" ++ b
+
+
+addSlug : Document -> Document
+addSlug doc =
+    addTag (makeSlug doc) doc
+
+
 addTag : String -> Document -> Document
 addTag tag doc =
     let
         oldTagString_ =
             TextTools.getRawItem doc.language "tags" doc.content
 
+        oldTags =
+            TextTools.getItem doc.language "tags" doc.content |> String.split "," |> List.map String.trim
+
         newTags =
-            tag :: doc.tags |> String.join ", "
+            if List.member tag oldTags then
+                oldTags |> String.join ", "
+
+            else
+                tag :: oldTags |> String.join ", "
 
         newTagString =
             case doc.language of
@@ -320,13 +345,13 @@ addTag tag doc =
                         tagString =
                             case doc.language of
                                 L0Lang ->
-                                    "[tags folder:deleted]"
+                                    "[tags " ++ tag ++ "]"
 
                                 MicroLaTeXLang ->
-                                    "\\tags{folder:deleted}"
+                                    "\\tags{" ++ tag ++ "}"
 
                                 XMarkdownLang ->
-                                    "@[tags folder:deleted]"
+                                    "@[tags " ++ tag ++ "deleted]"
 
                                 PlainTextLang ->
                                     ""
