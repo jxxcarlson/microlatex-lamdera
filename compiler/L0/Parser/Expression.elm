@@ -483,8 +483,18 @@ recoverFromError state =
                     , messages = Helpers.prependMessage state.lineNumber "opening backtick needs to be matched with a closing one" state.messages
                 }
 
+        -- probably a \[ that was not matched ... need to make use of 'errorInfo'
+        (TokenError errorInfo meta) :: rest ->
+            Loop
+                { state
+                    | committed = errorMessage "\\[..??" :: state.committed
+                    , stack = []
+                    , tokenIndex = meta.index + 1
+                    , messages = Helpers.prependMessage state.lineNumber "No mathching \\]??" state.messages
+                }
+
         _ ->
-            recoverFromError1 state
+            recoverFromUnknownError state
 
 
 errorSuffix rest =
@@ -499,8 +509,8 @@ errorSuffix rest =
             ""
 
 
-recoverFromError1 : State -> Step State State
-recoverFromError1 state =
+recoverFromUnknownError : State -> Step State State
+recoverFromUnknownError state =
     let
         k =
             Symbol.balance <| Symbol.convertTokens (List.reverse state.stack)
@@ -516,14 +526,14 @@ recoverFromError1 state =
     in
     if reducible then
         Done <|
-            addErrorMessage " ]? " <|
+            addErrorMessage " ?!?(1) " <|
                 reduceState <|
                     { state
                         | stack = newStack
                         , tokenIndex = 0
                         , numberOfTokens = List.length newStack
-                        , committed = errorMessage "[" :: state.committed
-                        , messages = Helpers.prependMessage state.lineNumber ("Unmatched brackets: added " ++ String.fromInt k ++ " right brackets") state.messages
+                        , committed = errorMessage " ?!?(2) " :: state.committed
+                        , messages = Helpers.prependMessage state.lineNumber (" ?!?(3) " ++ String.fromInt k ++ " right brackets") state.messages
                     }
 
     else
