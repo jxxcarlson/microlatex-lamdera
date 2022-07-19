@@ -1,12 +1,12 @@
-module L0.Parser.Match exposing (deleteAt, getSegment, match, reducible, reducibleList, splitAt)
+module L0.Parser.Match exposing (deleteAt, getSegment, hasReducibleArgs, isReducible, match, splitAt)
 
 import L0.Parser.Symbol exposing (Symbol(..), value)
 import List.Extra
 import Parser.Helpers exposing (Step(..), loop)
 
 
-reducible : List Symbol -> Bool
-reducible symbols_ =
+isReducible : List Symbol -> Bool
+isReducible symbols_ =
     let
         symbols =
             List.filter (\sym -> sym /= WS) symbols_
@@ -21,7 +21,7 @@ reducible symbols_ =
         L :: ST :: rest ->
             case List.head (List.reverse rest) of
                 Just R ->
-                    reducibleList (dropLast rest)
+                    hasReducibleArgs (dropLast rest)
 
                 _ ->
                     False
@@ -30,17 +30,8 @@ reducible symbols_ =
             False
 
 
-dropLast : List a -> List a
-dropLast list =
-    let
-        n =
-            List.length list
-    in
-    List.take (n - 1) list
-
-
-reducibleList : List Symbol -> Bool
-reducibleList symbols =
+hasReducibleArgs : List Symbol -> Bool
+hasReducibleArgs symbols =
     case symbols of
         [] ->
             True
@@ -56,20 +47,39 @@ reducibleList symbols =
                 seg =
                     getSegment M symbols
             in
-            if reducible seg then
-                reducibleList (List.drop (List.length seg) symbols)
+            if isReducible seg then
+                hasReducibleArgs (List.drop (List.length seg) symbols)
 
             else
                 False
 
         BM :: rest ->
-            reducibleList rest
+            hasReducibleArgs rest
 
         ST :: rest ->
-            reducibleList rest
+            hasReducibleArgs rest
 
         _ ->
             False
+
+
+split : List Symbol -> Maybe ( List Symbol, List Symbol )
+split symbols =
+    case match symbols of
+        Nothing ->
+            Nothing
+
+        Just k ->
+            Just (splitAt (k + 1) symbols)
+
+
+reducibleAux1 symbols =
+    case split symbols of
+        Nothing ->
+            False
+
+        Just ( a, b ) ->
+            isReducible a && hasReducibleArgs b
 
 
 reducibleAux symbols =
@@ -82,11 +92,20 @@ reducibleAux symbols =
                 ( a, b ) =
                     splitAt (k + 1) symbols
             in
-            if reducible a then
-                reducibleList b
+            if isReducible a then
+                hasReducibleArgs b
 
             else
                 False
+
+
+dropLast : List a -> List a
+dropLast list =
+    let
+        n =
+            List.length list
+    in
+    List.take (n - 1) list
 
 
 {-|
@@ -109,7 +128,7 @@ deleteAt k list =
 -}
 splitAt : Int -> List a -> ( List a, List a )
 splitAt k list =
-    ( List.take k list, List.drop (k + 0) list )
+    ( List.take k list, List.drop k list )
 
 
 type alias State =

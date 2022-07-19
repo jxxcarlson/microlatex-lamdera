@@ -236,7 +236,7 @@ evalStack state =
 
 
 tokensAreReducible state =
-    M.reducible (state.stack |> Symbol.convertTokens |> List.reverse)
+    M.isReducible (state.stack |> Symbol.convertTokens |> List.reverse)
 
 
 {-| remove first and last token
@@ -522,7 +522,7 @@ recoverFromUnknownError state =
             Symbol.convertTokens (List.reverse newStack)
 
         reducible =
-            M.reducible newSymbols
+            M.isReducible newSymbols
     in
     if reducible then
         Done <|
