@@ -236,7 +236,7 @@ evalStack state =
 
 
 tokensAreReducible state =
-    M.isReducible (state.stack |> Symbol.convertTokens |> List.reverse)
+    M.isReducible (state.stack |> Symbol.toSymbols |> List.reverse)
 
 
 {-| remove first and last token
@@ -291,7 +291,7 @@ eval lineNumber tokens =
 
 splitTokens : List Token -> Maybe ( List Token, List Token )
 splitTokens tokens =
-    case M.match (Symbol.convertTokens tokens) of
+    case M.match (Symbol.toSymbols tokens) of
         Nothing ->
             Nothing
 
@@ -346,7 +346,7 @@ evalList lineNumber tokens =
 
 segLength : List Token -> Int
 segLength tokens =
-    M.getSegment M (tokens |> Symbol.convertTokens) |> List.length
+    M.getSegment M (tokens |> Symbol.toSymbols) |> List.length
 
 
 errorMessageInvisible : Int -> String -> Expr
@@ -513,13 +513,13 @@ recoverFromUnknownError : State -> Step State State
 recoverFromUnknownError state =
     let
         k =
-            Symbol.balance <| Symbol.convertTokens (List.reverse state.stack)
+            Symbol.balance <| Symbol.toSymbols (List.reverse state.stack)
 
         newStack =
             List.repeat k (RB dummyLoc) ++ state.stack
 
         newSymbols =
-            Symbol.convertTokens (List.reverse newStack)
+            Symbol.toSymbols (List.reverse newStack)
 
         reducible =
             M.isReducible newSymbols

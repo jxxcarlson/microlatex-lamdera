@@ -73,30 +73,13 @@ split symbols =
             Just (splitAt (k + 1) symbols)
 
 
-reducibleAux1 symbols =
+reducibleAux symbols =
     case split symbols of
         Nothing ->
             False
 
         Just ( a, b ) ->
             isReducible a && hasReducibleArgs b
-
-
-reducibleAux symbols =
-    case match symbols of
-        Nothing ->
-            False
-
-        Just k ->
-            let
-                ( a, b ) =
-                    splitAt (k + 1) symbols
-            in
-            if isReducible a then
-                hasReducibleArgs b
-
-            else
-                False
 
 
 dropLast : List a -> List a

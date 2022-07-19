@@ -1,4 +1,4 @@
-module L0.Parser.Symbol exposing (Symbol(..), balance, convertTokens, toString, value)
+module L0.Parser.Symbol exposing (Symbol(..), balance, toString, toSymbols, value)
 
 import L0.Parser.Token exposing (Token(..))
 import Maybe.Extra
@@ -81,8 +81,8 @@ toString symbols =
     List.map symbolToString symbols |> String.join " "
 
 
-convertTokens : List Token -> List Symbol
-convertTokens tokens =
+toSymbols : List Token -> List Symbol
+toSymbols tokens =
     List.map toSymbol tokens
 
 
