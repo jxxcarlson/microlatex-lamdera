@@ -321,10 +321,10 @@ editDocument model =
 toggleBackupVisibility : Bool -> Element FrontendMsg
 toggleBackupVisibility seeBackups =
     if seeBackups then
-        buttonTemplate [] ToggleBackupVisibility "Backups visible"
+        buttonTemplate [] ToggleBackupVisibility "Show Backups"
 
     else
-        buttonTemplate [] ToggleBackupVisibility "Backups hidden"
+        buttonTemplate [] ToggleBackupVisibility "Hide Backups"
 
 
 toggleGuide : Element FrontendMsg

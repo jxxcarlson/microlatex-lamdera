@@ -178,7 +178,7 @@ type alias FrontendModel =
 
     -- FLAGS
     , documentDirty : Bool
-    , seeBackups : Bool
+    , hideBackups : Bool
     , showEditor : Bool
     , showDocTools : Bool
     , showPublicUrl : Bool

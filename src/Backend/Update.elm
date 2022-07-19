@@ -685,8 +685,7 @@ insertDocument model clientId user doc_ =
     ( { model
         | documentDict = documentDict
         , authorIdDict = authorIdDict
-
-        --, usersDocumentsDict = usersDocumentsDict
+        , usersDocumentsDict = usersDocumentsDict
       }
     , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Backup made for " ++ String.replace "(BAK)" "" doc.title ++ " (" ++ String.fromInt (String.length doc.content) ++ " chars)", status = MSYellow })
     )

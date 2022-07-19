@@ -178,7 +178,7 @@ init url key =
       , includedContent = Dict.empty
       , showPublicUrl = False
       , documentDirty = False
-      , seeBackups = False
+      , hideBackups = True
       , lineNumber = 0
       , permissions = StandardHandling
       , initialText = Config.initialText
@@ -792,7 +792,7 @@ update msg model =
                         |> (\( m, c ) -> ( Frontend.Update.postProcessDocument newDocument m, c ))
 
         ToggleBackupVisibility ->
-            ( { model | seeBackups = not model.seeBackups }, Effect.Command.none )
+            ( { model | hideBackups = not model.hideBackups }, Effect.Command.none )
 
         MakeBackup ->
             case ( model.currentUser, model.currentDocument ) of

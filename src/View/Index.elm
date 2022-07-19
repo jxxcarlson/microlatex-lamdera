@@ -131,8 +131,8 @@ viewSharedDocs model deltaH indexShift =
         )
 
 
-filterBackups seeBackups docs =
-    Util.applyIf seeBackups (List.filter (\doc -> doc.handling == Document.DHStandard)) docs
+filterBackups hideBackups docs =
+    Util.applyIf hideBackups (List.filter (\doc -> not (String.contains "(BAK)" doc.title))) docs
 
 
 filterDeletedDocs hideDeletedDocs docs =
@@ -185,7 +185,7 @@ viewWorkingDocs model deltaH indexShift =
                         foo =
                             user_.docs
                     in
-                    user_.docs |> BoundedDeque.toList |> sort |> filterDocInfo model.seeBackups
+                    user_.docs |> BoundedDeque.toList |> sort |> filterDocInfo model.hideBackups
 
         buttonText =
             "Working docs (" ++ String.fromInt (List.length docInfoList) ++ ")"
@@ -204,7 +204,7 @@ viewWorkingDocs model deltaH indexShift =
         , E.spacing 8
         ]
         (E.row [ E.spacing 16, E.width E.fill ] [ titleButton, E.el [ E.alignRight ] (View.Utility.showIf (model.currentMasterDocument == Nothing) (Button.maximizeMyDocs model.maximizedIndex)) ]
-            :: viewDocInfoList model.currentDocument model.documents (docInfoList |> filterDocInfo model.seeBackups)
+            :: viewDocInfoList model.currentDocument model.documents (docInfoList |> filterDocInfo model.hideBackups)
         )
 
 
@@ -229,7 +229,7 @@ viewMydocs model deltaH indexShift =
                     List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
 
         docs =
-            model.documents |> filterBackups model.seeBackups |> filterDeletedDocs model.hideDeletedDocuments |> sort
+            model.documents |> filterBackups model.hideBackups |> filterDeletedDocs model.hideDeletedDocuments |> sort
 
         searchKey =
             if model.actualSearchKey == "" then
@@ -352,7 +352,7 @@ viewPublicDocuments model =
                 SortByMostRecent ->
                     List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
     in
-    viewDocuments StandardHandling model.currentDocument (sorter (model.publicDocuments |> filterDeletedDocs model.hideDeletedDocuments |> filterBackups model.seeBackups))
+    viewDocuments StandardHandling model.currentDocument (sorter (model.publicDocuments |> filterDeletedDocs model.hideDeletedDocuments |> filterBackups model.hideBackups))
 
 
 viewDocuments : DocumentHandling -> Maybe Document -> List Document -> List (Element FrontendMsg)

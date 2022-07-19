@@ -283,6 +283,7 @@ makeBackup doc =
     , tags = doc.tags
     , status = doc.status
     }
+        |> changeSlug
 
 
 testDoc =

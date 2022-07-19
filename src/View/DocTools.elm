@@ -34,8 +34,8 @@ view model =
             , E.width (E.px 300)
             , E.height (E.px 300)
             ]
-            [ Button.toggleBackupVisibility model.seeBackups
-            , backupX model
+            [ Button.toggleBackupVisibility model.hideBackups
+            , Button.makeBackup
             , dateCreated model.zone model.currentDocument
             , dateModified model.zone model.currentDocument
             , docId model
@@ -120,31 +120,9 @@ dateModified zone maybeDocument =
             E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text <| "Modified: " ++ DateTimeUtility.toStringWithYear zone doc.modified)
 
 
-backupX model =
-    backup model.zone model.currentDocument
-
-
 docId model =
     E.el [ Font.size 12, Background.color Color.paleBlue, E.paddingXY 6 6 ] (Maybe.map .id model.currentDocument |> Maybe.withDefault "" |> E.text)
 
 
 docSlug model =
     E.el [ Font.size 12, Background.color Color.paleBlue, E.paddingXY 6 6 ] (Maybe.andThen Document.getSlug model.currentDocument |> Maybe.withDefault "(none)" |> E.text)
-
-
-backup : Effect.Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
-backup zone maybeDocument =
-    case maybeDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            case doc.handling of
-                Document.DHStandard ->
-                    Button.makeBackup
-
-                Document.Backup _ ->
-                    E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
-
-                Document.Version _ _ ->
-                    E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
