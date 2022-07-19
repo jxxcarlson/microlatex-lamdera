@@ -872,12 +872,23 @@ createFolder =
     buttonTemplate [] Types.CreateFolder "Create Folder"
 
 
-getFolders =
-    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetFolders "Show folders"
+getFolders : Types.IndexDisplay -> Element FrontendMsg
+getFolders indexDisplay =
+    case indexDisplay of
+        Types.IDFolders ->
+            buttonTemplateSmall [ Background.color Color.darkRed ] [] Types.GetFolders "Show folders"
+
+        Types.IDDocuments ->
+            buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetFolders "Show folders"
 
 
-getDocs =
-    buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetDocs "Show docs"
+getDocs indexDisplay =
+    case indexDisplay of
+        Types.IDFolders ->
+            buttonTemplateSmall [ Background.color Color.darkGray ] [] Types.GetDocs "Show docs"
+
+        Types.IDDocuments ->
+            buttonTemplateSmall [ Background.color Color.darkRed ] [] Types.GetDocs "Show docs"
 
 
 toggleAllowOpenFolder allowOpenFolder =
@@ -929,6 +940,7 @@ togglePublicUrl =
 -- CHAT
 
 
+clearChatHistory : Element FrontendMsg
 clearChatHistory =
     buttonTemplate [ Background.color Color.medGray ] AskToClearChatHistory "Clear history"
 

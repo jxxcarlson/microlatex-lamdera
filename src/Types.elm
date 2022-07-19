@@ -24,6 +24,7 @@ module Types exposing
     , FrontendModel
     , FrontendMsg(..)
     , GroupName
+    , IndexDisplay(..)
     , ManualType(..)
     , MaximizedIndex(..)
     , Message
@@ -129,6 +130,7 @@ type alias FrontendModel =
     , documentList : DocumentList
 
     -- UI
+    , indexDisplay : IndexDisplay
     , appMode : AppMode
     , windowWidth : Int
     , windowHeight : Int
@@ -226,6 +228,11 @@ type alias FrontendModel =
     , sortMode : SortMode
     , language : Language
     }
+
+
+type IndexDisplay
+    = IDFolders
+    | IDDocuments
 
 
 type alias TagItem =

@@ -128,6 +128,7 @@ init url key =
       , currentChatGroup = Nothing
 
       -- UI
+      , indexDisplay = Types.IDDocuments
       , appMode = UserMode
       , showTOC = True
       , experimentalMode = False
@@ -899,10 +900,10 @@ update msg model =
                 ( model, Effect.Command.none )
 
         GetFolders ->
-            ( model, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser ":folder") )
+            ( { model | indexDisplay = Types.IDFolders }, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser ":folder") )
 
         GetDocs ->
-            ( model, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser "") )
+            ( { model | indexDisplay = Types.IDDocuments }, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser "") )
 
         Search ->
             ( { model
