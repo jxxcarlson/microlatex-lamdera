@@ -1,6 +1,8 @@
 module User exposing
     ( Preferences
     , User
+    , currentUserId
+    , currentUsername
     , mRemoveEditor
     , removeEditor
     )
@@ -28,6 +30,16 @@ type alias User =
     , sharedDocumentAuthors : Set String -- names of people to whom a document is shared that I have access to (by ownership or share)
     , pings : List Chat.Message.ChatMessage
     }
+
+
+currentUsername : Maybe User -> String
+currentUsername currentUser =
+    Maybe.map .username currentUser |> Maybe.withDefault "(nobody)"
+
+
+currentUserId : Maybe User -> String
+currentUserId currentUser =
+    Maybe.map .id currentUser |> Maybe.withDefault "----"
 
 
 applyIfDefined f mA b =

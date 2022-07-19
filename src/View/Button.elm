@@ -826,7 +826,7 @@ sendUnlockMessage : FrontendModel -> Element FrontendMsg
 sendUnlockMessage model =
     let
         currentUsername_ =
-            Util.currentUsername model.currentUser
+            User.currentUsername model.currentUser
     in
     case model.currentDocument of
         Nothing ->
@@ -847,7 +847,7 @@ sendUnlockMessage model =
 sendUnlockMessage_ doc currentUser =
     let
         message =
-            { from = Util.currentUsername currentUser
+            { from = User.currentUsername currentUser
             , to = "anon" -- TODO: nuke this?
             , subject = "Unlock?"
             , content = "May I unlock " ++ doc.title ++ "?"

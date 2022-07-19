@@ -24,6 +24,7 @@ module Document exposing
     , shareToString
     , testDoc
     , toDocInfo
+    , updateDocumentInList
     , wordCount
     )
 
@@ -35,6 +36,7 @@ import Parser.Helpers
 import Parser.Language exposing (Language(..))
 import Render.Settings
 import TextTools
+import Util
 
 
 type alias Document =
@@ -299,7 +301,7 @@ makeSlug doc =
             doc.author |> Maybe.withDefault "anon" |> String.toLower
 
         b =
-            doc.title |> String.toLower |> String.replace " " "-"
+            doc.title |> String.toLower |> Util.compressWhitespace |> String.replace " " "-"
     in
     a ++ ":" ++ b
 
@@ -426,3 +428,18 @@ makeFirstTag tag doc =
 
         [] ->
             ""
+
+
+{-| -}
+updateDocumentInList : Document -> List Document -> List Document
+updateDocumentInList doc list =
+    List.Extra.setIf (\d -> d.id == doc.id) doc list
+
+
+insertDocumentInListOrUpdate : Document -> List Document -> List Document
+insertDocumentInListOrUpdate doc list =
+    if List.Extra.notMember doc list then
+        doc :: list
+
+    else
+        updateDocumentInList doc list

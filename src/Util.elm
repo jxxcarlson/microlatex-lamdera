@@ -2,26 +2,20 @@ module Util exposing
     ( Step(..)
     , applyIf
     , compressWhitespace
-    , currentUserId
-    , currentUsername
     , delay
     , discardLines
-    , insertDocumentInListOrUpdate
     , insertInList
     , insertInListOrUpdate
     , liftToMaybe
     , loop
-    , updateDocumentInList
     )
 
-import Document exposing (Document)
 import Duration
 import Effect.Command as Command exposing (Command)
 import Effect.Process
 import Effect.Task
 import List.Extra
 import Regex
-import User
 
 
 {-|
@@ -48,37 +42,12 @@ liftToMaybe f ma =
             Just (f a)
 
 
-currentUsername : Maybe User.User -> String
-currentUsername currentUser =
-    Maybe.map .username currentUser |> Maybe.withDefault "(nobody)"
-
-
-currentUserId : Maybe User.User -> String
-currentUserId currentUser =
-    Maybe.map .id currentUser |> Maybe.withDefault "----"
-
-
 batch =
     \( m, cmds ) -> ( m, Command.batch cmds )
 
 
 
 -- LISTS
-
-
-{-| -}
-updateDocumentInList : Document -> List Document -> List Document
-updateDocumentInList doc list =
-    List.Extra.setIf (\d -> d.id == doc.id) doc list
-
-
-insertDocumentInListOrUpdate : Document -> List Document -> List Document
-insertDocumentInListOrUpdate doc list =
-    if List.Extra.notMember doc list then
-        doc :: list
-
-    else
-        updateDocumentInList doc list
 
 
 {-|

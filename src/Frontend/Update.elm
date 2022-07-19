@@ -180,7 +180,7 @@ signOut model =
 
 
 
--- |> join (unshare (Util.currentUsername model.currentUser))
+-- |> join (unshare (User.currentUsername model.currentUser))
 -- narrowCast : Username -> Document.Document -> Types.ConnectionDict -> Cmd Types.BackendMsg
 --     , Cmd.batch (narrowCastDocs model username documents)
 
@@ -320,14 +320,14 @@ closeEditor model =
                     Command.batch
                         [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser doc)
                         , if Predicate.documentIsMineOrSharedToMe updatedDoc model.currentUser then
-                            Effect.Lamdera.sendToBackend (NarrowcastExceptToSender (Util.currentUsername model.currentUser) (Util.currentUserId model.currentUser) doc)
+                            Effect.Lamdera.sendToBackend (NarrowcastExceptToSender (User.currentUsername model.currentUser) (User.currentUserId model.currentUser) doc)
 
                           else
                             Command.none
                         ]
 
         clearEditEventsCmd =
-            Effect.Lamdera.sendToBackend (ClearEditEvents (Util.currentUserId model.currentUser))
+            Effect.Lamdera.sendToBackend (ClearEditEvents (User.currentUserId model.currentUser))
     in
     ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, saveCmd )
 
@@ -583,7 +583,7 @@ setPublicDocumentAsCurrentById model id =
             in
             ( { model
                 | currentDocument = Just doc
-                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
                 , sourceText = doc.content
                 , initialText = doc.content
                 , editRecord = newEditRecord
@@ -741,10 +741,10 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 , oTDocument = { docId = updatedDoc.id, cursor = 0, content = updatedDoc.content }
                 , selectedSlug = Document.getSlug updatedDoc
                 , currentMasterDocument = currentMasterDocument
-                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
                 , sourceText = doc.content
                 , initialText = doc.content
-                , documents = Util.updateDocumentInList updatedDoc model.documents
+                , documents = Document.updateDocumentInList updatedDoc model.documents
                 , editRecord = newEditRecord
                 , title =
                     Compiler.ASTTools.title newEditRecord.parsed
@@ -829,7 +829,7 @@ handleCurrentDocumentChange model currentDocument document =
                     | documentDirty = False
                     , language = document.language
                     , selectedSlug = Document.getSlug currentDocument
-                    , documents = Util.updateDocumentInList updatedDoc model.documents
+                    , documents = Document.updateDocumentInList updatedDoc model.documents
                 }
         in
         setDocumentAsCurrent (Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
@@ -840,7 +840,7 @@ handleCurrentDocumentChange model currentDocument document =
                 { currentDocument | status = Document.DSReadOnly }
 
             newModel =
-                { model | selectedSlug = Document.getSlug currentDocument, documents = Util.updateDocumentInList updatedDoc model.documents, language = document.language }
+                { model | selectedSlug = Document.getSlug currentDocument, documents = Document.updateDocumentInList updatedDoc model.documents, language = document.language }
         in
         setDocumentAsCurrent (Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
 
@@ -922,20 +922,20 @@ updateDoc_ doc str model =
             { doc | content = safeContent, title = safeTitle }
 
         documents =
-            Util.updateDocumentInList newDocument_ model.documents
+            Document.updateDocumentInList newDocument_ model.documents
 
         publicDocuments =
             if newDocument_.public then
-                Util.updateDocumentInList newDocument_ model.publicDocuments
+                Document.updateDocumentInList newDocument_ model.publicDocuments
 
             else
                 model.publicDocuments
 
         sendersName =
-            Util.currentUsername model.currentUser
+            User.currentUsername model.currentUser
 
         sendersId =
-            Util.currentUserId model.currentUser
+            User.currentUserId model.currentUser
     in
     ( { model
         | currentDocument = Just newDocument_
@@ -1030,9 +1030,9 @@ handleAsStandardReceivedDocument model doc =
                 , selectedSlug = Document.getSlug doc
                 , title = Compiler.ASTTools.title editRecord.parsed
                 , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+                , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
                 , currentDocument = Just doc
-                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
                 , sourceText = doc.content
                 , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
                 , currentMasterDocument = currentMasterDocument
@@ -1067,9 +1067,9 @@ handleKeepingMasterDocument model masterDoc doc =
         , selectedSlug = Document.getSlug doc
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , initialText = doc.content
         , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
@@ -1106,9 +1106,9 @@ handleSharedDocument model username doc =
         | editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , activeEditor = Just { name = username, activeAt = model.currentTime }
         , messages = { txt = "Received (shared): " ++ doc.title, status = MSGreen } :: []
@@ -1145,8 +1145,8 @@ handleAsReceivedDocumentWithDelay model doc =
         | editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
         , currentDocument = Just doc
         , sourceText = doc.content
         , messages = errorMessages
@@ -1183,9 +1183,9 @@ handlePinnedDocuments model doc =
         | editRecord = editRecord
         , title = Compiler.ASTTools.title editRecord.parsed
         , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Util.updateDocumentInList doc model.documents -- insertInListOrUpdate
+        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
         , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (Util.currentUserId model.currentUser) doc.content)
+        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , messages = errorMessages
         , currentMasterDocument = currentMasterDocument

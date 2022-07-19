@@ -294,7 +294,7 @@ update msg model =
                             { doc | status = status }
 
                         documents =
-                            Util.updateDocumentInList updatedDoc model.documents
+                            Document.updateDocumentInList updatedDoc model.documents
                     in
                     ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend model.currentUser updatedDoc )
 
@@ -770,7 +770,7 @@ update msg model =
 
         -- SHARE
         Narrow username document ->
-            ( model, Effect.Lamdera.sendToBackend (Narrowcast (Util.currentUserId model.currentUser) username document) )
+            ( model, Effect.Lamdera.sendToBackend (Narrowcast (User.currentUserId model.currentUser) username document) )
 
         -- DOCUMENT
         ToggleAllowOpenFolder ->
@@ -868,7 +868,7 @@ update msg model =
                     ( { model | sidebarExtrasState = SidebarExtrasIn, sidebarTagsState = SidebarTagsOut }
                     , Effect.Command.batch
                         [ Effect.Lamdera.sendToBackend GetPublicTagsFromBE
-                        , Effect.Lamdera.sendToBackend (GetUserTagsFromBE (Util.currentUsername model.currentUser))
+                        , Effect.Lamdera.sendToBackend (GetUserTagsFromBE (User.currentUsername model.currentUser))
                         ]
                     )
 
@@ -1124,9 +1124,9 @@ fixId_ str =
 --            else
 --                "Oops, this is a backup or version document -- no edits"
 --    in
---    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (Narrowcast (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
+--    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (Narrowcast (User.currentUserId model.currentUser) (User.currentUsername model.currentUser) doc) )
 --    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
---    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (Util.currentUserId model.currentUser) (Util.currentUsername model.currentUser) doc) )
+--    -- ( { model | messages = [ { txt = m, status = MSYellow } ] }, sendToBackend (NarrowcastExceptToSender (User.currentUserId model.currentUser) (User.currentUsername model.currentUser) doc) )
 --    ( { model | messages = [ { txt = m, status = MSYellow } ] }, Cmd.none )
 
 
@@ -1198,7 +1198,7 @@ updateFromBackend msg model =
                 | collaborativeEditing = False
                 , networkModel = networkModel
                 , currentDocument = Just document
-                , documents = Util.updateDocumentInList document model.documents
+                , documents = Document.updateDocumentInList document model.documents
                 , showEditor = False
               }
             , Effect.Command.none
@@ -1230,7 +1230,7 @@ updateFromBackend msg model =
                 --_ =
                 --    Debug.log "ProcessEvent" event
                 debugLabel =
-                    "P1a. !!! EVENT FOR " ++ Util.currentUsername model.currentUser
+                    "P1a. !!! EVENT FOR " ++ User.currentUsername model.currentUser
 
                 newNetworkModel =
                     --NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
@@ -1245,7 +1245,7 @@ updateFromBackend msg model =
                     Compiler.DifferentialParser.init model.includedContent model.language doc.content
 
                 editCommand =
-                    if Util.currentUserId model.currentUser /= event.userId then
+                    if User.currentUserId model.currentUser /= event.userId then
                         -- FOR NOW: execute edits from other users (?? check on docId also?)
                         { counter = model.counter, command = event |> OTCommand.toCommand }
 

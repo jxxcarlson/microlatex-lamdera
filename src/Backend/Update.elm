@@ -539,7 +539,7 @@ saveDocument model clientId currentUser document =
         ( { model | documentDict = updateDocumentDict2 document model.documentDict, slugDict = newSlugDict }
         , Command.batch
             [ Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "saved: " ++ String.fromInt (String.length document.content), status = MSGreen })
-            , Share.narrowCastIfShared model.connectionDict clientId (Util.currentUsername currentUser) document
+            , Share.narrowCastIfShared model.connectionDict clientId (User.currentUsername currentUser) document
             ]
         )
 
