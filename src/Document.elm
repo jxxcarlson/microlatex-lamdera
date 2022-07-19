@@ -7,6 +7,7 @@ module Document exposing
     , EditorData
     , SharedWith
     , SourceTextRecord
+    , addTag
     , canEditSharedDoc
     , currentAuthor
     , defaultSettings
@@ -16,6 +17,7 @@ module Document exposing
     , location
     , makeBackup
     , numberOfEditors
+    , removeTag
     , setTags
     , shareToString
     , testDoc
@@ -30,6 +32,7 @@ import List.Extra
 import Parser.Helpers
 import Parser.Language exposing (Language(..))
 import Render.Settings
+import TextTools
 
 
 type alias Document =
@@ -285,3 +288,91 @@ testDoc =
 wordCount : Document -> Int
 wordCount doc =
     doc.content |> String.words |> List.length
+
+
+addTag : String -> Document -> Document
+addTag tag doc =
+    let
+        oldTagString_ =
+            TextTools.getRawItem doc.language "tags" doc.content
+
+        newTags =
+            tag :: doc.tags |> String.join ", "
+
+        newTagString =
+            case doc.language of
+                L0Lang ->
+                    [ "[tags ", newTags, "]" ] |> String.join ""
+
+                MicroLaTeXLang ->
+                    [ "\\tags{", newTags, "}" ] |> String.join ""
+
+                XMarkdownLang ->
+                    [ "@[tags ", newTags, "]" ] |> String.join ""
+
+                _ ->
+                    ""
+
+        newContent =
+            case oldTagString_ of
+                Nothing ->
+                    let
+                        tagString =
+                            case doc.language of
+                                L0Lang ->
+                                    "[tags folder:deleted]"
+
+                                MicroLaTeXLang ->
+                                    "\\tags{folder:deleted}"
+
+                                XMarkdownLang ->
+                                    "@[tags folder:deleted]"
+
+                                PlainTextLang ->
+                                    ""
+                    in
+                    case String.split "\n\n" doc.content of
+                        head :: rest ->
+                            head :: tagString :: rest |> String.join "\n\n"
+
+                        [] ->
+                            ""
+
+                Just oldTagString ->
+                    String.replace oldTagString newTagString doc.content
+    in
+    { doc | content = newContent }
+
+
+removeTag : String -> Document -> Document
+removeTag tag doc =
+    let
+        oldTagsString_ =
+            TextTools.getRawItem doc.language "tags" doc.content
+
+        newTags =
+            doc.tags |> List.filter (\tag_ -> tag_ /= tag)
+
+        newTagString =
+            case doc.language of
+                L0Lang ->
+                    [ "[tags ", String.join ", " newTags, "]" ] |> String.join ""
+
+                MicroLaTeXLang ->
+                    [ "\\tags{", String.join ", " newTags, "}" ] |> String.join ""
+
+                XMarkdownLang ->
+                    [ "@[tags ", String.join ", " newTags, "]" ] |> String.join ""
+
+                PlainTextLang ->
+                    ""
+
+        newContent =
+            case oldTagsString_ of
+                Nothing ->
+                    doc.content
+
+                Just oldTagString ->
+                    String.replace oldTagString newTagString doc.content
+    in
+    { doc | content = newContent, tags = newTags }
