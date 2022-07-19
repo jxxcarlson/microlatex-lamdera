@@ -1111,6 +1111,7 @@ setDocumentAsCurrent docHandling currentDocument document =
                 Nothing ->
                     document.title
                         |> Compiler.Util.compressWhitespace
+                        |> fixBlankTitle
                         |> String.Extra.ellipsisWith 40 " ..."
 
                 Just _ ->
@@ -1124,6 +1125,14 @@ setDocumentAsCurrent docHandling currentDocument document =
         { onPress = Just (SetDocumentAsCurrent docHandling document)
         , label = E.el [ Font.size 14, fg, weight, style ] (E.text titleString)
         }
+
+
+fixBlankTitle str =
+    if str == "" then
+        "Untitled"
+
+    else
+        str
 
 
 {-| Use for document collections
