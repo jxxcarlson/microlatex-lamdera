@@ -403,6 +403,7 @@ type FrontendMsg
     | SelectList DocumentList
     | GetUserTags
     | GetPublicTags
+    | ChangeSlug
       -- Export
     | ExportToMarkdown
     | ExportToLaTeX

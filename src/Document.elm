@@ -10,6 +10,7 @@ module Document exposing
     , addSlug
     , addTag
     , canEditSharedDoc
+    , changeSlug
     , currentAuthor
     , defaultSettings
     , documentFromListViaId
@@ -98,7 +99,7 @@ getSlug : Document -> Maybe String
 getSlug doc =
     let
         username =
-            doc.author |> Maybe.withDefault "-"
+            doc.author |> Maybe.withDefault "anon"
     in
     List.filter (\item -> String.contains (username ++ ":") item) doc.tags
         |> List.head
@@ -308,65 +309,21 @@ addSlug doc =
     addTag (makeSlug doc) doc
 
 
+changeSlug : Document -> Document
+changeSlug doc =
+    let
+        authorname =
+            doc.author |> Maybe.withDefault "anon"
+
+        filter =
+            \tag -> not (String.contains (authorname ++ ":") tag)
+    in
+    { doc | content = makeNewContentWithTag (makeSlug doc) filter doc }
+
+
 addTag : String -> Document -> Document
 addTag tag doc =
-    let
-        oldTagString_ =
-            TextTools.getRawItem doc.language "tags" doc.content
-
-        oldTags =
-            TextTools.getItem doc.language "tags" doc.content |> String.split "," |> List.map String.trim
-
-        newTags =
-            if List.member tag oldTags then
-                oldTags |> String.join ", "
-
-            else
-                tag :: oldTags |> String.join ", "
-
-        newTagString =
-            case doc.language of
-                L0Lang ->
-                    [ "[tags ", newTags, "]" ] |> String.join ""
-
-                MicroLaTeXLang ->
-                    [ "\\tags{", newTags, "}" ] |> String.join ""
-
-                XMarkdownLang ->
-                    [ "@[tags ", newTags, "]" ] |> String.join ""
-
-                _ ->
-                    ""
-
-        newContent =
-            case oldTagString_ of
-                Nothing ->
-                    let
-                        tagString =
-                            case doc.language of
-                                L0Lang ->
-                                    "[tags " ++ tag ++ "]"
-
-                                MicroLaTeXLang ->
-                                    "\\tags{" ++ tag ++ "}"
-
-                                XMarkdownLang ->
-                                    "@[tags " ++ tag ++ "deleted]"
-
-                                PlainTextLang ->
-                                    ""
-                    in
-                    case String.split "\n\n" doc.content of
-                        head :: rest ->
-                            head :: tagString :: rest |> String.join "\n\n"
-
-                        [] ->
-                            ""
-
-                Just oldTagString ->
-                    String.replace oldTagString newTagString doc.content
-    in
-    { doc | content = newContent }
+    { doc | content = makeNewContentWithTag tag (\_ -> True) doc }
 
 
 removeTag : String -> Document -> Document
@@ -401,3 +358,71 @@ removeTag tag doc =
                     String.replace oldTagString newTagString doc.content
     in
     { doc | content = newContent, tags = newTags }
+
+
+makeNewTagString newTags doc =
+    case doc.language of
+        L0Lang ->
+            [ "[tags ", newTags, "]" ] |> String.join ""
+
+        MicroLaTeXLang ->
+            [ "\\tags{", newTags, "}" ] |> String.join ""
+
+        XMarkdownLang ->
+            [ "@[tags ", newTags, "]" ] |> String.join ""
+
+        _ ->
+            ""
+
+
+makeNewContentWithTag : String -> (String -> Bool) -> Document -> String
+makeNewContentWithTag tag filter doc =
+    let
+        oldTagString_ =
+            TextTools.getRawItem doc.language "tags" doc.content
+    in
+    case oldTagString_ of
+        Nothing ->
+            makeFirstTag tag doc
+
+        Just oldTagString ->
+            let
+                oldTags =
+                    TextTools.getItem doc.language "tags" doc.content
+                        |> String.split ","
+                        |> List.map String.trim
+                        |> List.filter filter
+
+                newTags =
+                    if List.member tag oldTags then
+                        oldTags |> String.join ", "
+
+                    else
+                        tag :: oldTags |> String.join ", "
+            in
+            String.replace oldTagString (makeNewTagString newTags doc) doc.content
+
+
+makeFirstTag : String -> { a | language : Language, content : String } -> String
+makeFirstTag tag doc =
+    let
+        tagString =
+            case doc.language of
+                L0Lang ->
+                    "[tags " ++ tag ++ "]"
+
+                MicroLaTeXLang ->
+                    "\\tags{" ++ tag ++ "}"
+
+                XMarkdownLang ->
+                    "@[tags " ++ tag ++ "deleted]"
+
+                PlainTextLang ->
+                    ""
+    in
+    case String.split "\n\n" doc.content of
+        head :: rest ->
+            head :: tagString :: rest |> String.join "\n\n"
+
+        [] ->
+            ""

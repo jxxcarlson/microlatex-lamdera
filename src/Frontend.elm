@@ -952,6 +952,9 @@ update msg model =
         NewDocument ->
             Frontend.Update.newDocument model
 
+        ChangeSlug ->
+            Frontend.Update.changeSlug model
+
         SetDeleteDocumentState s ->
             ( { model | deleteDocumentState = s }, Effect.Command.none )
 

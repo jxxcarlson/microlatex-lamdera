@@ -2,6 +2,7 @@ port module Frontend.Update exposing
     ( addDocToCurrentUser
     , adjustId
     , changeLanguage
+    , changeSlug
     , closeEditor
     , debounceMsg
     , exportToLaTeX
@@ -953,6 +954,22 @@ updateDoc_ doc str model =
             Command.none
         ]
     )
+
+
+changeSlug : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+changeSlug model =
+    case model.currentDocument of
+        Nothing ->
+            ( model, Command.none )
+
+        Just doc ->
+            let
+                newDocument_ =
+                    Document.changeSlug doc
+            in
+            ( { model | currentDocument = Just newDocument_ } |> postProcessDocument newDocument_
+            , sendToBackend (SaveDocument model.currentUser newDocument_)
+            )
 
 
 updateEditRecord : Dict String String -> Document -> FrontendModel -> FrontendModel

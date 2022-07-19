@@ -88,6 +88,7 @@ module View.Button exposing
     , togglePublicUrl
     , toggleTOC
     , toggleTagsSidebar
+    , updateTags
     , workingDocs
     )
 
@@ -119,6 +120,11 @@ runNetworkModelCommand =
 applyEdits : Element FrontendMsg
 applyEdits =
     buttonTemplate [] ApplyEdits "Apply edits"
+
+
+updateTags : Element FrontendMsg
+updateTags =
+    buttonTemplate [] ChangeSlug "Update tags"
 
 
 clearPassword : String -> Element FrontendMsg
