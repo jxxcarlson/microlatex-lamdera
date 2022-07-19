@@ -1,4 +1,4 @@
-module CollaborativeEditing.NetworkSimulator3 exposing (..)
+module CollaborativeEditing.NetworkSimulator3 exposing (State, applyEditOperation, applyEventAtServer, applyEventToLocalState, applyEventToState, init, initialState, m1, nextStep, run, sendToServer, update, user1, user2)
 
 import CollaborativeEditing.NetworkModel2 as NetworkModel
     exposing

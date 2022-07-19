@@ -1,4 +1,4 @@
-module MicroLaTeX.Parser.LXTest exposing (..)
+module MicroLaTeX.Parser.LXTest exposing (str)
 
 
 str =

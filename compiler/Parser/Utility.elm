@@ -1,4 +1,4 @@
-module Parser.Utility exposing (..)
+module Parser.Utility exposing (getLeadingBlanks, l0TitleParser, leadingBlanks, microLaTeXTitleParser, parseTitle)
 
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))

@@ -1,4 +1,4 @@
-module DocumentTools exposing (..)
+module DocumentTools exposing (sort)
 
 import Document exposing (Document)
 import Effect.Time

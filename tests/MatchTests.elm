@@ -1,4 +1,4 @@
-module MatchTests exposing (..)
+module MatchTests exposing (p, suite, suite2, testParser, test_)
 
 import Expect exposing (equal)
 import L0.Parser.Expression exposing (parse)

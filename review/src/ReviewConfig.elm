@@ -31,7 +31,8 @@ config =
     --, NoUnused.Parameters.rule
     --, NoUnused.Patterns.rule
     --, NoUnused.Variables.rule
-    --, NoExposingEverything.rule
+    , NoExposingEverything.rule
+
     --, CognitiveComplexity.rule 15
     ]
         |> List.map (Review.Rule.ignoreErrorsForFiles [ "src/Types.elm", "src/Env.elm", "vendor/jinjor/elm-debounce/3.0.0/src/Debounce.elm" ])

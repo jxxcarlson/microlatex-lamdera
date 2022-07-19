@@ -1,4 +1,4 @@
-module CollaborativeEditing.NetworkSimulator exposing (..)
+module CollaborativeEditing.NetworkSimulator exposing (State, events1, events2, init, nextStep, pass, run, runWithInput, update, updatePhase1, updatePhase2)
 
 -- (eventStream1, pass, runWithInput)
 
