@@ -11,7 +11,7 @@ import Element.Font as Font
 import Html exposing (Html, button, div, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput)
-import Types exposing (..)
+import Types exposing (FrontendModel, FrontendMsg)
 import View.Button
 import View.Color as Color
 import View.Geometry as Geometry
@@ -40,7 +40,7 @@ viewMessages model =
         Types.TCGDisplay ->
             E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 500) model)
 
-        TCGShowInputForm ->
+        Types.TCGShowInputForm ->
             E.el [ E.paddingEach { left = 0, right = 0, top = 18, bottom = 8 } ] (viewMessages_ (model.windowHeight - 770) model)
 
 
@@ -54,7 +54,7 @@ viewCurrentGroup model =
                 , E.row [ E.spacing 8 ] [ View.Button.setChatCreate model, View.Button.clearChatHistory ]
                 ]
 
-        TCGShowInputForm ->
+        Types.TCGShowInputForm ->
             E.none
 
 
@@ -147,8 +147,8 @@ viewMessages_ h model =
                 , Background.color Color.transparentBlue
                 , E.paddingXY 6 16
                 ]
-        , chatInput model MessageFieldChanged |> E.html
-        , button (onClick MessageSubmitted :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
+        , chatInput model Types.MessageFieldChanged |> E.html
+        , button (onClick Types.MessageSubmitted :: style "width" "363px" :: style "height" "32px" :: style "color" "#fff" :: style "background-color" "#888" :: fontStyles) [ text "Send" ] |> E.html
         ]
 
 
@@ -170,7 +170,7 @@ chatInput model msg =
         []
 
 
-viewMessage : Effect.Time.Zone -> ChatMsg -> E.Element msg
+viewMessage : Effect.Time.Zone -> Types.ChatMsg -> E.Element msg
 viewMessage zone msg =
     case msg of
         Types.JoinedChat clientId username ->

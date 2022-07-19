@@ -5,7 +5,7 @@ import Dict
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
-import Types exposing (..)
+import Types
 import View.Button
 import View.Color as Color
 import View.Input
@@ -13,7 +13,7 @@ import View.Input
 
 view model =
     case model.popupState of
-        NetworkMonitorPopup ->
+        Types.NetworkMonitorPopup ->
             let
                 dx =
                     if model.showEditor then

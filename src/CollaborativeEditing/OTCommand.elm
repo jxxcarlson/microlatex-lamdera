@@ -7,7 +7,20 @@ module CollaborativeEditing.OTCommand exposing (Command(..), parseCommand, toCom
 import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT
 import Json.Encode as E
-import Parser exposing (..)
+import Parser
+    exposing
+        ( (|.)
+        , (|=)
+        , Parser
+        , chompWhile
+        , getChompedString
+        , int
+        , oneOf
+        , run
+        , spaces
+        , succeed
+        , symbol
+        )
 
 
 type Command

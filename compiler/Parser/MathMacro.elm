@@ -1,9 +1,43 @@
-module Parser.MathMacro exposing (MathExpression(..), MathMacroDict, evalList, evalMacro, evalStr, getArgs, makeMacroDict, newCommand2, parse, parseMany, parseOne)
+module Parser.MathMacro exposing
+    ( MathExpression(..)
+    , MathMacroDict
+    , evalList
+    , evalMacro
+    , evalStr
+    , getArgs
+    , makeMacroDict
+    , newCommand2
+    , parse
+    , parseMany
+    , parseOne
+    )
 
 import Dict exposing (Dict)
 import List.Extra
 import Maybe.Extra
-import Parser.Advanced exposing (..)
+import Parser.Advanced
+    exposing
+        ( (|.)
+        , (|=)
+        , DeadEnd
+        , Step(..)
+        , Token(..)
+        , andThen
+        , backtrackable
+        , chompIf
+        , chompWhile
+        , getOffset
+        , getSource
+        , inContext
+        , lazy
+        , loop
+        , map
+        , oneOf
+        , run
+        , succeed
+        , symbol
+        , variable
+        )
 import Result.Extra
 import Set
 

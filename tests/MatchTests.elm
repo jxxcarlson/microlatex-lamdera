@@ -1,11 +1,11 @@
 module MatchTests exposing (..)
 
-import Expect exposing (..)
+import Expect exposing (equal)
 import L0.Parser.Expression exposing (parse)
 import L0.Parser.Match exposing (isReducible)
 import L0.Parser.Symbol exposing (Symbol(..))
 import Parser.Expr exposing (Expr(..))
-import Test exposing (..)
+import Test exposing (Test, describe, test)
 
 
 test_ label expr expected =
