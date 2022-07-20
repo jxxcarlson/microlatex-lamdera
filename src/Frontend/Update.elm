@@ -149,6 +149,7 @@ signOut model =
     in
     ( { model
         | currentUser = Nothing
+        , activeEditor = Nothing
         , clientIds = []
         , currentDocument = Just Docs.simpleWelcomeDoc
         , currentMasterDocument = Nothing

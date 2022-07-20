@@ -8,7 +8,8 @@ module Share exposing
     , narrowCastIfShared
     , narrowCastToEditorsExceptForSender
     , removeEditor
-    , resetDocument
+    , removeUserFromSharedDocument
+    , removeUserFromSharedDocumentDict
     , shareDocument
     , toSharedDocument
     , unshare
@@ -51,9 +52,19 @@ type alias Username =
 --    { sharedDoc | currentEditors = currentEditors }
 
 
-resetDocument : Types.Username -> Types.SharedDocument -> Types.SharedDocument
-resetDocument username sharedDocument =
-    { sharedDocument | currentEditors = [] }
+removeUserFromSharedDocument : Types.Username -> Types.SharedDocument -> Types.SharedDocument
+removeUserFromSharedDocument username sharedDocument =
+    { sharedDocument | currentEditors = List.filter (\editorData -> editorData.username /= username) sharedDocument.currentEditors }
+
+
+removeUserFromSharedDocumentDict : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
+removeUserFromSharedDocumentDict username dict =
+    let
+        f : String -> Types.SharedDocument -> Types.SharedDocument
+        f =
+            \u -> removeUserFromSharedDocument username
+    in
+    Dict.map f dict
 
 
 

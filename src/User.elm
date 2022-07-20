@@ -63,14 +63,11 @@ insertInList a list =
 mRemoveEditor : Maybe User -> Maybe Document -> Maybe Document
 mRemoveEditor mUser mDoc =
     case ( mUser, mDoc ) of
-        ( Nothing, _ ) ->
-            mDoc
-
-        ( _, Nothing ) ->
-            mDoc
-
         ( Just user, Just doc ) ->
             Just { doc | status = Document.DSReadOnly, currentEditorList = List.filter (\item -> item.userId /= user.id) doc.currentEditorList }
+
+        _ ->
+            mDoc
 
 
 removeEditor : User -> Document -> Document

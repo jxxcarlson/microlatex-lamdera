@@ -708,7 +708,7 @@ getConnectedUser clientId dict =
 
 resetCurrentEditorForUser : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
 resetCurrentEditorForUser username dict =
-    Dict.map (\_ shareDocInfo -> Share.resetDocument username shareDocInfo) dict
+    Dict.map (\_ shareDocInfo -> Share.removeUserFromSharedDocument username shareDocInfo) dict
 
 
 
@@ -758,7 +758,7 @@ signOut model username clientId =
             setDocumentsToReadOnlyWithUserName username model
     in
     ( { updatedModel
-        | sharedDocumentDict = Dict.map Share.resetDocument model.sharedDocumentDict
+        | sharedDocumentDict = Share.removeUserFromSharedDocumentDict username model.sharedDocumentDict
         , connectionDict = connectionDict
       }
     , Command.batch <| pushSignOutDocCmd :: notifications
@@ -796,7 +796,7 @@ removeSessionClient model sessionId clientId =
                     setDocumentsToReadOnlyWithUserName username model
             in
             ( { updatedModel
-                | sharedDocumentDict = Dict.map Share.resetDocument model.sharedDocumentDict
+                | sharedDocumentDict = Dict.map Share.removeUserFromSharedDocument model.sharedDocumentDict
                 , connectionDict = connectionDict
               }
             , Command.batch <| pushSignOutDocCmd :: notifications

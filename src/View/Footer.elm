@@ -173,14 +173,6 @@ showCurrentEditors activeEditor mDoc =
                 E.row [ E.spacing 8, Font.size 14 ] (E.el [ Font.color Color.paleGreen ] (E.text "Editors:") :: List.map (viewEditor activeEditor) editors)
 
 
-
---let
---    label =
---        "Editors: " ++ (editors |> List.map .username |> String.join ", ")
---in
---E.el [ Font.size 14, Font.color Color.paleGreen ] (E.text <| label)
-
-
 viewEditor mCurrentEditor editorData =
     case mCurrentEditor of
         Nothing ->
