@@ -671,8 +671,8 @@ setDocumentAsCurrent cmd model doc permissions =
                 Nothing ->
                     ( Command.none, model )
 
-                Just doc_ ->
-                    ( sendToBackend (SaveDocument model.currentUser doc_), { model | documents = Document.updateDocumentInList doc_ model.documents } )
+                Just oldCurrentDoc_ ->
+                    ( sendToBackend (SaveDocument model.currentUser oldCurrentDoc_), { model | documents = Document.updateDocumentInList oldCurrentDoc_ model.documents } )
     in
     case List.isEmpty filesToInclude of
         True ->
