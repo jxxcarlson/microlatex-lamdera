@@ -101,8 +101,8 @@ imageParameters settings body =
     { caption = caption, description = description, placement = placement, width = width, url = url }
 
 
-view : Int -> Accumulator -> Render.Settings.Settings -> List Expr -> Element msg
-view generation acc settings body =
+view : Render.Settings.Settings -> List Expr -> Element msg
+view settings body =
     let
         params =
             imageParameters settings body

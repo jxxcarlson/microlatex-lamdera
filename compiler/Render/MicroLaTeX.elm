@@ -24,7 +24,7 @@ export ast =
 
 
 exportBlock : ExpressionBlock -> String
-exportBlock ((ExpressionBlock { blockType, indent, name, args, content }) as block) =
+exportBlock (ExpressionBlock { blockType, indent, name, args, content }) =
     case blockType of
         Paragraph ->
             case content of

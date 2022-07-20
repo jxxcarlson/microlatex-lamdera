@@ -42,5 +42,6 @@ config =
                 , "src/CollaborativeEditing/NetworkSimulator2.elm"
                 , "src/CollaborativeEditing/NetworkSimulator3.elm"
                 , "vendor/jinjor/elm-debounce/3.0.0/src/Debounce.elm"
+                , "compiler/Tools.elm"
                 ]
             )

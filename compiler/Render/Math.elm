@@ -24,7 +24,7 @@ mathText generation width id displayMode content =
         , HA.id id
         , HA.style "width" width
         ]
-        [ ( String.fromInt generation, mathText_ displayMode id (eraseLabeMacro content) )
+        [ ( String.fromInt generation, mathText_ displayMode (eraseLabeMacro content) )
         ]
         |> Element.html
 
@@ -33,8 +33,8 @@ eraseLabeMacro content =
     content |> String.lines |> List.map (Parser.TextMacro.eraseLeadingMacro "label") |> String.join "\n"
 
 
-mathText_ : DisplayMode -> String -> String -> Html msg
-mathText_ displayMode selectedId content =
+mathText_ : DisplayMode -> String -> Html msg
+mathText_ displayMode content =
     Html.node "math-text"
         -- active meta selectedId  ++
         [ HA.property "display" (Json.Encode.bool (isDisplayMathMode displayMode))
