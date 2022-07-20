@@ -244,8 +244,8 @@ narrowCast requestingClientId document connectionDict =
     Command.batch (List.map (\clientId -> Effect.Lamdera.sendToFrontend clientId (Types.ReceivedDocument Types.StandardHandling document)) clientIds)
 
 
-narrowCastIfShared : Types.ConnectionDict -> ClientId -> Types.Username -> Document.Document -> Command Command.BackendOnly Types.ToFrontend Types.BackendMsg
-narrowCastIfShared connectionDict clientId username document =
+narrowCastIfShared : Types.ConnectionDict -> Types.Username -> Document.Document -> Command Command.BackendOnly Types.ToFrontend Types.BackendMsg
+narrowCastIfShared connectionDict username document =
     let
         numberOfDistinctEditors =
             List.map .username document.currentEditorList |> List.Extra.unique |> List.length

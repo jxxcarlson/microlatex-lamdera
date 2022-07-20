@@ -1,4 +1,4 @@
-module SharedDocumentTests exposing (..)
+module SharedDocumentTests exposing (suite)
 
 import Dict exposing (Dict)
 import Expect exposing (equal)
