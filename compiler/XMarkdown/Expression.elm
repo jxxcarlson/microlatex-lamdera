@@ -194,7 +194,7 @@ reduceState state =
         in
         case List.head symbols of
             Just SAT ->
-                handleAt symbols state
+                handleAt state
 
             Just M ->
                 handleMathSymbol symbols state
@@ -205,7 +205,7 @@ reduceState state =
             Just SBold ->
                 case symbols of
                     [ SBold, SItalic, SItalic, SBold ] ->
-                        handleBoldItalic symbols state
+                        handleBoldItalic state
 
                     _ ->
                         handleBoldSymbol symbols state
@@ -215,8 +215,7 @@ reduceState state =
 
             Just LBracket ->
                 if symbols == [ LBracket, RBracket, LParen, RParen ] then
-                    handleLink symbols state
-                    --else if symbols == [ LBracket, RBracket ] then
+                    handleLink state
 
                 else
                     handleBracketedText state |> Tools.forklogRed "HANDLE[]" forkLogWidth identity
@@ -224,10 +223,10 @@ reduceState state =
             --else
             --    state
             Just SImage ->
-                handleImage symbols state
+                handleImage state
 
             Just LParen ->
-                handleParens symbols state
+                handleParens state
 
             _ ->
                 state
@@ -244,8 +243,8 @@ takeMiddle list =
         |> List.drop 1
 
 
-handleLink : List Symbol -> State -> State
-handleLink symbols state =
+handleLink : State -> State
+handleLink state =
     let
         expr =
             case state.stack of
@@ -307,8 +306,8 @@ handleBracketedText state =
 --{ state | committed = expr :: state.committed, stack = [] }
 
 
-handleImage : List Symbol -> State -> State
-handleImage symbols state =
+handleImage : State -> State
+handleImage state =
     let
         data =
             case state.stack of
@@ -327,8 +326,8 @@ handleImage symbols state =
     { state | committed = expr :: state.committed, stack = [] }
 
 
-handleAt : List Symbol -> State -> State
-handleAt symbols state =
+handleAt : State -> State
+handleAt state =
     let
         content =
             state.stack
@@ -344,8 +343,8 @@ handleAt symbols state =
     { state | committed = expr ++ state.committed, stack = [] }
 
 
-handleParens : List Symbol -> State -> State
-handleParens symbols state =
+handleParens : State -> State
+handleParens state =
     let
         str =
             case state.stack of
@@ -402,8 +401,8 @@ handleBoldSymbol symbols state =
         state
 
 
-handleBoldItalic : List Symbol -> State -> State
-handleBoldItalic symbols state =
+handleBoldItalic : State -> State
+handleBoldItalic state =
     let
         content =
             state.stack |> takeMiddle |> takeMiddle |> Token.toString2
@@ -456,7 +455,7 @@ eval lineNumber tokens =
             Text t m2 :: evalList Nothing lineNumber rest
 
         _ ->
-            errorMessage2Part lineNumber "\\" "{??}(5)"
+            errorMessage2Part "\\" "{??}(5)"
 
 
 evalList : Maybe String -> Int -> List Token -> List Expr
@@ -467,7 +466,7 @@ evalList macroName lineNumber tokens =
                 TLB ->
                     case M.match (Symbol.convertTokens tokens) of
                         Nothing ->
-                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString2 tokens) " ?}"
+                            errorMessage3Part ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString2 tokens) " ?}"
 
                         Just k ->
                             let
@@ -492,13 +491,13 @@ evalList macroName lineNumber tokens =
             []
 
 
-errorMessage2Part : Int -> String -> String -> List Expr
-errorMessage2Part lineNumber a b =
+errorMessage2Part : String -> String -> List Expr
+errorMessage2Part a b =
     [ Expr "red" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
 
 
-errorMessage3Part : Int -> String -> String -> String -> List Expr
-errorMessage3Part lineNumber a b c =
+errorMessage3Part : String -> String -> String -> List Expr
+errorMessage3Part a b c =
     [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text b dummyLocWithId ] dummyLocWithId, Expr "red" [ Text c dummyLocWithId ] dummyLocWithId ]
 
 
