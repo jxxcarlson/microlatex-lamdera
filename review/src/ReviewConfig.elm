@@ -35,4 +35,12 @@ config =
 
     --  , CognitiveComplexity.rule 15
     ]
-        |> List.map (Review.Rule.ignoreErrorsForFiles [ "src/Types.elm", "src/Env.elm", "vendor/jinjor/elm-debounce/3.0.0/src/Debounce.elm" ])
+        |> List.map
+            (Review.Rule.ignoreErrorsForFiles
+                [ "src/Types.elm"
+                , "src/Env.elm"
+                , "src/CollaborativeEditing/NetworkSimulator2.elm"
+                , "src/CollaborativeEditing/NetworkSimulator3.elm"
+                , "vendor/jinjor/elm-debounce/3.0.0/src/Debounce.elm"
+                ]
+            )

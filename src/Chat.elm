@@ -162,7 +162,7 @@ narrowCast model message =
 -- HISTORY
 
 
-sendChatHistoryCmd groupName model clientId =
+sendChatHistoryCmd groupName model =
     let
         history : List Types.ChatMsg
         history =

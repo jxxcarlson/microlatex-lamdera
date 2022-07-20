@@ -167,7 +167,7 @@ updateFromFrontend sessionId clientId msg model =
                 newModel =
                     { model | chatDict = newChatDict }
             in
-            ( newModel, Chat.sendChatHistoryCmd groupName newModel clientId )
+            ( newModel, Chat.sendChatHistoryCmd groupName newModel )
 
         SendChatHistory groupName ->
             case Dict.get groupName model.chatGroupDict of
@@ -175,7 +175,7 @@ updateFromFrontend sessionId clientId msg model =
                     ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = groupName ++ ": no such group", status = Types.MSYellow }) )
 
                 Just _ ->
-                    ( model, Chat.sendChatHistoryCmd groupName model clientId )
+                    ( model, Chat.sendChatHistoryCmd groupName model )
 
         InsertChatGroup group ->
             ( { model | chatGroupDict = Dict.insert group.name group model.chatGroupDict }, Command.none )
