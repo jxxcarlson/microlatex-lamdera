@@ -303,7 +303,7 @@ nextState tree state =
 
 
 exportBlock : Settings -> ExpressionBlock -> String
-exportBlock settings ((ExpressionBlock { blockType, name, args, content }) as block) =
+exportBlock settings (ExpressionBlock { blockType, name, args, content }) =
     case blockType of
         Paragraph ->
             case content of
@@ -440,9 +440,9 @@ functionDict =
 macroDict : Dict String (Settings -> List Expr -> String)
 macroDict =
     Dict.fromList
-        [ ( "link", link )
-        , ( "ilink", ilink )
-        , ( "index_", blindIndex )
+        [ ( "link", \_ -> link )
+        , ( "ilink", \_ -> ilink )
+        , ( "index_", \_ _ -> blindIndex )
         , ( "code", code )
         , ( "image", Render.Export.Image.export )
         ]
@@ -472,7 +472,7 @@ blockDict =
         , ( "beginNumberedBlock", \_ _ _ -> "\\begin{enumerate}" )
         , ( "endNumberedBlock", \_ _ _ -> "\\end{enumerate}" )
         , ( "mathmacros", \_ _ body -> body ++ "\nHa ha ha!" )
-        , ( "setcounter", \_ args body -> setcounter args body )
+        , ( "setcounter", \_ args _ -> setcounter args )
         ]
 
 
@@ -491,8 +491,8 @@ code _ exprs =
     Render.Export.Util.getOneArg exprs |> fixChars
 
 
-link : Settings -> List Expr -> String
-link s exprs =
+link : List Expr -> String
+link exprs =
     let
         args =
             Render.Export.Util.getTwoArgs exprs
@@ -500,8 +500,8 @@ link s exprs =
     [ "\\href{", args.second, "}{", args.first, "}" ] |> String.join ""
 
 
-ilink : Settings -> List Expr -> String
-ilink s exprs =
+ilink : List Expr -> String
+ilink exprs =
     let
         args =
             Render.Export.Util.getTwoArgs exprs
@@ -509,18 +509,13 @@ ilink s exprs =
     [ "\\href{", "https://scripta.io/s/", args.second, "}{", args.first, "}" ] |> String.join ""
 
 
-blindIndex : Settings -> List Expr -> String
-blindIndex s exprs =
-    let
-        args =
-            Render.Export.Util.getTwoArgs exprs
-    in
-    -- TODO
-    [] |> String.join ""
+blindIndex : String
+blindIndex =
+    ""
 
 
-setcounter : List String -> String -> String
-setcounter args body =
+setcounter : List String -> String
+setcounter args =
     [ "\\setcounter{section}{", Utility.getArg "0" 0 args, "}" ] |> String.join ""
 
 

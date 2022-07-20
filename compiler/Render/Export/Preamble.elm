@@ -19,7 +19,7 @@ make blockNames_ expressionNames_ title author date =
     , supportingCode packagesUsed
     , standardPackages
     , commands
-    , preamble_ blockNames_ title author date
+    , preamble_ title author date
     ]
         |> String.join "\n"
 
@@ -291,7 +291,7 @@ commands =
 """
 
 
-preamble_ rawBlockNames_ title author date =
+preamble_ title author date =
     """
 \\begin{document}
 
