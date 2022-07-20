@@ -95,12 +95,3 @@ encodeForPDF id content urlList =
         , ( "content", E.string content )
         , ( "urlList", E.list E.string urlList )
         ]
-
-
-encodeForPDF1 : String -> String -> String -> List String -> E.Value
-encodeForPDF1 id title content urlList =
-    E.object
-        [ ( "id", E.string id )
-        , ( "content", E.string content )
-        , ( "urlList", E.list E.string urlList )
-        ]
