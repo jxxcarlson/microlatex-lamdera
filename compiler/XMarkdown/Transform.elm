@@ -15,10 +15,10 @@ transform block =
     case normalizedContent of
         firstLine :: rest_ ->
             if String.left 1 firstLine == "#" then
-                handleTitle block firstLine rest_
+                handleTitle block firstLine
 
             else if String.left 2 firstLine == "$$" then
-                handleMath block rest_
+                handleMath block
 
             else if String.left 3 firstLine == "```" then
                 handleVerbatim block rest_
@@ -30,7 +30,7 @@ transform block =
                 handleNumberedItem block (String.dropLeft 2 firstLine) rest_
 
             else if String.left 2 firstLine == "> " then
-                handleQuotation block firstLine rest_
+                handleQuotation block firstLine
                 --    handleOrdinaryBlock block (String.dropLeft 1 firstLine) rest_
                 --
                 --else if String.left 1 firstLine == "!" then
@@ -66,13 +66,13 @@ handleVerbatim block rest =
     }
 
 
-handleMath : PrimitiveBlock -> List String -> PrimitiveBlock
-handleMath block rest =
+handleMath : PrimitiveBlock -> PrimitiveBlock
+handleMath block =
     { block | name = Just "math", named = True, blockType = PBVerbatim, content = List.filter (\item -> item /= "") block.content }
 
 
-handleTitle : PrimitiveBlock -> String -> List String -> PrimitiveBlock
-handleTitle block firstLine rest =
+handleTitle : PrimitiveBlock -> String -> PrimitiveBlock
+handleTitle block firstLine =
     let
         words =
             String.split " " firstLine
@@ -97,7 +97,7 @@ handleTitle block firstLine rest =
             { block | args = [ level ], blockType = PBOrdinary, name = Just "section", content = [ first, String.join " " (List.drop 1 words) ] }
 
 
-handleQuotation block firstLine rest_ =
+handleQuotation block firstLine =
     let
         args : List String
         args =

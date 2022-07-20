@@ -60,11 +60,11 @@ app =
         { init = init
         , update = update
         , updateFromFrontend = updateFromFrontend
-        , subscriptions = subscriptions
+        , subscriptions = \_ -> subscriptions
         }
 
 
-subscriptions model =
+subscriptions =
     Subscription.batch
         [ Effect.Lamdera.onConnect ClientConnected
         , Effect.Lamdera.onDisconnect ClientDisconnected
@@ -508,7 +508,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.getDocumentById model clientId documentHandling id
 
         ApplySpecial user clientId_ ->
-            Backend.Update.applySpecial model (Effect.Lamdera.clientIdFromString clientId_)
+            Backend.Update.applySpecial model
 
         HardDeleteDocumentBE doc ->
             Backend.Update.hardDeleteDocument clientId doc model

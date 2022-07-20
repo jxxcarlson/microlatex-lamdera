@@ -112,7 +112,7 @@ handlePing message model =
 
 
 userMessageFromChatMessage : Chat.Message.ChatMessage -> String -> Types.UserMessage
-userMessageFromChatMessage { sender, subject, content } recipient =
+userMessageFromChatMessage { sender, content } recipient =
     { from = sender
     , to = recipient
     , subject = "Ping"
@@ -305,8 +305,8 @@ unlockDocuments model userId =
             ( { model | documentDict = newDocumentDict }, Command.none )
 
 
-applySpecial : BackendModel -> ClientId -> ( BackendModel, Command restriction toMsg BackendMsg )
-applySpecial model clientId =
+applySpecial : BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg )
+applySpecial model =
     let
         updateDoc : Document.Document -> BackendModel -> BackendModel
         updateDoc doc mod =
@@ -819,11 +819,11 @@ removeSessionFromList sessionId clientId dataList =
 
 removeItem : SessionId -> ClientId -> ( String, List ConnectionData ) -> ( String, List ConnectionData )
 removeItem sessionId clientId ( username, data ) =
-    ( username, removeSession username sessionId clientId data )
+    ( username, removeSession sessionId clientId data )
 
 
-removeSession : String -> SessionId -> ClientId -> List ConnectionData -> List ConnectionData
-removeSession username sessionId clientId list =
+removeSession : SessionId -> ClientId -> List ConnectionData -> List ConnectionData
+removeSession sessionId clientId list =
     List.filter (\datum -> datum /= { session = sessionId, client = clientId }) list
 
 
@@ -1042,7 +1042,7 @@ searchForPublicDocuments sortMode limit mUsername key model =
     searchForDocuments_ key model
         |> List.filter (\doc -> doc.public || Predicate.isSharedToMe_ mUsername doc)
         |> DocumentTools.sort sortMode
-        |> List.take Config.maxDocSearchLimit
+        |> List.take limit
 
 
 searchForDocuments_ : String -> Model -> List Document.Document
@@ -1272,8 +1272,8 @@ getMostRecentUserDocuments sortMode limit user usersDocumentsDict documentDict =
                 |> DocumentTools.sort sortMode
 
 
-numberOfUserDocuments : User -> UsersDocumentsDict -> DocumentDict -> Int
-numberOfUserDocuments user usersDocumentsDict documentDict =
+numberOfUserDocuments : User -> UsersDocumentsDict -> Int
+numberOfUserDocuments user usersDocumentsDict =
     case Dict.get user.id usersDocumentsDict of
         Nothing ->
             0
@@ -1289,7 +1289,7 @@ getUserData model =
         userList =
             Authentication.userList model.authenticationDict
     in
-    List.map (\u -> ( u, numberOfUserDocuments u model.usersDocumentsDict model.documentDict )) userList
+    List.map (\u -> ( u, numberOfUserDocuments u model.usersDocumentsDict )) userList
 
 
 getConnectionData : BackendModel -> List String
