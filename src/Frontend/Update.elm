@@ -666,20 +666,20 @@ setDocumentAsCurrent cmd model doc permissions =
         oldCurrentDocument =
             User.mRemoveEditor model.currentUser model.currentDocument
 
-        updateOldCurrentDocCmd =
+        ( updateOldCurrentDocCmd, newModel ) =
             case oldCurrentDocument of
                 Nothing ->
-                    Command.none
+                    ( Command.none, model )
 
                 Just doc_ ->
-                    sendToBackend (SaveDocument model.currentUser doc_)
+                    ( sendToBackend (SaveDocument model.currentUser doc_), { model | documents = Document.updateDocumentInList doc_ model.documents } )
     in
     case List.isEmpty filesToInclude of
         True ->
-            setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd ]) model doc permissions
+            setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd ]) newModel doc permissions
 
         False ->
-            setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd, cmd, Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude) ]) model doc permissions
+            setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd, cmd, Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude) ]) newModel doc permissions
 
 
 setDocumentAsCurrent_ : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
