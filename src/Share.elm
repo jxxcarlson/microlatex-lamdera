@@ -62,7 +62,7 @@ removeUserFromSharedDocumentDict username dict =
     let
         f : String -> Types.SharedDocument -> Types.SharedDocument
         f =
-            \u -> removeUserFromSharedDocument username
+            \_ -> removeUserFromSharedDocument username
     in
     Dict.map f dict
 
@@ -151,8 +151,8 @@ removeEditor userId doc dict =
         Dict.update doc.id (Util.liftToMaybe updater) dict
 
 
-updateSharedDocumentDict : User.User -> Document.Document -> Types.BackendModel -> Types.BackendModel
-updateSharedDocumentDict user doc model =
+updateSharedDocumentDict : Document.Document -> Types.BackendModel -> Types.BackendModel
+updateSharedDocumentDict doc model =
     { model | sharedDocumentDict = Dict.insert doc.id (toSharedDocument doc) model.sharedDocumentDict }
 
 
@@ -199,7 +199,7 @@ doShare model =
                     ( { model | popupState = Types.NoPopup, currentDocument = Just newDocument, documents = documents }
                     , Command.batch
                         [ Effect.Lamdera.sendToBackend (Types.SaveDocument model.currentUser newDocument)
-                        , Effect.Lamdera.sendToBackend (Types.UpdateSharedDocumentDict user_ newDocument)
+                        , Effect.Lamdera.sendToBackend (Types.UpdateSharedDocumentDict newDocument)
                         , cmdSaveUser
                         ]
                     )

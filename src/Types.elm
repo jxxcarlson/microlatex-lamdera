@@ -470,7 +470,7 @@ type ToBackend
     | ClearEditEvents UserId
     | Narrowcast Username UserId Document -- First arg is the sender's username.  Send the document
     | NarrowcastExceptToSender Username UserId Document -- First arg is the sender's username.  Send the document
-    | UpdateSharedDocumentDict User Document
+    | UpdateSharedDocumentDict Document
     | AddEditor User Document
     | RemoveEditor User Document
       -- to all users in the document's share list, plus the author, minus the sender who have active connections

@@ -256,8 +256,8 @@ updateFromFrontend sessionId clientId msg model =
         PushEditorEvent event ->
             Backend.NetworkModel.processEvent event model
 
-        UpdateSharedDocumentDict user doc ->
-            ( Share.updateSharedDocumentDict user doc model, Command.none )
+        UpdateSharedDocumentDict doc ->
+            ( Share.updateSharedDocumentDict doc model, Command.none )
 
         AddEditor user doc ->
             let
