@@ -64,7 +64,11 @@ mRemoveEditor : Maybe User -> Maybe Document -> Maybe Document
 mRemoveEditor mUser mDoc =
     case ( mUser, mDoc ) of
         ( Just user, Just doc ) ->
-            Just { doc | status = Document.DSReadOnly, currentEditorList = List.filter (\item -> item.userId /= user.id) doc.currentEditorList }
+            Just
+                { doc
+                    | status = Document.DSReadOnly
+                    , currentEditorList = List.filter (\item -> item.userId /= user.id) doc.currentEditorList
+                }
 
         _ ->
             mDoc

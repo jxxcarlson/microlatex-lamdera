@@ -341,10 +341,26 @@ closeEditor model =
                             Command.none
                         ]
 
+        documents =
+            case updatedDoc of
+                Nothing ->
+                    model.documents
+
+                Just doc ->
+                    Document.updateDocumentInList doc model.documents
+
         clearEditEventsCmd =
             Effect.Lamdera.sendToBackend (ClearEditEvents (User.currentUserId model.currentUser))
     in
-    ( { model | currentDocument = updatedDoc, initialText = "", popupState = NoPopup, showEditor = False }, saveCmd )
+    ( { model
+        | currentDocument = updatedDoc
+        , documents = documents
+        , initialText = ""
+        , popupState = NoPopup
+        , showEditor = False
+      }
+    , saveCmd
+    )
 
 
 {-|
