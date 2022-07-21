@@ -226,6 +226,42 @@ signUp model =
 --- EDITOR
 
 
+addUserToCurrentEditorsOfDocument : Maybe User -> Document -> Document
+addUserToCurrentEditorsOfDocument currentUser doc =
+    case currentUser of
+        Nothing ->
+            doc
+
+        Just user ->
+            let
+                oldEditorList =
+                    doc.currentEditorList
+
+                equal a b =
+                    a.userId == b.userId
+
+                editorItem : Document.EditorData
+                editorItem =
+                    -- TODO: need actual clients
+                    { userId = user.id, username = user.username, clients = [] }
+
+                currentEditorList =
+                    if Predicate.documentIsMineOrSharedToMe (Just doc) currentUser then
+                        Util.insertInListOrUpdate equal editorItem oldEditorList
+
+                    else
+                        oldEditorList
+
+                updatedDoc =
+                    if Predicate.documentIsMineOrSharedToMe (Just doc) currentUser then
+                        { doc | status = Document.DSCanEdit, currentEditorList = currentEditorList }
+
+                    else
+                        { doc | status = Document.DSReadOnly }
+            in
+            updatedDoc
+
+
 {-| }
 When the editor is opened, the current user is added to the document's
 current editor list. This changed needs to saved to the backend and
@@ -241,30 +277,8 @@ openEditor doc model =
 
         Just currentUser ->
             let
-                oldEditorList =
-                    doc.currentEditorList
-
-                equal a b =
-                    a.userId == b.userId
-
-                editorItem : Document.EditorData
-                editorItem =
-                    -- TODO: need actual clients
-                    { userId = currentUser.id, username = currentUser.username, clients = [] }
-
-                currentEditorList =
-                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
-                        Util.insertInListOrUpdate equal editorItem oldEditorList
-
-                    else
-                        oldEditorList
-
                 updatedDoc =
-                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
-                        { doc | status = Document.DSCanEdit, currentEditorList = currentEditorList }
-
-                    else
-                        { doc | status = Document.DSReadOnly }
+                    addUserToCurrentEditorsOfDocument model.currentUser doc
 
                 sendersName =
                     currentUser.username
@@ -664,7 +678,9 @@ setDocumentAsCurrent cmd model doc permissions =
             IncludeFiles.getData doc.content
 
         oldCurrentDocument =
-            User.mRemoveEditor model.currentUser model.currentDocument
+            model.currentDocument
+                |> User.mRemoveEditor model.currentUser
+                |> Maybe.map (\doc_ -> { doc_ | status = Document.DSReadOnly })
 
         ( updateOldCurrentDocCmd, newModel ) =
             case oldCurrentDocument of
@@ -747,6 +763,7 @@ setDocumentAsCurrent_ cmd model doc permissions =
 
                 updatedDoc =
                     { doc | status = newDocumentStatus }
+                        |> Util.applyIf model.showEditor (addUserToCurrentEditorsOfDocument model.currentUser)
             in
             ( { model
                 | currentDocument = Just updatedDoc
