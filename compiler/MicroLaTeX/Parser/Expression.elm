@@ -372,7 +372,7 @@ evalList macroName lineNumber tokens =
                         -- there was no match for the left brace;
                         -- this is an error
                         Nothing ->
-                            errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
+                            errorMessage3Part ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
 
                         Just k ->
                             -- there are k matching tokens
@@ -402,7 +402,6 @@ split : List Token -> ( List Token, List Token )
 split tokens =
     case M.match (Symbol.convertTokens2 tokens) of
         Nothing ->
-            -- errorMessage3Part lineNumber ("\\" ++ (macroName |> Maybe.withDefault "x")) (Token.toString tokens) " ?}"
             ( tokens, [] )
 
         Just k ->
@@ -644,13 +643,8 @@ errorMessage1Part a =
     Expr "errorHighlight" [ Text a dummyLocWithId ] dummyLocWithId
 
 
-errorMessage2Part : Int -> String -> String -> List Expr
-errorMessage2Part lineNumber a b =
-    [ Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId ]
-
-
-errorMessage3Part : Int -> String -> String -> String -> List Expr
-errorMessage3Part lineNumber a b c =
+errorMessage3Part : String -> String -> String -> List Expr
+errorMessage3Part a b c =
     [ Expr "blue" [ Text a dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text b dummyLocWithId ] dummyLocWithId, Expr "errorHighlight" [ Text c dummyLocWithId ] dummyLocWithId ]
 
 

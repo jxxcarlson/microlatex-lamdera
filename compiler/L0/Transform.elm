@@ -5,7 +5,7 @@ import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 
 
-ordinaryBlock args exprs data m1 =
+ordinaryBlock args exprs data =
     ExpressionBlock
         { data
             | blockType = OrdinaryBlock args

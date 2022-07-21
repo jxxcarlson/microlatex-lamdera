@@ -31,7 +31,7 @@ l0Empty =
 
 
 getMessages : ExpressionBlock -> List String
-getMessages ((ExpressionBlock { messages }) as block) =
+getMessages (ExpressionBlock { messages }) =
     messages
 
 

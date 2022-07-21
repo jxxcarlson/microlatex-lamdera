@@ -347,10 +347,10 @@ transformHeader name args str =
         transformBegin args str
 
     else
-        transformOther name args str
+        transformOther name str
 
 
-transformOther name args str =
+transformOther name str =
     let
         target =
             if name == "$$" then

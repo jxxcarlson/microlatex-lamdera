@@ -348,7 +348,7 @@ mathExpressionBare =
 -}
 mathStuff : MXParser MathExpression
 mathStuff =
-    stuff ExpectingStuff inStuff |> map MathText
+    stuff ExpectingStuff |> map MathText
 
 
 inStuff : Char -> Bool
@@ -362,8 +362,8 @@ inStuff c =
     --> Ok ("x + y = ")
 
 -}
-stuff : Problem -> (Char -> Bool) -> MXParser String
-stuff problem inWord =
+stuff : Problem -> MXParser String
+stuff problem =
     succeed String.slice
         |. ws
         |= getOffset

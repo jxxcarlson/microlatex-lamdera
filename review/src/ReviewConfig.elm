@@ -43,5 +43,7 @@ config =
                 , "src/CollaborativeEditing/NetworkSimulator3.elm"
                 , "vendor/jinjor/elm-debounce/3.0.0/src/Debounce.elm"
                 , "compiler/Tools.elm"
+                , "compiler/Render/Chart.elm"
+                , "compiler/Render/Block.elm"
                 ]
             )

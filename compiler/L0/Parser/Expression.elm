@@ -310,7 +310,7 @@ evalList lineNumber tokens =
         (LB _) :: _ ->
             case splitTokens tokens of
                 Nothing ->
-                    [ errorMessageInvisible lineNumber "Error on match", Text "error on match" dummyLocWithId ]
+                    [ errorMessageInvisible "Error on match", Text "error on match" dummyLocWithId ]
 
                 Just ( a, b ) ->
                     eval lineNumber a ++ evalList lineNumber b
@@ -349,8 +349,8 @@ segLength tokens =
     M.getSegment M (tokens |> Symbol.toSymbols) |> List.length
 
 
-errorMessageInvisible : Int -> String -> Expr
-errorMessageInvisible lineNumber message =
+errorMessageInvisible : String -> Expr
+errorMessageInvisible message =
     Expr "invisible" [ Text message dummyLocWithId ] dummyLocWithId
 
 

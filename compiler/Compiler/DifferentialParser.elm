@@ -119,7 +119,7 @@ parser lang =
             Tree.map (Parser.BlockUtil.toExpressionBlock lang L0.Parser.Expression.parse)
 
         PlainTextLang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock lang (\i s -> ( Markup.parsePlainText i s, [] )))
+            Tree.map (Parser.BlockUtil.toExpressionBlock lang (\_ s -> ( Markup.parsePlainText s, [] )))
 
         XMarkdownLang ->
             Tree.map (Parser.BlockUtil.toExpressionBlock lang (\i s -> ( XMarkdown.Expression.parse i s, [] )))

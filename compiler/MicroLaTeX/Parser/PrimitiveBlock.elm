@@ -19,11 +19,8 @@ module MicroLaTeX.Parser.PrimitiveBlock exposing
     , init
     , loop
     , nextStep
-    , report1
-    , report2
     , toPrimitiveBlocks
     , toPrimitiveBlocks_
-    , transformContent
     )
 
 {-| This module is like Tree.Blocks, except that if the first line of a block
@@ -63,18 +60,6 @@ type alias PrimitiveBlock =
     , sourceText : String
     , blockType : PrimitiveBlockType
     }
-
-
-report1 : String -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String ) -> ( ( Int, Bool, Maybe PrimitiveBlockType ), String )
-report1 label a =
-    -- Tools.debugLog2 label identity a
-    identity a
-
-
-report2 : String -> State -> State
-report2 label a =
-    -- Tools.debugLog2 label (\s -> ( s.lineNumber, s.inVerbatim, Maybe.map .content s.currentBlock )) a
-    identity a
 
 
 empty : PrimitiveBlock
@@ -420,7 +405,7 @@ createBlock state currentLine =
 
 
 addCurrentLine : Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine ({ prefix, content, indent } as line) block =
+addCurrentLine line block =
     let
         pb =
             addCurrentLine_ line block
@@ -446,19 +431,8 @@ elaborate line pb =
 
 
 addCurrentLine_ : Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine_ ({ prefix, content, indent } as line) block =
+addCurrentLine_ { prefix, content } block =
     { block | content = content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
-
-
-transformContent : Language -> Line -> String
-transformContent lang ({ indent, prefix, content } as line) =
-    --if isNonEmptyBlank line then
-    --    "[syspar]"
-    --
-    --else
-    --    prefix ++ content
-    -- TODO: temporarily disabled
-    content
 
 
 type Step state a

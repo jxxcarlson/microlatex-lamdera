@@ -1,8 +1,8 @@
 module MicroLaTeX.Parser.Error exposing (ordinaryBlock, sliceList)
 
 
-ordinaryBlock : String -> List String -> List String -> Int -> String -> ( String, List String )
-ordinaryBlock name args currentMessages lineNumber revisedContent =
+ordinaryBlock : String -> List String -> String -> ( String, List String )
+ordinaryBlock name currentMessages revisedContent =
     let
         lines =
             String.lines (String.trim revisedContent)

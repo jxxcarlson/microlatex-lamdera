@@ -1,8 +1,8 @@
 module L0.Parser.Error exposing (ordinaryBlock)
 
 
-ordinaryBlock : String -> List String -> List String -> Int -> String -> ( String, List String )
-ordinaryBlock name args currentMessages lineNumber revisedContent =
+ordinaryBlock : List String -> String -> ( String, List String )
+ordinaryBlock currentMessages revisedContent =
     let
         lines =
             String.lines (String.trim revisedContent)

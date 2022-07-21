@@ -99,8 +99,8 @@ transformAccumulateTree lang tree acc =
     Tree.mapAccumulate transformAccumulateBlock acc tree
 
 
-transformBlock : Language -> Accumulator -> ExpressionBlock -> ExpressionBlock
-transformBlock lang acc (ExpressionBlock block) =
+transformBlock : Accumulator -> ExpressionBlock -> ExpressionBlock
+transformBlock acc (ExpressionBlock block) =
     case ( block.name, block.args ) of
         ( Just "section", level :: [] ) ->
             ExpressionBlock
@@ -200,7 +200,7 @@ updateReference tag_ id_ numRef_ acc =
 
 
 updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator lang ((ExpressionBlock { name, indent, args, blockType, content, tag, id }) as block) accumulator =
+updateAccumulator lang (ExpressionBlock { name, indent, args, blockType, content, tag, id }) accumulator =
     -- Update the accumulator for expression blocks with selected name
     case ( name, blockType ) of
         -- provide numbering for sections
@@ -302,7 +302,7 @@ updateWithOrdinaryDocumentBlock accumulator name content level id =
     { accumulator | inList = inList, documentIndex = documentIndex } |> updateReference sectionTag id (Vector.toString documentIndex)
 
 
-updateBibItemBlock accumulator args content id =
+updateBibItemBlock accumulator args id =
     case List.head args of
         Nothing ->
             accumulator
@@ -311,8 +311,8 @@ updateBibItemBlock accumulator args content id =
             { accumulator | reference = Dict.insert label { id = id, numRef = "_irrelevant_" } accumulator.reference }
 
 
-updateWitOrdinaryBlock : a -> Accumulator -> Maybe String -> Either b (List Expr) -> e -> String -> String -> Int -> Accumulator
-updateWitOrdinaryBlock lang accumulator name content args_ tag id indent =
+updateWitOrdinaryBlock : Accumulator -> Maybe String -> Either b (List Expr) -> String -> String -> Int -> Accumulator
+updateWitOrdinaryBlock accumulator name content tag id indent =
     let
         ( inList, initialNumberedVector ) =
             listData accumulator name

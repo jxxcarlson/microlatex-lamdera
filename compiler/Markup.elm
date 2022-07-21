@@ -106,7 +106,7 @@ parse lang sourceText =
                     L0.Parser.Expression.parse
 
                 PlainTextLang ->
-                    \i s -> ( parsePlainText i s, [] )
+                    \_ s -> ( parsePlainText s, [] )
 
                 XMarkdownLang ->
                     \i s -> ( XMarkdown.Expression.parse i s, [] )
@@ -126,8 +126,8 @@ messagesFromForest forest =
     List.map messagesFromTree forest |> List.concat
 
 
-parsePlainText : Int -> String -> List Parser.Expr.Expr
-parsePlainText lineNumber str =
+parsePlainText : String -> List Parser.Expr.Expr
+parsePlainText str =
     [ Text str { begin = 0, end = 0, index = 0, id = "??" } ]
 
 

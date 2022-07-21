@@ -44,7 +44,7 @@ transform block =
                     Parser.MathMacro.parseOne name_
             in
             if List.member name pseudoBlockNamesWithContent then
-                handlePseudoBlockWithContent block name name_ macroExpr
+                handlePseudoBlockWithContent block name macroExpr
 
             else
                 block
@@ -53,7 +53,7 @@ transform block =
             block
 
 
-handlePseudoBlockWithContent block name name_ macroExpr =
+handlePseudoBlockWithContent block name macroExpr =
     case macroExpr of
         Nothing ->
             block

@@ -62,7 +62,7 @@ errorBackgroundColor =
 markupDict : Dict String (Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg)
 markupDict =
     Dict.fromList
-        [ ( "bibitem", \g acc s exprList -> bibitem g acc s exprList )
+        [ ( "bibitem", \_ _ _ exprList -> bibitem exprList )
 
         -- STYLE
         , ( "strong", \g acc s exprList -> strong g acc s exprList )
@@ -73,9 +73,9 @@ markupDict =
         , ( "i", \g acc s exprList -> italic g acc s exprList )
         , ( "boldItalic", \g acc s exprList -> boldItalic g acc s exprList )
         , ( "strike", \g acc s exprList -> strike g acc s exprList )
-        , ( "ref", \g acc s exprList -> ref g acc s exprList )
-        , ( "reflink", \g acc s exprList -> reflink g acc s exprList )
-        , ( "eqref", \g acc s exprList -> eqref g acc s exprList )
+        , ( "ref", \_ acc _ exprList -> ref acc exprList )
+        , ( "reflink", \_ acc _ exprList -> reflink acc exprList )
+        , ( "eqref", \_ acc _ exprList -> eqref acc exprList )
         , ( "underline", \g acc s exprList -> underline g acc s exprList )
         , ( "comment", \_ _ _ _ -> Element.none )
         , ( "lambda", \_ _ _ _ -> Element.none )
@@ -96,7 +96,7 @@ markupDict =
         , ( "errorHighlight", \g acc s exprList -> errorHighlight g acc s exprList )
 
         --
-        , ( "skip", \g acc s exprList -> skip g acc s exprList )
+        , ( "skip", \_ _ _ exprList -> skip exprList )
         , ( "link", \g acc s exprList -> link g acc s exprList )
         , ( "href", \g acc s exprList -> href g acc s exprList )
         , ( "ilink", \g acc s exprList -> ilink g acc s exprList )
@@ -107,10 +107,10 @@ markupDict =
         , ( "mdash", \_ _ _ _ -> Element.el [] (Element.text "—") )
         , ( "ndash", \_ _ _ _ -> Element.el [] (Element.text "–") )
         , ( "label", \_ _ _ _ -> Element.none )
-        , ( "cite", \g acc s exprList -> cite g acc s exprList )
+        , ( "cite", \_ acc _ exprList -> cite acc exprList )
         , ( "table", \g acc s exprList -> table g acc s exprList )
         , ( "image", \_ _ s exprList -> Render.Image.view s exprList )
-        , ( "tags", invisible )
+        , ( "tags", \_ _ _ _ -> Element.none )
         , ( "vskip", vskip )
         , ( "syspar", syspar )
 
@@ -124,9 +124,9 @@ markupDict =
         , ( "dollarSign", \_ _ _ _ -> Element.el [] (Element.text "$") )
         , ( "dollar", \_ _ _ _ -> Element.el [] (Element.text "$") )
         , ( "brackets", \g acc s exprList -> brackets g acc s exprList )
-        , ( "rb", \g acc s exprList -> rightBracket g acc s exprList )
-        , ( "lb", \g acc s exprList -> leftBracket g acc s exprList )
-        , ( "bt", \g acc s exprList -> backTick g acc s exprList )
+        , ( "rb", \_ _ _ _ -> rightBracket )
+        , ( "lb", \_ _ _ _ -> leftBracket )
+        , ( "bt", \_ _ _ _ -> backTick )
         , ( "ds", \_ _ _ _ -> Element.el [] (Element.text "$") )
         , ( "bs", \g acc s exprList -> Element.paragraph [] (Element.text "\\" :: List.map (render g acc s) exprList) )
         , ( "texarg", \g acc s exprList -> Element.paragraph [] ((Element.text "{" :: List.map (render g acc s) exprList) ++ [ Element.text " }" ]) )
@@ -136,10 +136,10 @@ markupDict =
 
 verbatimDict =
     Dict.fromList
-        [ ( "$", \g a s m str -> math g a s m str )
-        , ( "`", \g _ s m str -> code g s m str )
-        , ( "code", \g _ s m str -> code g s m str )
-        , ( "math", \g a s m str -> math g a s m str )
+        [ ( "$", \g a _ m str -> math g a m str )
+        , ( "`", \_ _ _ m str -> code m str )
+        , ( "code", \_ _ _ m str -> code m str )
+        , ( "math", \g a _ m str -> math g a m str )
         ]
 
 
@@ -288,13 +288,13 @@ cslink _ _ _ exprList =
                 }
 
 
-bibitem : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
-bibitem generation acc settings str =
-    Element.paragraph [ Element.width Element.fill ] [ Element.text (ASTTools.exprListToStringList str |> String.join " " |> (\s -> "[" ++ s ++ "]")) ]
+bibitem : List Expr -> Element MarkupMsg
+bibitem exprs =
+    Element.paragraph [ Element.width Element.fill ] [ Element.text (ASTTools.exprListToStringList exprs |> String.join " " |> (\s -> "[" ++ s ++ "]")) ]
 
 
-cite : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
-cite generation acc settings str =
+cite : Accumulator -> List Expr -> Element MarkupMsg
+cite acc str =
     let
         tag : String
         tag =
@@ -312,12 +312,12 @@ cite generation acc settings str =
         [ Element.text (tag |> (\s -> "[" ++ s ++ "]")) ]
 
 
-code g s m str =
-    verbatimElement codeStyle g s m str
+code m str =
+    verbatimElement codeStyle m str
 
 
-math g a s m str =
-    mathElement g a s m str
+math g a m str =
+    mathElement g a m str
 
 
 table : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
@@ -345,7 +345,7 @@ tableItem g acc s expr =
             Element.none
 
 
-skip g acc s exprList =
+skip exprList =
     let
         numVal : String -> Int
         numVal str =
@@ -355,7 +355,7 @@ skip g acc s exprList =
         f str =
             column [ Element.spacingXY 0 (numVal str) ] [ Element.text "" ]
     in
-    f1 f g acc s exprList
+    f1 f exprList
 
 
 vskip _ _ _ exprList =
@@ -383,15 +383,15 @@ brackets g acc s exprList =
     Element.paragraph [ Element.spacing 8 ] [ Element.text "[", simpleElement [] g acc s exprList, Element.text " ]" ]
 
 
-rightBracket g acc s exprList =
+rightBracket =
     Element.text "]"
 
 
-leftBracket g acc s exprList =
+leftBracket =
     Element.text "["
 
 
-backTick g acc s exprList =
+backTick =
     Element.text "`"
 
 
@@ -473,8 +473,8 @@ colorDict =
         ]
 
 
-ref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
-ref g acc s exprList =
+ref : Accumulator -> List Expr -> Element MarkupMsg
+ref acc exprList =
     let
         key =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
@@ -504,8 +504,8 @@ ref g acc s exprList =
     \reflink{LINK_TEXT LABEL}
 
 -}
-reflink : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
-reflink g acc s exprList =
+reflink : Accumulator -> List Expr -> Element MarkupMsg
+reflink acc exprList =
     let
         argString =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join " "
@@ -538,8 +538,8 @@ reflink g acc s exprList =
         }
 
 
-eqref : Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
-eqref g acc s exprList =
+eqref : Accumulator -> List Expr -> Element MarkupMsg
+eqref acc exprList =
     let
         key =
             List.map ASTTools.getText exprList |> Maybe.Extra.values |> String.join "" |> String.trim
@@ -589,8 +589,8 @@ simpleElement formatList g acc s exprList =
 
 {-| For one-element functions
 -}
-f1 : (String -> Element MarkupMsg) -> Int -> Accumulator -> Settings -> List Expr -> Element MarkupMsg
-f1 f g acc s exprList =
+f1 : (String -> Element MarkupMsg) -> List Expr -> Element MarkupMsg
+f1 f exprList =
     case ASTTools.exprListToStringList exprList of
         -- TODO: temporary fix: parse is producing the args in reverse order
         arg1 :: _ ->
@@ -600,7 +600,7 @@ f1 f g acc s exprList =
             el [ Font.color errorColor ] (Element.text "Invalid arguments")
 
 
-verbatimElement formatList g s meta str =
+verbatimElement formatList meta str =
     Element.el (htmlId meta.id :: formatList) (Element.text str)
 
 
@@ -616,11 +616,7 @@ errorText_ str =
     Element.el [ Font.color (Element.rgb255 200 40 40) ] (Element.text str)
 
 
-invisible g acc s exprList =
-    Element.none
-
-
-mathElement generation acc settings meta str =
+mathElement generation acc meta str =
     -- "width" is not used for inline math, but some string needs to be there
     Render.Math.mathText generation "width" meta.id Render.Math.InlineMathMode (Parser.MathMacro.evalStr acc.mathMacroDict str)
 

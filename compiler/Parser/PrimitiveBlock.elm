@@ -186,7 +186,7 @@ blockFromLine lang ({ indent, lineNumber, position, prefix, content } as line) =
     , sourceText = ""
     , blockType = Line.getBlockType lang line.content
     }
-        |> elaborate lang line
+        |> elaborate line
 
 
 nextStep : State -> Step State (List PrimitiveBlock)
@@ -271,7 +271,7 @@ addCurrentLine2 state currentLine =
                 , position = state.position + String.length currentLine.content
                 , count = state.count + 1
                 , currentBlock =
-                    Just (addCurrentLine state.lang currentLine block)
+                    Just (addCurrentLine currentLine block)
             }
 
 
@@ -337,17 +337,17 @@ createBlock state currentLine =
     }
 
 
-addCurrentLine : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine lang ({ prefix, content, indent } as line) block =
+addCurrentLine : Line -> PrimitiveBlock -> PrimitiveBlock
+addCurrentLine line block =
     let
         pb =
             addCurrentLine_ line block
     in
-    elaborate lang line pb
+    elaborate line pb
 
 
-elaborate : Language -> Line -> PrimitiveBlock -> PrimitiveBlock
-elaborate lang line pb =
+elaborate : Line -> PrimitiveBlock -> PrimitiveBlock
+elaborate line pb =
     if pb.named then
         pb
 
@@ -371,7 +371,7 @@ elaborate lang line pb =
 
 
 addCurrentLine_ : Line -> PrimitiveBlock -> PrimitiveBlock
-addCurrentLine_ ({ prefix, content, indent } as line) block =
+addCurrentLine_ ({ prefix, content } as line) block =
     if block.blockType == PBVerbatim then
         if block.name == Just "math" then
             { block | content = line.content :: block.content, sourceText = block.sourceText ++ "\n" ++ prefix ++ content }
