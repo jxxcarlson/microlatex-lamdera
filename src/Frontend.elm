@@ -28,6 +28,7 @@ import Frontend.AppState
 import Frontend.Authentication
 import Frontend.Chat
 import Frontend.Cmd
+import Frontend.Collaboration
 import Frontend.Document
 import Frontend.DocumentList
 import Frontend.Documentation
@@ -513,23 +514,7 @@ update msg model =
             ( { model | hideBackups = not model.hideBackups }, Effect.Command.none )
 
         MakeBackup ->
-            case ( model.currentUser, model.currentDocument ) of
-                ( Nothing, _ ) ->
-                    ( model, Effect.Command.none )
-
-                ( _, Nothing ) ->
-                    ( model, Effect.Command.none )
-
-                ( Just user, Just doc ) ->
-                    if Just user.username == doc.author then
-                        let
-                            newDocument =
-                                Document.makeBackup doc
-                        in
-                        ( model, Effect.Lamdera.sendToBackend (InsertDocument user newDocument) )
-
-                    else
-                        ( model, Effect.Command.none )
+            Frontend.Document.makeBackup model
 
         InputReaders str ->
             ( { model | inputReaders = str }, Effect.Command.none )
@@ -544,17 +529,7 @@ update msg model =
             Share.doShare model
 
         ToggleCollaborativeEditing ->
-            case model.currentDocument of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just doc ->
-                    case model.collaborativeEditing of
-                        False ->
-                            ( model, Effect.Lamdera.sendToBackend (InitializeNetworkModelsWithDocument doc) )
-
-                        True ->
-                            ( model, Effect.Lamdera.sendToBackend (ResetNetworkModelForDocument doc) )
+            Frontend.Collaboration.toggle model
 
         GetPinnedDocuments ->
             ( { model | documentList = StandardList }, Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList model.currentUser "pin") )
