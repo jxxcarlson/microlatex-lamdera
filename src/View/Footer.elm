@@ -178,7 +178,7 @@ viewEditor mCurrentEditor editorData =
         Nothing ->
             E.el [ Font.color (E.rgb 0 1 0) ] (E.text <| editorData.username)
 
-        Just { name, activeAt } ->
+        Just { name } ->
             if name == editorData.username then
                 E.el [ Font.color (E.rgb 1 1 0) ] (E.text <| editorData.username)
 

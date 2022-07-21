@@ -304,7 +304,7 @@ editDocument model =
         Nothing ->
             E.none
 
-        Just doc ->
+        Just _ ->
             if Predicate.documentIsMineOrSharedToMe model.currentDocument model.currentUser then
                 buttonTemplateWithTooltip
                     { tooltipText = "Toggle between 'Can edit' and 'Read only'"

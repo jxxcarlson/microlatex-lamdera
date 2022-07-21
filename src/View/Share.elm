@@ -190,7 +190,7 @@ userIsTheAuthor model =
         Nothing ->
             False
 
-        Just doc ->
+        Just _ ->
             Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser
 
 

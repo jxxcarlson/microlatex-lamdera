@@ -26,7 +26,7 @@ consolidateOne msg list =
         LeftChat _ _ ->
             msg :: list
 
-        ChatMsg a1 message1 ->
+        ChatMsg _ message1 ->
             case list of
                 [] ->
                     [ msg ]

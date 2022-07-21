@@ -84,17 +84,17 @@ mapper ast_ ( acc_, tree_ ) =
     ( acc_, tree_ :: ast_ )
 
 
-transformAccumulateTree : Language -> Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
-transformAccumulateTree lang tree acc =
+transformAccumulateTree : Tree ExpressionBlock -> Accumulator -> ( Accumulator, Tree ExpressionBlock )
+transformAccumulateTree tree acc =
     let
         transformAccumulateBlock : Accumulator -> ExpressionBlock -> ( Accumulator, ExpressionBlock )
         transformAccumulateBlock =
             \acc_ block_ ->
                 let
                     newAcc =
-                        updateAccumulator lang block_ acc_
+                        updateAccumulator block_ acc_
                 in
-                ( newAcc, transformBlock lang newAcc block_ )
+                ( newAcc, transformBlock newAcc block_ )
     in
     Tree.mapAccumulate transformAccumulateBlock acc tree
 
@@ -199,8 +199,8 @@ updateReference tag_ id_ numRef_ acc =
         acc
 
 
-updateAccumulator : Language -> ExpressionBlock -> Accumulator -> Accumulator
-updateAccumulator lang (ExpressionBlock { name, indent, args, blockType, content, tag, id }) accumulator =
+updateAccumulator : ExpressionBlock -> Accumulator -> Accumulator
+updateAccumulator (ExpressionBlock { name, indent, args, blockType, content, tag, id }) accumulator =
     -- Update the accumulator for expression blocks with selected name
     case ( name, blockType ) of
         -- provide numbering for sections
@@ -226,11 +226,11 @@ updateAccumulator lang (ExpressionBlock { name, indent, args, blockType, content
             { accumulator | headingIndex = { content = [ n, 0, 0, 0 ], size = 4 } }
 
         ( Just "bibitem", OrdinaryBlock _ ) ->
-            updateBibItemBlock accumulator args content id
+            updateBibItemBlock accumulator args id
 
         ( Just name_, OrdinaryBlock _ ) ->
             -- TODO: tighten up
-            updateWitOrdinaryBlock lang accumulator (Just name_) content args tag id indent
+            updateWitOrdinaryBlock accumulator (Just name_) content tag id indent
 
         -- provide for numbering of equations
         ( Just "mathmacros", VerbatimBlock [] ) ->

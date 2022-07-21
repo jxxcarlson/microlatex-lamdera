@@ -279,10 +279,10 @@ eval lineNumber tokens =
 
     else
         case tokens of
-            (MathToken meta) :: (S str _) :: (MathToken meta2) :: rest ->
+            (MathToken meta) :: (S str _) :: (MathToken _) :: rest ->
                 Verbatim "math" str (boostMeta lineNumber meta.index meta) :: evalList lineNumber rest
 
-            (CodeToken meta) :: (S str _) :: (CodeToken meta2) :: rest ->
+            (CodeToken meta) :: (S str _) :: (CodeToken _) :: rest ->
                 Verbatim "code" str (boostMeta lineNumber meta.index meta) :: evalList lineNumber rest
 
             _ ->
@@ -382,7 +382,7 @@ recoverFromError state =
                 }
 
         -- consecutive left brackets
-        (LB meta1) :: (LB meta2) :: _ ->
+        (LB meta1) :: (LB _) :: _ ->
             let
                 k =
                     meta1.index
@@ -484,7 +484,7 @@ recoverFromError state =
                 }
 
         -- probably a \[ that was not matched ... need to make use of 'errorInfo'
-        (TokenError errorInfo meta) :: rest ->
+        (TokenError _ meta) :: _ ->
             Loop
                 { state
                     | committed = errorMessage "\\[..??" :: state.committed

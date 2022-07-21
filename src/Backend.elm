@@ -123,7 +123,7 @@ update msg model =
         GotAtomsphericRandomNumber result ->
             Backend.Update.gotAtmosphericRandomNumber model result
 
-        ClientConnected sessionId clientId ->
+        ClientConnected _ _ ->
             ( model, Command.none )
 
         ClientDisconnected sessionId clientId ->
@@ -507,7 +507,7 @@ updateFromFrontend sessionId clientId msg model =
         GetDocumentById documentHandling id ->
             Backend.Update.getDocumentById model clientId documentHandling id
 
-        ApplySpecial user clientId_ ->
+        ApplySpecial _ _ ->
             Backend.Update.applySpecial model
 
         HardDeleteDocumentBE doc ->

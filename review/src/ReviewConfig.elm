@@ -28,8 +28,8 @@ config =
       NoUnused.Dependencies.rule
     , NoImportingEverything.rule [ "Element" ]
     , NoUnused.Parameters.rule
+    , NoUnused.Patterns.rule
 
-    --, NoUnused.Patterns.rule
     --, NoUnused.Variables.rule
     , NoExposingEverything.rule
 

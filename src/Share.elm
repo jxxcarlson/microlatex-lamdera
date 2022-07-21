@@ -167,7 +167,7 @@ doShare model =
                 Nothing ->
                     ( { model | popupState = Types.NoPopup }, Command.none )
 
-                Just user_ ->
+                Just _ ->
                     let
                         readers =
                             model.inputReaders |> String.split "," |> List.map String.trim
@@ -218,7 +218,7 @@ shareDocument model =
             in
             ( { model | popupState = Types.SharePopup, inputReaders = inputReaders, inputEditors = inputEditors }, Command.none )
 
-        ( Just doc, _ ) ->
+        ( Just _, _ ) ->
             ( { model | popupState = Types.NoPopup }, Command.none )
 
 

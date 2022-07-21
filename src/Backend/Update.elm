@@ -931,7 +931,7 @@ searchForDocumentsByAuthorAndKey_ model key =
         author :: [] ->
             getUserDocumentsForAuthor author model
 
-        author :: firstKey :: rest ->
+        author :: firstKey :: _ ->
             getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member ("id:" ++ firstKey) doc.tags)
 
 

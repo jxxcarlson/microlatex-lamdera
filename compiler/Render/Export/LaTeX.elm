@@ -132,7 +132,7 @@ getImageUrl_ str =
         Nothing ->
             Nothing
 
-        Just ( imageData, latexData ) ->
+        Just ( imageData, _ ) ->
             let
                 arguments : List String
                 arguments =
@@ -313,7 +313,7 @@ exportBlock settings (ExpressionBlock { blockType, name, args, content }) =
                 Right exprs_ ->
                     exportExprList settings exprs_
 
-        OrdinaryBlock args_ ->
+        OrdinaryBlock _ ->
             case content of
                 Left _ ->
                     ""
@@ -334,7 +334,7 @@ exportBlock settings (ExpressionBlock { blockType, name, args, content }) =
                             else
                                 environment name_ (exportExprList settings exprs_)
 
-        VerbatimBlock args_ ->
+        VerbatimBlock _ ->
             case content of
                 Left str ->
                     case name of
@@ -605,7 +605,7 @@ renderVerbatim name body =
         Nothing ->
             macro1 name body
 
-        Just macro ->
+        Just _ ->
             body |> fixChars
 
 

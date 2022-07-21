@@ -230,7 +230,7 @@ stringValue2 token =
         S str m ->
             "S " ++ str ++ ": " ++ String.fromInt m.index
 
-        W str m ->
+        W _ m ->
             "W:" ++ String.fromInt m.index
 
         MathToken m ->

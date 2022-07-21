@@ -173,13 +173,13 @@ chatInput model msg =
 viewMessage : Effect.Time.Zone -> Types.ChatMsg -> E.Element msg
 viewMessage zone msg =
     case msg of
-        Types.JoinedChat clientId username ->
+        Types.JoinedChat _ username ->
             E.paragraph [ Font.italic ] [ E.text <| username ++ " joined the chat" ]
 
-        Types.LeftChat clientId username ->
+        Types.LeftChat _ username ->
             E.paragraph [ Font.italic ] [ E.text <| username ++ " left the chat" ]
 
-        Types.ChatMsg clientId message ->
+        Types.ChatMsg _ message ->
             E.paragraph [ E.width (E.px 340) ] [ E.el [ Font.bold ] (E.text <| "[" ++ message.sender ++ " (" ++ message.group ++ ") " ++ DateTimeUtility.toString zone message.date ++ "]: "), E.text <| message.content ]
 
 

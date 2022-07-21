@@ -344,7 +344,7 @@ eval lineNumber tokens =
         (S t m2) :: rest ->
             Text t m2 :: evalList Nothing lineNumber rest
 
-        (BS m1) :: (S name m2) :: rest ->
+        (BS m1) :: (S name _) :: rest ->
             let
                 ( a, b ) =
                     split rest
@@ -424,7 +424,7 @@ isReducible tokens =
 recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
-        (BS m1) :: (S fname m2) :: (LB m3) :: rest ->
+        (BS _) :: (S fname _) :: (LB m3) :: _ ->
             let
                 tail =
                     List.drop (m3.index + 1) state.tokens

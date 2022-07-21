@@ -315,7 +315,7 @@ update msg model =
                         Nothing ->
                             Nothing
 
-                        Just { name, activeAt } ->
+                        Just { activeAt } ->
                             if Effect.Time.posixToMillis activeAt < (Effect.Time.posixToMillis model.currentTime - (Config.editSafetyInterval * 1000)) then
                                 Nothing
 
@@ -343,7 +343,7 @@ update msg model =
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Effect.Command.none )
 
-        GotTime timeNow ->
+        GotTime _ ->
             ( model, Effect.Command.none )
 
         KeyMsg keyMsg ->
@@ -1426,7 +1426,7 @@ updateFromBackend msg model =
         UserMessageReceived message ->
             ( { model | userMessage = Just message }, View.Chat.scrollChatToBottom )
 
-        UndeliverableMessage message ->
+        UndeliverableMessage _ ->
             ( model, Effect.Command.none )
 
         --case message.actionOnFailureToDeliver of

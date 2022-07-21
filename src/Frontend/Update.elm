@@ -1451,7 +1451,7 @@ handleCursor { position, source } model =
         Nothing ->
             ( model, Command.none )
 
-        Just currentUserId ->
+        Just _ ->
             handleEditorChange model position source
 
 

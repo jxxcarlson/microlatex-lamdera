@@ -51,7 +51,7 @@ getName expr =
         Expr name _ _ ->
             Just name
 
-        Text name _ ->
+        Text _ _ ->
             Nothing
 
         Verbatim name _ _ ->

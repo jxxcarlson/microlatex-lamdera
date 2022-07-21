@@ -68,7 +68,7 @@ getContent (ExpressionBlock { content }) =
 condenseUrls : ExpressionBlock -> ExpressionBlock
 condenseUrls (ExpressionBlock data) =
     case data.content of
-        Either.Left str ->
+        Either.Left _ ->
             ExpressionBlock data
 
         Either.Right exprList ->
