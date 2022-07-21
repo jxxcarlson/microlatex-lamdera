@@ -37,14 +37,15 @@ import Frontend.Message
 import Frontend.Navigation
 import Frontend.PDF as PDF
 import Frontend.Scheduler
+import Frontend.Search
 import Frontend.Update
 import Frontend.UpdateDocument
+import Frontend.Widget
 import Html
 import IncludeFiles
 import Keyboard
 import Lamdera
 import Markup
-import Message
 import Parser.Language exposing (Language(..))
 import Predicate
 import Render.MicroLaTeX
@@ -542,31 +543,10 @@ update msg model =
             ( { model | tagSelection = TagPublic }, Effect.Command.none )
 
         ToggleExtrasSidebar ->
-            case model.sidebarExtrasState of
-                SidebarExtrasIn ->
-                    ( { model | sidebarExtrasState = SidebarExtrasOut, sidebarTagsState = SidebarTagsIn }
-                    , Effect.Lamdera.sendToBackend GetUsersWithOnlineStatus
-                    )
-
-                SidebarExtrasOut ->
-                    ( { model | sidebarExtrasState = SidebarExtrasIn }, Effect.Command.none )
+            Frontend.Widget.toggleExtrasSidebar model
 
         ToggleTagsSidebar ->
-            let
-                tagSelection =
-                    model.tagSelection
-            in
-            case model.sidebarTagsState of
-                SidebarTagsIn ->
-                    ( { model | sidebarExtrasState = SidebarExtrasIn, sidebarTagsState = SidebarTagsOut }
-                    , Effect.Command.batch
-                        [ Effect.Lamdera.sendToBackend GetPublicTagsFromBE
-                        , Effect.Lamdera.sendToBackend (GetUserTagsFromBE (User.currentUsername model.currentUser))
-                        ]
-                    )
-
-                SidebarTagsOut ->
-                    ( { model | messages = Message.make "Tags in" MSYellow, tagSelection = tagSelection, sidebarTagsState = SidebarTagsIn }, Effect.Command.none )
+            Frontend.Widget.toggleSidebar model
 
         SetLanguage dismiss lang ->
             Frontend.Update.setLanguage dismiss lang model
@@ -584,12 +564,7 @@ update msg model =
             Frontend.Update.debounceMsg model msg_
 
         Saved str ->
-            -- This is the only route to function updateDoc, updateDoc_
-            if Predicate.documentIsMineOrIAmAnEditor model.currentDocument model.currentUser then
-                Frontend.Update.updateDoc model str
-
-            else
-                ( model, Effect.Command.none )
+            Frontend.Document.updateDoc model str
 
         GetFolders ->
             ( { model | indexDisplay = Types.IDFolders }, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser ":folder") )
@@ -598,13 +573,7 @@ update msg model =
             ( { model | indexDisplay = Types.IDDocuments }, Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser "") )
 
         Search ->
-            ( { model
-                | actualSearchKey = model.inputSearchKey
-                , documentList = StandardList
-                , currentMasterDocument = Nothing
-              }
-            , Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling model.currentUser model.inputSearchKey)
-            )
+            Frontend.Search.search model
 
         SearchText ->
             Frontend.Update.searchText model
