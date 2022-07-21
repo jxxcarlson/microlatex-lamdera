@@ -1,4 +1,4 @@
-module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateFromBackend, urlAction, urlIsForGuest, view)
+module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateFromBackend, view)
 
 import Chat
 import CollaborativeEditing.NetworkModel as NetworkModel
@@ -25,8 +25,11 @@ import Effect.Time
 import Element
 import Env
 import Frontend.Cmd
+import Frontend.Navigation
 import Frontend.PDF as PDF
+import Frontend.Scheduler
 import Frontend.Update
+import Frontend.UpdateDocument
 import Html
 import IncludeFiles
 import Keyboard
@@ -211,7 +214,7 @@ init url key =
       }
     , Effect.Command.batch
         [ Frontend.Cmd.setupWindow
-        , urlAction url.path
+        , Frontend.Navigation.urlAction url.path
         , if url.path == "/" then
             Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling Nothing "jxxcarlson:system-home")
             -- searchForPublicDocuments sortMode limit mUsername key model
@@ -231,42 +234,6 @@ init url key =
     )
 
 
-urlAction : String -> Command FrontendOnly ToBackend FrontendMsg
-urlAction path =
-    let
-        prefix =
-            String.left 3 path
-
-        segment =
-            String.dropLeft 3 path
-    in
-    if prefix == "/" then
-        Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
-
-    else
-        case prefix of
-            "/i/" ->
-                Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling segment)
-
-            "/a/" ->
-                Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey segment)
-
-            "/s/" ->
-                Effect.Lamdera.sendToBackend (SearchForDocuments StandardHandling Nothing segment)
-
-            "/h/" ->
-                Effect.Lamdera.sendToBackend (GetHomePage segment)
-
-            _ ->
-                --Process.sleep 500 |> Task.perform (always (SetPublicDocumentAsCurrentById id))
-                Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId)
-
-
-urlIsForGuest : Url -> Bool
-urlIsForGuest url =
-    String.left 2 url.path == "/g"
-
-
 update : FrontendMsg -> Model -> ( Model, Command FrontendOnly ToBackend FrontendMsg )
 update msg model =
     case msg of
@@ -281,60 +248,10 @@ update msg model =
             ( model, Effect.Command.none )
 
         SetDocumentStatus status ->
-            case model.currentDocument of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just doc ->
-                    let
-                        updatedDoc =
-                            { doc | status = status }
-
-                        documents =
-                            Document.updateDocumentInList updatedDoc model.documents
-                    in
-                    ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend model.currentUser updatedDoc )
+            Frontend.UpdateDocument.setDocumentStatus model status
 
         FETick newTime ->
-            let
-                lastInteractionTimeMilliseconds =
-                    model.lastInteractionTime |> Effect.Time.posixToMillis
-
-                currentTimeMilliseconds =
-                    model.currentTime |> Effect.Time.posixToMillis
-
-                elapsedSinceLastInteractionSeconds =
-                    (currentTimeMilliseconds - lastInteractionTimeMilliseconds) // 1000
-
-                activeEditor =
-                    case model.activeEditor of
-                        Nothing ->
-                            Nothing
-
-                        Just { activeAt } ->
-                            if Effect.Time.posixToMillis activeAt < (Effect.Time.posixToMillis model.currentTime - (Config.editSafetyInterval * 1000)) then
-                                Nothing
-
-                            else
-                                model.activeEditor
-
-                newTimer =
-                    case model.currentUser of
-                        Nothing ->
-                            model.timer + 1
-
-                        Just _ ->
-                            0
-            in
-            -- If the lastInteractionTime has not been updated since init, do so now.
-            if model.lastInteractionTime == Effect.Time.millisToPosix 0 && model.currentUser /= Nothing then
-                ( { model | timer = newTimer, activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Effect.Command.none )
-
-            else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then
-                Frontend.Update.signOut { model | timer = newTimer, currentTime = newTime }
-
-            else
-                ( { model | timer = newTimer, activeEditor = activeEditor, currentTime = newTime }, Effect.Command.none )
+            Frontend.Scheduler.schedule model newTime
 
         AdjustTimeZone newZone ->
             ( { model | zone = newZone }, Effect.Command.none )
@@ -349,15 +266,7 @@ update msg model =
             Frontend.Update.handleUrlRequest model urlRequest
 
         UrlChanged url ->
-            let
-                cmd =
-                    if String.left 3 url.path == "/c/" then
-                        Util.delay 1 (SetDocumentCurrentViaId (String.dropLeft 3 url.path))
-
-                    else
-                        UrlManager.handleDocId url
-            in
-            ( { model | url = url }, cmd )
+            Frontend.Navigation.respondToUrlChange model url
 
         -- CHAT (update)
         AskToClearChatHistory ->
@@ -1328,18 +1237,6 @@ updateFromBackend msg model =
 
                                 False ->
                                     Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
-
-                        --cmd =
-                        --    case model.currentUser of
-                        --        Nothing ->
-                        --            if model.actualSearchKey == "" && model.url.path == "/" then
-                        --                Effect.Command.none
-                        --
-                        --            else
-                        --                Util.delay 40 (SetDocumentCurrent doc)
-                        --
-                        --        Just _ ->
-                        --            Util.delay 40 (SetDocumentCurrent doc)
                     in
                     ( { model
                         | currentMasterDocument = currentMasterDocument
