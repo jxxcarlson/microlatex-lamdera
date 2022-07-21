@@ -1,17 +1,15 @@
 module View.Sidebar exposing (viewExtras, viewTags)
 
-import Dict exposing (Dict)
+import Dict
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
 import String.Extra
 import Types exposing (FrontendModel, FrontendMsg, SidebarExtrasState(..), SidebarTagsState(..))
-import User
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry
 import View.Input
-import View.Utility
 
 
 viewExtras : FrontendModel -> Element FrontendMsg
@@ -46,15 +44,6 @@ viewUser ( username, numberOnLine ) =
 
     else
         E.row [ E.spacing 8, E.width (E.px 150) ] [ E.el [ E.width (E.px 50) ] (E.text <| username ++ ": " ++ String.fromInt numberOnLine) ]
-
-
-isOnline : Bool -> String
-isOnline isOnline_ =
-    if isOnline_ then
-        " (online)"
-
-    else
-        ""
 
 
 viewTags : FrontendModel -> Element FrontendMsg

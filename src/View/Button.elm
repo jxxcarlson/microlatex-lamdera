@@ -208,26 +208,6 @@ buttonTemplate3b attrList attrList2 msg label_ =
         ]
 
 
-buttonTemplate3 : List (E.Attribute msg) -> msg -> String -> Element msg
-buttonTemplate3 attrList msg label_ =
-    E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
-        [ Input.button View.Style.buttonStyle3
-            { onPress = Just msg
-            , label = E.el [ E.centerY, Font.size 14, Font.color Color.blue ] (E.text label_)
-            }
-        ]
-
-
-buttonTemplate4 : List (E.Attribute msg) -> msg -> String -> Element msg
-buttonTemplate4 attrList msg label_ =
-    E.row ([ E.pointer, E.mouseDown [ Background.color Color.lightBlue ] ] ++ attrList)
-        [ Input.button View.Style.buttonStyleSmallWhite
-            { onPress = Just msg
-            , label = E.el [ E.centerY, Font.size 18, Font.color Color.white ] (E.text label_)
-            }
-        ]
-
-
 linkTemplate : msg -> E.Color -> String -> Element msg
 linkTemplate msg fontColor label_ =
     E.row [ E.pointer, E.mouseDown [ Background.color Color.paleBlue ] ]

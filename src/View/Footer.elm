@@ -1,8 +1,7 @@
 module View.Footer exposing (view)
 
 import Config
-import DateTimeUtility
-import Document exposing (Document)
+import Document
 import Effect.Time
 import Element as E
 import Element.Background as Background
@@ -29,9 +28,6 @@ view model width_ =
 
             else
                 width_ - Geometry.chatPaneWidth
-
-        currentUsername =
-            Maybe.map .username model.currentUser
     in
     E.row
         [ E.spacing 1
@@ -108,14 +104,6 @@ wordCount model =
             E.el [ Font.size 14, Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text <| "words: " ++ (String.fromInt <| Document.wordCount doc))
 
 
-isCurrentDocumentDirty dirty =
-    if dirty then
-        E.el [ Font.color (E.rgb 1 0 0) ] (E.text "dirty")
-
-    else
-        E.el [ Font.color (E.rgb 0 1 0) ] (E.text "clean")
-
-
 timeElapsed model =
     let
         elapsedSinceLastInteraction : Int
@@ -135,24 +123,6 @@ timeElapsed model =
                 "Automatic signout in " ++ timeRemaining ++ " seconds. Type any key to cancel."
         in
         E.el [ Font.color Color.white, Background.color Color.red, E.paddingXY 8 4 ] (E.text message)
-
-
-backup : Effect.Time.Zone -> Maybe Document -> E.Element Types.FrontendMsg
-backup zone maybeDocument =
-    case maybeDocument of
-        Nothing ->
-            E.none
-
-        Just doc ->
-            case doc.handling of
-                Document.DHStandard ->
-                    Button.makeBackup
-
-                Document.Backup _ ->
-                    E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
-
-                Document.Version _ _ ->
-                    E.el [ Background.color Color.paleBlue, E.paddingXY 6 6 ] (E.text (DateTimeUtility.toStringWithYear zone doc.created))
 
 
 showCurrentEditors : Maybe { name : String, activeAt : Effect.Time.Posix } -> Maybe Document.Document -> E.Element msg

@@ -1,11 +1,10 @@
 module Render.Image exposing (view)
 
 import Compiler.ASTTools as ASTTools
-import Compiler.Acc exposing (Accumulator)
-import Dict exposing (Dict)
-import Element exposing (Element, alignLeft, alignRight, centerX, column, el, newTabLink, px, spacing)
-import Parser.Expr exposing (Expr(..))
-import Render.Settings exposing (Settings)
+import Dict
+import Element exposing (Element, alignLeft, alignRight, centerX, column, el, px, spacing)
+import Parser.Expr exposing (Expr)
+import Render.Settings
 import Render.Utility as Utility
 
 

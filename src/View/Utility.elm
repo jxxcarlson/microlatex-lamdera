@@ -25,19 +25,17 @@ import Config
 import Document
 import Effect.Browser.Dom
 import Effect.Command as Command exposing (Command, FrontendOnly)
-import Effect.Task exposing (Task)
+import Effect.Task
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Html exposing (Html)
+import Html
 import Html.Attributes as HA
 import Html.Events exposing (keyCode, on)
 import Json.Decode as D
 import Predicate
 import Types exposing (FrontendModel, FrontendMsg)
-import User
-import View.Color as Color
 
 
 htmlId str =
@@ -88,9 +86,6 @@ currentDocumentAuthor mUsername mDoc =
                     else
                         -- not my doc, not shared to me
                         Font.color (E.rgb 0.9 0.9 0.9)
-
-                nowEditing =
-                    doc.currentEditorList |> List.map .username |> String.join ", "
 
                 str =
                     Maybe.andThen .author mDoc |> Maybe.map (\x -> "a: " ++ x) |> Maybe.withDefault ""

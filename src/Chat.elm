@@ -86,11 +86,6 @@ close mx1 mx2 =
             False
 
 
-interval : Effect.Time.Posix -> Effect.Time.Posix -> Float
-interval t1 t2 =
-    toFloat (Effect.Time.posixToMillis t2 - Effect.Time.posixToMillis t1) / 1000.0
-
-
 concat : List ( Types.ChatMsg, List Types.ChatMsg ) -> List Types.ChatMsg
 concat messageGroups =
     List.map concatGroup messageGroups

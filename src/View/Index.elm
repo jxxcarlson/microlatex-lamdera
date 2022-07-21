@@ -7,7 +7,6 @@ import Effect.Time
 import Element as E exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
-import Frontend.Update
 import String.Extra
 import Types exposing (ActiveDocList(..), DocumentHandling(..), DocumentList(..), FrontendModel, FrontendMsg, MaximizedIndex(..), SortMode(..))
 import Util
@@ -91,31 +90,6 @@ view model deltaH =
 
 viewSharedDocs : FrontendModel -> Int -> Int -> Element FrontendMsg
 viewSharedDocs model deltaH indexShift =
-    let
-        sort =
-            case model.sortMode of
-                SortAlphabetically ->
-                    List.sortBy (\docInfo -> String.Extra.ellipsisWith View.Utility.softTruncateLimit " ..." docInfo.title)
-
-                SortByMostRecent ->
-                    List.sortWith (\a b -> compare (Effect.Time.posixToMillis b.modified) (Effect.Time.posixToMillis a.modified))
-
-        docInfoList =
-            case model.currentUser of
-                Nothing ->
-                    []
-
-                Just user_ ->
-                    user_.docs |> BoundedDeque.toList
-
-        buttonText =
-            "Working docs (" ++ String.fromInt (List.length docInfoList) ++ ")"
-
-        titleButton =
-            Button.toggleActiveDocList buttonText
-
-        -- titleButton
-    in
     E.column
         [ E.width (E.px <| Geometry.indexWidth model.windowWidth)
         , E.height (E.px (Geometry.appHeight model - deltaH - indexShift))
@@ -180,11 +154,6 @@ viewWorkingDocs model deltaH indexShift =
                     []
 
                 Just user_ ->
-                    let
-                        foo : BoundedDeque.BoundedDeque Document.DocumentInfo
-                        foo =
-                            user_.docs
-                    in
                     user_.docs |> BoundedDeque.toList |> sort |> filterDocInfo model.hideBackups
 
         buttonText =
@@ -285,9 +254,6 @@ viewPinnedDocs model deltaH indexShift =
         docs : List { title : String, id : String, slug : Maybe String, modified : Effect.Time.Posix, public : Bool }
         docs =
             sort model.pinnedDocuments |> List.filter (\data -> not (String.contains "(BAK)" data.title))
-
-        searchKey =
-            "[pin]"
 
         buttonText =
             "Pinned docs" ++ " (" ++ String.fromInt (List.length docs) ++ ")"

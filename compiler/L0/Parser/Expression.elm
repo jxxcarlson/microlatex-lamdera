@@ -35,11 +35,6 @@ makeId a b =
     String.fromInt a ++ "." ++ String.fromInt b
 
 
-makeIdFromState : State -> String
-makeIdFromState state =
-    String.fromInt state.lineNumber ++ "." ++ String.fromInt state.tokenIndex
-
-
 extractMessages : State -> List String
 extractMessages state =
     state.messages

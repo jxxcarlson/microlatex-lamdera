@@ -1,12 +1,7 @@
 module View.Header exposing (view)
 
-import Document
-import Element as E exposing (Element)
-import Element.Font as Font
-import Predicate
-import Types exposing (FrontendModel, FrontendMsg)
+import Element as E
 import View.Button as Button
-import View.Color as Color
 import View.Utility
 
 
@@ -51,17 +46,6 @@ sharingControls model =
 showIfUserIsDocumentAuthor model condition element =
     View.Utility.showIf
         ((model.currentUser /= Nothing) && (Maybe.andThen .author model.currentDocument == Maybe.map .username model.currentUser && condition))
-        element
-
-
-showIfDocumentIsShared model condition element =
-    View.Utility.showIf
-        ((model.currentUser /= Nothing)
-            && (Maybe.map (Predicate.isShared_ (Maybe.map .username model.currentUser)) model.currentDocument
-                    == Just True
-                    && condition
-               )
-        )
         element
 
 

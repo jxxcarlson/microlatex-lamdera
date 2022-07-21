@@ -12,7 +12,6 @@ module Parser.Line exposing
 
 import Compiler.Util
 import Parser exposing ((|.), (|=), Parser)
-import Parser.Common
 import Parser.Language exposing (Language(..))
 
 

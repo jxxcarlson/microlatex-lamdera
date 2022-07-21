@@ -2,12 +2,11 @@ module View.TopHeader exposing (view)
 
 import Config
 import Element as E exposing (Element)
-import Html exposing (Html, button, div, input, text)
-import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
-import Html.Events exposing (keyCode, on, onClick, onInput)
+import Html exposing (Html, input)
+import Html.Attributes exposing (id, placeholder, style, type_, value)
+import Html.Events exposing (onInput)
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button as Button
-import View.Geometry
 import View.Input
 import View.Style
 import View.Utility

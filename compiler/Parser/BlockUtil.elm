@@ -6,10 +6,9 @@ module Parser.BlockUtil exposing
 
 import Compiler.Util
 import Either exposing (Either(..))
-import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr)
-import Parser.Language exposing (Language(..))
+import Parser.Language exposing (Language)
 import Parser.Line exposing (PrimitiveBlockType(..))
 import Parser.PrimitiveBlock exposing (PrimitiveBlock)
 

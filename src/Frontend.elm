@@ -1,8 +1,6 @@
 module Frontend exposing (Model, app, changePrintingState, exportDoc, exportToLaTeX, fixId_, init, issueCommandIfDefined, subscriptions, update, updateFromBackend, urlAction, urlIsForGuest, view)
 
 import Chat
-import Chat.Message
-import Cmd.Extra exposing (withNoCmd)
 import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT
 import CollaborativeEditing.OTCommand as OTCommand
@@ -14,7 +12,6 @@ import Deque
 import Dict
 import Docs
 import Document
-import DocumentTools
 import Duration
 import Effect.Browser.Events
 import Effect.Browser.Navigation
@@ -22,12 +19,11 @@ import Effect.Command exposing (Command, FrontendOnly)
 import Effect.File.Download
 import Effect.Lamdera exposing (sendToBackend)
 import Effect.Process
-import Effect.Subscription as Subscription exposing (Subscription)
+import Effect.Subscription as Subscription
 import Effect.Task
 import Effect.Time
 import Element
 import Env
-import ExtractInfo
 import Frontend.Cmd
 import Frontend.PDF as PDF
 import Frontend.Update
@@ -1230,9 +1226,6 @@ updateFromBackend msg model =
             let
                 --_ =
                 --    Debug.log "ProcessEvent" event
-                debugLabel =
-                    "P1a. !!! EVENT FOR " ++ User.currentUsername model.currentUser
-
                 newNetworkModel =
                     --NetworkModel.updateFromBackend NetworkModel.applyEvent event model.networkModel
                     NetworkModel.appendEvent event model.networkModel

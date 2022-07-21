@@ -5,7 +5,6 @@ import Compiler.Lambda as Lambda
 import Dict exposing (Dict)
 import Either exposing (Either(..))
 import List.Extra
-import Maybe.Extra
 import Parser.Block exposing (BlockType(..), ExpressionBlock(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Forest exposing (Forest)
@@ -13,7 +12,7 @@ import Parser.Helpers exposing (Step(..), loop)
 import Render.Export.Image
 import Render.Export.Preamble
 import Render.Export.Util
-import Render.Settings exposing (Settings, defaultSettings)
+import Render.Settings exposing (Settings)
 import Render.Utility as Utility
 import Tree exposing (Tree)
 
@@ -24,16 +23,10 @@ export settings ast =
         rawBlockNames =
             ASTTools.rawBlockNames ast
 
-        blockNames =
-            List.Extra.unique rawBlockNames
-
         expressionNames =
             ASTTools.expressionNames ast
 
-        imageList : List String
-        imageList =
-            getImageUrls ast
-
+        -- imageList : List String
         get ast_ name_ =
             ASTTools.filterASTOnName ast_ name_ |> String.join " "
     in
@@ -78,67 +71,6 @@ shiftSection delta ((ExpressionBlock data) as block) =
 
     else
         block
-
-
-getImageUrls : Forest ExpressionBlock -> List String
-getImageUrls forest =
-    getImageUrls_ forest ++ getImageUrlsFromQuiver forest
-
-
-getImageUrls_ : Forest ExpressionBlock -> List String
-getImageUrls_ ast =
-    ast
-        |> List.map Tree.flatten
-        |> List.concat
-        |> List.map (\(ExpressionBlock { content }) -> Either.rightToMaybe content |> Maybe.withDefault [])
-        |> List.concat
-        |> ASTTools.filterExpressionsOnName "image"
-        |> List.map ASTTools.getText
-        |> Maybe.Extra.values
-
-
-getImageUrlsFromQuiver : List (Tree.Tree ExpressionBlock) -> List String
-getImageUrlsFromQuiver ast =
-    ast
-        |> List.map Tree.flatten
-        |> List.concat
-        |> List.filter (\block -> Parser.Block.getName block == Just "quiver")
-        |> List.map getImageUrl
-        |> Maybe.Extra.values
-
-
-getImageUrl : ExpressionBlock -> Maybe String
-getImageUrl (ExpressionBlock { content }) =
-    case content of
-        Either.Left str ->
-            getImageUrl_ str
-
-        Either.Right _ ->
-            Nothing
-
-
-getImageUrl_ : String -> Maybe String
-getImageUrl_ str =
-    let
-        maybePair =
-            case String.split "---" str of
-                a :: b :: [] ->
-                    Just ( a, b )
-
-                _ ->
-                    Nothing
-    in
-    case maybePair of
-        Nothing ->
-            Nothing
-
-        Just ( imageData, _ ) ->
-            let
-                arguments : List String
-                arguments =
-                    String.words imageData
-            in
-            List.head arguments
 
 
 exportTree : Settings -> Tree ExpressionBlock -> String

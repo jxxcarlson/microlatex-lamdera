@@ -40,13 +40,5 @@ view model =
                 ]
 
 
-filterMessage str =
-    if String.contains "No document" str then
-        ""
-
-    else
-        str
-
-
 label str =
     E.el [ Font.size 14, E.width (E.px 120) ] (E.text str)

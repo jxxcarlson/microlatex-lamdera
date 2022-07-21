@@ -8,9 +8,9 @@ import Effect.Time
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
-import Html exposing (Html, button, div, input, text)
+import Html exposing (Html, button, input, text)
 import Html.Attributes exposing (autofocus, id, placeholder, style, type_, value)
-import Html.Events exposing (keyCode, on, onClick, onInput)
+import Html.Events exposing (onClick, onInput)
 import Types exposing (FrontendModel, FrontendMsg)
 import View.Button
 import View.Color as Color

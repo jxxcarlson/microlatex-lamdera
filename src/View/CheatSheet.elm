@@ -3,7 +3,6 @@ module View.CheatSheet exposing (view)
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
-import Document
 import Element as E
 import Element.Background as Background
 import Element.Border as Border
@@ -14,8 +13,7 @@ import Render.Block
 import Render.Markup
 import Render.Settings
 import Render.TOC
-import Types exposing (DocumentHandling(..), FrontendModel, FrontendMsg(..), PopupState(..))
-import View.Button as Button
+import Types exposing (FrontendModel, FrontendMsg(..), PopupState(..))
 import View.Color as Color
 import View.Utility
 
@@ -141,18 +139,6 @@ renderSettings id slug w =
     { s | backgroundColor = bgColor, titlePrefix = "manual-" }
 
 
-affine : Float -> Float -> Int -> Int
-affine a b x =
-    a * toFloat x + b |> truncate
-
-
-row heading body =
-    E.row [ E.spacing 12, Font.size 14 ]
-        [ E.el [ Font.bold, E.width (E.px 60) ] (E.text heading)
-        , E.paragraph [ E.width (E.px 250) ] [ E.text body ]
-        ]
-
-
 style2 =
     [ E.spacing 18
     , E.padding 25
@@ -160,19 +146,3 @@ style2 =
     , Border.width 1
     , Background.color Color.white
     ]
-
-
-style =
-    [ E.moveRight 128
-    , E.moveDown 25
-    , E.spacing 18
-    , E.width (E.px 450)
-    , E.height (E.px 700)
-    , E.padding 25
-    , Font.size 14
-    , Background.color Color.paleViolet
-    ]
-
-
-label str =
-    E.el [ Font.size 16, Font.bold, E.width (E.px 60) ] (E.text str)

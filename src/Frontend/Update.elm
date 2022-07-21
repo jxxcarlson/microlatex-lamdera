@@ -54,24 +54,20 @@ port module Frontend.Update exposing
 
 --
 
-import Abstract
 import Authentication
 import BoundedDeque exposing (BoundedDeque)
-import Browser exposing (UrlRequest(..))
-import Cmd.Extra exposing (withCmd, withNoCmd)
+import Browser
 import CollaborativeEditing.NetworkModel as NetworkModel
-import CollaborativeEditing.OT as OT
 import Compiler.ASTTools
 import Compiler.Acc
 import Compiler.DifferentialParser
-import Compiler.Util
 import Config
 import Debounce
 import Dict exposing (Dict)
 import Docs
 import Document exposing (Document)
 import Duration
-import Effect.Browser.Dom exposing (Viewport)
+import Effect.Browser.Dom
 import Effect.Browser.Navigation
 import Effect.Command as Command exposing (Command, FrontendOnly)
 import Effect.File.Download
@@ -349,9 +345,6 @@ closeEditor model =
 
                 Just doc ->
                     Document.updateDocumentInList doc model.documents
-
-        clearEditEventsCmd =
-            Effect.Lamdera.sendToBackend (ClearEditEvents (User.currentUserId model.currentUser))
     in
     ( { model
         | currentDocument = updatedDoc
@@ -504,9 +497,6 @@ newDocument model =
                 _ ->
                     "| title\n" ++ titleString ++ "\n\n"
 
-        editRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
         doc =
             { emptyDoc
                 | title = titleString
@@ -560,16 +550,6 @@ saveCurrentDocumentToBackend mDoc mUser =
 
                 Document.DSCanEdit ->
                     Effect.Lamdera.sendToBackend (SaveDocument mUser doc)
-
-
-saveDocument : Maybe Document -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-saveDocument mDoc model =
-    case mDoc of
-        Nothing ->
-            ( model, Command.none )
-
-        Just doc ->
-            ( { model | documentDirty = False }, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser doc) )
 
 
 
@@ -736,9 +716,6 @@ setDocumentAsCurrent_ cmd model doc permissions =
 
         Just currentUser ->
             let
-                newOTDocument =
-                    { id = doc.id, cursor = 0, x = 0, y = 0, content = doc.content }
-
                 -- For now, loc the doc in all cases
                 currentUserName_ =
                     currentUser.username
@@ -746,24 +723,12 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 smartDocCommand =
                     makeSmartDocCommand doc model.allowOpenFolder currentUserName_
 
-                oldEditorList =
-                    doc.currentEditorList
-
-                equal a b =
-                    a.userId == b.userId
-
                 editorItem : Document.EditorData
                 editorItem =
                     -- TODO: need actual clients
                     { userId = currentUser.id, username = currentUser.username, clients = [] }
 
-                currentEditorList =
-                    Util.insertInListOrUpdate equal editorItem oldEditorList
-
                 --    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-                filesToInclude =
-                    newEditRecord.includedFiles
-
                 errorMessages : List Types.Message
                 errorMessages =
                     Message.make (newEditRecord.messages |> String.join "; ") MSYellow
@@ -905,24 +870,6 @@ handleCurrentDocumentChange model currentDocument document =
 
 
 ---    Included files
-
-
-getIncludedFiles : Document -> Command FrontendOnly ToBackend FrontendMsg
-getIncludedFiles doc =
-    -- TODO!
-    let
-        filesToInclude =
-            IncludeFiles.getData doc.content
-    in
-    case List.isEmpty filesToInclude of
-        True ->
-            Command.none
-
-        False ->
-            Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
-
-
-
 ---    updateDoc
 
 
@@ -1064,10 +1011,7 @@ handleAsStandardReceivedDocument model doc =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
         -- TODO: fix this
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (editRecord.messages |> String.join "; ") MSYellow
-
+        -- errorMessages : List Types.Message
         currentMasterDocument =
             if Predicate.isMaster editRecord then
                 Just doc
@@ -1146,10 +1090,7 @@ handleSharedDocument model username doc =
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
 
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (editRecord.messages |> String.join "; ") MSYellow
-
+        -- errorMessages : List Types.Message
         currentMasterDocument =
             if Predicate.isMaster editRecord then
                 Just doc
@@ -1801,28 +1742,6 @@ deleteDocFromCurrentUser model doc =
 
 
 -- LOCKING AND UNLOCKING DOCUMENTS
-
-
-requestRefresh : String -> ( FrontendModel, List (Command FrontendOnly ToBackend FrontendMsg) ) -> ( FrontendModel, List (Command FrontendOnly ToBackend FrontendMsg) )
-requestRefresh docId ( model, cmds ) =
-    let
-        message =
-            { txt = "Requesting refresh for " ++ docId, status = MSGreen }
-    in
-    ( { model | messages = message :: model.messages }, Effect.Lamdera.sendToBackend (RequestRefresh docId) :: cmds )
-
-
-currentUserName : Maybe User -> String
-currentUserName mUser =
-    mUser |> Maybe.map .username |> Maybe.withDefault "((nobody))"
-
-
-currentDocumentId : Maybe Document -> String
-currentDocumentId mDoc =
-    mDoc |> Maybe.map .id |> Maybe.withDefault "((no docId))"
-
-
-
 --- SPECIAL
 
 
@@ -1898,51 +1817,6 @@ updateKeys model keyMsg =
 
 
 --- UTILITY
-
-
-apply :
-    (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
-    -> FrontendModel
-    -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-apply f model =
-    f model
-
-
-andThenApply :
-    (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
-    -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-    -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-andThenApply f ( model, cmd ) =
-    let
-        ( model2, cmd2 ) =
-            f model
-    in
-    ( model2, Command.batch [ cmd, cmd2 ] )
-
-
-joinF : ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ) -> (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )) -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-joinF ( model1, cmd1 ) f =
-    let
-        ( model2, cmd2 ) =
-            f model1
-    in
-    ( model2, Command.batch [ cmd1, cmd2 ] )
-
-
-join :
-    (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
-    -> (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
-    -> (FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg ))
-join f g =
-    \m ->
-        let
-            ( m1, cmd1 ) =
-                f m
-
-            ( m2, cmd2 ) =
-                g m1
-        in
-        ( m2, Command.batch [ cmd1, cmd2 ] )
 
 
 adjustId : String -> String

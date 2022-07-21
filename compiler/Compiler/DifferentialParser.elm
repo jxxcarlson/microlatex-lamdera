@@ -4,7 +4,6 @@ import Compiler.AbstractDifferentialParser as Abstract
 import Compiler.Acc
 import Dict exposing (Dict)
 import L0.Parser.Expression
-import List.Extra
 import Markup
 import MicroLaTeX.Parser.Expression
 import Parser.Block exposing (ExpressionBlock)

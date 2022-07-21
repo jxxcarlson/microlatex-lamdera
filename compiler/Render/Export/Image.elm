@@ -2,9 +2,9 @@ module Render.Export.Image exposing (export)
 
 import Compiler.ASTTools
 import Dict
-import Parser.Expr exposing (Expr(..))
+import Parser.Expr exposing (Expr)
 import Render.Export.Util
-import Render.Settings exposing (Settings, defaultSettings)
+import Render.Settings exposing (Settings)
 import Render.Utility
 
 

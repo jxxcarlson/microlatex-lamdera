@@ -179,10 +179,7 @@ push token state =
 reduceState : State -> State
 reduceState state =
     let
-        peek : Maybe Token
-        peek =
-            List.Extra.getAt state.tokenIndex state.tokens
-
+        -- peek : Maybe Token
         reducible1 =
             isReducible state.stack |> Tools.forklogRed "SYMBOLS (!!)" forkLogWidth identity
     in

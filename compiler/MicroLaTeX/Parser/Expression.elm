@@ -14,7 +14,6 @@ import MicroLaTeX.Parser.Token as Token exposing (Token(..), TokenType(..))
 import Parser.Expr exposing (Expr(..))
 import Parser.Helpers as Helpers exposing (Step(..), loop)
 import Parser.Match as M
-import Parser.Meta
 import Tools
 
 
@@ -425,10 +424,6 @@ recoverFromError : State -> Step State State
 recoverFromError state =
     case List.reverse state.stack of
         (BS _) :: (S fname _) :: (LB m3) :: _ ->
-            let
-                tail =
-                    List.drop (m3.index + 1) state.tokens
-            in
             Loop
                 { state
                     | committed = errorMessage ("\\" ++ fname ++ "{") :: state.committed

@@ -16,7 +16,6 @@ import View.Geometry as Geometry
 import View.Header as Header
 import View.Index as Index
 import View.Input
-import View.Popups.NewFolder
 import View.Popups.Signin
 import View.Rendered as Rendered
 import View.Share as Share

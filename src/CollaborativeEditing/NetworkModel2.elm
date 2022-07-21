@@ -1,6 +1,5 @@
 module CollaborativeEditing.NetworkModel2 exposing (LocalModel, LocalState, Revision, Server, UserData, applyEditorOperations, applyEvent, applyEventToLocalState, createEvent, deleteAt, initialServer, insertEvent, removeSession, sendChanges, sendChanges_, setLocalModel, setLocalState, setSharedDocument, startSession, updateDeque, updateServer)
 
-import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OT as OT
 import CollaborativeEditing.Types
     exposing
@@ -11,9 +10,6 @@ import CollaborativeEditing.Types
         )
 import Deque exposing (Deque)
 import Dict exposing (Dict)
-import Json.Encode as E
-import List.Extra
-import String.Extra
 import Util
 
 

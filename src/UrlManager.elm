@@ -1,7 +1,7 @@
 module UrlManager exposing (handleDocId)
 
 import Effect.Command as Command exposing (Command)
-import Effect.Lamdera exposing (sendToBackend)
+import Effect.Lamdera
 import Parser exposing ((|.), (|=), chompWhile, getChompedString, oneOf, succeed, symbol)
 import Types exposing (FrontendMsg, ToBackend(..))
 import Url exposing (Url)

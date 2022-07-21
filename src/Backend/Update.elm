@@ -50,24 +50,18 @@ import Authentication
 import BoundedDeque
 import Chat
 import Chat.Message
-import Cmd.Extra
 import Config
-import DateTimeUtility
-import Deque
 import Dict
 import Docs
 import Document exposing (Document)
 import DocumentTools
-import Effect.Browser.Dom
 import Effect.Command as Command exposing (BackendOnly, Command)
-import Effect.Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
-import Effect.Time
+import Effect.Lamdera exposing (ClientId, SessionId)
 import Hex
 import IncludeFiles
 import List.Extra
 import Maybe.Extra
-import Message
-import Parser.Language exposing (Language(..))
+import Parser.Language exposing (Language)
 import Predicate
 import Random
 import Set
@@ -76,7 +70,6 @@ import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
 import Util
-import View.Utility
 
 
 type alias Model =
@@ -205,10 +198,6 @@ setUsersDocumentsToReadOnly userId model =
 -}
 applyToUsersDocuments : Types.UserId -> (Document -> Document) -> BackendModel -> BackendModel
 applyToUsersDocuments userId f model =
-    let
-        ids =
-            Dict.get userId model.usersDocumentsDict |> Maybe.withDefault []
-    in
     applyToDocuments (Dict.get userId model.usersDocumentsDict |> Maybe.withDefault []) f model
 
 
@@ -259,9 +248,6 @@ getSharedDocuments model clientId username =
             model.sharedDocumentDict
                 |> Dict.toList
                 |> List.map (\( _, data ) -> ( data.author |> Maybe.withDefault "(anon)", data ))
-
-        connectedUsers =
-            getConnectedUsers model
 
         onlineStatus username_ =
             case Dict.get username_ model.connectionDict of
@@ -327,10 +313,6 @@ applySpecial model =
     ( newModel
     , Command.none
     )
-
-
-getBadDocuments model =
-    model.documentDict |> Dict.toList |> List.filter (\( _, doc ) -> doc.title == "")
 
 
 getDocumentById model clientId documentHandling id =
@@ -512,10 +494,6 @@ fetchDocumentByIdCmd model clientId docId documentHandling =
 
 saveDocument model clientId currentUser document =
     -- TODO: review this for safety
-    let
-        _ =
-            Predicate.documentIsMineOrIAmAnEditor_ document currentUser
-    in
     if Predicate.documentIsMineOrIAmAnEditor_ document currentUser then
         let
             updateDoc : Document.Document -> Document.Document
@@ -706,11 +684,6 @@ getConnectedUser clientId dict =
     List.head usernames
 
 
-resetCurrentEditorForUser : Types.Username -> Types.SharedDocumentDict -> Types.SharedDocumentDict
-resetCurrentEditorForUser username dict =
-    Dict.map (\_ shareDocInfo -> Share.removeUserFromSharedDocument username shareDocInfo) dict
-
-
 
 --cleanup model sessionId clientId =
 --    ( { model
@@ -731,10 +704,7 @@ resetCurrentEditorForUser username dict =
 signOut : BackendModel -> Types.Username -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 signOut model username clientId =
     let
-        userConnections : List ConnectionData
-        userConnections =
-            Dict.get username model.connectionDict |> Maybe.withDefault []
-
+        -- userConnections : List ConnectionData
         connectionDict =
             Dict.remove username model.connectionDict
 
@@ -867,18 +837,6 @@ signIn model sessionId clientId username encryptedPassword =
 
         Nothing ->
             ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
-
-
-type alias UserData =
-    { username : String
-    , id : String
-    , realname : String
-    , email : String
-    , created : Effect.Time.Posix
-    , modified : Effect.Time.Posix
-    , docs : BoundedDeque.BoundedDeque Document.DocumentInfo
-    , preferences : User.Preferences
-    }
 
 
 getUsersAndOnlineStatus : Model -> List ( String, Int )

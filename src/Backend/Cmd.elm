@@ -1,6 +1,6 @@
 module Backend.Cmd exposing (getRandomNumber)
 
-import Effect.Command as Command exposing (Command)
+import Effect.Command exposing (Command)
 import Effect.Http
 import Types exposing (BackendMsg(..))
 

@@ -1,6 +1,6 @@
 module DateTimeUtility exposing (toString, toStringWithYear)
 
-import Time exposing (Month(..), toDay, toHour, toMonth, toYear, utc)
+import Time
 
 
 toString : Time.Zone -> Time.Posix -> String

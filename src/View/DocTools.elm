@@ -2,21 +2,15 @@ module View.DocTools exposing (urlPopup, view)
 
 import Config
 import DateTimeUtility
-import Dict exposing (Dict)
 import Document exposing (Document)
 import Effect.Time
-import Element as E exposing (Element)
+import Element as E
 import Element.Background as Background
 import Element.Font as Font
-import String.Extra
-import Types exposing (FrontendModel, FrontendMsg, SidebarExtrasState(..), SidebarTagsState(..))
-import User
+import Types
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry
-import View.Input
-import View.Style
-import View.Utility
 
 
 view model =

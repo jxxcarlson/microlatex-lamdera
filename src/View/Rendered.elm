@@ -195,11 +195,6 @@ renderSettings id slug w =
 -- |> (\settings -> { settings | titlePrefix = "SMALL-" })
 
 
-affine1 : Float -> Float -> Int -> Int
-affine1 a b x =
-    a * toFloat x + b |> truncate
-
-
 smallDocumentWidth : Int
 smallDocumentWidth =
     996

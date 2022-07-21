@@ -1,11 +1,10 @@
 module View.Share exposing (usermessage, view)
 
-import Document
 import Element as E
 import Element.Background as Background
 import Element.Font as Font
 import Predicate
-import Types exposing (DocumentHandling(..), FrontendModel, PopupState(..))
+import Types exposing (FrontendModel, PopupState(..))
 import View.Button as Button
 import View.Color as Color
 import View.Geometry as Geometry
@@ -70,22 +69,6 @@ usermessage mUserMessage =
                             , actionOnFailureToDeliver = Types.FANoOp
                             }
                     ]
-                , Button.dismissUserMessage
-                ]
-
-
-usermessageReply : Maybe Types.UserMessage -> E.Element Types.FrontendMsg
-usermessageReply mUserMessage =
-    case mUserMessage of
-        Nothing ->
-            E.none
-
-        Just message ->
-            E.column [ E.padding 20, E.spacing 12, E.width (E.px 300), E.height (E.px 400), Background.color Color.paleBlue ]
-                [ row "From:" message.from
-                , row "To:" message.to
-                , row "Subject:" message.subject
-                , row "Message:" message.content
                 , Button.dismissUserMessage
                 ]
 

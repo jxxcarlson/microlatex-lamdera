@@ -29,8 +29,7 @@ config =
     , NoImportingEverything.rule [ "Element" ]
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
-
-    --, NoUnused.Variables.rule
+    , NoUnused.Variables.rule
     , NoExposingEverything.rule
 
     --  , CognitiveComplexity.rule 15

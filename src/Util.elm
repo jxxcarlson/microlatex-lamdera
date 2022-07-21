@@ -11,7 +11,7 @@ module Util exposing
     )
 
 import Duration
-import Effect.Command as Command exposing (Command)
+import Effect.Command exposing (Command)
 import Effect.Process
 import Effect.Task
 import List.Extra
@@ -40,10 +40,6 @@ liftToMaybe f ma =
 
         Just a ->
             Just (f a)
-
-
-batch =
-    \( m, cmds ) -> ( m, Command.batch cmds )
 
 
 

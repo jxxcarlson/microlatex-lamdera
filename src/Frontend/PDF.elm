@@ -5,7 +5,6 @@ import Config
 import Document exposing (Document)
 import Duration
 import Effect.Command as Command exposing (Command, FrontendOnly)
-import Effect.File.Download
 import Effect.Http
 import Effect.Process
 import Effect.Task

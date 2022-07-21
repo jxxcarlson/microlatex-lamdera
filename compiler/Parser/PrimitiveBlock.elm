@@ -12,7 +12,6 @@ module Parser.PrimitiveBlock exposing
 -}
 
 import List.Extra
-import MicroLaTeX.Parser.PrimitiveBlock
 import MicroLaTeX.Parser.TransformLaTeX
 import Parser.Language exposing (Language(..))
 import Parser.Line as Line exposing (Line, PrimitiveBlockType(..), isEmpty, isNonEmptyBlank)

@@ -26,7 +26,7 @@ module MicroLaTeX.Parser.TransformLaTeX exposing
 import Dict exposing (Dict)
 import List.Extra
 import Parser.Line
-import Parser.Settings exposing (Arity, blockData)
+import Parser.Settings exposing (Arity)
 import Parser.TextMacro exposing (MyMacro(..))
 import Parser.Utility
 

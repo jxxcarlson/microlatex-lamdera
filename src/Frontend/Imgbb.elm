@@ -17,7 +17,7 @@ See <https://api.imgbb.com> for the full API documentation.
 
 import Document exposing (ImageData)
 import File exposing (File)
-import Http exposing (Error)
+import Http
 import Json.Decode as D exposing (Decoder)
 import Model exposing (Msg(..), UploadState(..))
 

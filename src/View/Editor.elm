@@ -1,6 +1,5 @@
 module View.Editor exposing (view)
 
-import CollaborativeEditing.NetworkModel as NetworkModel
 import CollaborativeEditing.OTCommand as OTCommand
 import Document
 import Element as E exposing (Element)
@@ -70,17 +69,6 @@ onCursorChange =
     dataDecoder
         |> Json.Decode.map InputCursor
         |> Html.Events.on "cursor-change"
-
-
-cursorDecoder : Json.Decode.Decoder Int
-cursorDecoder =
-    cursorDecoder_
-        |> Json.Decode.at [ "detail" ]
-
-
-cursorDecoder_ : Json.Decode.Decoder Int
-cursorDecoder_ =
-    Json.Decode.field "position" Json.Decode.int
 
 
 onTextChange : Html.Attribute FrontendMsg

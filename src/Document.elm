@@ -435,12 +435,3 @@ makeFirstTag tag doc =
 updateDocumentInList : Document -> List Document -> List Document
 updateDocumentInList doc list =
     List.Extra.setIf (\d -> d.id == doc.id) doc list
-
-
-insertDocumentInListOrUpdate : Document -> List Document -> List Document
-insertDocumentInListOrUpdate doc list =
-    if List.Extra.notMember doc list then
-        doc :: list
-
-    else
-        updateDocumentInList doc list

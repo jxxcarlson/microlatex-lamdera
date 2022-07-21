@@ -1,7 +1,7 @@
 module Render.Export.Util exposing (getArgs, getOneArg, getTwoArgs)
 
 import Compiler.ASTTools as ASTTools
-import Parser.Expr exposing (Expr(..))
+import Parser.Expr exposing (Expr)
 
 
 getArgs : List Expr -> List String

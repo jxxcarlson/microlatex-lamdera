@@ -24,8 +24,6 @@ import Backend.Cmd
 import Backend.NetworkModel
 import Backend.Update
 import Chat
-import Chat.Message
-import Cmd.Extra
 import CollaborativeEditing.NetworkModel as NetworkModel
 import Config
 import Deque
@@ -34,16 +32,14 @@ import Docs
 import Document
 import Duration
 import Effect.Command as Command exposing (BackendOnly, Command)
-import Effect.Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
-import Effect.Subscription as Subscription exposing (Subscription)
+import Effect.Lamdera exposing (ClientId, SessionId)
+import Effect.Subscription as Subscription
 import Effect.Time
 import Env
 import Lamdera
 import Maybe.Extra
-import Message
 import Random
 import Share
-import Tools
 import Types exposing (AbstractDict, BackendModel, BackendMsg(..), DocumentDict, DocumentLink, ToBackend(..), ToFrontend(..))
 import User exposing (User)
 import Util
@@ -266,21 +262,7 @@ updateFromFrontend sessionId clientId msg model =
             in
             ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCastToEditorsExceptForSender user.username doc model.connectionDict )
 
-        RemoveEditor user doc ->
-            let
-                sharedDocumentDict =
-                    Share.removeEditor user.id doc model.sharedDocumentDict
-
-                oldEditorList =
-                    doc.currentEditorList
-
-                currentEditorList =
-                    List.filter (\item -> item.userId /= user.id) oldEditorList
-
-                document =
-                    { doc | currentEditorList = currentEditorList }
-            in
-            -- ( { model | sharedDocumentDict = sharedDocumentDict }, Share.narrowCast user.username document model.connectionDict )
+        RemoveEditor _ _ ->
             ( model, Command.none )
 
         Narrowcast sendersName sendersId document ->

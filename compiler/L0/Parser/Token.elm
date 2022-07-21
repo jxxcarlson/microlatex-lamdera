@@ -281,10 +281,6 @@ type alias TokenParser =
     Parser Context Problem Token
 
 
-type alias QParser a =
-    Parser Context Problem a
-
-
 run : String -> List Token
 run source =
     loop (init source) nextStep
@@ -548,13 +544,3 @@ codeParser : Int -> Int -> TokenParser
 codeParser start index =
     PT.text (\c -> c == '`') (\_ -> False)
         |> Parser.map (\_ -> CodeToken { begin = start, end = start, index = index })
-
-
-first : QParser a -> QParser b -> QParser a
-first p q =
-    p |> Parser.andThen (\x -> q |> Parser.map (\_ -> x))
-
-
-second : QParser a -> QParser b -> QParser b
-second p q =
-    p |> Parser.andThen (\_ -> q)

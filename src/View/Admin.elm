@@ -6,7 +6,6 @@ import Element.Background as Background
 import Element.Font as Font
 import String.Extra
 import Types exposing (FrontendModel, FrontendMsg)
-import User
 import View.Button as Button
 import View.Color
 import View.Geometry as Geometry
@@ -68,10 +67,6 @@ viewConnectedUser data =
     E.el [ Font.size 14 ] (E.text (String.Extra.softEllipsis 80 data))
 
 
-listStyle =
-    [ E.spacing 12, E.alignTop, E.height (E.px 700), E.scrollbarY ]
-
-
 viewSharedDocuments : List ( String, Bool, Types.SharedDocument ) -> Element FrontendMsg
 viewSharedDocuments sharedDocuments =
     E.column [ E.alignTop, E.spacing 12 ] (E.el [ Font.bold ] (E.text "Shared documents") :: List.map viewSharedDocument sharedDocuments)
@@ -103,12 +98,6 @@ adminFooter model =
         [ View.Input.specialInput model
         , Button.runSpecial
         ]
-
-
-viewUserDocumentList : List ( String, Int ) -> Element FrontendMsg
-viewUserDocumentList users =
-    E.column [ E.spacing 8 ]
-        (E.el [ Font.bold ] (E.text "U/Docs") :: List.map viewUser (List.sortBy (\( u, _ ) -> u) users))
 
 
 viewUserList : List ( String, Int ) -> Element FrontendMsg

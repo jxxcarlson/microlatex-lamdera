@@ -3,7 +3,7 @@ module Render.Elm exposing (render)
 import Compiler.ASTTools as ASTTools
 import Compiler.Acc exposing (Accumulator)
 import Dict exposing (Dict)
-import Element exposing (Element, alignLeft, alignRight, centerX, column, el, newTabLink, px, spacing)
+import Element exposing (Element, column, el, newTabLink, spacing)
 import Element.Background as Background
 import Element.Events as Events
 import Element.Font as Font
@@ -216,9 +216,6 @@ ilink _ _ _ exprList =
 
                 label =
                     List.take (n - 1) args |> String.join " "
-
-                docId =
-                    List.drop (n - 1) args |> String.join " "
 
                 fragment =
                     List.drop (n - 1) args |> String.join " "

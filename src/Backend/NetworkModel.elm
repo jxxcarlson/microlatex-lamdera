@@ -1,11 +1,10 @@
 module Backend.NetworkModel exposing (processEvent)
 
 import CollaborativeEditing.NetworkModel exposing (EditEvent)
-import Deque
 import Dict
 import Effect.Command as Command exposing (BackendOnly, Command)
-import Effect.Lamdera exposing (ClientId, SessionId, broadcast, sendToFrontend)
-import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
+import Effect.Lamdera exposing (ClientId)
+import Types exposing (BackendModel, BackendMsg, ToFrontend(..))
 
 
 processEvent : EditEvent -> BackendModel -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )

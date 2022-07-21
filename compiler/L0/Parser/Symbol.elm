@@ -1,7 +1,6 @@
 module L0.Parser.Symbol exposing (Symbol(..), balance, toString, toSymbols, value)
 
 import L0.Parser.Token exposing (Token(..))
-import Maybe.Extra
 
 
 type Symbol

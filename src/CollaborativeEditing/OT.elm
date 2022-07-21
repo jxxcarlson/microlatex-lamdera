@@ -65,15 +65,6 @@ emptyDoc =
     { id = "no-id", cursor = 0, content = "" }
 
 
-reconcile : Document -> Document -> Document
-reconcile a b =
-    let
-        op =
-            findOp a b
-    in
-    apply [ op ] a
-
-
 findOp : Document -> Document -> Operation
 findOp before after =
     if before.content == after.content then

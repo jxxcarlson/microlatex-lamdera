@@ -11,7 +11,6 @@ import BoundedDeque exposing (BoundedDeque)
 import Chat.Message
 import Document exposing (Document)
 import Effect.Time
-import List.Extra
 import Parser.Language exposing (Language)
 import Set exposing (Set)
 
@@ -42,24 +41,6 @@ currentUserId currentUser =
     Maybe.map .id currentUser |> Maybe.withDefault "----"
 
 
-applyIfDefined f mA b =
-    case mA of
-        Nothing ->
-            b
-
-        Just a_ ->
-            f a_ b
-
-
-insertInList : a -> List a -> List a
-insertInList a list =
-    if List.Extra.notMember a list then
-        a :: list
-
-    else
-        list
-
-
 mRemoveEditor : Maybe User -> Maybe Document -> Maybe Document
 mRemoveEditor mUser mDoc =
     case ( mUser, mDoc ) of
@@ -78,12 +59,3 @@ removeEditor user doc =
 
 type alias Preferences =
     { language : Language, group : Maybe String }
-
-
-type alias GroupMembers =
-    { -- user names for documents shared to the given user
-      sharedDocuments : List String
-
-    -- user names for members of chat groups to which the given user is a member
-    , chatGroups : List String
-    }

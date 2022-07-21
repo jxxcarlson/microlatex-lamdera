@@ -10,8 +10,6 @@ module Abstract exposing
     , toString
     )
 
-import Dict exposing (Dict)
-import Document exposing (Document)
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
 import TextTools

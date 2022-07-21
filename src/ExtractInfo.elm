@@ -98,11 +98,6 @@ first p q =
     p |> Parser.andThen (\x -> q |> Parser.map (\_ -> x))
 
 
-second : Parser a -> Parser b -> Parser b
-second p q =
-    p |> Parser.andThen (\_ -> q)
-
-
 typeParser : String -> Parser String
 typeParser label =
     let

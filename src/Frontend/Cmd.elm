@@ -2,7 +2,7 @@ module Frontend.Cmd exposing (setInitialEditorContent, setupWindow)
 
 import Duration
 import Effect.Browser.Dom
-import Effect.Command as Command exposing (Command, FrontendOnly)
+import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Process
 import Effect.Task
 import Types exposing (FrontendMsg(..))

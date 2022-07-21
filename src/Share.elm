@@ -20,7 +20,7 @@ module Share exposing
 import Dict
 import Document
 import Effect.Command as Command exposing (Command)
-import Effect.Lamdera exposing (ClientId, sendToBackend, sendToFrontend)
+import Effect.Lamdera exposing (ClientId)
 import List.Extra
 import Maybe.Extra
 import Set
@@ -83,10 +83,6 @@ toSharedDocument doc =
 
 canEdit : Maybe User.User -> Maybe Document.Document -> Bool
 canEdit currentUser currentDocument =
-    let
-        foo =
-            1
-    in
     case ( currentUser, currentDocument ) of
         ( Just user, Just doc ) ->
             isMineAndNotShared user.username doc || isSharedToMeStrict user.username doc || isSharedByMe user.username doc
