@@ -1,4 +1,4 @@
-module MicroLaTeX.Parser.Line exposing (Line, PrimitiveBlockType(..), classify, getNameAndArgs, isEmpty, isNonEmptyBlank, prefixLength, prefixLengths)
+module MicroLaTeX.Parser.Line exposing (Line, PrimitiveBlockType(..), classify, isEmpty, isNonEmptyBlank, prefixLength, prefixLengths)
 
 import Compiler.Util
 import Parser exposing ((|.), (|=), Parser)
@@ -43,92 +43,6 @@ classify position lineNumber str =
 
         Ok result ->
             result
-
-
-getNameAndArgs : Language -> Line -> ( PrimitiveBlockType, Maybe String, List String )
-getNameAndArgs lang line =
-    case lang of
-        MicroLaTeXLang ->
-            let
-                normalizedLine =
-                    String.trim line.content
-
-                name =
-                    case Compiler.Util.getMicroLaTeXItem "begin" normalizedLine of
-                        Just str ->
-                            Just str
-
-                        Nothing ->
-                            if normalizedLine == "$$" then
-                                Just "math"
-
-                            else
-                                Nothing
-
-                bt =
-                    if name == Nothing then
-                        PBParagraph
-
-                    else if List.member (name |> Maybe.withDefault "---") Parser.Common.verbatimBlockNames || normalizedLine == "$$" then
-                        PBVerbatim
-
-                    else
-                        PBOrdinary
-            in
-            ( bt, name, Compiler.Util.getBracketedItems normalizedLine )
-
-        L0Lang ->
-            let
-                normalizedLine =
-                    String.trim line.content
-
-                -- account for possible indentation
-            in
-            if String.left 2 normalizedLine == "||" then
-                let
-                    words =
-                        String.words (String.dropLeft 3 normalizedLine)
-
-                    name =
-                        List.head words |> Maybe.withDefault "anon"
-
-                    args =
-                        List.drop 1 words
-                in
-                ( PBVerbatim, Just name, args )
-
-            else if String.left 1 normalizedLine == "|" then
-                let
-                    words =
-                        String.words (String.dropLeft 2 normalizedLine)
-
-                    name =
-                        List.head words |> Maybe.withDefault "anon"
-
-                    args =
-                        List.drop 1 words
-                in
-                ( PBOrdinary, Just name, args )
-
-            else if String.left 2 line.content == "$$" then
-                ( PBVerbatim, Just "math", [] )
-
-            else
-                ( PBParagraph, Nothing, [] )
-
-        XMarkdownLang ->
-            -- TODO: implement this
-            if String.left 3 line.content == "```" then
-                ( PBVerbatim, Just "code", [] )
-
-            else if String.left 2 line.content == "$$" then
-                ( PBVerbatim, Just "math", [] )
-
-            else
-                ( PBParagraph, Nothing, [] )
-
-        PlainTextLang ->
-            ( PBOrdinary, Nothing, [] )
 
 
 prefixLength : Int -> Int -> String -> Int

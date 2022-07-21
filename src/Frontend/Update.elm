@@ -25,6 +25,7 @@ port module Frontend.Update exposing
     , newFolder
     , nextSyncLR
     , openEditor
+    , playSound
     , postProcessDocument
     , prepareMasterDocument
     , render
@@ -98,6 +99,7 @@ port playSound : String -> Cmd msg
 
 
 
+-- port playSound : String -> Command FrontendOnly ToBackend FrontendMsg
 {-
          --- CONTENTS
 
