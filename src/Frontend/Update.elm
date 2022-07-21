@@ -723,11 +723,6 @@ setDocumentAsCurrent_ cmd model doc permissions =
                 smartDocCommand =
                     makeSmartDocCommand doc model.allowOpenFolder currentUserName_
 
-                editorItem : Document.EditorData
-                editorItem =
-                    -- TODO: need actual clients
-                    { userId = currentUser.id, username = currentUser.username, clients = [] }
-
                 --    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
                 errorMessages : List Types.Message
                 errorMessages =
@@ -1055,11 +1050,6 @@ handleKeepingMasterDocument model masterDoc doc =
     let
         editRecord =
             Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-        -- TODO: fix this
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (editRecord.messages |> String.join "; ") MSYellow
     in
     ( { model
         | editRecord = editRecord
