@@ -712,7 +712,7 @@ update msg model =
                         AdminMode ->
                             Effect.Lamdera.sendToBackend GetUserList
             in
-            ( { model | appMode = appMode }, cmd )
+            ( { model | appMode = appMode }, Effect.Command.batch [ cmd ] )
 
         GotNewWindowDimensions w h ->
             ( { model | windowWidth = w, windowHeight = h }, Effect.Command.none )

@@ -123,7 +123,10 @@ type alias SharedWith =
 type DocumentHandling
     = DHStandard
     | Backup DocumentId
-    | Version DocumentId Int
+
+
+
+--| Version DocumentId Int
 
 
 type alias DocumentId =

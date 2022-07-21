@@ -134,15 +134,6 @@ finalize block =
 -}
 init : (String -> Bool) -> List String -> State
 init isVerbatimLine lines =
-    let
-        firstLine : Maybe Line
-        firstLine =
-            List.head lines |> Maybe.map (Line.classify 0 0)
-
-        firstBlock_ : Maybe PrimitiveBlock
-        firstBlock_ =
-            Maybe.map blockFromLine firstLine
-    in
     { blocks = []
     , currentBlock = Nothing
     , lines = lines

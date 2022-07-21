@@ -24,8 +24,8 @@ import Review.Rule exposing (Rule)
 
 config : List Rule
 config =
-    [ --NoUnused.CustomTypeConstructors.rule []
-      NoUnused.Dependencies.rule
+    [ NoUnused.CustomTypeConstructors.rule []
+    , NoUnused.Dependencies.rule
     , NoImportingEverything.rule [ "Element" ]
     , NoUnused.Parameters.rule
     , NoUnused.Patterns.rule
@@ -44,5 +44,7 @@ config =
                 , "compiler/Tools.elm"
                 , "compiler/Render/Chart.elm"
                 , "compiler/Render/Block.elm"
+                , "compiler/Parser/Tools.elm"
+                , "compiler/Compiler/Acc.elm"
                 ]
             )
