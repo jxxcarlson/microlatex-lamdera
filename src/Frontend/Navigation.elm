@@ -4,7 +4,6 @@ import Config
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Lamdera
 import Types
-import Url exposing (Url)
 import UrlManager
 import Util
 

@@ -24,6 +24,7 @@ import Effect.Task
 import Effect.Time
 import Element
 import Env
+import Frontend.Chat
 import Frontend.Cmd
 import Frontend.Navigation
 import Frontend.PDF as PDF
@@ -42,8 +43,6 @@ import Render.MicroLaTeX
 import Render.XMarkdown
 import Share
 import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
-import Url exposing (Url)
-import UrlManager
 import User
 import Util
 import View.Chat
@@ -273,35 +272,7 @@ update msg model =
             ( model, Effect.Lamdera.sendToBackend (ClearChatHistory model.inputGroup) )
 
         SetChatGroup ->
-            case model.currentUser of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just user ->
-                    let
-                        oldPreferences =
-                            user.preferences
-
-                        revisedPreferences =
-                            if String.trim model.inputGroup == "" then
-                                { oldPreferences | group = Nothing }
-
-                            else
-                                { oldPreferences | group = Just (String.trim model.inputGroup) }
-
-                        revisedUser =
-                            { user | preferences = revisedPreferences }
-
-                        ( updatedChatMessages, cmd ) =
-                            ( [], Effect.Lamdera.sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
-
-                        --if Just (String.trim model.inputGroup) == oldPreferences.group then
-                        --    ( model.chatMessages, Cmd.none )
-                        --
-                        --else
-                        --    ( [], sendToBackend (SendChatHistory (String.trim model.inputGroup)) )
-                    in
-                    ( { model | currentUser = Just revisedUser, chatMessages = updatedChatMessages }, Effect.Command.batch [ cmd, Effect.Lamdera.sendToBackend (UpdateUserWith revisedUser) ] )
+            Frontend.Chat.setGroup model
 
         GetChatHistory ->
             ( model, Effect.Command.batch [ Effect.Lamdera.sendToBackend (SendChatHistory model.inputGroup) ] )
