@@ -31,7 +31,7 @@ config =
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
     , NoExposingEverything.rule
-    , CognitiveComplexity.rule 15
+    , CognitiveComplexity.rule 27
     ]
         |> List.map
             (Review.Rule.ignoreErrorsForFiles

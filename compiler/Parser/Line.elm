@@ -10,7 +10,6 @@ module Parser.Line exposing
     , prefixLengths
     )
 
-import Compiler.Util
 import L0.Parser.Line
 import MicroLaTeX.Parser.Line
 import Parser exposing ((|.), (|=), Parser)
