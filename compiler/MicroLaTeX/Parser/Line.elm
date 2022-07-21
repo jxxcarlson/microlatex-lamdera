@@ -1,9 +1,16 @@
-module MicroLaTeX.Parser.Line exposing (Line, PrimitiveBlockType(..), classify, isEmpty, isNonEmptyBlank, prefixLength, prefixLengths)
+module MicroLaTeX.Parser.Line exposing
+    ( Line
+    , PrimitiveBlockType(..)
+    , classify
+    , getNameAndArgs
+    , isEmpty
+    , isNonEmptyBlank
+    , prefixLength
+    , prefixLengths
+    )
 
 import Compiler.Util
 import Parser exposing ((|.), (|=), Parser)
-import Parser.Common
-import Parser.Language exposing (Language(..))
 
 
 {-|
@@ -20,8 +27,7 @@ type alias Line =
 
 
 type PrimitiveBlockType
-    = PBVerbatim
-    | PBOrdinary
+    = PBOrdinary
     | PBParagraph
 
 
@@ -69,3 +75,23 @@ prefixParser position lineNumber =
         |. Parser.chompWhile (\c -> c /= '\n')
         |= Parser.getOffset
         |= Parser.getSource
+
+
+getNameAndArgs line =
+    let
+        normalizedLine =
+            String.trim line.content
+
+        name =
+            case Compiler.Util.getMicroLaTeXItem "begin" normalizedLine of
+                Just str ->
+                    Just str
+
+                Nothing ->
+                    if normalizedLine == "$$" then
+                        Just "math"
+
+                    else
+                        Nothing
+    in
+    ( name, Compiler.Util.getBracketedItems normalizedLine )

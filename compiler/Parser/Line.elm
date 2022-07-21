@@ -11,8 +11,11 @@ module Parser.Line exposing
     )
 
 import Compiler.Util
+import L0.Parser.Line
+import MicroLaTeX.Parser.Line
 import Parser exposing ((|.), (|=), Parser)
 import Parser.Language exposing (Language(..))
+import XMarkdown.Line
 
 
 {-|
@@ -118,81 +121,16 @@ getNameAndArgs : Language -> Line -> ( Maybe String, List String )
 getNameAndArgs lang line =
     case lang of
         MicroLaTeXLang ->
-            let
-                normalizedLine =
-                    String.trim line.content
-
-                name =
-                    case Compiler.Util.getMicroLaTeXItem "begin" normalizedLine of
-                        Just str ->
-                            Just str
-
-                        Nothing ->
-                            if normalizedLine == "$$" then
-                                Just "math"
-
-                            else
-                                Nothing
-            in
-            ( name, Compiler.Util.getBracketedItems normalizedLine )
+            MicroLaTeX.Parser.Line.getNameAndArgs line
 
         L0Lang ->
-            let
-                normalizedLine =
-                    String.trim line.content
-
-                -- account for possible indentation
-            in
-            if String.left 2 normalizedLine == "||" then
-                let
-                    words =
-                        String.words (String.dropLeft 3 normalizedLine)
-
-                    name =
-                        List.head words |> Maybe.withDefault "anon"
-
-                    args =
-                        List.drop 1 words
-                in
-                ( Just name, args )
-
-            else if String.left 1 normalizedLine == "|" then
-                let
-                    words =
-                        String.words (String.dropLeft 2 normalizedLine)
-
-                    name =
-                        List.head words |> Maybe.withDefault "anon"
-
-                    args =
-                        List.drop 1 words
-                in
-                ( Just name, args )
-
-            else if String.left 2 line.content == "$$" then
-                ( Just "math", [] )
-
-            else
-                ( Nothing, [] )
+            L0.Parser.Line.getNameAndArgs line
 
         PlainTextLang ->
             ( Nothing, [] )
 
         XMarkdownLang ->
-            if String.left 3 line.content == "```" then
-                ( Just "code", [] )
-
-            else if String.left 3 line.content == "|| " then
-                ( Just (String.dropLeft 3 line.content |> String.trimRight), [] )
-
-            else if String.left 2 line.content == "$$" then
-                ( Just "math", [] )
-
-            else if String.left 2 line.content == "| " then
-                ( Just (String.dropLeft 2 line.content |> String.trimRight), [] )
-
-            else
-                ( Nothing, [] )
+            XMarkdown.Line.getNameAndArgs line
 
 
 prefixLength : Int -> Int -> String -> Int
