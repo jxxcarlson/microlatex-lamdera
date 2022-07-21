@@ -1166,7 +1166,7 @@ handleSharedDocument model username doc =
         , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
         , sourceText = doc.content
         , activeEditor = Just { name = username, activeAt = model.currentTime }
-        , messages = { txt = "Received (shared): " ++ doc.title, status = MSGreen } :: []
+        , messages = { txt = "Received (shared): " ++ doc.title, status = MSYellow } :: []
         , currentMasterDocument = currentMasterDocument
         , counter = model.counter + 1
       }
@@ -1174,7 +1174,8 @@ handleSharedDocument model username doc =
         [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
         , savePreviousCurrentDocumentCmd model
         , Frontend.Cmd.setInitialEditorContent 20
-        , View.Utility.setViewPortToTop model.popupState
+
+        -- , View.Utility.setViewPortToTop model.popupState
         ]
     )
 
