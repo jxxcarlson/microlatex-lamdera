@@ -24,10 +24,14 @@ import Effect.Task
 import Effect.Time
 import Element
 import Env
+import Frontend.AppState
 import Frontend.Authentication
 import Frontend.Chat
 import Frontend.Cmd
+import Frontend.Document
+import Frontend.DocumentList
 import Frontend.Documentation
+import Frontend.Editor
 import Frontend.Message
 import Frontend.Navigation
 import Frontend.PDF as PDF
@@ -422,50 +426,19 @@ update msg model =
             Frontend.Documentation.toggleManuals model manualType
 
         SelectList list ->
-            let
-                cmd =
-                    if list == SharedDocumentList then
-                        Effect.Lamdera.sendToBackend (GetSharedDocuments (model.currentUser |> Maybe.map .username |> Maybe.withDefault "(anon)"))
-
-                    else if list == PinnedDocs then
-                        Effect.Lamdera.sendToBackend (SearchForDocuments PinnedDocumentList model.currentUser "pin")
-
-                    else
-                        Effect.Command.none
-            in
-            ( { model | lastInteractionTime = model.currentTime, documentList = list }, cmd )
+            Frontend.DocumentList.selectDocumentList model list
 
         ChangePopup popupState ->
             ( { model | popupState = popupState }, Effect.Command.none )
 
         ToggleIndexSize ->
-            case model.maximizedIndex of
-                MMyDocs ->
-                    ( { model | maximizedIndex = MPublicDocs }, Effect.Command.none )
-
-                MPublicDocs ->
-                    ( { model | maximizedIndex = MMyDocs }, Effect.Command.none )
+            Frontend.DocumentList.toggleIndexSize model
 
         CloseCollectionIndex ->
-            ( { model | currentMasterDocument = Nothing }
-            , Effect.Command.none
-            )
+            Frontend.DocumentList.closeCollectionIndex model
 
         ToggleActiveDocList ->
-            case model.currentMasterDocument of
-                Nothing ->
-                    ( { model | activeDocList = Both }, Effect.Command.none )
-
-                Just _ ->
-                    case model.activeDocList of
-                        PublicDocsList ->
-                            ( { model | activeDocList = PrivateDocsList }, Effect.Command.none )
-
-                        PrivateDocsList ->
-                            ( { model | activeDocList = PublicDocsList }, Effect.Command.none )
-
-                        Both ->
-                            ( { model | activeDocList = PrivateDocsList }, Effect.Command.none )
+            Frontend.DocumentList.toggleActiveDocumentList model
 
         Home ->
             ( model, Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.welcomeDocId) )
@@ -477,16 +450,7 @@ update msg model =
             Frontend.Update.setDocumentInPhoneAsCurrent model doc permissions
 
         SetAppMode appMode ->
-            let
-                cmd =
-                    case appMode of
-                        UserMode ->
-                            Effect.Command.none
-
-                        AdminMode ->
-                            Effect.Lamdera.sendToBackend GetUserList
-            in
-            ( { model | appMode = appMode }, Effect.Command.batch [ cmd ] )
+            Frontend.AppState.set model appMode
 
         GotNewWindowDimensions w h ->
             ( { model | windowWidth = w, windowHeight = h }, Effect.Command.none )
@@ -529,12 +493,7 @@ update msg model =
             Frontend.Update.closeEditor model
 
         OpenEditor ->
-            case model.currentDocument of
-                Nothing ->
-                    ( { model | messages = [ { txt = "No document to open in editor", status = MSWhite } ] }, Effect.Command.none )
-
-                Just doc ->
-                    Frontend.Update.openEditor doc model
+            Frontend.Editor.open model
 
         Help docId ->
             ( model, Effect.Lamdera.sendToBackend (SearchForDocumentsWithAuthorAndKey docId) )
@@ -548,19 +507,7 @@ update msg model =
             ( { model | allowOpenFolder = not model.allowOpenFolder }, Effect.Command.none )
 
         ChangeLanguage ->
-            case model.currentDocument of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just doc ->
-                    let
-                        newDocument =
-                            { doc | language = model.language }
-                    in
-                    ( model
-                    , Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDocument)
-                    )
-                        |> (\( m, c ) -> ( Frontend.Update.postProcessDocument newDocument m, c ))
+            Frontend.Document.changeLanguage model
 
         ToggleBackupVisibility ->
             ( { model | hideBackups = not model.hideBackups }, Effect.Command.none )
