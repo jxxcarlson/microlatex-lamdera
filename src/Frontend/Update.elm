@@ -325,6 +325,7 @@ closeEditor model =
         updatedDoc : Maybe Document
         updatedDoc =
             User.mRemoveEditor model.currentUser model.currentDocument
+                |> Maybe.map setToReadOnlyIfNoEditors
 
         saveCmd =
             case updatedDoc of
@@ -696,7 +697,7 @@ setDocumentAsCurrent cmd model doc permissions =
         oldCurrentDocument =
             model.currentDocument
                 |> User.mRemoveEditor model.currentUser
-                |> Maybe.map (\doc_ -> { doc_ | status = Document.DSReadOnly })
+                |> Maybe.map setToReadOnlyIfNoEditors
 
         ( updateOldCurrentDocCmd, newModel ) =
             case oldCurrentDocument of
@@ -712,6 +713,15 @@ setDocumentAsCurrent cmd model doc permissions =
 
         False ->
             setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd, cmd, Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude) ]) newModel doc permissions
+
+
+setToReadOnlyIfNoEditors : Document -> Document
+setToReadOnlyIfNoEditors doc =
+    if doc.currentEditorList == [] then
+        { doc | status = Document.DSReadOnly }
+
+    else
+        doc
 
 
 setDocumentAsCurrent_ : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
