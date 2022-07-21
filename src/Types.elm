@@ -290,7 +290,7 @@ type FrontendMsg
     | GotTime Effect.Time.Posix
     | Render Render.Msg.MarkupMsg
       -- UI
-    | ToggleCheatsheet
+    | ToggleGuides
     | ToggleManuals ManualType
     | OpenSharedDocumentList
     | SetAppMode AppMode

@@ -24,8 +24,11 @@ import Effect.Task
 import Effect.Time
 import Element
 import Env
+import Frontend.Authentication
 import Frontend.Chat
 import Frontend.Cmd
+import Frontend.Documentation
+import Frontend.Message
 import Frontend.Navigation
 import Frontend.PDF as PDF
 import Frontend.Scheduler
@@ -42,7 +45,32 @@ import Predicate
 import Render.MicroLaTeX
 import Render.XMarkdown
 import Share
-import Types exposing (ActiveDocList(..), AppMode(..), DocLoaded(..), DocumentDeleteState(..), DocumentHandling(..), DocumentHardDeleteState(..), DocumentList(..), FrontendModel, FrontendMsg(..), MaximizedIndex(..), MessageStatus(..), PhoneMode(..), PopupState(..), PopupStatus(..), PrintingState(..), SidebarExtrasState(..), SidebarTagsState(..), SignupState(..), SortMode(..), TagSelection(..), ToBackend(..), ToFrontend(..))
+import Types
+    exposing
+        ( ActiveDocList(..)
+        , AppMode(..)
+        , DocLoaded(..)
+        , DocumentDeleteState(..)
+        , DocumentHandling(..)
+        , DocumentHardDeleteState(..)
+        , DocumentList(..)
+        , FrontendModel
+        , FrontendMsg(..)
+        , MaximizedIndex(..)
+        , MessageStatus(..)
+        , PhoneMode(..)
+        , PopupState(..)
+        , PopupStatus(..)
+        , PrintingState(..)
+        , SidebarExtrasState(..)
+        , SidebarTagsState(..)
+        , SignupState(..)
+        , SortMode(..)
+        , TagSelection(..)
+        , ToBackend(..)
+        , ToFrontend(..)
+        )
+import Url
 import User
 import Util
 import View.Chat
@@ -281,20 +309,7 @@ update msg model =
             ( model, View.Chat.scrollChatToBottom )
 
         CreateChatGroup ->
-            case model.currentUser of
-                Nothing ->
-                    ( { model | chatDisplay = Types.TCGDisplay }, Effect.Command.none )
-
-                Just user ->
-                    let
-                        newChatGroup =
-                            { name = model.inputGroupName
-                            , owner = user.username
-                            , assistant = Just model.inputGroupAssistant
-                            , members = model.inputGroupMembers |> String.split "," |> List.map String.trim
-                            }
-                    in
-                    ( { model | chatDisplay = Types.TCGDisplay, currentChatGroup = Just newChatGroup }, Effect.Lamdera.sendToBackend (InsertChatGroup newChatGroup) )
+            Frontend.Chat.createGroup model
 
         SetChatDisplay option ->
             ( { model | chatDisplay = option }, Effect.Command.none )
@@ -338,22 +353,7 @@ update msg model =
 
         -- User has hit the Send button
         MessageSubmitted ->
-            let
-                chatMessage =
-                    { sender = model.currentUser |> Maybe.map .username |> Maybe.withDefault "anon"
-                    , group = model.inputGroup
-                    , subject = ""
-                    , content = model.chatMessageFieldContent
-                    , date = model.currentTime
-                    }
-            in
-            ( { model | chatMessageFieldContent = "", messages = model.messages }
-            , Effect.Command.batch
-                [ Effect.Lamdera.sendToBackend (ChatMsgSubmitted chatMessage)
-                , View.Chat.focusMessageInput
-                , View.Chat.scrollChatToBottom
-                ]
-            )
+            Frontend.Message.submitted model
 
         -- USER MESSAGES
         DismissUserMessage ->
@@ -369,17 +369,7 @@ update msg model =
 
         -- USER
         SetSignupState state ->
-            ( { model
-                | signupState = state
-                , inputSignupUsername = ""
-                , inputPassword = ""
-                , inputPasswordAgain = ""
-                , inputEmail = ""
-                , inputRealname = ""
-                , messages = []
-              }
-            , Effect.Command.none
-            )
+            Frontend.Authentication.setSignupState model state
 
         SignUp ->
             Frontend.Update.signUp model
@@ -425,107 +415,11 @@ update msg model =
             ( { model | inputEmail = str }, Effect.Command.none )
 
         -- UI
-        ToggleCheatsheet ->
-            case model.popupState of
-                NoPopup ->
-                    let
-                        id =
-                            case model.language of
-                                L0Lang ->
-                                    Config.l0GuideId
-
-                                MicroLaTeXLang ->
-                                    Config.microLaTeXGuideId
-
-                                XMarkdownLang ->
-                                    Config.xmarkdownGuideId
-
-                                PlainTextLang ->
-                                    Config.plainTextCheatsheetId
-                    in
-                    ( { model | popupState = GuidesPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual id) )
-
-                _ ->
-                    ( { model | popupState = NoPopup }, Effect.Command.none )
+        ToggleGuides ->
+            Frontend.Documentation.toggleGuides model
 
         ToggleManuals manualType ->
-            case model.popupState of
-                NoPopup ->
-                    case manualType of
-                        Types.TManual ->
-                            case model.language of
-                                L0Lang ->
-                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
-
-                                MicroLaTeXLang ->
-                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
-
-                                XMarkdownLang ->
-                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
-
-                                PlainTextLang ->
-                                    ( { model | popupState = NoPopup }, Effect.Command.none )
-
-                        Types.TGuide ->
-                            case model.language of
-                                L0Lang ->
-                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
-
-                                MicroLaTeXLang ->
-                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
-
-                                XMarkdownLang ->
-                                    ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
-
-                                PlainTextLang ->
-                                    ( { model | popupState = NoPopup }, Effect.Command.none )
-
-                ManualsPopup ->
-                    case manualType of
-                        Types.TManual ->
-                            if
-                                List.member (Maybe.andThen Document.getSlug model.currentManual)
-                                    [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
-                            then
-                                ( { model | popupState = NoPopup }, Effect.Command.none )
-
-                            else
-                                case model.language of
-                                    L0Lang ->
-                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0ManualId) )
-
-                                    MicroLaTeXLang ->
-                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXManualId) )
-
-                                    XMarkdownLang ->
-                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownId) )
-
-                                    PlainTextLang ->
-                                        ( { model | popupState = NoPopup }, Effect.Command.none )
-
-                        Types.TGuide ->
-                            if
-                                List.member (Maybe.andThen Document.getSlug model.currentManual)
-                                    [ Just Config.l0GuideId, Just Config.microLaTeXGuideId, Just Config.microLaTeXGuideId ]
-                            then
-                                ( { model | popupState = NoPopup }, Effect.Command.none )
-
-                            else
-                                case model.language of
-                                    L0Lang ->
-                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.l0GuideId) )
-
-                                    MicroLaTeXLang ->
-                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.microLaTeXGuideId) )
-
-                                    XMarkdownLang ->
-                                        ( { model | popupState = ManualsPopup }, Effect.Lamdera.sendToBackend (FetchDocumentById HandleAsManual Config.xmarkdownGuideId) )
-
-                                    PlainTextLang ->
-                                        ( { model | popupState = NoPopup }, Effect.Command.none )
-
-                _ ->
-                    ( { model | popupState = NoPopup }, Effect.Command.none )
+            Frontend.Documentation.toggleManuals model manualType
 
         SelectList list ->
             let
