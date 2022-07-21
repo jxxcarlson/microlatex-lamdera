@@ -1,6 +1,6 @@
 module Compiler.DifferentialParser exposing (EditRecord, init, update)
 
-import Compiler.AbstractDifferentialParser as Abstract
+import Compiler.AbstractDifferentialParser
 import Compiler.Acc
 import Dict exposing (Dict)
 import L0.Parser.Expression
@@ -16,7 +16,7 @@ import XMarkdown.Expression
 
 
 type alias EditRecord =
-    Abstract.EditRecord (Tree PrimitiveBlock) (Tree ExpressionBlock) Compiler.Acc.Accumulator
+    Compiler.AbstractDifferentialParser.EditRecord (Tree PrimitiveBlock) (Tree ExpressionBlock) Compiler.Acc.Accumulator
 
 
 init : Dict String String -> Language -> String -> EditRecord
@@ -100,7 +100,7 @@ makeBlock tag dict =
 
 update : EditRecord -> String -> EditRecord
 update editRecord text =
-    Abstract.update (chunker editRecord.lang) (parser editRecord.lang) Markup.messagesFromForest Compiler.Acc.transformAcccumulate editRecord text
+    Compiler.AbstractDifferentialParser.update (chunker editRecord.lang) (parser editRecord.lang) Markup.messagesFromForest Compiler.Acc.transformAcccumulate editRecord text
 
 
 chunker : Language -> String -> List (Tree PrimitiveBlock)
