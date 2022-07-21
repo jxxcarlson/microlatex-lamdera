@@ -60,7 +60,7 @@ transformST lang ast =
 
 transformAcccumulate : Language -> Forest ExpressionBlock -> ( Accumulator, Forest ExpressionBlock )
 transformAcccumulate lang ast =
-    List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree lang tree acc_ |> mapper ast_) ( init 4, [] ) ast
+    List.foldl (\tree ( acc_, ast_ ) -> transformAccumulateTree tree acc_ |> mapper ast_) ( init 4, [] ) ast
         |> (\( acc_, ast_ ) -> ( acc_, List.reverse ast_ ))
 
 
