@@ -4,19 +4,27 @@ module Frontend.Document exposing
     , hardDeleteAll
     , makeBackup
     , receivedDocument
+    , receivedNewDocument
+    , receivedPublicDocuments
     , setDocumentAsCurrent
     , setDocumentAsCurrentViaId
     , updateDoc
     )
 
+import Compiler.ASTTools
+import Compiler.DifferentialParser
 import Dict
 import Docs
 import Document exposing (Document)
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Lamdera
+import Frontend.Cmd
 import Frontend.Update
+import IncludeFiles
 import Predicate
 import Types exposing (DocumentHandling(..), FrontendModel, FrontendMsg, ToBackend)
+import Util
+import View.Utility
 
 
 setDocumentAsCurrentViaId : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
@@ -153,3 +161,62 @@ receivedDocument model documentHandling doc =
 
         HandleAsManual ->
             Frontend.Update.handleReceivedDocumentAsManual model doc
+
+
+receivedNewDocument model doc =
+    let
+        editRecord =
+            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
+
+        currentMasterDocument =
+            if Predicate.isMaster editRecord then
+                Just doc
+
+            else
+                model.currentMasterDocument
+    in
+    ( { model
+        | editRecord = editRecord
+        , title = Compiler.ASTTools.title editRecord.parsed
+        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
+        , currentDocument = Just doc
+        , documents = doc :: model.documents
+        , sourceText = doc.content
+        , currentMasterDocument = currentMasterDocument
+        , counter = model.counter + 1
+      }
+    , Effect.Command.batch [ Util.delay 40 (Types.SetDocumentAsCurrent StandardHandling doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+    )
+
+
+receivedPublicDocuments model publicDocuments =
+    case List.head publicDocuments of
+        Nothing ->
+            ( { model | publicDocuments = publicDocuments }, Effect.Command.none )
+
+        Just doc ->
+            let
+                ( currentMasterDocument, newEditRecord, getFirstDocumentCommand ) =
+                    Frontend.Update.prepareMasterDocument model doc
+
+                -- TODO: fix this
+                filesToInclude =
+                    IncludeFiles.getData doc.content
+
+                loadCmd =
+                    case List.isEmpty filesToInclude of
+                        True ->
+                            Effect.Command.none
+
+                        False ->
+                            Effect.Lamdera.sendToBackend (Types.GetIncludedFiles doc filesToInclude)
+            in
+            ( { model
+                | currentMasterDocument = currentMasterDocument
+                , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
+                , currentDocument = Just doc
+                , editRecord = newEditRecord
+                , publicDocuments = publicDocuments
+              }
+            , Effect.Command.batch [ loadCmd, getFirstDocumentCommand ]
+            )

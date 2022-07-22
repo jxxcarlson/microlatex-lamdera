@@ -42,12 +42,10 @@ import Frontend.Update
 import Frontend.UpdateDocument
 import Frontend.Widget
 import Html
-import IncludeFiles
 import Keyboard
 import Lamdera
 import Markup
 import Parser.Language exposing (Language(..))
-import Predicate
 import Share
 import Types
     exposing
@@ -80,7 +78,6 @@ import Util
 import View.Chat
 import View.Main
 import View.Phone
-import View.Utility
 
 
 type alias Model =
@@ -798,61 +795,10 @@ updateFromBackend msg model =
             Frontend.Document.receivedDocument model documentHandling doc
 
         ReceivedNewDocument _ doc ->
-            let
-                editRecord =
-                    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-                currentMasterDocument =
-                    if Predicate.isMaster editRecord then
-                        Just doc
-
-                    else
-                        model.currentMasterDocument
-            in
-            ( { model
-                | editRecord = editRecord
-                , title = Compiler.ASTTools.title editRecord.parsed
-                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , currentDocument = Just doc
-                , documents = doc :: model.documents
-                , sourceText = doc.content
-                , currentMasterDocument = currentMasterDocument
-                , counter = model.counter + 1
-              }
-            , Effect.Command.batch [ Util.delay 40 (SetDocumentAsCurrent StandardHandling doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
-            )
+            Frontend.Document.receivedNewDocument model doc
 
         ReceivedPublicDocuments publicDocuments ->
-            case List.head publicDocuments of
-                Nothing ->
-                    ( { model | publicDocuments = publicDocuments }, Effect.Command.none )
-
-                Just doc ->
-                    let
-                        ( currentMasterDocument, newEditRecord, getFirstDocumentCommand ) =
-                            Frontend.Update.prepareMasterDocument model doc
-
-                        -- TODO: fix this
-                        filesToInclude =
-                            IncludeFiles.getData doc.content
-
-                        loadCmd =
-                            case List.isEmpty filesToInclude of
-                                True ->
-                                    Effect.Command.none
-
-                                False ->
-                                    Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude)
-                    in
-                    ( { model
-                        | currentMasterDocument = currentMasterDocument
-                        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                        , currentDocument = Just doc
-                        , editRecord = newEditRecord
-                        , publicDocuments = publicDocuments
-                      }
-                    , Effect.Command.batch [ loadCmd, getFirstDocumentCommand ]
-                    )
+            Frontend.Document.receivedPublicDocuments model publicDocuments
 
         ReceivedDocuments documentHandling documents ->
             case List.head documents of
