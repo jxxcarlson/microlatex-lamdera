@@ -669,7 +669,7 @@ update msg model =
                     Frontend.Update.handleCurrentDocumentChange model currentDocument document
 
         -- Handles button clicks
-        SetDocumentAsCurrent handling document ->
+        SetDocumentAsCurrentWithHandling handling document ->
             case model.currentDocument of
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Effect.Command.none model document handling

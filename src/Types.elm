@@ -396,7 +396,7 @@ type FrontendMsg
     | SearchText
     | InputAuthorId String
     | NewDocument
-    | SetDocumentAsCurrent DocumentHandling Document
+    | SetDocumentAsCurrentWithHandling DocumentHandling Document
     | SetPublic Document Bool
     | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId

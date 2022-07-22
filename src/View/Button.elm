@@ -1113,7 +1113,7 @@ setDocumentAsCurrent docHandling currentDocument document =
                         |> String.Extra.ellipsisWith 40 " ..."
     in
     Input.button []
-        { onPress = Just (SetDocumentAsCurrent docHandling document)
+        { onPress = Just (SetDocumentAsCurrentWithHandling docHandling document)
         , label = E.el [ Font.size 14, fg, weight, style ] (E.text titleString)
         }
 
