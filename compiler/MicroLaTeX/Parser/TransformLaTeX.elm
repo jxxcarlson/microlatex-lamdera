@@ -1,27 +1,4 @@
-module MicroLaTeX.Parser.TransformLaTeX exposing
-    ( LXStatus(..)
-    , State
-    , Step(..)
-    , endBlockOfLXStatus
-    , example
-    , fakeDebugLog
-    , fixArgs
-    , handleError
-    , leadingBlanks
-    , loop
-    , nextState
-    , nextState2
-    , substitutions
-    , toL0
-    , transformBegin
-    , transformHeader
-    , transformOther
-    , verbatimBlockNames
-    , xx1
-    , xx2
-    , xx3
-    , xx4
-    )
+module MicroLaTeX.Parser.TransformLaTeX exposing (toL0)
 
 import Dict exposing (Dict)
 import List.Extra
@@ -31,20 +8,6 @@ import Parser.TextMacro exposing (MyMacro(..))
 import Parser.Utility
 
 
-example =
-    """
-\\begin{theorem}
-There are infinitely many primes:
-
-  $$
-  p\\equiv 1\\ \text{mod}\\ 4
-  $$
-
-  Yes, isn't that nice?
-\\end{theorem}
-"""
-
-
 
 --fakeDebugLog =
 --    \i label str -> Debug.log (String.fromInt i ++ ", " ++ label ++ " ") str
@@ -52,31 +15,6 @@ There are infinitely many primes:
 
 fakeDebugLog =
     \_ _ -> identity
-
-
-xx1 =
-    """
-\\begin{code}
-\\begin{mathmacros}
-\\newcommand{\\bra}[0]{\\]langle}
-\\end{mathmacros}
-\\end{code}
-"""
-
-
-xx2 =
-    "\n\\begin{theorem}\nHo ho ho\n"
-
-
-xx3 =
-    "\n\\begin{theorem}\nHo ho ho\n\\end{th}"
-
-
-xx4 =
-    """
-\\bibitem{AA}
-Foo bar
-"""
 
 
 
