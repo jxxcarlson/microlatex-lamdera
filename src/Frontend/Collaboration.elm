@@ -1,5 +1,6 @@
-module Frontend.Collaboration exposing (toggle)
+module Frontend.Collaboration exposing (initializeNetworkModel, toggle)
 
+import CollaborativeEditing.OTCommand as OTCommand
 import Effect.Command
 import Effect.Lamdera
 import Types
@@ -17,3 +18,13 @@ toggle model =
 
                 True ->
                     ( model, Effect.Lamdera.sendToBackend (Types.ResetNetworkModelForDocument doc) )
+
+
+initializeNetworkModel model networkModel =
+    ( { model
+        | collaborativeEditing = True
+        , networkModel = networkModel
+        , editCommand = { counter = model.counter, command = OTCommand.CMoveCursor 0 }
+      }
+    , Effect.Command.none
+    )

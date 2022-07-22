@@ -778,13 +778,7 @@ updateFromBackend msg model =
 
         -- COLLABORATIVE EDITING
         InitializeNetworkModel networkModel ->
-            ( { model
-                | collaborativeEditing = True
-                , networkModel = networkModel
-                , editCommand = { counter = model.counter, command = OTCommand.CMoveCursor 0 }
-              }
-            , Effect.Command.none
-            )
+            Frontend.Collaboration.initializeNetworkModel model networkModel
 
         ResetNetworkModel networkModel document ->
             ( { model
