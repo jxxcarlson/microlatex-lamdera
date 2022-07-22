@@ -3,6 +3,7 @@ module Frontend.Document exposing
     , gotIncludedUserData
     , hardDeleteAll
     , makeBackup
+    , receivedDocument
     , setDocumentAsCurrent
     , setDocumentAsCurrentViaId
     , updateDoc
@@ -15,7 +16,7 @@ import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Lamdera
 import Frontend.Update
 import Predicate
-import Types exposing (FrontendModel, FrontendMsg, ToBackend)
+import Types exposing (DocumentHandling(..), FrontendModel, FrontendMsg, ToBackend)
 
 
 setDocumentAsCurrentViaId : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
@@ -120,6 +121,7 @@ makeBackup model =
                 ( model, Effect.Command.none )
 
 
+gotIncludedUserData : Types.FrontendModel -> Document -> List ( String, String ) -> ( Types.FrontendModel, Command FrontendOnly Types.ToBackend Types.FrontendMsg )
 gotIncludedUserData model doc listOfData =
     let
         includedContent =
@@ -132,3 +134,22 @@ gotIncludedUserData model doc listOfData =
     ( { model | includedContent = includedContent } |> (\m -> updateEditRecord includedContent doc m)
     , Effect.Command.none
     )
+
+
+receivedDocument : Types.FrontendModel -> DocumentHandling -> Document -> ( Types.FrontendModel, Command FrontendOnly Types.ToBackend Types.FrontendMsg )
+receivedDocument model documentHandling doc =
+    case documentHandling of
+        StandardHandling ->
+            Frontend.Update.handleAsStandardReceivedDocument model doc
+
+        KeepMasterDocument masterDoc ->
+            Frontend.Update.handleKeepingMasterDocument model masterDoc doc
+
+        HandleSharedDocument username ->
+            Frontend.Update.handleSharedDocument model username doc
+
+        PinnedDocumentList ->
+            Frontend.Update.handleAsStandardReceivedDocument model doc
+
+        HandleAsManual ->
+            Frontend.Update.handleReceivedDocumentAsManual model doc

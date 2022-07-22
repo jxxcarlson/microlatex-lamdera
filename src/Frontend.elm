@@ -795,21 +795,7 @@ updateFromBackend msg model =
             Frontend.Collaboration.processEvent model event
 
         ReceivedDocument documentHandling doc ->
-            case documentHandling of
-                StandardHandling ->
-                    Frontend.Update.handleAsStandardReceivedDocument model doc
-
-                KeepMasterDocument masterDoc ->
-                    Frontend.Update.handleKeepingMasterDocument model masterDoc doc
-
-                HandleSharedDocument username ->
-                    Frontend.Update.handleSharedDocument model username doc
-
-                PinnedDocumentList ->
-                    Frontend.Update.handleAsStandardReceivedDocument model doc
-
-                HandleAsManual ->
-                    Frontend.Update.handleReceivedDocumentAsManual model doc
+            Frontend.Document.receivedDocument model documentHandling doc
 
         ReceivedNewDocument _ doc ->
             let
