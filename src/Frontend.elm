@@ -801,22 +801,7 @@ updateFromBackend msg model =
             Frontend.Document.receivedPublicDocuments model publicDocuments
 
         ReceivedDocuments documentHandling documents ->
-            case List.head documents of
-                Nothing ->
-                    -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
-                    ( model, Effect.Command.none )
-
-                Just doc ->
-                    case documentHandling of
-                        PinnedDocumentList ->
-                            ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
-                            , Effect.Command.none
-                            )
-
-                        _ ->
-                            ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.postProcessDocument doc
-                            , Effect.Command.none
-                            )
+            Frontend.Document.receivedDocuments model documentHandling documents
 
         MessageReceived message ->
             let

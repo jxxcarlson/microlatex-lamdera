@@ -4,6 +4,7 @@ module Frontend.Document exposing
     , hardDeleteAll
     , makeBackup
     , receivedDocument
+    , receivedDocuments
     , receivedNewDocument
     , receivedPublicDocuments
     , setDocumentAsCurrent
@@ -220,3 +221,22 @@ receivedPublicDocuments model publicDocuments =
               }
             , Effect.Command.batch [ loadCmd, getFirstDocumentCommand ]
             )
+
+
+receivedDocuments model documentHandling documents =
+    case List.head documents of
+        Nothing ->
+            -- ( model, sendToBackend (FetchDocumentById DelayedHandling Config.notFoundDocId) )
+            ( model, Effect.Command.none )
+
+        Just doc ->
+            case documentHandling of
+                PinnedDocumentList ->
+                    ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
+                    , Effect.Command.none
+                    )
+
+                _ ->
+                    ( { model | documents = documents, currentDocument = Just doc } |> Frontend.Update.postProcessDocument doc
+                    , Effect.Command.none
+                    )
