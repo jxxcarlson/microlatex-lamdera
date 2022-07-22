@@ -4,7 +4,7 @@ import Chat
 import Chat.Message
 import Dict
 import Effect.Command as Command exposing (BackendOnly, Command)
-import Effect.Lamdera exposing (ClientId, SessionId)
+import Effect.Lamdera
 import Types exposing (BackendModel, BackendMsg, ToFrontend)
 import Util
 
