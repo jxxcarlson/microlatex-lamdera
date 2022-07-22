@@ -1,5 +1,7 @@
 module Util exposing
     ( Step(..)
+    , andThenApply
+    , apply
     , applyIf
     , compressWhitespace
     , delay
@@ -16,6 +18,20 @@ import Effect.Process
 import Effect.Task
 import List.Extra
 import Regex
+
+
+apply : (a -> ( a, b )) -> a -> ( a, b )
+apply f a =
+    f a
+
+
+andThenApply : (a -> ( a, b )) -> (List b -> b) -> ( a, b ) -> ( a, b )
+andThenApply f batch ( a, b ) =
+    let
+        ( a2, b2 ) =
+            f a
+    in
+    ( a2, batch [ b, b2 ] )
 
 
 {-|

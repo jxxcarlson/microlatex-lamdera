@@ -1,7 +1,5 @@
 module Backend.Update exposing
-    ( andThenApply
-    , apply
-    , applySpecial
+    ( applySpecial
     , authorTags
     , createDocument
     , createDocumentAtBackend
@@ -24,8 +22,6 @@ module Backend.Update exposing
     , getUsersAndOnlineStatus
     , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
-    , handleChatMsg
-    , handlePing
     , hardDeleteDocument
     , hardDeleteDocumentsWithIdList
     , insertDocument
@@ -48,8 +44,6 @@ module Backend.Update exposing
 import Abstract
 import Authentication
 import BoundedDeque
-import Chat
-import Chat.Message
 import Config
 import Dict
 import Docs
@@ -80,65 +74,6 @@ type alias Model =
 -- CHAT
 
 
-handleChatMsg : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
-handleChatMsg message model =
-    ( { model | chatDict = Chat.Message.insert message model.chatDict }, Command.batch (Chat.narrowCast model message) )
-
-
-handlePing : Chat.Message.ChatMessage -> BackendModel -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
-handlePing message model =
-    let
-        groupMembers =
-            Dict.get message.group model.chatGroupDict
-                |> Maybe.map .members
-                |> Maybe.withDefault []
-                |> List.filter (\name -> name /= message.sender)
-
-        messages =
-            List.map (userMessageFromChatMessage message) groupMembers
-
-        commands : List (Command BackendOnly ToFrontend BackendMsg)
-        commands =
-            List.map (\m -> deliverUserMessageCmd model m) messages
-    in
-    ( model, Command.batch commands )
-
-
-userMessageFromChatMessage : Chat.Message.ChatMessage -> String -> Types.UserMessage
-userMessageFromChatMessage { sender, content } recipient =
-    { from = sender
-    , to = recipient
-    , subject = "Ping"
-    , content =
-        if String.left 2 content == "!!" then
-            String.dropLeft 2 content
-
-        else
-            content
-    , show = []
-    , info = ""
-    , action = Types.FENoOp
-    , actionOnFailureToDeliver = Types.FANoOp
-    }
-
-
-deliverUserMessageCmd : BackendModel -> Types.UserMessage -> Command BackendOnly ToFrontend BackendMsg
-deliverUserMessageCmd model usermessage =
-    case Dict.get usermessage.to model.connectionDict of
-        Nothing ->
-            Command.none
-
-        Just connectionData ->
-            let
-                clientIds =
-                    List.map .client connectionData
-
-                commands =
-                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
-            in
-            Command.batch commands
-
-
 deliverUserMessage model clientId usermessage =
     case Dict.get usermessage.to model.connectionDict of
         Nothing ->
@@ -153,26 +88,6 @@ deliverUserMessage model clientId usermessage =
                     List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (UserMessageReceived usermessage)) clientIds
             in
             ( model, Command.batch commands )
-
-
-apply :
-    (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
-    -> BackendModel
-    -> ( BackendModel, Command restriction toMsg BackendMsg )
-apply f model =
-    f model
-
-
-andThenApply :
-    (BackendModel -> ( BackendModel, Command restriction toMsg BackendMsg ))
-    -> ( BackendModel, Command restriction toMsg BackendMsg )
-    -> ( BackendModel, Command restriction toMsg BackendMsg )
-andThenApply f ( model, cmd ) =
-    let
-        ( model2, cmd2 ) =
-            f model
-    in
-    ( model2, Command.batch [ cmd, cmd2 ] )
 
 
 

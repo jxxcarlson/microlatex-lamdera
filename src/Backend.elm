@@ -20,6 +20,7 @@ module Backend exposing
 
 import Abstract exposing (Abstract)
 import Authentication
+import Backend.Chat
 import Backend.Cmd
 import Backend.NetworkModel
 import Backend.Update
@@ -182,11 +183,11 @@ updateFromFrontend sessionId clientId msg model =
         ChatMsgSubmitted message ->
             if String.left 2 message.content == "!!" then
                 model
-                    |> Backend.Update.apply (Backend.Update.handleChatMsg message)
-                    |> Backend.Update.andThenApply (Backend.Update.handlePing message)
+                    |> Util.apply (Backend.Chat.handleChatMsg message)
+                    |> Util.andThenApply (Backend.Chat.handlePing message) Command.batch
 
             else
-                model |> Backend.Update.apply (Backend.Update.handleChatMsg message)
+                model |> Util.apply (Backend.Chat.handleChatMsg message)
 
         -- ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
         DeliverUserMessage usermessage ->
