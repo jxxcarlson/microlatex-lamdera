@@ -1,15 +1,8 @@
 port module Frontend.Update exposing
-    ( addDocToCurrentUser
-    , adjustId
+    ( adjustId
     , changeLanguage
     , changeSlug
     , firstSyncLR
-    , handleAsStandardReceivedDocument
-    , handleCurrentDocumentChange
-    , handleKeepingMasterDocument
-    , handlePinnedDocuments
-    , handleReceivedDocumentAsManual
-    , handleSharedDocument
     , handleUrlRequest
     , hardDeleteDocument
     , inputTitle
@@ -17,15 +10,10 @@ port module Frontend.Update exposing
     , newFolder
     , nextSyncLR
     , playSound
-    , postProcessDocument
-    , prepareMasterDocument
     , render
     , runSpecial
     , saveCurrentDocumentToBackend
-    , saveDocumentToBackend
     , searchText
-    , setDocumentAsCurrent
-    , setDocumentInPhoneAsCurrent
     , setLanguage
     , setPublic
     , setPublicDocumentAsCurrentById
@@ -34,19 +22,15 @@ port module Frontend.Update exposing
     , softDeleteDocument
     , syncLR
     , undeleteDocument
-    , updateDoc
-    , updateEditRecord
     , updateKeys
     , updateWithViewport
     )
 
 --
 
-import BoundedDeque exposing (BoundedDeque)
 import Browser
 import CollaborativeEditing.NetworkModel as NetworkModel
 import Compiler.ASTTools
-import Compiler.Acc
 import Compiler.DifferentialParser
 import Config
 import Dict exposing (Dict)
@@ -61,18 +45,16 @@ import Effect.Process
 import Effect.Task
 import ExtractInfo
 import Frontend.Cmd
-import Frontend.Editor
-import IncludeFiles
+import Frontend.CurrentDocument
+import Frontend.Document
 import Keyboard
 import List.Extra
-import Markup
 import Message
 import Parser.Language exposing (Language(..))
 import Predicate
 import Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
 import Types exposing (DocumentDeleteState(..), DocumentHandling(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), ToBackend(..))
 import User exposing (User)
-import Util
 import View.Utility
 
 
@@ -180,26 +162,13 @@ newDocument model =
         , documentsCreatedCounter = documentsCreatedCounter
         , popupState = NoPopup
       }
-        |> postProcessDocument doc
+        |> Frontend.Document.postProcessDocument doc
     , Command.batch [ Effect.Lamdera.sendToBackend (CreateDocument model.currentUser doc) ]
     )
 
 
 
 ---    Save
-
-
-saveDocumentToBackend : Maybe User -> Document.Document -> Command FrontendOnly ToBackend FrontendMsg
-saveDocumentToBackend currentUser doc =
-    case doc.status of
-        Document.DSSoftDelete ->
-            Command.none
-
-        Document.DSReadOnly ->
-            Command.none
-
-        Document.DSCanEdit ->
-            Effect.Lamdera.sendToBackend (SaveDocument currentUser doc)
 
 
 saveCurrentDocumentToBackend : Maybe Document.Document -> Maybe User -> Command FrontendOnly ToBackend FrontendMsg
@@ -222,20 +191,6 @@ saveCurrentDocumentToBackend mDoc mUser =
 
 
 ---    Set params
-
-
-setPermissions : Maybe User -> DocumentHandling -> Document -> DocumentHandling
-setPermissions currentUser permissions document =
-    case document.author of
-        Nothing ->
-            permissions
-
-        Just author ->
-            if Just author == Maybe.map .username currentUser then
-                StandardHandling
-
-            else
-                permissions
 
 
 setPublic : FrontendModel -> Document -> Bool -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
@@ -278,338 +233,10 @@ setPublicDocumentAsCurrentById model id =
 
 
 ---    Post process
-
-
-postProcessDocument : Document.Document -> FrontendModel -> FrontendModel
-postProcessDocument doc model =
-    let
-        newEditRecord : Compiler.DifferentialParser.EditRecord
-        newEditRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (newEditRecord.messages |> String.join "; ") MSYellow
-
-        ( readers, editors ) =
-            View.Utility.getReadersAndEditors (Just doc)
-    in
-    { model
-        | currentDocument = Just doc
-        , sourceText = doc.content
-        , initialText = doc.content
-        , editRecord = newEditRecord
-        , title =
-            Compiler.ASTTools.title newEditRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-        , counter = model.counter + 1
-        , language = doc.language
-        , inputReaders = readers
-        , messages = errorMessages
-        , inputEditors = editors
-    }
-
-
-setDocumentInPhoneAsCurrent : FrontendModel -> Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-setDocumentInPhoneAsCurrent model doc permissions =
-    let
-        ast =
-            Markup.parse doc.language doc.content |> Compiler.Acc.transformST doc.language
-    in
-    ( { model
-        | currentDocument = Just doc
-        , sourceText = doc.content
-        , initialText = doc.content
-        , title = Compiler.ASTTools.title ast
-        , tableOfContents = Compiler.ASTTools.tableOfContents ast
-        , messages = [ { txt = "id = " ++ doc.id, status = MSWhite } ]
-        , permissions = setPermissions model.currentUser permissions doc
-        , counter = model.counter + 1
-        , phoneMode = PMShowDocument
-      }
-    , View.Utility.setViewPortToTop model.popupState
-    )
-
-
-
 ---    setDocumentAsCurrent
-
-
-setDocumentAsCurrent : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-setDocumentAsCurrent cmd model doc permissions =
-    -- TODO: A
-    let
-        filesToInclude =
-            IncludeFiles.getData doc.content
-
-        oldCurrentDocument =
-            model.currentDocument
-                |> User.mRemoveEditor model.currentUser
-                |> Maybe.map Frontend.Editor.setToReadOnlyIfNoEditors
-
-        ( updateOldCurrentDocCmd, newModel ) =
-            case oldCurrentDocument of
-                Nothing ->
-                    ( Command.none, model )
-
-                Just oldCurrentDoc_ ->
-                    ( sendToBackend (SaveDocument model.currentUser oldCurrentDoc_), { model | documents = Document.updateDocumentInList oldCurrentDoc_ model.documents } )
-    in
-    case List.isEmpty filesToInclude of
-        True ->
-            setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd ]) newModel doc permissions
-
-        False ->
-            setDocumentAsCurrent_ (Command.batch [ updateOldCurrentDocCmd, cmd, Effect.Lamdera.sendToBackend (GetIncludedFiles doc filesToInclude) ]) newModel doc permissions
-
-
-setDocumentAsCurrent_ : Command FrontendOnly ToBackend FrontendMsg -> FrontendModel -> Document.Document -> DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-setDocumentAsCurrent_ cmd model doc permissions =
-    case model.currentUser of
-        Nothing ->
-            let
-                newModel =
-                    postProcessDocument doc model
-            in
-            ( { newModel | currentDocument = Just doc }, Command.none )
-
-        Just currentUser ->
-            let
-                -- For now, loc the doc in all cases
-                currentUserName_ =
-                    currentUser.username
-
-                smartDocCommand =
-                    makeSmartDocCommand doc model.allowOpenFolder currentUserName_
-
-                --    Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-                errorMessages : List Types.Message
-                errorMessages =
-                    Message.make (newEditRecord.messages |> String.join "; ") MSYellow
-
-                ( currentMasterDocument, newEditRecord, getFirstDocumentCommand ) =
-                    prepareMasterDocument model doc
-
-                ( readers, editors ) =
-                    View.Utility.getReadersAndEditors (Just doc)
-
-                newCurrentUser =
-                    addDocToCurrentUser model doc
-
-                newDocumentStatus =
-                    if doc.status == Document.DSSoftDelete then
-                        Document.DSSoftDelete
-
-                    else if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser && model.showEditor then
-                        Document.DSCanEdit
-
-                    else
-                        Document.DSReadOnly
-
-                updatedDoc =
-                    { doc | status = newDocumentStatus }
-                        |> Util.applyIf model.showEditor (Frontend.Editor.addUserToCurrentEditorsOfDocument model.currentUser)
-            in
-            ( { model
-                | currentDocument = Just updatedDoc
-                , oTDocument = { docId = updatedDoc.id, cursor = 0, content = updatedDoc.content }
-                , selectedSlug = Document.getSlug updatedDoc
-                , currentMasterDocument = currentMasterDocument
-                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
-                , sourceText = doc.content
-                , initialText = doc.content
-                , documents = Document.updateDocumentInList updatedDoc model.documents
-                , editRecord = newEditRecord
-                , title =
-                    Compiler.ASTTools.title newEditRecord.parsed
-                , tableOfContents = Compiler.ASTTools.tableOfContents newEditRecord.parsed
-                , permissions = setPermissions model.currentUser permissions doc
-                , counter = model.counter + 1
-                , language = doc.language
-                , currentUser = newCurrentUser
-                , inputReaders = readers
-                , inputEditors = editors
-                , messages = errorMessages
-                , lastInteractionTime = model.currentTime
-              }
-            , Command.batch
-                [ View.Utility.setViewPortToTop model.popupState
-                , Command.batch [ getFirstDocumentCommand, cmd, Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc) ]
-                , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
-                , smartDocCommand
-                ]
-            )
-
-
-makeSmartDocCommand : Document -> Bool -> String -> Command FrontendOnly ToBackend FrontendMsg
-makeSmartDocCommand doc allowOpenFolder currentUserName_ =
-    case ExtractInfo.parseInfo "type" doc.content of
-        Nothing ->
-            Command.none
-
-        Just ( label, dict ) ->
-            if label == "folder" && allowOpenFolder then
-                case Dict.get "get" dict of
-                    Nothing ->
-                        Command.none
-
-                    Just tag ->
-                        sendToBackend (MakeCollection doc.title currentUserName_ ("folder:" ++ tag))
-
-            else
-                Command.none
-
-
-prepareMasterDocument : FrontendModel -> Document -> ( Maybe Document, Compiler.DifferentialParser.EditRecord, Command FrontendOnly ToBackend FrontendMsg )
-prepareMasterDocument model doc =
-    let
-        newEditRecord : Compiler.DifferentialParser.EditRecord
-        newEditRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-    in
-    if Predicate.isMaster newEditRecord && model.allowOpenFolder then
-        let
-            maybeFirstDocId =
-                ExtractInfo.parseBlockNameWithArgs "document" doc.content
-                    |> Maybe.map Tuple.second
-                    |> Maybe.andThen List.head
-        in
-        case maybeFirstDocId of
-            Nothing ->
-                ( Nothing, newEditRecord, Command.none )
-
-            Just id ->
-                ( Just doc, newEditRecord, sendToBackend (FetchDocumentById (KeepMasterDocument doc) id) )
-
-    else
-        ( Nothing, newEditRecord, Command.none )
-
-
-
 ---    handleCurrentDocumentChange
-
-
-handleCurrentDocumentChange : FrontendModel -> Document -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleCurrentDocumentChange model currentDocument document =
-    if model.documentDirty && currentDocument.status == Document.DSCanEdit then
-        -- we are leaving the old current document.
-        -- make sure that the content is saved and its status is set to read only
-        let
-            updatedDoc =
-                { currentDocument | content = model.sourceText, status = Document.DSReadOnly }
-
-            newModel =
-                { model
-                    | documentDirty = False
-                    , language = document.language
-                    , selectedSlug = Document.getSlug currentDocument
-                    , documents = Document.updateDocumentInList updatedDoc model.documents
-                }
-        in
-        setDocumentAsCurrent (Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
-
-    else if currentDocument.status == Document.DSCanEdit then
-        let
-            updatedDoc =
-                { currentDocument | status = Document.DSReadOnly }
-
-            newModel =
-                { model | selectedSlug = Document.getSlug currentDocument, documents = Document.updateDocumentInList updatedDoc model.documents, language = document.language }
-        in
-        setDocumentAsCurrent (Effect.Lamdera.sendToBackend (SaveDocument model.currentUser updatedDoc)) newModel document StandardHandling
-
-    else
-        setDocumentAsCurrent Command.none model document StandardHandling
-
-
-
 ---    Included files
 ---    updateDoc
-
-
-updateDoc : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-updateDoc model str =
-    case model.currentDocument of
-        Nothing ->
-            ( model, Command.none )
-
-        Just doc ->
-            case doc.status of
-                Document.DSSoftDelete ->
-                    ( model, Command.none )
-
-                Document.DSReadOnly ->
-                    ( { model | messages = [ { txt = "Document is read-only (can't save edits)", status = MSRed } ] }, Command.none )
-
-                Document.DSCanEdit ->
-                    -- if Share.canEdit model.currentUser (Just doc) then
-                    -- if View.Utility.canSaveStrict model.currentUser doc then
-                    -- if Document.numberOfEditors (Just doc) < 2 && doc.handling == Document.DHStandard then
-                    let
-                        activeEditorName =
-                            model.activeEditor |> Maybe.map .name
-                    in
-                    if Predicate.documentIsMineOrSharedToMe (Just doc) model.currentUser then
-                        if activeEditorName == Nothing || activeEditorName == Maybe.map .username model.currentUser then
-                            updateDoc_ doc str model
-
-                        else
-                            ( model, Command.none )
-
-                    else
-                        ( model, Command.none )
-
-
-updateDoc_ : Document.Document -> String -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-updateDoc_ doc str model =
-    let
-        provisionalTitle : String
-        provisionalTitle =
-            Compiler.ASTTools.title model.editRecord.parsed
-
-        ( safeContent, safeTitle ) =
-            if String.left 1 provisionalTitle == "|" && doc.language == MicroLaTeXLang then
-                ( String.replace "| title\n" "| title\n{untitled}\n\n" str, "{untitled}" )
-
-            else
-                ( str, provisionalTitle )
-
-        newDocument_ =
-            { doc | content = safeContent, title = safeTitle }
-
-        documents =
-            Document.updateDocumentInList newDocument_ model.documents
-
-        publicDocuments =
-            if newDocument_.public then
-                Document.updateDocumentInList newDocument_ model.publicDocuments
-
-            else
-                model.publicDocuments
-
-        sendersName =
-            User.currentUsername model.currentUser
-
-        sendersId =
-            User.currentUserId model.currentUser
-    in
-    ( { model
-        | currentDocument = Just newDocument_
-        , counter = model.counter + 1
-        , documents = documents
-        , documentDirty = False
-        , publicDocuments = publicDocuments
-        , currentUser = addDocToCurrentUser model doc
-      }
-    , Command.batch
-        [ saveDocumentToBackend model.currentUser newDocument_
-        , if Predicate.shouldNarrowcast model.currentUser (Just newDocument_) then
-            Effect.Lamdera.sendToBackend (NarrowcastExceptToSender sendersName sendersId newDocument_)
-
-          else
-            Command.none
-        ]
-    )
 
 
 changeSlug : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
@@ -623,217 +250,15 @@ changeSlug model =
                 newDocument_ =
                     Document.changeSlug doc
             in
-            ( { model | currentDocument = Just newDocument_ } |> postProcessDocument newDocument_
+            ( { model | currentDocument = Just newDocument_ } |> Frontend.Document.postProcessDocument newDocument_
             , sendToBackend (SaveDocument model.currentUser newDocument_)
             )
 
 
-updateEditRecord : Dict String String -> Document -> FrontendModel -> FrontendModel
-updateEditRecord inclusionData doc model =
-    { model | editRecord = Compiler.DifferentialParser.init inclusionData doc.language doc.content }
-
-
 
 ---    handle document
-
-
-handleReceivedDocumentAsManual : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleReceivedDocumentAsManual model doc =
-    ( { model
-        | currentManual = Just doc
-        , counter = model.counter + 1
-        , messages =
-            { txt = "Manual: " ++ doc.title, status = MSGreen } :: []
-      }
-    , View.Utility.setViewPortToTop model.popupState
-    )
-
-
-
 -- TODO: B
-
-
-handleAsStandardReceivedDocument : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleAsStandardReceivedDocument model doc =
-    let
-        maybeFirstDocId =
-            ExtractInfo.parseBlockNameWithArgs "document" doc.content
-                |> Maybe.map Tuple.second
-                |> Maybe.andThen List.head
-
-        editRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-        -- TODO: fix this
-        -- errorMessages : List Types.Message
-        currentMasterDocument =
-            if Predicate.isMaster editRecord then
-                Just doc
-
-            else
-                model.currentMasterDocument
-
-        smartDocCommand =
-            makeSmartDocCommand doc model.allowOpenFolder (model.currentUser |> Maybe.map .username |> Maybe.withDefault "---")
-    in
-    case maybeFirstDocId of
-        Nothing ->
-            ( { model
-                | editRecord = editRecord
-                , selectedSlug = Document.getSlug doc
-                , title = Compiler.ASTTools.title editRecord.parsed
-                , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-                , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
-                , currentDocument = Just doc
-                , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
-                , sourceText = doc.content
-                , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
-                , currentMasterDocument = currentMasterDocument
-                , counter = model.counter + 1
-              }
-            , Command.batch
-                [ savePreviousCurrentDocumentCmd model
-                , Frontend.Cmd.setInitialEditorContent 20
-                , View.Utility.setViewPortToTop model.popupState
-                , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
-                , smartDocCommand
-                ]
-            )
-
-        Just id ->
-            ( model, Command.batch [ sendToBackend (FetchDocumentById (KeepMasterDocument doc) id), smartDocCommand ] )
-
-
-handleKeepingMasterDocument : FrontendModel -> Document -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleKeepingMasterDocument model masterDoc doc =
-    let
-        editRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-    in
-    ( { model
-        | editRecord = editRecord
-        , selectedSlug = Document.getSlug doc
-        , title = Compiler.ASTTools.title editRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
-        , sourceText = doc.content
-        , initialText = doc.content
-        , messages = { txt = "Received (std): " ++ doc.title, status = MSGreen } :: []
-        , currentMasterDocument = Just masterDoc
-        , counter = model.counter + 1
-      }
-    , Command.batch
-        [ savePreviousCurrentDocumentCmd model
-        , Frontend.Cmd.setInitialEditorContent 20
-        , View.Utility.setViewPortToTop model.popupState
-        , Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
-        ]
-    )
-
-
-handleSharedDocument : FrontendModel -> String -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleSharedDocument model username doc =
-    let
-        editRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-        -- errorMessages : List Types.Message
-        currentMasterDocument =
-            if Predicate.isMaster editRecord then
-                Just doc
-
-            else
-                model.currentMasterDocument
-    in
-    ( { model
-        | editRecord = editRecord
-        , title = Compiler.ASTTools.title editRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
-        , sourceText = doc.content
-        , activeEditor = Just { name = username, activeAt = model.currentTime }
-        , messages = { txt = "Received (shared): " ++ doc.title, status = MSYellow } :: []
-        , currentMasterDocument = currentMasterDocument
-        , counter = model.counter + 1
-      }
-    , Command.batch
-        [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
-        , savePreviousCurrentDocumentCmd model
-        , Frontend.Cmd.setInitialEditorContent 20
-
-        -- , View.Utility.setViewPortToTop model.popupState
-        ]
-    )
-
-
-handlePinnedDocuments : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handlePinnedDocuments model doc =
-    let
-        editRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (editRecord.messages |> String.join "; ") MSYellow
-
-        currentMasterDocument =
-            if Predicate.isMaster editRecord then
-                Just doc
-
-            else
-                model.currentMasterDocument
-    in
-    ( { model
-        | editRecord = editRecord
-        , title = Compiler.ASTTools.title editRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , currentDocument = Just doc
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
-        , sourceText = doc.content
-        , messages = errorMessages
-        , currentMasterDocument = currentMasterDocument
-        , counter = model.counter + 1
-      }
-    , Command.batch
-        [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
-        , Frontend.Cmd.setInitialEditorContent 20
-        , View.Utility.setViewPortToTop model.popupState
-        ]
-    )
-
-
-
 ---    savePreviousCurrentDocumentCmd
-
-
-{-| Use this function to ensure that edits to the current document are saved
-before the current document is changed
--}
-savePreviousCurrentDocumentCmd : FrontendModel -> Command FrontendOnly ToBackend FrontendMsg
-savePreviousCurrentDocumentCmd model =
-    case model.currentDocument of
-        Nothing ->
-            Command.none
-
-        Just previousDoc ->
-            if model.documentDirty && previousDoc.status == Document.DSCanEdit then
-                let
-                    previousDoc2 =
-                        -- TODO: change content
-                        { previousDoc | content = model.sourceText }
-                in
-                Effect.Lamdera.sendToBackend (SaveDocument model.currentUser previousDoc2)
-
-            else
-                Command.none
-
-
-
 ---    delete
 
 
@@ -869,7 +294,7 @@ undeleteDocument model =
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = updatedUser
               }
-                |> postProcessDocument newDoc
+                |> Frontend.Document.postProcessDocument newDoc
             , Command.batch
                 [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
 
@@ -892,7 +317,7 @@ softDeleteDocument model =
                             Nothing
 
                         Just _ ->
-                            deleteDocFromCurrentUser model doc
+                            Frontend.Document.deleteDocFromCurrentUser model doc
 
                 ( newDoc, currentDocument, newDocuments ) =
                     ( { doc | status = Document.DSSoftDelete } |> Document.addTag "folder:deleted", Just Docs.deleted, List.filter (\d -> d.id /= doc.id) model.documents )
@@ -904,7 +329,7 @@ softDeleteDocument model =
                 , deleteDocumentState = WaitingForDeleteAction
                 , currentUser = updatedUser
               }
-                |> postProcessDocument Docs.deleted
+                |> Frontend.Document.postProcessDocument Docs.deleted
             , Command.batch
                 [ Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
                 ]
@@ -925,7 +350,7 @@ hardDeleteDocument model =
                             Nothing
 
                         Just _ ->
-                            deleteDocFromCurrentUser model doc
+                            Frontend.Document.deleteDocFromCurrentUser model doc
 
                 newMasterDocument =
                     case model.currentMasterDocument of
@@ -949,7 +374,7 @@ hardDeleteDocument model =
                 , hardDeleteDocumentState = Types.WaitingForHardDeleteAction
                 , currentUser = newUser
               }
-                |> postProcessDocument Docs.deleted
+                |> Frontend.Document.postProcessDocument Docs.deleted
             , Command.batch [ Effect.Lamdera.sendToBackend (HardDeleteDocumentBE doc), Effect.Process.sleep (Duration.milliseconds 500) |> Effect.Task.perform (always (SetPublicDocumentAsCurrentById Config.documentDeletedNotice)) ]
             )
 
@@ -1062,7 +487,7 @@ changeLanguage model =
             ( { model | documentDirty = False }
             , Effect.Lamdera.sendToBackend (SaveDocument model.currentUser newDoc)
             )
-                |> (\( m, c ) -> ( postProcessDocument newDoc m, c ))
+                |> (\( m, c ) -> ( Frontend.Document.postProcessDocument newDoc m, c ))
 
 
 setUserLanguage : Language -> FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
@@ -1195,50 +620,6 @@ updateWithViewport vp model =
       }
     , Command.none
     )
-
-
-addDocToCurrentUser : FrontendModel -> Document -> Maybe User
-addDocToCurrentUser model doc =
-    case model.currentUser of
-        Nothing ->
-            Nothing
-
-        Just user ->
-            let
-                isNotInDeque : Document -> BoundedDeque Document.DocumentInfo -> Bool
-                isNotInDeque doc_ deque =
-                    BoundedDeque.filter (\item -> item.id == doc_.id) deque |> BoundedDeque.isEmpty
-
-                docs =
-                    if isNotInDeque doc user.docs then
-                        BoundedDeque.pushFront (Document.toDocInfo doc) user.docs
-
-                    else
-                        user.docs
-                            |> BoundedDeque.filter (\item -> item.id /= doc.id)
-                            |> BoundedDeque.pushFront (Document.toDocInfo doc)
-
-                newUser =
-                    { user | docs = docs }
-            in
-            Just newUser
-
-
-deleteDocFromCurrentUser : FrontendModel -> Document -> Maybe User
-deleteDocFromCurrentUser model doc =
-    case model.currentUser of
-        Nothing ->
-            Nothing
-
-        Just user ->
-            let
-                newDocs =
-                    BoundedDeque.filter (\d -> d.id /= doc.id) user.docs
-
-                newUser =
-                    { user | docs = newDocs }
-            in
-            Just newUser
 
 
 

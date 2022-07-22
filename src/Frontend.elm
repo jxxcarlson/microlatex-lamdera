@@ -28,6 +28,7 @@ import Frontend.Authentication
 import Frontend.Chat
 import Frontend.Cmd
 import Frontend.Collaboration
+import Frontend.CurrentDocument
 import Frontend.Document
 import Frontend.DocumentList
 import Frontend.Documentation
@@ -444,7 +445,7 @@ update msg model =
             ( { model | phoneMode = PMShowDocumentList }, Effect.Command.none )
 
         SetDocumentInPhoneAsCurrent permissions doc ->
-            Frontend.Update.setDocumentInPhoneAsCurrent model doc permissions
+            Frontend.CurrentDocument.setDocumentInPhoneAsCurrent model doc permissions
 
         SetAppMode appMode ->
             Frontend.AppState.set model appMode
@@ -635,10 +636,10 @@ update msg model =
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
-            Frontend.Document.setDocumentAsCurrent model handling document
+            Frontend.CurrentDocument.set model handling document
 
         SetDocumentCurrentViaId id ->
-            Frontend.Document.setDocumentAsCurrentViaId model id
+            Frontend.CurrentDocument.setWithId model id
 
         SetPublic doc public ->
             Frontend.Update.setPublic model doc public

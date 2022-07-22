@@ -2,6 +2,7 @@ module Frontend.UpdateDocument exposing (setDocumentStatus)
 
 import Document
 import Effect.Command exposing (Command, FrontendOnly)
+import Frontend.Document
 import Frontend.Update
 import Types
 
@@ -20,4 +21,4 @@ setDocumentStatus model status =
                 documents =
                     Document.updateDocumentInList updatedDoc model.documents
             in
-            ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Update.saveDocumentToBackend model.currentUser updatedDoc )
+            ( { model | currentDocument = Just updatedDoc, documentDirty = False, documents = documents }, Frontend.Document.saveDocumentToBackend model.currentUser updatedDoc )
