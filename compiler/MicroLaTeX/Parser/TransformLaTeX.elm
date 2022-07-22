@@ -21,15 +21,6 @@ fakeDebugLog =
 -- TRANSFORMS
 
 
-{-| Map a list of strings to from microLaTeX block format to L0 block format.
-It seems that function 'indentStrings' is unnecessary.
-TODO: test the foregoing.
-TODO: at the moment, there is no error-handling. Think about this
--}
-verbatimBlockNames =
-    [ "math", "equation", "aligned", "code", "mathmacros", "verbatim", "$$" ]
-
-
 type alias State =
     { i : Int, status : LXStatus, input : List String, output : List String, stack : List LXStatus }
 
@@ -55,7 +46,7 @@ endBlockOfLXStatus status =
 
 toL0 : List String -> List String
 toL0 list =
-    loop { i = 0, input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse
+    loop { i = 0, input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse |> Debug.log "TO L0!!!"
 
 
 type Step state a
@@ -88,7 +79,7 @@ nextState state =
                 Err _ ->
                     if trimmedLine == "$$" then
                         --Loop (nextState2 line (MyMacro "$$" []) { state | i = state.i + 1, input = List.drop 1 state.input }) |> fakeDebugLog state.i "(0a)"
-                        -- TODO: the change from above to belo is made so that indented occurrences of $$ blocks
+                        -- TODO: the change from above to below is made so that indented occurrences of $$ blocks
                         -- need not be terminated with $$.  Keeping this comment around for a while we
                         -- test to see if this works out in the field.
                         Loop { state | i = state.i + 1, output = line :: state.output, status = LXNormal, input = List.drop 1 state.input } |> fakeDebugLog state.i "(0b)"
@@ -105,12 +96,7 @@ nextState state =
                             |> Loop
 
                 Ok myMacro ->
-                    case List.head state.stack of
-                        Nothing ->
-                            Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0d)"
-
-                        Just _ ->
-                            Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
+                    Loop (nextState2 line myMacro { state | input = List.drop 1 state.input, i = state.i + 1 }) |> fakeDebugLog state.i "(0e)"
 
 
 nextState2 : String -> MyMacro -> State -> State
@@ -156,8 +142,8 @@ nextState2 line (MyMacro name args) state =
         -- HANDLE ENVIRONMENT, END
         { state | output = "" :: state.output, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "(6)"
 
-    else if state.status == LXNormal && List.member name [ "tags", "item", "numbered", "bibref", "desc", "contents" ] then
-        -- HANDLE \item, \bibref, etc
+    else if state.status == LXNormal && List.member name [ "tags", "item", "numbered", "bibitem", "desc", "contents" ] then
+        -- HANDLE \item, \numbered, etc
         { state | output = (String.replace ("\\" ++ name) ("| " ++ name) line |> fixArgs) :: state.output } |> fakeDebugLog state.i "(7)"
         -- ??
 
