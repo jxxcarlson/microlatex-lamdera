@@ -487,7 +487,7 @@ update msg model =
             ( model, Effect.Command.none )
 
         CloseEditor ->
-            Frontend.Update.closeEditor model
+            Frontend.Editor.closeEditor model
 
         OpenEditor ->
             Frontend.Editor.open model
@@ -556,7 +556,7 @@ update msg model =
             ( model, Effect.Lamdera.sendToBackend (FetchDocumentById StandardHandling id) )
 
         DebounceMsg msg_ ->
-            Frontend.Update.debounceMsg model msg_
+            Frontend.Editor.debounceMsg model msg_
 
         Saved str ->
             Frontend.Document.updateDoc model str
@@ -574,19 +574,19 @@ update msg model =
             Frontend.Update.searchText model
 
         InputText { position, source } ->
-            Frontend.Update.inputText model { position = position, source = source }
+            Frontend.Editor.inputText model { position = position, source = source }
 
         InputCommand str ->
             ( { model | inputCommand = str }, Effect.Command.none )
 
         InputCursor { position, source } ->
-            Frontend.Update.inputCursor { position = position, source = source } model
+            Frontend.Editor.inputCursor { position = position, source = source } model
 
         InputTitle str ->
             Frontend.Update.inputTitle model str
 
         SetInitialEditorContent ->
-            Frontend.Update.setInitialEditorContent model
+            Frontend.Editor.setInitialEditorContent model
 
         InputAuthorId str ->
             ( { model | authorId = str }, Effect.Command.none )
