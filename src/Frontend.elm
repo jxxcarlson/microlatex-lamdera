@@ -373,13 +373,13 @@ update msg model =
             Frontend.Authentication.setSignupState model state
 
         SignUp ->
-            Frontend.Update.signUp model
+            Frontend.Authentication.signUp model
 
         SignIn ->
-            Frontend.Update.signIn model
+            Frontend.Authentication.signIn model
 
         SignOut ->
-            Frontend.Update.signOut model
+            Frontend.Authentication.signOut model
 
         -- ADMIN
         ClearConnectionDict ->

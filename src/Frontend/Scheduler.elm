@@ -3,7 +3,7 @@ module Frontend.Scheduler exposing (schedule)
 import Config
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Time
-import Frontend.Update
+import Frontend.Authentication
 import Types
 
 
@@ -44,7 +44,7 @@ schedule model newTime =
         ( { model | timer = newTimer, activeEditor = activeEditor, currentTime = newTime, lastInteractionTime = newTime }, Effect.Command.none )
 
     else if elapsedSinceLastInteractionSeconds >= Config.automaticSignoutLimit && model.currentUser /= Nothing then
-        Frontend.Update.signOut { model | timer = newTimer, currentTime = newTime }
+        Frontend.Authentication.signOut { model | timer = newTimer, currentTime = newTime }
 
     else
         ( { model | timer = newTimer, activeEditor = activeEditor, currentTime = newTime }, Effect.Command.none )
