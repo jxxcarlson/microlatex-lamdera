@@ -3,6 +3,7 @@ module Frontend.Document exposing
     , hardDeleteAll
     , makeBackup
     , setDocumentAsCurrent
+    , setDocumentAsCurrentViaId
     , updateDoc
     )
 
@@ -13,6 +14,16 @@ import Effect.Lamdera
 import Frontend.Update
 import Predicate
 import Types exposing (FrontendModel, FrontendMsg, ToBackend)
+
+
+setDocumentAsCurrentViaId : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+setDocumentAsCurrentViaId model id =
+    case Document.documentFromListViaId id model.documents of
+        Nothing ->
+            ( model, Effect.Command.none )
+
+        Just doc ->
+            ( Frontend.Update.postProcessDocument doc model, Effect.Command.none )
 
 
 setDocumentAsCurrent : FrontendModel -> Document -> Types.DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )

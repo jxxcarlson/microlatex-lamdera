@@ -14,7 +14,7 @@ scripts:
   review-fix-all: npx elm-review@beta --ignore-dirs src/Evergreen/ --fix-all
 
 
-  cloc: cloc --by-file --exclude-dir=Evergreen src/
+  cloc: cloc --by-file --exclude-dir=Evergreen src/ compiler/
 
   clean-macros:
     cat macros.txt | sed 's/^, (//g' | sed 's/,.*//g' | sed 's/"//g'

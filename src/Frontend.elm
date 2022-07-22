@@ -33,6 +33,7 @@ import Frontend.Document
 import Frontend.DocumentList
 import Frontend.Documentation
 import Frontend.Editor
+import Frontend.Export
 import Frontend.Message
 import Frontend.Navigation
 import Frontend.PDF as PDF
@@ -640,15 +641,10 @@ update msg model =
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
-            Frontend.Document.setDocumentAsCurrent model handling document
+            Frontend.Document.setDocumentAsCurrent model document handling
 
         SetDocumentCurrentViaId id ->
-            case Document.documentFromListViaId id model.documents of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just doc ->
-                    ( Frontend.Update.postProcessDocument doc model, Effect.Command.none )
+            Frontend.Document.setDocumentAsCurrentViaId model id
 
         SetPublic doc public ->
             Frontend.Update.setPublic model doc public
@@ -667,37 +663,7 @@ update msg model =
             Frontend.Update.exportToRawLaTeX model
 
         ExportTo lang ->
-            case model.currentDocument of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just doc ->
-                    case lang of
-                        MicroLaTeXLang ->
-                            let
-                                ast =
-                                    model.editRecord.parsed
-
-                                newText =
-                                    Render.MicroLaTeX.export ast
-                            in
-                            ( model, Effect.File.Download.string "out-microlatex.txt" "text/plain" newText )
-
-                        L0Lang ->
-                            ( model, Effect.File.Download.string "out-l0.txt" "text/plain" doc.content )
-
-                        PlainTextLang ->
-                            ( model, Effect.File.Download.string "out-l0.txt" "text/plain" doc.content )
-
-                        XMarkdownLang ->
-                            let
-                                ast =
-                                    model.editRecord.parsed
-
-                                newText =
-                                    Render.XMarkdown.export ast
-                            in
-                            ( model, Effect.File.Download.string "out-xmarkdown.txt" "text/plain" newText )
+            Frontend.Export.to model lang
 
         Export ->
             issueCommandIfDefined model.currentDocument model exportDoc
