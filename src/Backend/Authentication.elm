@@ -1,4 +1,4 @@
-module Backend.Authentication exposing (signIn, signUpUser)
+module Backend.Authentication exposing (signIn, signOut, signUpUser)
 
 import Authentication
 import Backend.Connection
@@ -11,9 +11,11 @@ import Document
 import Effect.Command as Command exposing (BackendOnly, Command)
 import Effect.Lamdera exposing (ClientId, SessionId)
 import Hex
+import Maybe.Extra
 import Parser.Language
 import Random
 import Set
+import Share
 import Token
 import Types exposing (BackendModel, BackendMsg, DocumentHandling(..), MessageStatus(..), ToFrontend(..))
 
@@ -58,6 +60,46 @@ signIn model sessionId clientId username encryptedPassword =
 
         Nothing ->
             ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
+
+
+{-|
+
+        This function differs from  removeSessionClient only in (a) it does not use the sessionId,
+        (b) it treats the connectionDict more gingerely.
+
+-}
+signOut : BackendModel -> Types.Username -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
+signOut model username clientId =
+    let
+        -- userConnections : List ConnectionData
+        connectionDict =
+            Dict.remove username model.connectionDict
+
+        activeSharedDocIds =
+            Share.activeDocumentIdsSharedByMe username model.sharedDocumentDict |> List.map .id
+
+        documents : List Document.Document
+        documents =
+            List.foldl (\id list -> Dict.get id model.documentDict :: list) [] activeSharedDocIds
+                |> Maybe.Extra.values
+                |> List.map (\doc -> Share.unshare doc)
+
+        pushSignOutDocCmd : Command BackendOnly ToFrontend BackendMsg
+        pushSignOutDocCmd =
+            Backend.Document.fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
+
+        notifications =
+            Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
+
+        updatedModel =
+            Backend.Document.setDocumentsToReadOnlyWithUserName username model
+    in
+    ( { updatedModel
+        | sharedDocumentDict = Share.removeUserFromSharedDocumentDict username model.sharedDocumentDict
+        , connectionDict = connectionDict
+      }
+    , Command.batch <| pushSignOutDocCmd :: notifications
+    )
 
 
 newConnectionDict username sessionId clientId connectionDict =

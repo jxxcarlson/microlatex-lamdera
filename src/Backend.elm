@@ -255,10 +255,10 @@ updateFromFrontend sessionId clientId msg model =
                 Just username ->
                     case Env.mode of
                         Env.Production ->
-                            Backend.Update.signOut model username clientId
+                            Backend.Authentication.signOut model username clientId
 
                         Env.Development ->
-                            Backend.Update.signOut model username clientId
+                            Backend.Authentication.signOut model username clientId
                                 |> (\( m1, c1 ) ->
                                         let
                                             ( m2, c2 ) =

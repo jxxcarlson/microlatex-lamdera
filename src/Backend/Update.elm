@@ -28,7 +28,6 @@ module Backend.Update exposing
     , searchForDocuments
     , searchForDocumentsByAuthorAndKey
     , searchForPublicDocuments
-    , signOut
     , unlockDocuments
     , updateAbstracts
     , updateDocumentTags
@@ -37,6 +36,7 @@ module Backend.Update exposing
 import Abstract
 import Authentication
 import Backend.Connection
+import Backend.Document
 import Config
 import Dict
 import Document exposing (Document)
@@ -81,45 +81,6 @@ deliverUserMessage model clientId usermessage =
 
 
 -- OTHER
-
-
-setDocumentsToReadOnlyWithUserName : Types.Username -> BackendModel -> BackendModel
-setDocumentsToReadOnlyWithUserName username model =
-    case Dict.get username model.authenticationDict of
-        Nothing ->
-            model
-
-        Just { user } ->
-            setUsersDocumentsToReadOnly user.id model
-
-
-setUsersDocumentsToReadOnly : Types.UserId -> BackendModel -> BackendModel
-setUsersDocumentsToReadOnly userId model =
-    applyToUsersDocuments userId (\doc -> { doc | status = Document.DSReadOnly }) model
-
-
-{-| Apply a function to all documents for a given user (defined by his user id) and persist the result in the backend model
--}
-applyToUsersDocuments : Types.UserId -> (Document -> Document) -> BackendModel -> BackendModel
-applyToUsersDocuments userId f model =
-    applyToDocuments (Dict.get userId model.usersDocumentsDict |> Maybe.withDefault []) f model
-
-
-{-| Apply a function to all documents defined by a list of documents and persist the result in the backend model
--}
-applyToDocuments : List Types.DocId -> (Document -> Document) -> BackendModel -> BackendModel
-applyToDocuments idList f model =
-    let
-        oldDocumentDict =
-            model.documentDict
-
-        newDocumentDict =
-            List.foldl (\id dict -> Dict.update id (Util.liftToMaybe f) dict) oldDocumentDict idList
-    in
-    { model | documentDict = newDocumentDict }
-
-
-
 -- ADMIN
 
 
@@ -315,7 +276,7 @@ fetchDocumentById model clientId docId documentHandling =
 
             Just _ ->
                 ( model
-                , fetchDocumentByIdCmd model clientId docId documentHandling
+                , Backend.Document.fetchDocumentByIdCmd model clientId docId documentHandling
                 )
 
     else
@@ -384,16 +345,6 @@ getIncludedFilesCmd model clientId doc fileList =
             List.foldl (\( author, key ) acc -> ( author ++ ":" ++ key, getContent ( author, key ) ) :: acc) [] authorsAndKeys
     in
     Effect.Lamdera.sendToFrontend clientId (GotIncludedData doc data)
-
-
-fetchDocumentByIdCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Command BackendOnly ToFrontend BackendMsg
-fetchDocumentByIdCmd model clientId docId documentHandling =
-    case Dict.get docId model.documentDict of
-        Nothing ->
-            Command.none
-
-        Just document ->
-            Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling document)
 
 
 saveDocument model clientId currentUser document =
@@ -557,46 +508,6 @@ getConnectedUser clientId dict =
 --    )
 
 
-{-|
-
-        This function differs from  removeSessionClient only in (a) it does not use the sessionId,
-        (b) it treats the connectionDict more gingerely.
-
--}
-signOut : BackendModel -> Types.Username -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
-signOut model username clientId =
-    let
-        -- userConnections : List ConnectionData
-        connectionDict =
-            Dict.remove username model.connectionDict
-
-        activeSharedDocIds =
-            Share.activeDocumentIdsSharedByMe username model.sharedDocumentDict |> List.map .id
-
-        documents : List Document.Document
-        documents =
-            List.foldl (\id list -> Dict.get id model.documentDict :: list) [] activeSharedDocIds
-                |> Maybe.Extra.values
-                |> List.map (\doc -> Share.unshare doc)
-
-        pushSignOutDocCmd : Command BackendOnly ToFrontend BackendMsg
-        pushSignOutDocCmd =
-            fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
-
-        notifications =
-            Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
-
-        updatedModel =
-            setDocumentsToReadOnlyWithUserName username model
-    in
-    ( { updatedModel
-        | sharedDocumentDict = Share.removeUserFromSharedDocumentDict username model.sharedDocumentDict
-        , connectionDict = connectionDict
-      }
-    , Command.batch <| pushSignOutDocCmd :: notifications
-    )
-
-
 removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
 removeSessionClient model sessionId clientId =
     case getConnectedUser clientId model.connectionDict of
@@ -619,13 +530,13 @@ removeSessionClient model sessionId clientId =
 
                 pushSignOutDocCmd : Command BackendOnly ToFrontend BackendMsg
                 pushSignOutDocCmd =
-                    fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
+                    Backend.Document.fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
                 notifications =
                     Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
                 updatedModel =
-                    setDocumentsToReadOnlyWithUserName username model
+                    Backend.Document.setDocumentsToReadOnlyWithUserName username model
             in
             ( { updatedModel
                 | sharedDocumentDict = Dict.map Share.removeUserFromSharedDocument model.sharedDocumentDict
