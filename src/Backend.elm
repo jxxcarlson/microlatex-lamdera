@@ -22,10 +22,10 @@ import Abstract exposing (Abstract)
 import Authentication
 import Backend.Chat
 import Backend.Cmd
+import Backend.Collaboration
 import Backend.NetworkModel
 import Backend.Update
 import Chat
-import CollaborativeEditing.NetworkModel as NetworkModel
 import Config
 import Deque
 import Dict exposing (Dict)
@@ -189,60 +189,10 @@ updateFromFrontend sessionId clientId msg model =
 
         -- SHARE
         InitializeNetworkModelsWithDocument doc ->
-            let
-                currentEditorList =
-                    doc.currentEditorList
-
-                userIds =
-                    List.map .userId currentEditorList
-
-                clients : List ClientId
-                clients =
-                    List.foldl (\editorName acc -> Dict.get editorName model.connectionDict :: acc) [] (List.map .username currentEditorList)
-                        |> Maybe.Extra.values
-                        |> List.concat
-                        |> List.map .client
-
-                networkModel =
-                    NetworkModel.initWithUsersAndContent doc.id userIds doc.content
-
-                sharedDocument_ =
-                    Share.toSharedDocument doc
-
-                sharedDocument : Types.SharedDocument
-                sharedDocument =
-                    { sharedDocument_ | currentEditors = doc.currentEditorList }
-
-                sharedDocumentDict =
-                    Dict.insert doc.id sharedDocument model.sharedDocumentDict
-
-                cmds =
-                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (InitializeNetworkModel networkModel)) clients
-            in
-            ( { model | sharedDocumentDict = sharedDocumentDict }, Command.batch cmds )
+            Backend.Collaboration.initializeNetworkModelsWithDocument model doc
 
         ResetNetworkModelForDocument doc ->
-            let
-                currentEditorList =
-                    doc.currentEditorList
-
-                document =
-                    { doc | currentEditorList = [] }
-
-                clients : List ClientId
-                clients =
-                    List.foldl (\editorName acc -> Dict.get editorName model.connectionDict :: acc) [] (List.map .username currentEditorList)
-                        |> Maybe.Extra.values
-                        |> List.concat
-                        |> List.map .client
-
-                networkModel =
-                    NetworkModel.initWithUsersAndContent "--fake--" [] ""
-
-                cmds =
-                    List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clients
-            in
-            ( model, Command.batch cmds )
+            Backend.Collaboration.resetNetworkModelForDocument model doc
 
         PushEditorEvent event ->
             Backend.NetworkModel.processEvent event model
