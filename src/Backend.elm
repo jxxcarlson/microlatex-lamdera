@@ -293,7 +293,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model
             , Command.batch
                 [ Effect.Lamdera.sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUserAndDocumentData model))
-                , Effect.Lamdera.sendToFrontend clientId (GotConnectionList (Backend.Update.getConnectionData model))
+                , Effect.Lamdera.sendToFrontend clientId (GotConnectionList (Backend.Collaboration.getConnectionData model))
                 , Effect.Lamdera.sendToFrontend clientId
                     (GotShareDocumentList
                         (model.sharedDocumentDict

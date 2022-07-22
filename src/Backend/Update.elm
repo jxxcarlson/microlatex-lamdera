@@ -7,8 +7,6 @@ module Backend.Update exposing
     , fetchDocumentById
     , findDocumentByAuthorAndKey
     , findDocumentByAuthorAndKey_
-    , getConnectedUsers
-    , getConnectionData
     , getDocumentByAuthorId
     , getDocumentById
     , getDocumentByPublicId
@@ -1163,35 +1161,6 @@ getUserData model =
             Authentication.userList model.authenticationDict
     in
     List.map (\u -> ( u, numberOfUserDocuments u model.usersDocumentsDict )) userList
-
-
-getConnectionData : BackendModel -> List String
-getConnectionData model =
-    model.connectionDict
-        |> Dict.toList
-        |> List.map (\( u, data ) -> u ++ ":: " ++ String.fromInt (List.length data) ++ " :: " ++ connectionDataListToString data)
-
-
-{-| Return user names of connected users
--}
-getConnectedUsers : BackendModel -> List String
-getConnectedUsers model =
-    Dict.keys model.connectionDict
-
-
-truncateMiddle : Int -> Int -> String -> String
-truncateMiddle dropBoth dropRight str =
-    String.left dropBoth str ++ "..." ++ String.right dropBoth (String.dropRight dropRight str)
-
-
-connectionDataListToString : List ConnectionData -> String
-connectionDataListToString list =
-    list |> List.map connectionDataToString |> String.join "; "
-
-
-connectionDataToString : ConnectionData -> String
-connectionDataToString { session, client } =
-    "(" ++ truncateMiddle 2 0 (Effect.Lamdera.sessionIdToString session) ++ ", " ++ truncateMiddle 2 2 (Effect.Lamdera.clientIdToString client) ++ ")"
 
 
 updateAbstract : Document.Document -> AbstractDict -> AbstractDict

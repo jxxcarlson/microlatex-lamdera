@@ -1,4 +1,9 @@
-module Backend.Collaboration exposing (initializeNetworkModelsWithDocument, resetNetworkModelForDocument)
+module Backend.Collaboration exposing
+    ( getConnectedUsers
+    , getConnectionData
+    , initializeNetworkModelsWithDocument
+    , resetNetworkModelForDocument
+    )
 
 import CollaborativeEditing.NetworkModel as NetworkModel
 import Dict
@@ -6,7 +11,7 @@ import Effect.Command as Command
 import Effect.Lamdera exposing (ClientId)
 import Maybe.Extra
 import Share
-import Types exposing (ToFrontend(..))
+import Types exposing (BackendModel, ToFrontend(..))
 
 
 initializeNetworkModelsWithDocument model doc =
@@ -65,3 +70,32 @@ resetNetworkModelForDocument model doc =
             List.map (\clientId_ -> Effect.Lamdera.sendToFrontend clientId_ (ResetNetworkModel networkModel document)) clients
     in
     ( model, Command.batch cmds )
+
+
+getConnectionData : BackendModel -> List String
+getConnectionData model =
+    model.connectionDict
+        |> Dict.toList
+        |> List.map (\( u, data ) -> u ++ ":: " ++ String.fromInt (List.length data) ++ " :: " ++ connectionDataListToString data)
+
+
+{-| Return user names of connected users
+-}
+getConnectedUsers : BackendModel -> List String
+getConnectedUsers model =
+    Dict.keys model.connectionDict
+
+
+truncateMiddle : Int -> Int -> String -> String
+truncateMiddle dropBoth dropRight str =
+    String.left dropBoth str ++ "..." ++ String.right dropBoth (String.dropRight dropRight str)
+
+
+connectionDataListToString : List Types.ConnectionData -> String
+connectionDataListToString list =
+    list |> List.map connectionDataToString |> String.join "; "
+
+
+connectionDataToString : Types.ConnectionData -> String
+connectionDataToString { session, client } =
+    "(" ++ truncateMiddle 2 0 (Effect.Lamdera.sessionIdToString session) ++ ", " ++ truncateMiddle 2 2 (Effect.Lamdera.clientIdToString client) ++ ")"
