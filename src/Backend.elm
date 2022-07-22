@@ -181,13 +181,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Effect.Lamdera.sendToFrontend clientId (GotChatGroup (Dict.get groupName model.chatGroupDict)) )
 
         ChatMsgSubmitted message ->
-            if String.left 2 message.content == "!!" then
-                model
-                    |> Util.apply (Backend.Chat.handleChatMsg message)
-                    |> Util.andThenApply (Backend.Chat.handlePing message) Command.batch
-
-            else
-                model |> Util.apply (Backend.Chat.handleChatMsg message)
+            Backend.Chat.msgSubmitted model message
 
         -- ( { model | chatDict = Chat.Message.insert message model.chatDict }, Cmd.batch (Chat.narrowCast model message) )
         DeliverUserMessage usermessage ->

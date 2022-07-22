@@ -1,4 +1,4 @@
-module Backend.Chat exposing (handleChatMsg, handlePing)
+module Backend.Chat exposing (handleChatMsg, handlePing, msgSubmitted)
 
 import Chat
 import Chat.Message
@@ -9,7 +9,7 @@ import Types exposing (BackendModel, BackendMsg, ToFrontend)
 import Util
 
 
-chatMsgSubmitted model message =
+msgSubmitted model message =
     if String.left 2 message.content == "!!" then
         model
             |> Util.apply (handleChatMsg message)
