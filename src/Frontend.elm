@@ -648,13 +648,13 @@ update msg model =
 
         -- Export
         ExportToMarkdown ->
-            Frontend.Update.exportToMarkdown model
+            Frontend.Export.toMarkdown model
 
         ExportToLaTeX ->
-            Frontend.Update.exportToLaTeX model
+            Frontend.Export.toLaTeX model
 
         ExportToRawLaTeX ->
-            Frontend.Update.exportToRawLaTeX model
+            Frontend.Export.toRawLaTeX model
 
         ExportTo lang ->
             Frontend.Export.to model lang

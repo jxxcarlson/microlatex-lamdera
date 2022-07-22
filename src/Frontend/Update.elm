@@ -3,9 +3,6 @@ port module Frontend.Update exposing
     , adjustId
     , changeLanguage
     , changeSlug
-    , exportToLaTeX
-    , exportToMarkdown
-    , exportToRawLaTeX
     , firstSyncLR
     , handleAsStandardReceivedDocument
     , handleCurrentDocumentChange
@@ -59,7 +56,6 @@ import Duration
 import Effect.Browser.Dom
 import Effect.Browser.Navigation
 import Effect.Command as Command exposing (Command, FrontendOnly)
-import Effect.File.Download
 import Effect.Lamdera exposing (sendToBackend)
 import Effect.Process
 import Effect.Task
@@ -73,9 +69,7 @@ import Markup
 import Message
 import Parser.Language exposing (Language(..))
 import Predicate
-import Render.Export.LaTeX
 import Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
-import Render.Settings as Settings
 import Types exposing (DocumentDeleteState(..), DocumentHandling(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), ToBackend(..))
 import User exposing (User)
 import Util
@@ -121,61 +115,6 @@ port playSound : String -> Cmd msg
 --- SIGN UP, SIGN IN, SIGN OUT
 --- EDITOR
 --- EXPORT
-
-
-exportToLaTeX : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-exportToLaTeX model =
-    let
-        textToExport =
-            Render.Export.LaTeX.export Settings.defaultSettings model.editRecord.parsed
-
-        fileName =
-            (model.currentDocument
-                |> Maybe.map .title
-                |> Maybe.withDefault "doc"
-                |> String.toLower
-                |> Util.compressWhitespace
-                |> String.replace " " "-"
-            )
-                ++ ".tex"
-    in
-    ( model, Effect.File.Download.string fileName "application/x-latex" textToExport )
-
-
-exportToRawLaTeX : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-exportToRawLaTeX model =
-    let
-        textToExport =
-            Render.Export.LaTeX.rawExport Settings.defaultSettings model.editRecord.parsed
-
-        fileName =
-            (model.currentDocument
-                |> Maybe.map .title
-                |> Maybe.withDefault "doc"
-                |> String.toLower
-                |> Util.compressWhitespace
-                |> String.replace " " "-"
-            )
-                ++ ".tex"
-    in
-    ( model, Effect.File.Download.string fileName "application/x-latex" textToExport )
-
-
-exportToMarkdown : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-exportToMarkdown model =
-    let
-        markdownText =
-            -- TODO:implement this
-            -- L1.Render.Markdown.transformDocument model.currentDocument.content
-            "Not implemented"
-
-        fileName_ =
-            "foo" |> String.replace " " "-" |> String.toLower |> (\name -> name ++ ".md")
-    in
-    ( model, Effect.File.Download.string fileName_ "text/markdown" markdownText )
-
-
-
 --- DOCUMENT
 
 
