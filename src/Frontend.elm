@@ -641,7 +641,7 @@ update msg model =
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
-            Frontend.Document.setDocumentAsCurrent model document handling
+            Frontend.Document.setDocumentAsCurrent model handling document
 
         SetDocumentCurrentViaId id ->
             Frontend.Document.setDocumentAsCurrentViaId model id

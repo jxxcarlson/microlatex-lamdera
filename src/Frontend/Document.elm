@@ -26,8 +26,8 @@ setDocumentAsCurrentViaId model id =
             ( Frontend.Update.postProcessDocument doc model, Effect.Command.none )
 
 
-setDocumentAsCurrent : FrontendModel -> Document -> Types.DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-setDocumentAsCurrent model document handling =
+setDocumentAsCurrent : FrontendModel -> Types.DocumentHandling -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+setDocumentAsCurrent model handling document =
     case model.currentDocument of
         Nothing ->
             Frontend.Update.setDocumentAsCurrent Effect.Command.none model document handling
