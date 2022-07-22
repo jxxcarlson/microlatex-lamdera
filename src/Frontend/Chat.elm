@@ -1,4 +1,4 @@
-module Frontend.Chat exposing (createGroup, setGroup)
+module Frontend.Chat exposing (createGroup, gotChatGroup, setGroup)
 
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Lamdera
@@ -54,3 +54,16 @@ createGroup model =
                     }
             in
             ( { model | chatDisplay = Types.TCGDisplay, currentChatGroup = Just newChatGroup }, Effect.Lamdera.sendToBackend (Types.InsertChatGroup newChatGroup) )
+
+
+gotChatGroup model mChatGroup =
+    case mChatGroup of
+        Nothing ->
+            ( model, Effect.Command.none )
+
+        Just group ->
+            let
+                cmd =
+                    Effect.Lamdera.sendToBackend (Types.SendChatHistory group.name)
+            in
+            ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )

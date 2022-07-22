@@ -804,19 +804,7 @@ updateFromBackend msg model =
             Frontend.Document.receivedDocuments model documentHandling documents
 
         MessageReceived message ->
-            let
-                newMessages =
-                    if List.member message.status [ Types.MSRed, Types.MSYellow, Types.MSGreen ] then
-                        [ message ]
-
-                    else
-                        model.messages
-            in
-            if message.txt == "Sorry, password and username don't match" then
-                ( { model | inputPassword = "", messages = newMessages }, Effect.Command.none )
-
-            else
-                ( { model | messages = newMessages }, Effect.Command.none )
+            Frontend.Message.received model message
 
         -- ADMIN
         SendBackupData data ->
@@ -829,24 +817,7 @@ updateFromBackend msg model =
             ( { model | showEditor = flag }, Effect.Command.none )
 
         UserSignedUp user clientId ->
-            ( { model
-                | signupState = HideSignUpForm
-                , currentUser = Just user
-                , clientIds = clientId :: model.clientIds
-                , maximizedIndex = MMyDocs
-                , inputRealname = ""
-                , inputEmail = ""
-                , inputUsername = ""
-                , tagSelection = TagUser
-                , inputPassword = ""
-                , inputPasswordAgain = ""
-                , language = user.preferences.language
-                , timeSignedIn = model.currentTime
-                , showSignInTimer = False
-              }
-              -- , Effect.Lamdera.sendToBackend (GetDocumentById Types.StandardHandling Config.newsDocId)
-            , Effect.Command.none
-            )
+            Frontend.Authentication.userSignedUp model user clientId
 
         -- USER MESSAGES
         UserMessageReceived message ->
@@ -866,16 +837,7 @@ updateFromBackend msg model =
             ( { model | chatMessages = history }, Util.delay 400 ScrollChatToBottom )
 
         GotChatGroup mChatGroup ->
-            case mChatGroup of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just group ->
-                    let
-                        cmd =
-                            Effect.Lamdera.sendToBackend (SendChatHistory group.name)
-                    in
-                    ( { model | currentChatGroup = mChatGroup, inputGroup = group.name }, cmd )
+            Frontend.Chat.gotChatGroup model mChatGroup
 
         ChatMessageReceived message ->
             ( { model | chatMessages = Chat.consolidateOne message model.chatMessages }, View.Chat.scrollChatToBottom )

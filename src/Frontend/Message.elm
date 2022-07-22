@@ -1,4 +1,4 @@
-module Frontend.Message exposing (submitted)
+module Frontend.Message exposing (received, submitted)
 
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Lamdera
@@ -24,3 +24,19 @@ submitted model =
         , View.Chat.scrollChatToBottom
         ]
     )
+
+
+received model message =
+    let
+        newMessages =
+            if List.member message.status [ Types.MSRed, Types.MSYellow, Types.MSGreen ] then
+                [ message ]
+
+            else
+                model.messages
+    in
+    if message.txt == "Sorry, password and username don't match" then
+        ( { model | inputPassword = "", messages = newMessages }, Effect.Command.none )
+
+    else
+        ( { model | messages = newMessages }, Effect.Command.none )
