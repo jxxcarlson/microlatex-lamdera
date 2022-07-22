@@ -1,5 +1,6 @@
 module Frontend.Document exposing
     ( changeLanguage
+    , gotIncludedUserData
     , hardDeleteAll
     , makeBackup
     , setDocumentAsCurrent
@@ -7,6 +8,7 @@ module Frontend.Document exposing
     , updateDoc
     )
 
+import Dict
 import Docs
 import Document exposing (Document)
 import Effect.Command exposing (Command, FrontendOnly)
@@ -116,3 +118,17 @@ makeBackup model =
 
             else
                 ( model, Effect.Command.none )
+
+
+gotIncludedUserData model doc listOfData =
+    let
+        includedContent =
+            List.foldl (\( tag, content ) acc -> Dict.insert tag content acc) model.includedContent listOfData
+
+        updateEditRecord : Dict.Dict String String -> Document.Document -> FrontendModel -> FrontendModel
+        updateEditRecord inclusionData doc_ model_ =
+            Frontend.Update.updateEditRecord inclusionData doc_ model_
+    in
+    ( { model | includedContent = includedContent } |> (\m -> updateEditRecord includedContent doc m)
+    , Effect.Command.none
+    )

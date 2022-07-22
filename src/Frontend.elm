@@ -49,8 +49,6 @@ import Lamdera
 import Markup
 import Parser.Language exposing (Language(..))
 import Predicate
-import Render.MicroLaTeX
-import Render.XMarkdown
 import Share
 import Types
     exposing
@@ -781,29 +779,11 @@ updateFromBackend msg model =
             Frontend.Collaboration.initializeNetworkModel model networkModel
 
         ResetNetworkModel networkModel document ->
-            ( { model
-                | collaborativeEditing = False
-                , networkModel = networkModel
-                , currentDocument = Just document
-                , documents = Document.updateDocumentInList document model.documents
-                , showEditor = False
-              }
-            , Effect.Command.none
-            )
+            Frontend.Collaboration.resetNetworkModel model networkModel document
 
         -- DOCUMENT
         GotIncludedData doc listOfData ->
-            let
-                includedContent =
-                    List.foldl (\( tag, content ) acc -> Dict.insert tag content acc) model.includedContent listOfData
-
-                updateEditRecord : Dict.Dict String String -> Document.Document -> FrontendModel -> FrontendModel
-                updateEditRecord inclusionData doc_ model_ =
-                    Frontend.Update.updateEditRecord inclusionData doc_ model_
-            in
-            ( { model | includedContent = includedContent } |> (\m -> updateEditRecord includedContent doc m)
-            , Effect.Command.none
-            )
+            Frontend.Document.gotIncludedUserData model doc listOfData
 
         AcceptUserTags tagDict ->
             ( { model | tagDict = tagDict }, Effect.Command.none )
