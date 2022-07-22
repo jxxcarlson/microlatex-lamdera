@@ -371,7 +371,6 @@ type FrontendMsg
     | ChangeLanguage
     | MakeBackup
     | ToggleBackupVisibility
-    | SetDocumentCurrent Document
     | SetDocumentCurrentViaId Document.DocumentId
     | GetPinnedDocuments
     | SetLanguage Bool Language
@@ -396,7 +395,7 @@ type FrontendMsg
     | SearchText
     | InputAuthorId String
     | NewDocument
-    | SetDocumentAsCurrentWithHandling DocumentHandling Document
+    | SetDocumentAsCurrent DocumentHandling Document
     | SetPublic Document Bool
     | AskForDocumentById DocumentHandling String
     | AskForDocumentByAuthorId
@@ -658,7 +657,6 @@ type DocumentHandling
     | KeepMasterDocument Document
     | HandleSharedDocument Username
     | PinnedDocumentList
-    | DelayedHandling
     | HandleAsManual
 
 

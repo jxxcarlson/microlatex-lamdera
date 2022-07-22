@@ -660,16 +660,8 @@ update msg model =
         SetPublicDocumentAsCurrentById id ->
             Frontend.Update.setPublicDocumentAsCurrentById model id
 
-        SetDocumentCurrent document ->
-            case model.currentDocument of
-                Nothing ->
-                    Frontend.Update.setDocumentAsCurrent Effect.Command.none model document StandardHandling
-
-                Just currentDocument ->
-                    Frontend.Update.handleCurrentDocumentChange model currentDocument document
-
         -- Handles button clicks
-        SetDocumentAsCurrentWithHandling handling document ->
+        SetDocumentAsCurrent handling document ->
             case model.currentDocument of
                 Nothing ->
                     Frontend.Update.setDocumentAsCurrent Effect.Command.none model document handling
@@ -938,9 +930,6 @@ updateFromBackend msg model =
                 HandleSharedDocument username ->
                     Frontend.Update.handleSharedDocument model username doc
 
-                DelayedHandling ->
-                    Frontend.Update.handleAsReceivedDocumentWithDelay model doc
-
                 PinnedDocumentList ->
                     Frontend.Update.handleAsStandardReceivedDocument model doc
 
@@ -969,7 +958,7 @@ updateFromBackend msg model =
                 , currentMasterDocument = currentMasterDocument
                 , counter = model.counter + 1
               }
-            , Effect.Command.batch [ Util.delay 40 (SetDocumentCurrent doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
+            , Effect.Command.batch [ Util.delay 40 (SetDocumentAsCurrent StandardHandling doc), Frontend.Cmd.setInitialEditorContent 20, View.Utility.setViewPortToTop model.popupState ]
             )
 
         ReceivedPublicDocuments publicDocuments ->
@@ -1015,7 +1004,6 @@ updateFromBackend msg model =
                         PinnedDocumentList ->
                             ( { model | pinnedDocuments = List.map Document.toDocInfo documents, currentDocument = Just doc }
                             , Effect.Command.none
-                              -- TODO: ??, Cmd.batch [ Util.delay 40 (SetDocumentCurrent doc) ]
                             )
 
                         _ ->

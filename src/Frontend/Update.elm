@@ -9,7 +9,6 @@ port module Frontend.Update exposing
     , exportToMarkdown
     , exportToRawLaTeX
     , firstSyncLR
-    , handleAsReceivedDocumentWithDelay
     , handleAsStandardReceivedDocument
     , handleCurrentDocumentChange
     , handleKeepingMasterDocument
@@ -1109,44 +1108,6 @@ handleSharedDocument model username doc =
         , Frontend.Cmd.setInitialEditorContent 20
 
         -- , View.Utility.setViewPortToTop model.popupState
-        ]
-    )
-
-
-handleAsReceivedDocumentWithDelay : FrontendModel -> Document -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
-handleAsReceivedDocumentWithDelay model doc =
-    let
-        editRecord =
-            Compiler.DifferentialParser.init model.includedContent doc.language doc.content
-
-        errorMessages : List Types.Message
-        errorMessages =
-            Message.make (editRecord.messages |> String.join "; ") MSYellow
-
-        currentMasterDocument =
-            if Predicate.isMaster editRecord then
-                Just doc
-
-            else
-                model.currentMasterDocument
-    in
-    ( { model
-        | editRecord = editRecord
-        , title = Compiler.ASTTools.title editRecord.parsed
-        , tableOfContents = Compiler.ASTTools.tableOfContents editRecord.parsed
-        , documents = Document.updateDocumentInList doc model.documents -- insertInListOrUpdate
-        , networkModel = NetworkModel.init (NetworkModel.initialServerState doc.id (User.currentUserId model.currentUser) doc.content)
-        , currentDocument = Just doc
-        , sourceText = doc.content
-        , messages = errorMessages
-        , currentMasterDocument = currentMasterDocument
-        , counter = model.counter + 1
-      }
-    , Command.batch
-        [ Effect.Browser.Navigation.pushUrl model.key ("/c/" ++ doc.id)
-        , Util.delay 200 (SetDocumentCurrent doc)
-        , Frontend.Cmd.setInitialEditorContent 20
-        , View.Utility.setViewPortToTop model.popupState
         ]
     )
 
