@@ -20,9 +20,12 @@ module Backend exposing
 
 import Abstract exposing (Abstract)
 import Authentication
+import Backend.Authentication
 import Backend.Chat
 import Backend.Cmd
 import Backend.Collaboration
+import Backend.Connection
+import Backend.Document
 import Backend.NetworkModel
 import Backend.Update
 import Chat
@@ -239,10 +242,10 @@ updateFromFrontend sessionId clientId msg model =
 
         -- SIGN IN - UP - OUt
         SignInBE username encryptedPassword ->
-            Backend.Update.signIn model sessionId clientId username encryptedPassword
+            Backend.Authentication.signIn model sessionId clientId username encryptedPassword
 
         SignUpBE username lang encryptedPassword realname email ->
-            Backend.Update.signUpUser model sessionId clientId username lang encryptedPassword realname email
+            Backend.Authentication.signUpUser model sessionId clientId username lang encryptedPassword realname email
 
         SignOutBE mUsername ->
             case mUsername of
@@ -293,7 +296,7 @@ updateFromFrontend sessionId clientId msg model =
             ( model
             , Command.batch
                 [ Effect.Lamdera.sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUserAndDocumentData model))
-                , Effect.Lamdera.sendToFrontend clientId (GotConnectionList (Backend.Collaboration.getConnectionData model))
+                , Effect.Lamdera.sendToFrontend clientId (GotConnectionList (Backend.Connection.getConnectionData model))
                 , Effect.Lamdera.sendToFrontend clientId
                     (GotShareDocumentList
                         (model.sharedDocumentDict
@@ -321,7 +324,7 @@ updateFromFrontend sessionId clientId msg model =
                     if key == "" then
                         let
                             docs =
-                                Backend.Update.getMostRecentUserDocuments Types.SortByMostRecent Config.maxDocSearchLimit user model.usersDocumentsDict model.documentDict
+                                Backend.Document.getMostRecentUserDocuments Types.SortByMostRecent Config.maxDocSearchLimit user model.usersDocumentsDict model.documentDict
                         in
                         ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling docs) )
 

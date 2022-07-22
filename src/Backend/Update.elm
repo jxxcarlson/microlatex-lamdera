@@ -2,7 +2,6 @@ module Backend.Update exposing
     ( applySpecial
     , authorTags
     , createDocument
-    , createDocumentAtBackend
     , deliverUserMessage
     , fetchDocumentById
     , findDocumentByAuthorAndKey
@@ -11,14 +10,12 @@ module Backend.Update exposing
     , getDocumentById
     , getDocumentByPublicId
     , getHomePage
-    , getMostRecentUserDocuments
     , getSharedDocuments
     , getUserAndDocumentData
     , getUserData
     , getUserDocuments
     , getUserDocumentsForAuthor
     , getUsersAndOnlineStatus
-    , getUsersAndOnlineStatus_
     , gotAtmosphericRandomNumber
     , hardDeleteDocument
     , hardDeleteDocumentsWithIdList
@@ -31,9 +28,7 @@ module Backend.Update exposing
     , searchForDocuments
     , searchForDocumentsByAuthorAndKey
     , searchForPublicDocuments
-    , signIn
     , signOut
-    , signUpUser
     , unlockDocuments
     , updateAbstracts
     , updateDocumentTags
@@ -41,22 +36,18 @@ module Backend.Update exposing
 
 import Abstract
 import Authentication
-import BoundedDeque
+import Backend.Connection
 import Config
 import Dict
-import Docs
 import Document exposing (Document)
 import DocumentTools
 import Effect.Command as Command exposing (BackendOnly, Command)
 import Effect.Lamdera exposing (ClientId, SessionId)
-import Hex
 import IncludeFiles
 import List.Extra
 import Maybe.Extra
-import Parser.Language exposing (Language)
 import Predicate
 import Random
-import Set
 import Share
 import Token
 import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
@@ -513,48 +504,6 @@ createDocument model clientId maybeCurrentUser doc_ =
     )
 
 
-createDocumentAtBackend : Maybe User -> Document -> Model -> Model
-createDocumentAtBackend maybeCurrentUser doc_ model =
-    let
-        idTokenData =
-            Token.get model.randomSeed
-
-        authorIdTokenData =
-            Token.get idTokenData.seed
-
-        doc =
-            { doc_
-                | id = "id-" ++ idTokenData.token
-                , created = model.currentTime
-                , modified = model.currentTime
-            }
-
-        documentDict =
-            Dict.insert ("id-" ++ idTokenData.token) doc model.documentDict
-
-        authorIdDict =
-            Dict.insert ("au-" ++ authorIdTokenData.token) doc.id model.authorIdDict
-
-        usersDocumentsDict =
-            case maybeCurrentUser of
-                Nothing ->
-                    model.usersDocumentsDict
-
-                Just user ->
-                    let
-                        oldIdList =
-                            Dict.get user.id model.usersDocumentsDict |> Maybe.withDefault []
-                    in
-                    Dict.insert user.id (doc.id :: oldIdList) model.usersDocumentsDict
-    in
-    { model
-        | randomSeed = authorIdTokenData.seed
-        , documentDict = documentDict
-        , authorIdDict = authorIdDict
-        , usersDocumentsDict = usersDocumentsDict
-    }
-
-
 insertDocument model clientId user doc_ =
     let
         doc =
@@ -635,7 +584,7 @@ signOut model username clientId =
             fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
         notifications =
-            Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
+            Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
         updatedModel =
             setDocumentsToReadOnlyWithUserName username model
@@ -673,7 +622,7 @@ removeSessionClient model sessionId clientId =
                     fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
 
                 notifications =
-                    Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
+                    Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
 
                 updatedModel =
                     setDocumentsToReadOnlyWithUserName username model
@@ -710,65 +659,9 @@ removeSession sessionId clientId list =
     List.filter (\datum -> datum /= { session = sessionId, client = clientId }) list
 
 
-signIn model sessionId clientId username encryptedPassword =
-    case Dict.get username model.authenticationDict of
-        Just userData ->
-            if Authentication.verify username encryptedPassword model.authenticationDict then
-                let
-                    newConnectionDict_ =
-                        newConnectionDict username sessionId clientId model.connectionDict
-
-                    chatGroup =
-                        case userData.user.preferences.group of
-                            Nothing ->
-                                Nothing
-
-                            Just groupName ->
-                                Dict.get groupName model.chatGroupDict
-
-                    newsDoc =
-                        Dict.get Config.newsDocId model.documentDict |> Maybe.withDefault Document.empty
-
-                    docs =
-                        List.filter (\d -> d.id /= Config.newsDocId) (getMostRecentUserDocuments Types.SortByMostRecent Config.maxDocSearchLimit userData.user model.usersDocumentsDict model.documentDict)
-                in
-                ( { model | connectionDict = newConnectionDict_ }
-                , Command.batch
-                    [ -- TODO: restore the belo
-                      Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling <| (newsDoc :: docs))
-
-                    --, sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Just userData.user.username) "system:startup" model))
-                    , Effect.Lamdera.sendToFrontend clientId (UserSignedUp userData.user clientId)
-                    , Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Signed in as " ++ userData.user.username, status = MSGreen })
-                    , Effect.Lamdera.sendToFrontend clientId (GotChatGroup chatGroup)
-                    , Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (getUsersAndOnlineStatus_ model.authenticationDict newConnectionDict_))
-                    ]
-                )
-
-            else
-                ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
-
-        Nothing ->
-            ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived <| { txt = "Sorry, password and username don't match", status = MSRed }) )
-
-
 getUsersAndOnlineStatus : Model -> List ( String, Int )
 getUsersAndOnlineStatus model =
-    getUsersAndOnlineStatus_ model.authenticationDict model.connectionDict
-
-
-getUsersAndOnlineStatus_ : Authentication.AuthenticationDict -> ConnectionDict -> List ( String, Int )
-getUsersAndOnlineStatus_ authenticationDict connectionDict =
-    let
-        isConnected username =
-            case Dict.get username connectionDict of
-                Nothing ->
-                    0
-
-                Just data ->
-                    List.length data
-    in
-    List.map (\u -> ( u, isConnected u )) (Dict.keys authenticationDict)
+    Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict model.connectionDict
 
 
 searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe User -> String -> ( Model, Command BackendOnly ToFrontend backendMsg )
@@ -1052,70 +945,6 @@ gotAtmosphericRandomNumber model result =
 -- USER
 
 
-newConnectionDict username sessionId clientId connectionDict =
-    case Dict.get username connectionDict of
-        Nothing ->
-            Dict.insert username [ { session = sessionId, client = clientId } ] connectionDict
-
-        Just [] ->
-            Dict.insert username [ { session = sessionId, client = clientId } ] connectionDict
-
-        Just connections ->
-            Dict.insert username ({ session = sessionId, client = clientId } :: connections) connectionDict
-
-
-signUpUser : Model -> SessionId -> ClientId -> String -> Language -> String -> String -> String -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
-signUpUser model sessionId clientId username lang transitPassword realname email =
-    let
-        newConnectionDict_ =
-            newConnectionDict username sessionId clientId model.connectionDict
-
-        ( randInt, seed ) =
-            Random.step (Random.int (Random.minInt // 2) (Random.maxInt - 1000)) model.randomSeed
-
-        randomHex =
-            Hex.toString randInt |> String.toUpper
-
-        tokenData =
-            Token.get seed
-
-        user =
-            { username = username
-            , id = tokenData.token
-            , realname = realname
-            , email = email
-            , created = model.currentTime
-            , modified = model.currentTime
-            , docs = BoundedDeque.empty 15
-            , preferences = { language = lang, group = Nothing }
-            , chatGroups = []
-            , sharedDocuments = []
-            , sharedDocumentAuthors = Set.empty
-            , pings = []
-            }
-
-        deletedDocsFolder_ =
-            Docs.deletedDocsFolder username
-    in
-    case Authentication.insert user randomHex transitPassword model.authenticationDict of
-        Err str ->
-            ( { model | randomSeed = tokenData.seed }, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Error: " ++ str, status = MSRed }) )
-
-        Ok authDict ->
-            ( { model
-                | connectionDict = newConnectionDict_
-                , randomSeed = tokenData.seed
-                , authenticationDict = authDict
-                , usersDocumentsDict = Dict.insert user.id [] model.usersDocumentsDict
-              }
-                |> createDocumentAtBackend (Just user) deletedDocsFolder_
-            , Command.batch
-                [ Effect.Lamdera.sendToFrontend clientId (UserSignedUp user clientId)
-                , Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Success! Your account is set up.", status = MSGreen })
-                ]
-            )
-
-
 getUserDocuments : Types.SortMode -> Int -> User -> UsersDocumentsDict -> DocumentDict -> List Document.Document
 getUserDocuments sortMode limit user usersDocumentsDict documentDict =
     case Dict.get user.id usersDocumentsDict of
@@ -1127,20 +956,6 @@ getUserDocuments sortMode limit user usersDocumentsDict documentDict =
                 |> Maybe.Extra.values
                 |> DocumentTools.sort sortMode
                 |> List.take limit
-
-
-getMostRecentUserDocuments : Types.SortMode -> Int -> User -> UsersDocumentsDict -> DocumentDict -> List Document.Document
-getMostRecentUserDocuments sortMode limit user usersDocumentsDict documentDict =
-    case Dict.get user.id usersDocumentsDict of
-        Nothing ->
-            []
-
-        Just docIds ->
-            List.foldl (\id acc -> Dict.get id documentDict :: acc) [] docIds
-                |> Maybe.Extra.values
-                |> DocumentTools.sort Types.SortByMostRecent
-                |> List.take limit
-                |> DocumentTools.sort sortMode
 
 
 numberOfUserDocuments : User -> UsersDocumentsDict -> Int
