@@ -33,7 +33,6 @@ import CollaborativeEditing.NetworkModel as NetworkModel
 import Compiler.ASTTools
 import Compiler.DifferentialParser
 import Config
-import Dict exposing (Dict)
 import Docs
 import Document exposing (Document)
 import Duration
@@ -44,16 +43,12 @@ import Effect.Lamdera exposing (sendToBackend)
 import Effect.Process
 import Effect.Task
 import ExtractInfo
-import Frontend.Cmd
-import Frontend.CurrentDocument
 import Frontend.Document
 import Keyboard
 import List.Extra
-import Message
 import Parser.Language exposing (Language(..))
-import Predicate
 import Render.Msg exposing (Handling(..), MarkupMsg(..), SolutionState(..))
-import Types exposing (DocumentDeleteState(..), DocumentHandling(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), ToBackend(..))
+import Types exposing (DocumentDeleteState(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PopupState(..), ToBackend(..))
 import User exposing (User)
 import View.Utility
 

@@ -251,81 +251,89 @@ handleError : String -> State -> State
 handleError line state =
     case state.status of
         InVerbatimBlock name ->
-            let
-                --_ =
-                --    Debug.log "handleError, InVerbatimBlock, LINE" line
-                endTag =
-                    "\\end{" ++ name ++ "}"
-
-                outputHead =
-                    List.head state.output
-            in
-            case outputHead of
-                Nothing ->
-                    { state | output = line :: state.output }
-
-                Just "" ->
-                    -- { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
-                    -- TODO is the change (line above to line below) a good move?)
-                    { state | output = line :: state.output }
-
-                _ ->
-                    if outputHead == Just endTag then
-                        { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
-
-                    else
-                        { state | output = line :: state.output }
+            handleVerbatimBlockError line state name
 
         InOrdinaryBlock name ->
-            let
-                endTag =
-                    "\\end{" ++ name ++ "}"
-
-                outputHead =
-                    List.head state.output
-
-                n =
-                    Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
-            in
-            if line == "" then
-                let
-                    nextLine : Maybe Parser.Line.Line
-                    nextLine =
-                        state.input
-                            |> List.drop 1
-                            |> List.head
-                            |> Maybe.map (Parser.Line.classify 0 0)
-                in
-                if (nextLine |> Maybe.map .indent) /= Just 0 then
-                    { state | output = line :: state.output, status = LXNormal }
-
-                else if n > 0 then
-                    { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
-
-                else
-                    { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
-
-            else
-                case outputHead of
-                    Nothing ->
-                        { state | output = line :: state.output }
-
-                    Just "" ->
-                        if List.isEmpty state.stack then
-                            { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (3)"
-
-                        else
-                            { state | output = line :: state.output }
-
-                    _ ->
-                        if outputHead == Just endTag && List.isEmpty state.stack then
-                            { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
-
-                        else
-                            { state | output = line :: state.output }
+            handleOrdinaryBlockError state line name
 
         LXNormal ->
             { state | output = line :: state.output }
+
+
+handleVerbatimBlockError line state name =
+    let
+        --_ =
+        --    Debug.log "handleError, InVerbatimBlock, LINE" line
+        endTag =
+            "\\end{" ++ name ++ "}"
+
+        outputHead =
+            List.head state.output
+    in
+    case outputHead of
+        Nothing ->
+            { state | output = line :: state.output }
+
+        Just "" ->
+            -- { state | output = line :: "\\red{^^^ missing end tag (1)}" :: state.output, status = LXNormal }
+            -- TODO is the change (line above to line below) a good move?)
+            { state | output = line :: state.output }
+
+        _ ->
+            if outputHead == Just endTag then
+                { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+            else
+                { state | output = line :: state.output }
+
+
+handleOrdinaryBlockError state line name =
+    let
+        endTag =
+            "\\end{" ++ name ++ "}"
+
+        outputHead =
+            List.head state.output
+
+        n =
+            Maybe.map leadingBlanks outputHead |> Maybe.withDefault 0
+    in
+    if line == "" then
+        let
+            nextLine : Maybe Parser.Line.Line
+            nextLine =
+                state.input
+                    |> List.drop 1
+                    |> List.head
+                    |> Maybe.map (Parser.Line.classify 0 0)
+        in
+        if (nextLine |> Maybe.map .indent) /= Just 0 then
+            { state | output = line :: state.output, status = LXNormal }
+
+        else if n > 0 then
+            { state | output = "" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (1)"
+
+        else
+            { state | output = "" :: "\\red{^^^ missing end tag (2)}" :: state.output, status = LXNormal, stack = List.drop 1 state.stack } |> fakeDebugLog state.i "ERROR (2a)"
+
+    else
+        case outputHead of
+            Nothing ->
+                { state | output = line :: state.output }
+
+            Just "" ->
+                if List.isEmpty state.stack then
+                    { state | output = "" :: "\\red{^^^ missing end tag (3)}" :: state.output, status = LXNormal } |> fakeDebugLog state.i "ERROR (3)"
+
+                else
+                    { state | output = line :: state.output }
+
+            _ ->
+                if outputHead == Just endTag && List.isEmpty state.stack then
+                    { state | output = line :: "" :: List.drop 1 state.output, status = LXNormal }
+
+                else
+                    { state | output = line :: state.output }
 
 
 

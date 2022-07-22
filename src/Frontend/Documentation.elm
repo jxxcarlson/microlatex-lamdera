@@ -36,78 +36,90 @@ toggleGuides model =
 toggleManuals model manualType =
     case model.popupState of
         Types.NoPopup ->
-            case manualType of
-                Types.TManual ->
-                    case model.language of
-                        L0Lang ->
-                            ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0ManualId) )
-
-                        MicroLaTeXLang ->
-                            ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXManualId) )
-
-                        XMarkdownLang ->
-                            ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownId) )
-
-                        PlainTextLang ->
-                            ( { model | popupState = Types.NoPopup }, Effect.Command.none )
-
-                Types.TGuide ->
-                    case model.language of
-                        L0Lang ->
-                            ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0GuideId) )
-
-                        MicroLaTeXLang ->
-                            ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXGuideId) )
-
-                        XMarkdownLang ->
-                            ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownGuideId) )
-
-                        PlainTextLang ->
-                            ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+            toggleManualsNoPopup model manualType
 
         Types.ManualsPopup ->
             case manualType of
                 Types.TManual ->
-                    if
-                        List.member (Maybe.andThen Document.getSlug model.currentManual)
-                            [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
-                    then
-                        ( { model | popupState = Types.NoPopup }, Effect.Command.none )
-
-                    else
-                        case model.language of
-                            L0Lang ->
-                                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0ManualId) )
-
-                            MicroLaTeXLang ->
-                                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXManualId) )
-
-                            XMarkdownLang ->
-                                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownId) )
-
-                            PlainTextLang ->
-                                ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+                    toggleManualsManuals model
 
                 Types.TGuide ->
-                    if
-                        List.member (Maybe.andThen Document.getSlug model.currentManual)
-                            [ Just Config.l0GuideId, Just Config.microLaTeXGuideId, Just Config.microLaTeXGuideId ]
-                    then
-                        ( { model | popupState = Types.NoPopup }, Effect.Command.none )
-
-                    else
-                        case model.language of
-                            L0Lang ->
-                                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0GuideId) )
-
-                            MicroLaTeXLang ->
-                                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXGuideId) )
-
-                            XMarkdownLang ->
-                                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownGuideId) )
-
-                            PlainTextLang ->
-                                ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+                    toggleGuides_ model
 
         _ ->
             ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+
+
+toggleManualsNoPopup model manualType =
+    case manualType of
+        Types.TManual ->
+            case model.language of
+                L0Lang ->
+                    ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0ManualId) )
+
+                MicroLaTeXLang ->
+                    ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXManualId) )
+
+                XMarkdownLang ->
+                    ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownId) )
+
+                PlainTextLang ->
+                    ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+
+        Types.TGuide ->
+            case model.language of
+                L0Lang ->
+                    ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0GuideId) )
+
+                MicroLaTeXLang ->
+                    ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXGuideId) )
+
+                XMarkdownLang ->
+                    ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownGuideId) )
+
+                PlainTextLang ->
+                    ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+
+
+toggleManualsManuals model =
+    if
+        List.member (Maybe.andThen Document.getSlug model.currentManual)
+            [ Just Config.l0ManualId, Just Config.microLaTeXManualId, Just Config.microLaTeXManualId ]
+    then
+        ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+
+    else
+        case model.language of
+            L0Lang ->
+                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0ManualId) )
+
+            MicroLaTeXLang ->
+                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXManualId) )
+
+            XMarkdownLang ->
+                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownId) )
+
+            PlainTextLang ->
+                ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+
+
+toggleGuides_ model =
+    if
+        List.member (Maybe.andThen Document.getSlug model.currentManual)
+            [ Just Config.l0GuideId, Just Config.microLaTeXGuideId, Just Config.microLaTeXGuideId ]
+    then
+        ( { model | popupState = Types.NoPopup }, Effect.Command.none )
+
+    else
+        case model.language of
+            L0Lang ->
+                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.l0GuideId) )
+
+            MicroLaTeXLang ->
+                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.microLaTeXGuideId) )
+
+            XMarkdownLang ->
+                ( { model | popupState = Types.ManualsPopup }, Effect.Lamdera.sendToBackend (Types.FetchDocumentById Types.HandleAsManual Config.xmarkdownGuideId) )
+
+            PlainTextLang ->
+                ( { model | popupState = Types.NoPopup }, Effect.Command.none )

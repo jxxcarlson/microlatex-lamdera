@@ -3,7 +3,6 @@ module Frontend.UpdateDocument exposing (setDocumentStatus)
 import Document
 import Effect.Command exposing (Command, FrontendOnly)
 import Frontend.Document
-import Frontend.Update
 import Types
 
 

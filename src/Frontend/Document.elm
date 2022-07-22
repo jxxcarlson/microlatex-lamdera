@@ -32,7 +32,7 @@ import IncludeFiles
 import Message
 import Parser.Language
 import Predicate
-import Types exposing (DocumentDeleteState(..), DocumentHandling(..), FrontendModel, FrontendMsg(..), MessageStatus(..), PhoneMode(..), PopupState(..), ToBackend(..))
+import Types exposing (DocumentHandling(..), FrontendModel, FrontendMsg, MessageStatus(..), ToBackend(..))
 import User exposing (User)
 import Util
 import View.Utility
