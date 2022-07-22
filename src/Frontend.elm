@@ -17,7 +17,7 @@ import Effect.Browser.Events
 import Effect.Browser.Navigation
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.File.Download
-import Effect.Lamdera exposing (sendToBackend)
+import Effect.Lamdera
 import Effect.Process
 import Effect.Subscription as Subscription
 import Effect.Task
@@ -627,29 +627,7 @@ update msg model =
             Frontend.Update.softDeleteDocument model
 
         HardDeleteAll ->
-            case model.currentMasterDocument of
-                Nothing ->
-                    ( model, Effect.Command.none )
-
-                Just masterDoc ->
-                    if masterDoc.title /= "Deleted Docs" then
-                        ( model, Effect.Command.none )
-
-                    else
-                        let
-                            ids =
-                                masterDoc.content
-                                    |> String.split "\n"
-                                    |> List.filter (\line -> String.left 10 line == "| document")
-                                    |> List.map (\line -> String.trim (String.dropLeft 10 line))
-
-                            newMasterDoc =
-                                { masterDoc | content = "| title\nDeleted Docs\n\n" }
-
-                            documents =
-                                List.filter (\doc -> not (List.member doc.id ids)) model.documents
-                        in
-                        ( { model | documents = documents, currentMasterDocument = Just newMasterDoc } |> Frontend.Update.postProcessDocument Docs.deleteDocsRemovedForever, sendToBackend (DeleteDocumentsWithIds ids) )
+            Frontend.Document.hardDeleteAll model
 
         Undelete ->
             Frontend.Update.undeleteDocument model
@@ -662,12 +640,7 @@ update msg model =
 
         -- Handles button clicks
         SetDocumentAsCurrent handling document ->
-            case model.currentDocument of
-                Nothing ->
-                    Frontend.Update.setDocumentAsCurrent Effect.Command.none model document handling
-
-                Just currentDocument ->
-                    Frontend.Update.handleCurrentDocumentChange model currentDocument document
+            Frontend.Document.setDocumentAsCurrent model handling document
 
         SetDocumentCurrentViaId id ->
             case Document.documentFromListViaId id model.documents of

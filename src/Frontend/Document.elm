@@ -1,19 +1,31 @@
 module Frontend.Document exposing
     ( changeLanguage
+    , hardDeleteAll
     , makeBackup
+    , setDocumentAsCurrent
     , updateDoc
     )
 
 import Docs
-import Document
+import Document exposing (Document)
 import Effect.Command exposing (Command, FrontendOnly)
 import Effect.Lamdera
 import Frontend.Update
-import Lamdera
 import Predicate
-import Types
+import Types exposing (FrontendModel, FrontendMsg, ToBackend)
 
 
+setDocumentAsCurrent : FrontendModel -> Document -> Types.DocumentHandling -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
+setDocumentAsCurrent model document handling =
+    case model.currentDocument of
+        Nothing ->
+            Frontend.Update.setDocumentAsCurrent Effect.Command.none model document handling
+
+        Just currentDocument ->
+            Frontend.Update.handleCurrentDocumentChange model currentDocument document
+
+
+hardDeleteAll : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 hardDeleteAll model =
     case model.currentMasterDocument of
         Nothing ->
@@ -47,6 +59,7 @@ hardDeleteAll model =
                 )
 
 
+updateDoc : FrontendModel -> String -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 updateDoc model str =
     -- This is the only route to function updateDoc, updateDoc_
     if Predicate.documentIsMineOrIAmAnEditor model.currentDocument model.currentUser then
@@ -73,6 +86,7 @@ changeLanguage model =
                 |> (\( m, c ) -> ( Frontend.Update.postProcessDocument newDocument m, c ))
 
 
+makeBackup : FrontendModel -> ( FrontendModel, Command FrontendOnly ToBackend FrontendMsg )
 makeBackup model =
     case ( model.currentUser, model.currentDocument ) of
         ( Nothing, _ ) ->

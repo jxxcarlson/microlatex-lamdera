@@ -1,4 +1,4 @@
-module Frontend.Search exposing (..)
+module Frontend.Search exposing (search)
 
 import Effect.Lamdera
 import Types exposing (DocumentHandling(..), DocumentList(..))
