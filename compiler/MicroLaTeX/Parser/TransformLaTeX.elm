@@ -46,7 +46,7 @@ endBlockOfLXStatus status =
 
 toL0 : List String -> List String
 toL0 list =
-    loop { i = 0, input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse |> Debug.log "TO L0!!!"
+    loop { i = 0, input = list, output = [], status = LXNormal, stack = [] } nextState |> List.reverse
 
 
 type Step state a
