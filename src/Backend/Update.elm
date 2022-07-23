@@ -15,15 +15,12 @@ module Backend.Update exposing
     , getUserData
     , getUserDocuments
     , getUserDocumentsForAuthor
-    , getUsersAndOnlineStatus
     , gotAtmosphericRandomNumber
     , hardDeleteDocument
     , hardDeleteDocumentsWithIdList
     , insertDocument
     , join
     , publicTags
-    , removeSessionClient
-    , removeSessionFromDict
     , saveDocument
     , searchForDocuments
     , searchForDocumentsByAuthorAndKey
@@ -35,22 +32,20 @@ module Backend.Update exposing
 
 import Abstract
 import Authentication
-import Backend.Connection
 import Backend.Document
 import Config
 import Dict
 import Document exposing (Document)
 import DocumentTools
 import Effect.Command as Command exposing (BackendOnly, Command)
-import Effect.Lamdera exposing (ClientId, SessionId)
+import Effect.Lamdera exposing (ClientId)
 import IncludeFiles
-import List.Extra
 import Maybe.Extra
 import Predicate
 import Random
 import Share
 import Token
-import Types exposing (AbstractDict, BackendModel, BackendMsg, ConnectionData, ConnectionDict, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
+import Types exposing (AbstractDict, BackendModel, BackendMsg, DocumentDict, DocumentHandling(..), MessageStatus(..), ToFrontend(..), UsersDocumentsDict)
 import User exposing (User)
 import Util
 
@@ -482,21 +477,6 @@ insertDocument model clientId user doc_ =
     )
 
 
-getConnectedUser : ClientId -> ConnectionDict -> Maybe Types.Username
-getConnectedUser clientId dict =
-    let
-        connectionData =
-            dict |> Dict.toList |> List.map (\( username, data ) -> ( username, List.map .client data ))
-
-        usernames =
-            connectionData
-                |> List.filter (\( _, data ) -> List.member clientId data)
-                |> List.map (\( a, _ ) -> a)
-                |> List.Extra.unique
-    in
-    List.head usernames
-
-
 
 --cleanup model sessionId clientId =
 --    ( { model
@@ -506,73 +486,6 @@ getConnectedUser clientId dict =
 --      }
 --    , Cmd.none
 --    )
-
-
-removeSessionClient : BackendModel -> SessionId -> ClientId -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
-removeSessionClient model sessionId clientId =
-    case getConnectedUser clientId model.connectionDict of
-        Nothing ->
-            ( { model | connectionDict = removeSessionFromDict sessionId clientId model.connectionDict }, Command.none )
-
-        Just username ->
-            let
-                connectionDict =
-                    removeSessionFromDict sessionId clientId model.connectionDict
-
-                activeSharedDocIds =
-                    Share.activeDocumentIdsSharedByMe username model.sharedDocumentDict |> List.map .id
-
-                documents : List Document.Document
-                documents =
-                    List.foldl (\id list -> Dict.get id model.documentDict :: list) [] activeSharedDocIds
-                        |> Maybe.Extra.values
-                        |> List.map (\doc -> Share.unshare doc)
-
-                pushSignOutDocCmd : Command BackendOnly ToFrontend BackendMsg
-                pushSignOutDocCmd =
-                    Backend.Document.fetchDocumentByIdCmd model clientId Config.signOutDocumentId StandardHandling
-
-                notifications =
-                    Effect.Lamdera.broadcast (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict connectionDict)) :: List.map (\doc -> Share.narrowCast clientId doc connectionDict) documents
-
-                updatedModel =
-                    Backend.Document.setDocumentsToReadOnlyWithUserName username model
-            in
-            ( { updatedModel
-                | sharedDocumentDict = Dict.map Share.removeUserFromSharedDocument model.sharedDocumentDict
-                , connectionDict = connectionDict
-              }
-            , Command.batch <| pushSignOutDocCmd :: notifications
-            )
-
-
-removeSessionFromDict : SessionId -> ClientId -> ConnectionDict -> ConnectionDict
-removeSessionFromDict sessionId clientId connectionDict =
-    connectionDict
-        |> Dict.toList
-        |> removeSessionFromList sessionId clientId
-        |> Dict.fromList
-
-
-removeSessionFromList : SessionId -> ClientId -> List ( String, List ConnectionData ) -> List ( String, List ConnectionData )
-removeSessionFromList sessionId clientId dataList =
-    List.map (\item -> removeItem sessionId clientId item) dataList
-        |> List.filter (\( _, list ) -> list /= [])
-
-
-removeItem : SessionId -> ClientId -> ( String, List ConnectionData ) -> ( String, List ConnectionData )
-removeItem sessionId clientId ( username, data ) =
-    ( username, removeSession sessionId clientId data )
-
-
-removeSession : SessionId -> ClientId -> List ConnectionData -> List ConnectionData
-removeSession sessionId clientId list =
-    List.filter (\datum -> datum /= { session = sessionId, client = clientId }) list
-
-
-getUsersAndOnlineStatus : Model -> List ( String, Int )
-getUsersAndOnlineStatus model =
-    Backend.Connection.getUsersAndOnlineStatus_ model.authenticationDict model.connectionDict
 
 
 searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe User -> String -> ( Model, Command BackendOnly ToFrontend backendMsg )

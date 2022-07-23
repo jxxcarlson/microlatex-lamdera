@@ -127,7 +127,7 @@ update msg model =
             ( model, Command.none )
 
         ClientDisconnected sessionId clientId ->
-            Backend.Update.removeSessionClient model sessionId clientId
+            Backend.Connection.removeSessionClient model sessionId clientId
 
         DelaySendingDocument clientId doc ->
             ( model
@@ -279,7 +279,7 @@ updateFromFrontend sessionId clientId msg model =
         GetUsersWithOnlineStatus ->
             ( model
             , Command.batch
-                [ Effect.Lamdera.sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Update.getUsersAndOnlineStatus model))
+                [ Effect.Lamdera.sendToFrontend clientId (GotUsersWithOnlineStatus (Backend.Connection.getUsersAndOnlineStatus model))
                 ]
             )
 
