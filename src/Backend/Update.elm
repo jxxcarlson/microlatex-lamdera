@@ -4,8 +4,6 @@ module Backend.Update exposing
     , createDocument
     , deliverUserMessage
     , fetchDocumentById
-    , findDocumentByAuthorAndKey
-    , findDocumentByAuthorAndKey_
     , getDocumentByAuthorId
     , getDocumentById
     , getDocumentByPublicId
@@ -14,7 +12,6 @@ module Backend.Update exposing
     , getUserAndDocumentData
     , getUserData
     , getUserDocuments
-    , getUserDocumentsForAuthor
     , gotAtmosphericRandomNumber
     , hardDeleteDocument
     , hardDeleteDocumentsWithIdList
@@ -22,9 +19,6 @@ module Backend.Update exposing
     , join
     , publicTags
     , saveDocument
-    , searchForDocuments
-    , searchForDocumentsByAuthorAndKey
-    , searchForPublicDocuments
     , unlockDocuments
     , updateAbstracts
     , updateDocumentTags
@@ -33,6 +27,7 @@ module Backend.Update exposing
 import Abstract
 import Authentication
 import Backend.Document
+import Backend.Search
 import Config
 import Dict
 import Document exposing (Document)
@@ -229,7 +224,7 @@ getHomePage model clientId username =
     let
         docs =
             -- searchForDocuments_ ("home:" ++ username) model
-            searchForDocuments_ (username ++ ":home") model
+            Backend.Search.byKey_ (username ++ ":home") model
     in
     case List.head docs of
         Nothing ->
@@ -326,7 +321,7 @@ getIncludedFilesCmd model clientId doc fileList =
 
         getContent : ( String, String ) -> String
         getContent ( author, key ) =
-            findDocumentByAuthorAndKey_ model author (author ++ ":" ++ key)
+            Backend.Search.findDocumentByAuthorAndKey_ model author (author ++ ":" ++ key)
                 |> Maybe.map .content
                 |> Maybe.withDefault ""
                 |> String.lines
@@ -486,84 +481,12 @@ insertDocument model clientId user doc_ =
 --      }
 --    , Cmd.none
 --    )
-
-
-searchForDocuments : Model -> ClientId -> DocumentHandling -> Maybe User -> String -> ( Model, Command BackendOnly ToFrontend backendMsg )
-searchForDocuments model clientId documentHandling currentUser key =
-    ( model
-    , if String.contains ":user" key then
-        Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments (Maybe.map .username currentUser) (stripKey ":user" key) model))
-
-      else
-        Command.batch
-            [ Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling (searchForUserDocuments (Maybe.map .username currentUser) key model))
-            , Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (searchForPublicDocuments Types.SortAlphabetically Config.maxDocSearchLimit (Maybe.map .username currentUser) key model))
-            ]
-    )
-
-
-stripKey str key =
-    String.replace str key "" |> String.trim
-
-
-searchForDocumentsByAuthorAndKey model clientId key =
-    ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments StandardHandling (searchForDocumentsByAuthorAndKey_ model key)) )
-
-
-searchForDocumentsByAuthorAndKey_ : Model -> String -> List Document.Document
-searchForDocumentsByAuthorAndKey_ model key =
-    case String.split "/" key of
-        [] ->
-            []
-
-        author :: [] ->
-            getUserDocumentsForAuthor author model
-
-        author :: firstKey :: _ ->
-            getUserDocumentsForAuthor author model |> List.filter (\doc -> List.member ("id:" ++ firstKey) doc.tags)
-
-
-findDocumentByAuthorAndKey : BackendModel -> ClientId -> Types.DocumentHandling -> String -> String -> ( BackendModel, Command BackendOnly ToFrontend BackendMsg )
-findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey =
-    case findDocumentByAuthorAndKey_ model authorName searchKey of
-        Nothing ->
-            ( model, Command.none )
-
-        Just doc ->
-            ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocument documentHandling doc) )
-
-
-findDocumentByAuthorAndKey_ : BackendModel -> String -> String -> Maybe Document
-findDocumentByAuthorAndKey_ model authorName searchKey =
-    let
-        foundDocs =
-            getUserDocumentsForAuthor authorName model |> List.filter (\doc -> List.member searchKey doc.tags)
-    in
-    List.head foundDocs
-
-
-getUserDocumentsForAuthor : String -> Model -> List Document.Document
-getUserDocumentsForAuthor author model =
-    case Authentication.userIdFromUserName author model.authenticationDict of
-        Nothing ->
-            []
-
-        Just userId ->
-            case Dict.get userId model.usersDocumentsDict of
-                Nothing ->
-                    []
-
-                Just usersDocIds ->
-                    List.map (\id -> Dict.get id model.documentDict) usersDocIds |> Maybe.Extra.values
-
-
-
 -- TAGS
 
 
 authorTags : String -> Model -> Dict.Dict String (List { id : String, title : String })
 authorTags authorName model =
-    makeTagDict (getUserDocumentsForAuthor authorName model |> List.filter (\{ title } -> not (String.contains "(BAK)" title)))
+    makeTagDict (Backend.Search.getUserDocumentsForAuthor authorName model |> List.filter (\{ title } -> not (String.contains "(BAK)" title)))
 
 
 publicTags : Model -> Dict.Dict String (List { id : String, title : String })
@@ -623,41 +546,6 @@ insertIf { id, title, tag } dict =
 
             Just ids ->
                 Dict.insert tag ({ id = id, title = title } :: ids) dict
-
-
-searchForPublicDocuments : Types.SortMode -> Int -> Maybe String -> String -> Model -> List Document.Document
-searchForPublicDocuments sortMode limit mUsername key model =
-    searchForDocuments_ key model
-        |> List.filter (\doc -> doc.public || Predicate.isSharedToMe_ mUsername doc)
-        |> DocumentTools.sort sortMode
-        |> List.take limit
-
-
-searchForDocuments_ : String -> Model -> List Document.Document
-searchForDocuments_ key model =
-    let
-        ids =
-            Dict.toList model.abstractDict
-                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
-                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
-                |> List.map (\( _, id ) -> id)
-    in
-    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids |> Maybe.Extra.values
-
-
-searchForUserDocuments : Maybe String -> String -> Model -> List Document.Document
-searchForUserDocuments maybeUsername key model =
-    let
-        ids =
-            Dict.toList model.abstractDict
-                |> List.map (\( id, abstr ) -> ( abstr.digest, id ))
-                |> List.filter (\( dig, _ ) -> String.contains (String.toLower key) dig)
-                |> List.map (\( _, id ) -> id)
-    in
-    List.foldl (\id acc -> Dict.get id model.documentDict :: acc) [] ids
-        |> Maybe.Extra.values
-        |> List.filter (\doc -> doc.author /= Just "" && doc.author == maybeUsername)
-        |> List.take Config.maxDocSearchLimit
 
 
 

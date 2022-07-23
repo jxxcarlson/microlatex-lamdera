@@ -27,6 +27,7 @@ import Backend.Collaboration
 import Backend.Connection
 import Backend.Document
 import Backend.NetworkModel
+import Backend.Search
 import Backend.Update
 import Chat
 import Config
@@ -312,13 +313,13 @@ updateFromFrontend sessionId clientId msg model =
 
         -- SEARCH
         SearchForDocumentsWithAuthorAndKey segment ->
-            Backend.Update.searchForDocumentsByAuthorAndKey model clientId segment
+            Backend.Search.byAuthorAndKey model clientId segment
 
         SearchForDocuments documentHandling currentUser key ->
             -- TODO: Refactor!
             case currentUser of
                 Nothing ->
-                    Backend.Update.searchForDocuments model clientId documentHandling currentUser key
+                    Backend.Search.searchForDocuments model clientId documentHandling currentUser key
 
                 Just user ->
                     if key == "" then
@@ -329,10 +330,10 @@ updateFromFrontend sessionId clientId msg model =
                         ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocuments documentHandling docs) )
 
                     else
-                        Backend.Update.searchForDocuments model clientId documentHandling currentUser key
+                        Backend.Search.searchForDocuments model clientId documentHandling currentUser key
 
         FindDocumentByAuthorAndKey documentHandling authorName searchKey ->
-            Backend.Update.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
+            Backend.Search.findDocumentByAuthorAndKey model clientId documentHandling authorName searchKey
 
         -- DOCUMENT
         DeleteDocumentsWithIds ids ->
@@ -341,7 +342,7 @@ updateFromFrontend sessionId clientId msg model =
         MakeCollection title username tag ->
             let
                 docInfo =
-                    Backend.Update.getUserDocumentsForAuthor username model
+                    Backend.Search.getUserDocumentsForAuthor username model
                         |> List.filter (\doc -> List.member tag doc.tags)
                         |> List.sortBy (\doc -> String.toLower doc.title)
                         |> List.map makeDocLink
@@ -371,7 +372,7 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.getDocumentByPublicId model clientId publicId
 
         GetPublicDocuments sortMode mUsername ->
-            ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (Backend.Update.searchForPublicDocuments sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
+            ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (Backend.Search.publicByKey sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
 
         -- DOCUMENTS
         ClearEditEvents userId ->
@@ -394,7 +395,7 @@ updateFromFrontend sessionId clientId msg model =
 
                 getContent : ( String, String ) -> String
                 getContent ( author, key ) =
-                    Backend.Update.findDocumentByAuthorAndKey_ model author (author ++ ":" ++ key)
+                    Backend.Search.findDocumentByAuthorAndKey_ model author (author ++ ":" ++ key)
                         |> Maybe.map .content
                         |> Maybe.withDefault ""
                         |> String.lines
