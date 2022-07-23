@@ -2,6 +2,7 @@ module Frontend.AppState exposing (set)
 
 import Effect.Command
 import Effect.Lamdera
+import Frontend.Update
 import Types
 
 
@@ -15,4 +16,4 @@ set model appMode =
                 Types.AdminMode ->
                     Effect.Lamdera.sendToBackend Types.GetUserList
     in
-    ( { model | appMode = appMode }, Effect.Command.batch [ cmd ] )
+    ( { model | appMode = appMode }, Effect.Command.batch [ cmd, Frontend.Update.playSound_ "boing-short.mp3" ] )

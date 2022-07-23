@@ -10,6 +10,7 @@ port module Frontend.Update exposing
     , newFolder
     , nextSyncLR
     , playSound
+    , playSound_
     , render
     , runSpecial
     , saveCurrentDocumentToBackend
@@ -44,6 +45,7 @@ import Effect.Process
 import Effect.Task
 import ExtractInfo
 import Frontend.Document
+import Json.Encode
 import Keyboard
 import List.Extra
 import Parser.Language exposing (Language(..))
@@ -53,7 +55,14 @@ import User exposing (User)
 import View.Utility
 
 
-port playSound : String -> Cmd msg
+port playSound : Json.Encode.Value -> Cmd msg
+
+
+{-| Expose this and use it instead of the port directly
+-}
+playSound_ : String -> Command FrontendOnly toMsg msg
+playSound_ soundName =
+    Command.sendToJs "playSound" playSound (Json.Encode.string soundName)
 
 
 
