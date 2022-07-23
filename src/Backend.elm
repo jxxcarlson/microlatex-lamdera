@@ -26,6 +26,7 @@ import Backend.Cmd
 import Backend.Collaboration
 import Backend.Connection
 import Backend.Document
+import Backend.Get
 import Backend.NetworkModel
 import Backend.Search
 import Backend.Update
@@ -363,13 +364,13 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocument Types.StandardHandling collectionDoc) )
 
         GetSharedDocuments username ->
-            Backend.Update.getSharedDocuments model clientId username
+            Backend.Get.getSharedDocuments model clientId username
 
         FetchDocumentById documentHandling docId ->
-            Backend.Update.fetchDocumentById model clientId docId documentHandling
+            Backend.Get.fetchDocumentById model clientId docId documentHandling
 
         GetDocumentByPublicId publicId ->
-            Backend.Update.getDocumentByPublicId model clientId publicId
+            Backend.Get.getDocumentByPublicId model clientId publicId
 
         GetPublicDocuments sortMode mUsername ->
             ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (Backend.Search.publicByKey sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
@@ -430,13 +431,13 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Update.saveDocument model clientId currentUser document
 
         GetCheatSheetDocument ->
-            Backend.Update.fetchDocumentById model clientId Config.l0GuideId Types.HandleAsManual
+            Backend.Get.fetchDocumentById model clientId Config.l0GuideId Types.HandleAsManual
 
         GetHomePage username ->
-            Backend.Update.getHomePage model clientId username
+            Backend.Get.getHomePage model clientId username
 
         GetDocumentById documentHandling id ->
-            Backend.Update.getDocumentById model clientId documentHandling id
+            Backend.Get.getDocumentById model clientId documentHandling id
 
         ApplySpecial _ _ ->
             Backend.Update.applySpecial model
