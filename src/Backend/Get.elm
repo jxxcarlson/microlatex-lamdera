@@ -1,11 +1,11 @@
 module Backend.Get exposing
-    ( fetchDocumentById
-    , getDocumentByAuthorId
-    , getDocumentByCmdId
-    , getDocumentById
-    , getDocumentByPublicId
-    , getHomePage
-    , getSharedDocuments
+    ( byAuthorAndId
+    , byId
+    , byIdCmd
+    , fetchDocumentById
+    , home
+    , publicById
+    , shared
     )
 
 import Backend.Document
@@ -20,7 +20,7 @@ import Types exposing (BackendModel, BackendMsg, DocumentHandling(..), MessageSt
 import Util
 
 
-getSharedDocuments model clientId username =
+shared model clientId username =
     let
         docList =
             model.sharedDocumentDict
@@ -50,11 +50,11 @@ getSharedDocuments model clientId username =
     )
 
 
-getDocumentById model clientId documentHandling id =
+byId model clientId documentHandling id =
     case Dict.get id model.documentDict of
         Nothing ->
             -- ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "No document for that docId", status = MSRed }) )
-            ( model, getDocumentByCmdId model clientId id )
+            ( model, byIdCmd model clientId id )
 
         Just doc ->
             ( model
@@ -65,7 +65,7 @@ getDocumentById model clientId documentHandling id =
             )
 
 
-getDocumentByCmdId model clientId id =
+byIdCmd model clientId id =
     case Dict.get id model.documentDict of
         Nothing ->
             Command.none
@@ -77,7 +77,7 @@ getDocumentByCmdId model clientId id =
                 ]
 
 
-getDocumentByAuthorId model clientId authorId =
+byAuthorAndId model clientId authorId =
     case Dict.get authorId model.authorIdDict of
         Nothing ->
             ( model
@@ -100,7 +100,7 @@ getDocumentByAuthorId model clientId authorId =
                     )
 
 
-getHomePage model clientId username =
+home model clientId username =
     let
         docs =
             -- searchForDocuments_ ("home:" ++ username) model
@@ -119,7 +119,7 @@ getHomePage model clientId username =
             )
 
 
-getDocumentByPublicId model clientId publicId =
+publicById model clientId publicId =
     case Dict.get publicId model.publicIdDict of
         Nothing ->
             ( model, Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "GetDocumentByPublicId, No docId for that publicId", status = MSWhite }) )
@@ -151,14 +151,14 @@ fetchDocumentById model clientId docId documentHandling =
 
     else
         ( model
-        , fetchDocumentBySlugCmd model clientId docId documentHandling
+        , cmdBySlug model clientId docId documentHandling
         )
 
 
 {-| This command allows one to fetch a doc by its slug
 -}
-fetchDocumentBySlugCmd : BackendModel -> ClientId -> String -> DocumentHandling -> Command BackendOnly ToFrontend BackendMsg
-fetchDocumentBySlugCmd model clientId docSlug documentHandling =
+cmdBySlug : BackendModel -> ClientId -> String -> DocumentHandling -> Command BackendOnly ToFrontend BackendMsg
+cmdBySlug model clientId docSlug documentHandling =
     case Dict.get docSlug model.slugDict of
         Nothing ->
             Effect.Lamdera.sendToFrontend clientId (MessageReceived { txt = "Couldn't find that document (2)", status = MSWhite })
@@ -180,11 +180,11 @@ fetchDocumentBySlugCmd model clientId docSlug documentHandling =
                             Command.none
 
                           else
-                            getIncludedFilesCmd model clientId document filesToInclude
+                            cmdForIncudedFiles model clientId document filesToInclude
                         ]
 
 
-getIncludedFilesCmd model clientId doc fileList =
+cmdForIncudedFiles model clientId doc fileList =
     let
         tuplify : List String -> Maybe ( String, String )
         tuplify strs =

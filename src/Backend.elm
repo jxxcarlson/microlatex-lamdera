@@ -364,13 +364,13 @@ updateFromFrontend sessionId clientId msg model =
             ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedDocument Types.StandardHandling collectionDoc) )
 
         GetSharedDocuments username ->
-            Backend.Get.getSharedDocuments model clientId username
+            Backend.Get.shared model clientId username
 
         FetchDocumentById documentHandling docId ->
             Backend.Get.fetchDocumentById model clientId docId documentHandling
 
         GetDocumentByPublicId publicId ->
-            Backend.Get.getDocumentByPublicId model clientId publicId
+            Backend.Get.publicById model clientId publicId
 
         GetPublicDocuments sortMode mUsername ->
             ( model, Effect.Lamdera.sendToFrontend clientId (ReceivedPublicDocuments (Backend.Search.publicByKey sortMode Config.maxDocSearchLimit mUsername "startup" model)) )
@@ -434,10 +434,10 @@ updateFromFrontend sessionId clientId msg model =
             Backend.Get.fetchDocumentById model clientId Config.l0GuideId Types.HandleAsManual
 
         GetHomePage username ->
-            Backend.Get.getHomePage model clientId username
+            Backend.Get.home model clientId username
 
         GetDocumentById documentHandling id ->
-            Backend.Get.getDocumentById model clientId documentHandling id
+            Backend.Get.byId model clientId documentHandling id
 
         ApplySpecial _ _ ->
             Backend.Update.applySpecial model

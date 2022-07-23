@@ -421,7 +421,7 @@ hardDeleteDocument clientId doc model =
         , publicDocuments = publicDocuments
         , documents = documents
       }
-    , Backend.Get.getDocumentByCmdId model clientId Config.documentDeletedNotice
+    , Backend.Get.byIdCmd model clientId Config.documentDeletedNotice
     )
 
 
