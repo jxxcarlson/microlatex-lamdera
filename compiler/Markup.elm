@@ -103,7 +103,7 @@ parse lang sourceText =
                     MicroLaTeX.Parser.Expression.parse
 
                 L0Lang ->
-                    L0.Parser.Expression.parse
+                    L0.Parser.Expression.parseWithMessages
 
                 PlainTextLang ->
                     \_ s -> ( parsePlainText s, [] )

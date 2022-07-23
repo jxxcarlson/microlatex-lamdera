@@ -4,6 +4,7 @@ module L0.Parser.Expression exposing
     , parse
     , parseToState
     , parseTokenList
+    , parseWithMessages
     )
 
 import L0.Parser.Match as M
@@ -61,8 +62,17 @@ initWithTokens lineNumber tokens =
 -- Exposed functions
 
 
-parse : Int -> String -> ( List Expr, List String )
+parse : Int -> String -> List Expr
 parse lineNumber str =
+    let
+        state =
+            parseToState lineNumber str
+    in
+    state.committed
+
+
+parseWithMessages : Int -> String -> ( List Expr, List String )
+parseWithMessages lineNumber str =
     let
         state =
             parseToState lineNumber str

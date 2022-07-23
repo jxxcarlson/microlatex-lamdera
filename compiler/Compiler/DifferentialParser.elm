@@ -115,7 +115,7 @@ parser lang =
             Tree.map (Parser.BlockUtil.toExpressionBlock lang MicroLaTeX.Parser.Expression.parse)
 
         L0Lang ->
-            Tree.map (Parser.BlockUtil.toExpressionBlock lang L0.Parser.Expression.parse)
+            Tree.map (Parser.BlockUtil.toExpressionBlock lang L0.Parser.Expression.parseWithMessages)
 
         PlainTextLang ->
             Tree.map (Parser.BlockUtil.toExpressionBlock lang (\_ s -> ( Markup.parsePlainText s, [] )))

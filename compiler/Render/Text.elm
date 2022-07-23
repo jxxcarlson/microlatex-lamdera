@@ -1,14 +1,14 @@
 module Render.Text exposing (fromExpr, idem, print)
 
+import L0.Parser.Error
+import L0.Parser.Expression as Expression
 import Parser.Expr exposing (Expr(..))
-import Parser.Expression as Expression
 
 
 idem : String -> String
 idem str =
     str
-        |> Expression.parseToState
-        |> .committed
+        |> Expression.parse 0
         |> print
 
 
@@ -36,6 +36,3 @@ fromExpr expr =
 
                 _ ->
                     "error: verbatim " ++ name ++ " not recognized"
-
-        Error str ->
-            "Error (" ++ str ++ ")"

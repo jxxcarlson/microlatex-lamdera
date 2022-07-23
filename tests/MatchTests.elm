@@ -1,7 +1,7 @@
 module MatchTests exposing (p, suite, suite2, testParser, test_)
 
 import Expect exposing (equal)
-import L0.Parser.Expression exposing (parse)
+import L0.Parser.Expression exposing (parseWithMessages)
 import L0.Parser.Match exposing (isReducible)
 import L0.Parser.Symbol exposing (Symbol(..))
 import Parser.Expr exposing (Expr(..))
@@ -17,7 +17,7 @@ testParser input expected =
 
 
 p =
-    parse 0
+    parseWithMessages 0
 
 
 suite : Test
